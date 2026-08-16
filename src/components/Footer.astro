@@ -1,0 +1,52 @@
+---
+// 页脚组件
+---
+
+<footer class="site-footer glass">
+  <div class="footer-inner">
+    <p class="footer-copy">Copyright © 2026 羽毛. All Rights Reserved</p>
+    <p class="footer-note">
+      由 <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> 和
+      <a href="https://vuejs.org" target="_blank" rel="noopener noreferrer">Vue</a> 驱动
+    </p>
+  </div>
+</footer>
+
+<style>
+  /* 页脚：全宽毛玻璃条 */
+  .site-footer {
+    border-radius: 0;
+    padding: 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-copy {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .footer-note {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* 手机端：居中堆叠 */
+  @media (max-width: 640px) {
+    .footer-inner {
+      flex-direction: column;
+      gap: 4px;
+      padding: 16px;
+      text-align: center;
+    }
+  }
+</style>

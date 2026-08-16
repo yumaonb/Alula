@@ -1,0 +1,117 @@
+---
+// 导航栏
+import { Icon } from "astro-icon/components";
+---
+
+<nav class="navbar glass">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo" aria-label="首页">
+      <Icon name="la:home" class="nav-home-icon" />
+      羽毛的小屋
+    </a>
+    <ul class="nav-links">
+      <li><a href="#about">关于</a></li>
+      <li><a href="#skills">技能</a></li>
+      <li><a href="#projects">作品</a></li>
+      <li><a href="#contact">联系</a></li>
+    </ul>
+  </div>
+</nav>
+
+<style>
+  /* 导航栏（固定在顶部） */
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    border-radius: 0;
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .nav-home-icon {
+    width: 1.15em;
+    height: 1.15em;
+    color: inherit;
+  }
+
+  /* 导航链接列表 */
+  .nav-links {
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-links a {
+    display: block;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+    border-radius: var(--radius);
+    transition: color 0.3s, background 0.3s;
+  }
+
+  .nav-links a:hover,
+  .nav-links a:focus-visible {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  /* 手机端：缩小导航栏 */
+  @media (max-width: 640px) {
+    .nav-inner {
+      height: 56px;
+      padding: 0 16px;
+    }
+
+    .nav-logo {
+      font-size: 1.05rem;
+    }
+
+    .nav-links {
+      gap: 2px;
+    }
+
+    .nav-links a {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+  }
+
+  /* 桌面端：加大间距 */
+  @media (min-width: 1024px) {
+    .nav-inner {
+      height: 68px;
+    }
+
+    .nav-links {
+      gap: 4px;
+    }
+
+    .nav-links a {
+      padding: 8px 20px;
+      font-size: 0.95rem;
+    }
+  }
+</style>

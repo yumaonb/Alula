@@ -1,24 +1,21 @@
-# build output
+# 构建输出
 dist/
 
-# generated types
+# 生成的类型
 .astro/
 
-# dependencies
+# 依赖
 node_modules/
 
-# logs
+# 日志
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# environment variables
+# 环境变量
 .env
 .env.production
 
-# macOS-specific files
-.DS_Store
-
-# jetbrains setting folder
+# JetBrains 配置文件夹
 .idea/

@@ -1,0 +1,61 @@
+
+//  随机一言数据集
+//  每条包含 { text, from?, fromWho? }
+
+export interface Quote {
+  text: string;
+  from?: string;
+  fromWho?: string;
+}
+
+const quotes: Quote[] = [
+  // —— 诗词 ——
+  { text: "人生若只如初见，何事秋风悲画扇。", from: "木兰花·拟古决绝词柬友", fromWho: "纳兰性德" },
+  { text: "山有木兮木有枝，心悦君兮君不知。", from: "越人歌", fromWho: "佚名" },
+  { text: "曾经沧海难为水，除却巫山不是云。", from: "离思五首·其四", fromWho: "元稹" },
+  { text: "人生得意须尽欢，莫使金樽空对月。", from: "将进酒", fromWho: "李白" },
+  { text: "此情可待成追忆，只是当时已惘然。", from: "锦瑟", fromWho: "李商隐" },
+  { text: "两情若是久长时，又岂在朝朝暮暮。", from: "鹊桥仙", fromWho: "秦观" },
+  { text: "问君能有几多愁，恰似一江春水向东流。", from: "虞美人", fromWho: "李煜" },
+  { text: "采菊东篱下，悠然见南山。", from: "饮酒·其五", fromWho: "陶渊明" },
+  { text: "海内存知己，天涯若比邻。", from: "送杜少府之任蜀州", fromWho: "王勃" },
+  { text: "落红不是无情物，化作春泥更护花。", from: "己亥杂诗·其五", fromWho: "龚自珍" },
+  { text: "大漠孤烟直，长河落日圆。", from: "使至塞上", fromWho: "王维" },
+  { text: "会当凌绝顶，一览众山小。", from: "望岳", fromWho: "杜甫" },
+
+  // —— 哲理 ——
+  { text: "未经审视的人生是不值得过的。", from: "申辩篇", fromWho: "苏格拉底" },
+  { text: "我思故我在。", from: "谈谈方法", fromWho: "笛卡尔" },
+  { text: "人生而自由，却无往不在枷锁之中。", from: "社会契约论", fromWho: "卢梭" },
+  { text: "存在即合理。", from: "法哲学原理", fromWho: "黑格尔" },
+  { text: "知识就是力量。", from: "新工具", fromWho: "培根" },
+  { text: "三人行，必有我师焉。", from: "论语", fromWho: "孔子" },
+  { text: "知之为知之，不知为不知，是知也。", from: "论语", fromWho: "孔子" },
+  { text: "学而不思则罔，思而不学则殆。", from: "论语", fromWho: "孔子" },
+
+  // —— 动漫 / 影视 ——
+  { text: "世界上最幸福的事之一，莫过于经过一番努力后，所有东西正慢慢变成你想要的样子。", from: "你的名字。" },
+  { text: "不管前方的路有多苦，只要走的方向正确，不管多么崎岖不平，都比站在原地更接近幸福。", from: "千与千寻", fromWho: "宫崎骏" },
+  { text: "我们的征途是星辰大海。", from: "银河英雄传说", fromWho: "田中芳树" },
+  { text: "不要停下来啊！", from: "出包王女" },
+  { text: "我可是要成为海贼王的男人！", from: "海贼王", fromWho: "路飞" },
+  { text: "如果结果不如你所愿，就在尘埃落定前奋力一搏。", from: "夏目友人帐" },
+
+  // —— 通用 / 励志 ——
+  { text: "生活不止眼前的苟且，还有诗和远方。", from: "生活不止眼前的苟且" },
+  { text: "世界上只有一种英雄主义，就是在认清生活的真相后依然热爱生活。", from: "米开朗基罗传", fromWho: "罗曼·罗兰" },
+  { text: "所有的大人都曾经是小孩，虽然只有少数人记得。", from: "小王子", fromWho: "圣埃克苏佩里" },
+  { text: "真正的平静不是避开车马喧嚣，而是在心中修篱种菊。", from: "岁月静好" },
+  { text: "你要做一个不动声色的大人了，不准情绪化，不准偷偷想念，不准回头看。", from: "舞！舞！舞！", fromWho: "村上春树" },
+  { text: "每一个不曾起舞的日子，都是对生命的辜负。", from: "查拉图斯特拉如是说", fromWho: "尼采" },
+  { text: "黑夜给了我黑色的眼睛，我却用它寻找光明。", from: "一代人", fromWho: "顾城" },
+  { text: "纵有疾风起，人生不言弃。", from: "起风了", fromWho: "堀辰雄" },
+  { text: "愿你出走半生，归来仍是少年。", from: "归途" },
+  { text: "你所浪费的今天，是昨天死去的人奢望的明天。", from: "哈佛校训" },
+];
+
+/** 随机返回一条一言 */
+export function getRandomQuote(): Quote {
+  const idx = Math.floor(Math.random() * quotes.length);
+  return quotes[idx];
+}

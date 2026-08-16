@@ -1,0 +1,108 @@
+/* 工具类样式 */
+
+/* 玻璃卡片 */
+.glass {
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: none;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* 无 backdrop-filter 支持时，纯色半透明兜底 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass,
+  .glass-btn {
+    background: var(--glass-bg);
+  }
+}
+
+/* 玻璃圆形按钮 */
+.glass-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #fff;
+  font: inherit;
+  text-decoration: none;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: background var(--transition-base), box-shadow var(--transition-base),
+    transform var(--transition-base);
+}
+
+.glass-btn:hover {
+  background: rgba(0, 0, 0, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+/* 小号圆形按钮 */
+.glass-btn--sm {
+  width: 44px;
+  height: 44px;
+}
+
+/* 圆形按钮内图标 */
+.btn-icon {
+  width: 22px;
+  height: 22px;
+  fill: rgba(255, 255, 255, 0.8);
+}
+
+/* 弱化装饰图标 */
+.icon-muted {
+  color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+}
+
+/* 数据卡片 */
+.stat-card {
+  flex: 1;
+  padding: 16px 8px;
+  text-align: center;
+  border-radius: var(--radius);
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 6px;
+  font-family: 'Noto Sans SC', sans-serif;
+  white-space: nowrap;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: 'ZCOOL KuaiLe', cursive;
+  line-height: 1.3;
+}
+
+.stat-value small {
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .stat-card {
+    padding: 14px 4px;
+  }
+
+  .stat-value {
+    font-size: 1.15rem;
+  }
+}
