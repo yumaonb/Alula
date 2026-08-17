@@ -9,17 +9,122 @@ import { Icon } from "astro-icon/components";
       <Icon name="la:home" class="nav-home-icon" />
       羽毛的小屋
     </a>
+
+    <!-- 桌面端链接 -->
     <ul class="nav-links">
       <li><a href="#about">关于</a></li>
       <li><a href="#skills">技能</a></li>
       <li><a href="#projects">作品</a></li>
       <li><a href="#contact">联系</a></li>
     </ul>
+
+    <!-- 手机端汉堡按钮 -->
+    <button
+      class="hamburger-btn"
+      aria-label="菜单"
+      aria-expanded="false"
+      aria-controls="mobile-dropdown"
+    >
+      <span class="icon-bars"><Icon name="la:bars" /></span>
+      <span class="icon-close"><Icon name="la:times" /></span>
+    </button>
+  </div>
+
+  <!-- 手机端下拉菜单 -->
+  <div id="mobile-dropdown" class="mobile-dropdown" aria-hidden="true">
+    <div class="mobile-dropdown-inner">
+      <ul class="mobile-menu">
+        <li class="mobile-item">
+          <a href="#about" class="mobile-link">
+            <span class="mobile-link-left">
+              <Icon name="la:user" class="mobile-link-icon" />
+              <span class="mobile-link-text">关于</span>
+            </span>
+            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
+          </a>
+        </li>
+        <li class="mobile-item">
+          <a href="#skills" class="mobile-link">
+            <span class="mobile-link-left">
+              <Icon name="la:code" class="mobile-link-icon" />
+              <span class="mobile-link-text">技能</span>
+            </span>
+            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
+          </a>
+        </li>
+        <li class="mobile-item">
+          <a href="#projects" class="mobile-link">
+            <span class="mobile-link-left">
+              <Icon name="la:folder-open" class="mobile-link-icon" />
+              <span class="mobile-link-text">作品</span>
+            </span>
+            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
+          </a>
+        </li>
+        <li class="mobile-item">
+          <a href="#contact" class="mobile-link">
+            <span class="mobile-link-left">
+              <Icon name="la:envelope" class="mobile-link-icon" />
+              <span class="mobile-link-text">联系</span>
+            </span>
+            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
 </nav>
 
+<!-- 遮罩层 -->
+<div class="mobile-overlay" aria-hidden="true"></div>
+
+<script>
+  const btn = document.querySelector(".hamburger-btn");
+  const dropdown = document.getElementById("mobile-dropdown");
+  const overlay = document.querySelector(".mobile-overlay");
+
+  function openMenu() {
+    btn?.classList.add("is-open");
+    dropdown?.classList.add("is-open");
+    overlay?.classList.add("is-open");
+    btn?.setAttribute("aria-expanded", "true");
+    dropdown?.setAttribute("aria-hidden", "false");
+    overlay?.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeMenu() {
+    if (dropdown?.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
+    btn?.classList.remove("is-open");
+    dropdown?.classList.remove("is-open");
+    overlay?.classList.remove("is-open");
+    btn?.setAttribute("aria-expanded", "false");
+    dropdown?.setAttribute("aria-hidden", "true");
+    overlay?.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  btn?.addEventListener("click", () => {
+    const isOpen = btn.classList.contains("is-open");
+    isOpen ? closeMenu() : openMenu();
+  });
+
+  overlay?.addEventListener("click", closeMenu);
+
+  dropdown?.querySelectorAll("a").forEach((a) => {
+    a.addEventListener("click", closeMenu);
+  });
+
+  // ESC 键关闭
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMenu();
+  });
+</script>
+
 <style>
-  /* 导航栏（固定在顶部） */
+  /* 导航栏容器 */
   .navbar {
     position: fixed;
     top: 0;
@@ -33,12 +138,13 @@ import { Icon } from "astro-icon/components";
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
-    height: 64px;
+    height: 68px;
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
 
+  /* Logo */
   .nav-logo {
     display: flex;
     align-items: center;
@@ -56,16 +162,16 @@ import { Icon } from "astro-icon/components";
     color: inherit;
   }
 
-  /* 导航链接列表 */
+  /* 桌面端链接 */
   .nav-links {
     display: flex;
-    gap: 8px;
+    gap: 4px;
   }
 
   .nav-links a {
     display: block;
-    padding: 8px 16px;
-    font-size: 0.9rem;
+    padding: 8px 20px;
+    font-size: 0.95rem;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.75);
     border-radius: var(--radius);
@@ -78,8 +184,182 @@ import { Icon } from "astro-icon/components";
     background: rgba(255, 255, 255, 0.1);
   }
 
-  /* 手机端：缩小导航栏 */
-  @media (max-width: 640px) {
+  /* 汉堡按钮（桌面隐藏） */
+  .hamburger-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    padding: 0;
+  }
+
+  .icon-bars,
+  .icon-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .icon-bars :global(svg),
+  .icon-close :global(svg) {
+    width: 24px;
+    height: 24px;
+  }
+
+  .icon-close {
+    opacity: 0;
+    transform: rotate(-90deg);
+  }
+
+  .hamburger-btn.is-open .icon-bars {
+    opacity: 0;
+    transform: rotate(90deg);
+  }
+
+  .hamburger-btn.is-open .icon-close {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+
+  /* 手机端下拉菜单 - 常驻DOM，用高度+位移实现滑落 */
+  .mobile-dropdown {
+    max-height: 0;
+    overflow: hidden;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mobile-dropdown.is-open {
+    max-height: 320px;
+  }
+
+  .mobile-dropdown-inner {
+    transform: translateY(-8px);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.3s ease;
+  }
+
+  .mobile-dropdown.is-open .mobile-dropdown-inner {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .mobile-menu {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0 14px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-item {
+    opacity: 0;
+    transform: translateY(-12px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    width: 100%;
+  }
+
+  .mobile-dropdown.is-open .mobile-item {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .mobile-dropdown.is-open .mobile-item:nth-child(1) { transition-delay: 0.04s; }
+  .mobile-dropdown.is-open .mobile-item:nth-child(2) { transition-delay: 0.09s; }
+  .mobile-dropdown.is-open .mobile-item:nth-child(3) { transition-delay: 0.14s; }
+  .mobile-dropdown.is-open .mobile-item:nth-child(4) { transition-delay: 0.19s; }
+
+  .mobile-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 28px;
+    height: 48px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.78);
+    border-radius: 0;
+    border: none;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .mobile-link:hover,
+  .mobile-link:focus-visible {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-link:active {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .mobile-link-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .mobile-link-icon {
+    width: 17px;
+    height: 17px;
+    color: rgba(255, 255, 255, 0.6);
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+
+  .mobile-link:hover .mobile-link-icon {
+    color: #fff;
+  }
+
+  .mobile-link-text {
+    font-size: 0.88rem;
+    letter-spacing: 0.02em;
+  }
+
+  .mobile-link-arrow {
+    width: 14px;
+    height: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    flex-shrink: 0;
+    transition: color 0.15s, transform 0.15s;
+  }
+
+  .mobile-link:hover .mobile-link-arrow {
+    color: #fff;
+    transform: translateX(2px);
+  }
+
+  /* 遮罩层 */
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* 手机端适配 */
+  @media (max-width: 768px) {
     .nav-inner {
       height: 56px;
       padding: 0 16px;
@@ -90,28 +370,11 @@ import { Icon } from "astro-icon/components";
     }
 
     .nav-links {
-      gap: 2px;
+      display: none;
     }
 
-    .nav-links a {
-      padding: 6px 10px;
-      font-size: 0.8rem;
-    }
-  }
-
-  /* 桌面端：加大间距 */
-  @media (min-width: 1024px) {
-    .nav-inner {
-      height: 68px;
-    }
-
-    .nav-links {
-      gap: 4px;
-    }
-
-    .nav-links a {
-      padding: 8px 20px;
-      font-size: 0.95rem;
+    .hamburger-btn {
+      display: flex;
     }
   }
 </style>

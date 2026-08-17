@@ -35,7 +35,7 @@ a {
 }
 
 /* 全站链接 hover 效果：文字周围出现柔和光晕，类似按钮 */
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a) {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link) {
   display: inline-flex;
   align-items: center;
   border-radius: 6px;
@@ -43,7 +43,7 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a) {
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):hover {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):hover {
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
