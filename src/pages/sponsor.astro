@@ -1,0 +1,261 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Icon } from 'astro-icon/components';
+import avatarImg from '../assets/images/tx.png';
+
+const nickname = '羽毛';
+
+const sponsorMethods = [
+  {
+    icon: 'la:coffee',
+    label: '请喝咖啡',
+    desc: '一杯咖啡，温暖一个开发者的心',
+    action: '微信/支付宝扫码',
+  },
+  {
+    icon: 'la:github',
+    label: 'Star 项目',
+    desc: '在 GitHub 上给项目一个 Star',
+    action: '前往 GitHub',
+    url: 'https://github.com/yumaonb/jieshaoye/',
+  },
+  {
+    icon: 'la:heart',
+    label: '提供建议',
+    desc: '提出功能建议或反馈 Bug',
+    action: '提交 Issue',
+    url: 'https://github.com/yumaonb/jieshaoye/issues',
+  },
+];
+---
+
+<BaseLayout title="赞助 - 羽毛的小屋">
+  <link slot="head" rel="icon" type="image/png" href={avatarImg.src} />
+
+  <div class="sponsor-page">
+    <div class="sponsor-card glass">
+      <div class="sponsor-header">
+        <div class="sponsor-avatar-ring">
+          <img src={avatarImg.src} alt="头像" class="sponsor-avatar" />
+        </div>
+        <h1 class="sponsor-title">赞助我</h1>
+        <p class="sponsor-subtitle">
+          如果我的项目对你有帮助，欢迎请我喝杯咖啡
+        </p>
+      </div>
+
+      <div class="sponsor-methods">
+        {sponsorMethods.map((method) => (
+          <div class="method-card glass">
+            <div class="method-icon-wrap">
+              <Icon name={method.icon} class="method-icon" />
+            </div>
+            <div class="method-info">
+              <h3 class="method-label">{method.label}</h3>
+              <p class="method-desc">{method.desc}</p>
+            </div>
+            {method.url ? (
+              <a href={method.url} class="method-action glass-btn" target="_blank" rel="noopener">
+                <span class="action-text">{method.action}</span>
+                <Icon name="la:external-link-alt" class="action-arrow" />
+              </a>
+            ) : (
+              <span class="method-action method-action--static">
+                <span class="action-text">{method.action}</span>
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div class="sponsor-footer">
+        <p class="sponsor-thanks">感谢每一位支持者，你们是我持续更新的动力</p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .sponsor-page {
+    width: 100%;
+    max-width: 600px;
+    padding: 0 20px;
+  }
+
+  .sponsor-card {
+    width: 100%;
+    padding: 40px 32px;
+    border-radius: var(--radius);
+  }
+
+  /* 头部 */
+  .sponsor-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .sponsor-avatar-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    padding: 2px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+    flex-shrink: 0;
+  }
+
+  .sponsor-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .sponsor-title {
+    font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+    font-size: 1.8rem;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.05em;
+    margin: 0;
+  }
+
+  .sponsor-subtitle {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: center;
+    line-height: 1.6;
+    margin: 0;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  /* 赞助方式列表 */
+  .sponsor-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .method-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border-radius: var(--radius);
+  }
+
+  .method-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .method-icon {
+    width: 24px;
+    height: 24px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .method-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .method-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 4px;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  .method-desc {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+    font-family: 'Noto Sans SC', sans-serif;
+    line-height: 1.5;
+  }
+
+  .method-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  .method-action:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .method-action--static {
+    cursor: default;
+  }
+
+  .method-action--static:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .action-arrow {
+    width: 12px;
+    height: 12px;
+    opacity: 0.7;
+  }
+
+  /* 底部感谢 */
+  .sponsor-footer {
+    margin-top: 28px;
+    text-align: center;
+  }
+
+  .sponsor-thanks {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.35);
+    margin: 0;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  /* 手机端 */
+  @media (max-width: 640px) {
+    .sponsor-card {
+      padding: 28px 20px;
+    }
+
+    .method-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .method-action {
+      align-self: stretch;
+      justify-content: center;
+    }
+  }
+</style>

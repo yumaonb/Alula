@@ -13,9 +13,10 @@ import { Icon } from "astro-icon/components";
     <!-- 桌面端链接 -->
     <ul class="nav-links">
       <li><a href="#about">关于</a></li>
-      <li><a href="#skills">技能</a></li>
-      <li><a href="#projects">作品</a></li>
-      <li><a href="#contact">联系</a></li>
+      <li><a href="#projects">项目</a></li>
+      <li><a href="#articles">文章</a></li>
+      <li><a href="#friends">友链</a></li>
+      <li><a href="/sponsor">赞助</a></li>
     </ul>
 
     <!-- 手机端汉堡按钮 -->
@@ -44,28 +45,37 @@ import { Icon } from "astro-icon/components";
           </a>
         </li>
         <li class="mobile-item">
-          <a href="#skills" class="mobile-link">
-            <span class="mobile-link-left">
-              <Icon name="la:code" class="mobile-link-icon" />
-              <span class="mobile-link-text">技能</span>
-            </span>
-            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
-          </a>
-        </li>
-        <li class="mobile-item">
           <a href="#projects" class="mobile-link">
             <span class="mobile-link-left">
               <Icon name="la:folder-open" class="mobile-link-icon" />
-              <span class="mobile-link-text">作品</span>
+              <span class="mobile-link-text">项目</span>
             </span>
             <Icon name="la:external-link-alt" class="mobile-link-arrow" />
           </a>
         </li>
         <li class="mobile-item">
-          <a href="#contact" class="mobile-link">
+          <a href="#articles" class="mobile-link">
             <span class="mobile-link-left">
-              <Icon name="la:envelope" class="mobile-link-icon" />
-              <span class="mobile-link-text">联系</span>
+              <Icon name="la:pen-fancy" class="mobile-link-icon" />
+              <span class="mobile-link-text">文章</span>
+            </span>
+            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
+          </a>
+        </li>
+        <li class="mobile-item">
+          <a href="#friends" class="mobile-link">
+            <span class="mobile-link-left">
+              <Icon name="la:link" class="mobile-link-icon" />
+              <span class="mobile-link-text">友链</span>
+            </span>
+            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
+          </a>
+        </li>
+        <li class="mobile-item">
+          <a href="/sponsor" class="mobile-link">
+            <span class="mobile-link-left">
+              <Icon name="la:hand-holding-heart" class="mobile-link-icon" />
+              <span class="mobile-link-text">赞助</span>
             </span>
             <Icon name="la:external-link-alt" class="mobile-link-arrow" />
           </a>
@@ -94,8 +104,9 @@ import { Icon } from "astro-icon/components";
   }
 
   function closeMenu() {
-    if (dropdown?.contains(document.activeElement)) {
-      document.activeElement.blur();
+    const active = document.activeElement;
+    if (active && dropdown?.contains(active)) {
+      (active as HTMLElement).blur();
     }
     btn?.classList.remove("is-open");
     dropdown?.classList.remove("is-open");
@@ -274,9 +285,10 @@ import { Icon } from "astro-icon/components";
   }
 
   .mobile-dropdown.is-open .mobile-item:nth-child(1) { transition-delay: 0.04s; }
-  .mobile-dropdown.is-open .mobile-item:nth-child(2) { transition-delay: 0.09s; }
-  .mobile-dropdown.is-open .mobile-item:nth-child(3) { transition-delay: 0.14s; }
-  .mobile-dropdown.is-open .mobile-item:nth-child(4) { transition-delay: 0.19s; }
+  .mobile-dropdown.is-open .mobile-item:nth-child(2) { transition-delay: 0.08s; }
+  .mobile-dropdown.is-open .mobile-item:nth-child(3) { transition-delay: 0.12s; }
+  .mobile-dropdown.is-open .mobile-item:nth-child(4) { transition-delay: 0.16s; }
+  .mobile-dropdown.is-open .mobile-item:nth-child(5) { transition-delay: 0.20s; }
 
   .mobile-link {
     display: flex;

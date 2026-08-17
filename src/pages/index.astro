@@ -25,7 +25,8 @@ const socialLinks = [
 ];
 ---
 <BaseLayout title="羽毛的小屋">
-  <main class="content-wrapper">
+  <link slot="head" rel="icon" type="image/png" href={avatarImg.src} />
+  <div class="content-wrapper">
     <!-- 左栏 -->
     <div class="left-col">
       <!-- 头像 + 昵称 + 签名 -->
@@ -86,7 +87,7 @@ const socialLinks = [
         <MusicPlayer client:media="(min-width: 769px)" />
       </div> -->
     </div>
-  </main>
+  </div>
 
 
 </BaseLayout>

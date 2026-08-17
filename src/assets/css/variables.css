@@ -1,9 +1,6 @@
 /* 设计令牌 */
 
 :root {
-  /* 玻璃面板兜底背景（无 backdrop-filter 支持时使用） */
-  --glass-bg: rgba(18, 20, 36, 0.78);
-
   /* 圆角 */
   --radius: 10px;
 

@@ -72,7 +72,7 @@ ol {
 /* 移动端背景 */
 @media (max-width: 768px) {
   .bg-layer {
-    height: 100vh; /* 旧浏览器兼容 */
+    height: 100vh;
     height: 100lvh;
   }
 }
@@ -95,4 +95,47 @@ ol {
 /* 电脑端内边距 */
 @media (min-width: 1024px) {
   .hero { padding: 120px 0 80px; }
+}
+
+/* 页面过渡动画（切换页面的） */
+
+#swup.transition-main {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+html:not(.is-changing) #swup.transition-main {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.is-animating #swup.transition-main {
+  animation: swup-exit 0.2s ease-in both;
+}
+
+html.is-changing:not(.is-animating) #swup.transition-main {
+  animation: swup-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes swup-exit {
+  0% { opacity: 1; }
+  15% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes swup-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(9px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
