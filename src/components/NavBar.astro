@@ -88,50 +88,47 @@ import { Icon } from "astro-icon/components";
 <!-- 遮罩层 -->
 <div class="mobile-overlay" aria-hidden="true"></div>
 
-<script>
-  const btn = document.querySelector(".hamburger-btn");
-  const dropdown = document.getElementById("mobile-dropdown");
-  const overlay = document.querySelector(".mobile-overlay");
+<script is:inline>
+  (function () {
+    if (window.__navBound) return;
+    window.__navBound = true;
 
-  function openMenu() {
-    btn?.classList.add("is-open");
-    dropdown?.classList.add("is-open");
-    overlay?.classList.add("is-open");
-    btn?.setAttribute("aria-expanded", "true");
-    dropdown?.setAttribute("aria-hidden", "false");
-    overlay?.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-  }
+    var OPEN = "is-open";
 
-  function closeMenu() {
-    const active = document.activeElement;
-    if (active && dropdown?.contains(active)) {
-      (active as HTMLElement).blur();
+    function toggle() {
+      var b = document.querySelector(".hamburger-btn");
+      var d = document.getElementById("mobile-dropdown");
+      var o = document.querySelector(".mobile-overlay");
+      if (!b) return;
+      var opening = !b.classList.contains(OPEN);
+      b.classList.toggle(OPEN, opening);
+      d?.classList.toggle(OPEN, opening);
+      o?.classList.toggle(OPEN, opening);
+      b.setAttribute("aria-expanded", opening);
+      document.body.style.overflow = opening ? "hidden" : "";
     }
-    btn?.classList.remove("is-open");
-    dropdown?.classList.remove("is-open");
-    overlay?.classList.remove("is-open");
-    btn?.setAttribute("aria-expanded", "false");
-    dropdown?.setAttribute("aria-hidden", "true");
-    overlay?.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
-  }
 
-  btn?.addEventListener("click", () => {
-    const isOpen = btn.classList.contains("is-open");
-    isOpen ? closeMenu() : openMenu();
-  });
+    document.addEventListener("click", function (e) {
+      if (e.target.closest(".hamburger-btn") || e.target.closest(".mobile-overlay")) {
+        toggle();
+      } else if (e.target.closest(".mobile-link")) {
+        var b = document.querySelector(".hamburger-btn");
+        if (b?.classList.contains("is-open")) toggle();
+      }
+    });
 
-  overlay?.addEventListener("click", closeMenu);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        var b = document.querySelector(".hamburger-btn");
+        if (b?.classList.contains("is-open")) toggle();
+      }
+    });
 
-  dropdown?.querySelectorAll("a").forEach((a) => {
-    a.addEventListener("click", closeMenu);
-  });
-
-  // ESC 键关闭
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeMenu();
-  });
+    window.addEventListener("swup:contentReplaced", function () {
+      var b = document.querySelector(".hamburger-btn");
+      if (b?.classList.contains("is-open")) toggle();
+    });
+  })();
 </script>
 
 <style>
