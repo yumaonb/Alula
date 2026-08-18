@@ -10,7 +10,7 @@ export default defineConfig({
     vue(),
     icon(),
     swup({
-      containers: ["#swup", "footer"],
+      containers: ["#swup"],
       smoothScrolling: true,
       cache: true,
       preload: true,
