@@ -1,8 +1,16 @@
 ---
-import bgImage from "../assets/images/bj.jpg";
+import { getImage } from "astro:assets";
+import bgImageRaw from "../assets/images/bj.jpg";
 import "../assets/css/global.css";
 import NavBar from "../components/NavBar.astro";
 import Footer from "../components/Footer.astro";
+
+const bgImage = await getImage({
+  src: bgImageRaw,
+  format: "webp",
+  quality: 80,
+  width: 1920,
+});
 
 interface Props {
   title?: string;
