@@ -1,6 +1,7 @@
 ---
 // 导航栏
 import { Icon } from "astro-icon/components";
+import HamburgerMenu from "./HamburgerMenu.vue";
 ---
 
 <nav class="navbar glass">
@@ -12,6 +13,7 @@ import { Icon } from "astro-icon/components";
 
     <!-- 桌面端链接 -->
     <ul class="nav-links">
+      <li><a href="/">首页</a></li>
       <li><a href="#about">关于</a></li>
       <li><a href="#projects">项目</a></li>
       <li><a href="#articles">文章</a></li>
@@ -35,6 +37,15 @@ import { Icon } from "astro-icon/components";
   <div id="mobile-dropdown" class="mobile-dropdown" aria-hidden="true">
     <div class="mobile-dropdown-inner">
       <ul class="mobile-menu">
+        <li class="mobile-item">
+          <a href="/" class="mobile-link">
+            <span class="mobile-link-left">
+              <Icon name="la:home" class="mobile-link-icon" />
+              <span class="mobile-link-text">首页</span>
+            </span>
+            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
+          </a>
+        </li>
         <li class="mobile-item">
           <a href="#about" class="mobile-link">
             <span class="mobile-link-left">
@@ -88,48 +99,7 @@ import { Icon } from "astro-icon/components";
 <!-- 遮罩层 -->
 <div class="mobile-overlay" aria-hidden="true"></div>
 
-<script is:inline>
-  (function () {
-    if (window.__navBound) return;
-    window.__navBound = true;
-
-    var OPEN = "is-open";
-
-    function toggle() {
-      var b = document.querySelector(".hamburger-btn");
-      var d = document.getElementById("mobile-dropdown");
-      var o = document.querySelector(".mobile-overlay");
-      if (!b) return;
-      var opening = !b.classList.contains(OPEN);
-      b.classList.toggle(OPEN, opening);
-      d?.classList.toggle(OPEN, opening);
-      o?.classList.toggle(OPEN, opening);
-      b.setAttribute("aria-expanded", opening);
-      document.body.style.overflow = opening ? "hidden" : "";
-    }
-
-    document.addEventListener("click", function (e) {
-      if (e.target.closest(".hamburger-btn") || e.target.closest(".mobile-overlay")) {
-        toggle();
-      } else if (e.target.closest(".mobile-link")) {
-        var b = document.querySelector(".hamburger-btn");
-        if (b?.classList.contains("is-open")) toggle();
-      }
-    });
-
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") {
-        var b = document.querySelector(".hamburger-btn");
-        if (b?.classList.contains("is-open")) toggle();
-      }
-    });
-
-    window.addEventListener("swup:contentReplaced", function () {
-      var b = document.querySelector(".hamburger-btn");
-      if (b?.classList.contains("is-open")) toggle();
-    });
-  })();
-</script>
+<HamburgerMenu client:only="vue" />
 
 <style>
   /* 导航栏容器 */
@@ -246,7 +216,7 @@ import { Icon } from "astro-icon/components";
   }
 
   .mobile-dropdown.is-open {
-    max-height: 320px;
+    max-height: 380px;
   }
 
   .mobile-dropdown-inner {
@@ -286,6 +256,7 @@ import { Icon } from "astro-icon/components";
   .mobile-dropdown.is-open .mobile-item:nth-child(3) { transition-delay: 0.12s; }
   .mobile-dropdown.is-open .mobile-item:nth-child(4) { transition-delay: 0.16s; }
   .mobile-dropdown.is-open .mobile-item:nth-child(5) { transition-delay: 0.20s; }
+  .mobile-dropdown.is-open .mobile-item:nth-child(6) { transition-delay: 0.24s; }
 
   .mobile-link {
     display: flex;
