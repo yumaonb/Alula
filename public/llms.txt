@@ -1,0 +1,17 @@
+# 羽毛的小屋
+
+> 羽毛的小屋是一个个人网站，使用 Astro + Vue 3 + TypeScript 构建。包含实时时钟、随机一言等组件，以及赞助页面。
+
+## Pages
+
+- [首页](https://yumaonb.github.io/jieshaoye/): 展示个人头像、昵称、签名、技术栈介绍和联系方式
+- [赞助](https://yumaonb.github.io/jieshaoye/sponsor): 赞助页面，包含赞赏码
+
+## Source
+
+- [GitHub 仓库](https://github.com/yumaonb/jieshaoye/): 项目源码已开源至 GitHub
+
+## Optional
+
+- [Bilibili](https://b23.tv/XFTBHN3): 羽毛的 Bilibili 主页
+- [GitHub 个人主页](https://github.com/yumaonb): 羽毛的 GitHub 主页
