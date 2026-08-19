@@ -1,17 +1,10 @@
 ---
-import { getImage } from "astro:assets";
+import { Image, getImage } from "astro:assets";
 import bgImageRaw from "../assets/images/bj.jpg";
 import avatarRaw from "../assets/images/tx.png";
 import "../assets/css/global.css";
 import NavBar from "../components/NavBar.astro";
 import Footer from "../components/Footer.astro";
-
-const bgImage = await getImage({
-  src: bgImageRaw,
-  format: "webp",
-  quality: 80,
-  width: 1920,
-});
 
 const avatarImage = await getImage({
   src: avatarRaw,
@@ -34,6 +27,13 @@ const {
 <!doctype html>
 <html lang="zh-CN">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" type="image/webp" href={avatarImage.src} />
+    <title>{title}</title>
+    <slot name="head" />
     <style>
       .loading-overlay {
         position: fixed;
@@ -74,16 +74,8 @@ const {
         .loading-spinner .dot { width: 10px; height: 10px; }
       }
     </style>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description} />
-    <meta name="color-scheme" content="dark" />
-    <link rel="preload" as="image" href={bgImage.src} />
-    <link rel="icon" type="image/webp" href={avatarImage.src} />
-    <title>{title}</title>
-    <slot name="head" />
   </head>
-  <body style={`--bg-image: url('${bgImage.src}')`}>
+  <body>
     <div class="loading-overlay" aria-hidden="true">
       <div class="loading-spinner">
         <div class="dot"></div>
@@ -105,7 +97,16 @@ const {
         hide();
       }
     </script>
-    <div class="bg-layer" aria-hidden="true"></div>
+    <Image
+      src={bgImageRaw}
+      alt=""
+      class="bg-layer"
+      width={1920}
+      height={1080}
+      loading="eager"
+      decoding="async"
+      aria-hidden="true"
+    />
     <div class="page">
       <NavBar />
       <main class="hero transition-main" id="swup">
