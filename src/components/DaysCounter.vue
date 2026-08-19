@@ -2,11 +2,11 @@
   <!-- 天数统计组件 -->
   <div class="stats-group">
     <div class="stat-card glass">
-      <span class="stat-label">学习全栈</span>
+      <span class="stat-label">入坑全栈</span>
       <span class="stat-value">{{ days === null ? '--' : days }}<small>天</small></span>
     </div>
     <div class="stat-card glass">
-      <span class="stat-label">开发经验</span>
+      <span class="stat-label">经验积累</span>
       <span class="stat-value">{{ yearsLabel }}</span>
     </div>
   </div>

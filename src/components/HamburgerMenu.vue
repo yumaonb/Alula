@@ -61,3 +61,5 @@ onUnmounted(() => {
   window.removeEventListener('swup:contentReplaced', onSwupReplace)
 })
 </script>
+
+<template></template><!-- 加上控制台没警告，看着舒服点 -->

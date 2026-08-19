@@ -2,7 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Clock from '../components/Clock.vue';
 import Quote from '../components/Quote.vue';
-import MusicPlayer from '../components/MusicPlayer.vue';
 import DaysCounter from '../components/DaysCounter.vue';
 import { Icon } from 'astro-icon/components';
 import { Image } from 'astro:assets';
@@ -44,10 +43,10 @@ const socialLinks = [
       <!-- 介绍 -->
       <div class="intro-card glass">
         <div class="intro-about">
-          <p>这里是羽毛的小屋，一位热爱全栈的学生。</p>
+          <p>这里是羽毛的小屋，一位热爱探索的学生。</p>
           <p>本项目技术栈：Astro · Vue 3 · TypeScript</p>
-          <p>已开源至github：<a href="https://github.com/yumaonb/jieshaoye/" target="_blank" rel="noopener">点我前往项目地址</a></p>
-          <p>记录技术、分享生活、探索无限可能。</p>
+          <p>源码已开源至github：<a href="https://github.com/yumaonb/jieshaoye/" target="_blank" rel="noopener">点我前往项目地址</a></p>
+          <p>本站后续可能会更换域名，建议收藏项目地址</p>
         </div>
       </div>
 
@@ -68,7 +67,7 @@ const socialLinks = [
         <Clock client:media="(min-width: 769px)" />
       </div>
 
-      <!-- 学习全栈时间、开发经验、项目数量 -->
+      <!-- 入坑全栈时间、开发经验、项目数量 -->
       <div class="stats-row">
         <DaysCounter startDate={startFullstackDate} client:media="(min-width: 769px)" />
         <div class="stat-card glass">
@@ -81,12 +80,6 @@ const socialLinks = [
       <div class="island-slot glass">
         <Quote client:media="(min-width: 769px)" />
       </div>
-
-      <!-- 音乐播放器 -->
-      <!-- 音乐播放器还有点问题，先扔这，后续改 -->
-      <!-- <div class="island-slot glass">
-        <MusicPlayer client:media="(min-width: 769px)" />
-      </div> -->
     </div>
   </div>
 
