@@ -6,7 +6,7 @@
       <p class="quote-source">{{ source }}</p>
     </template>
     <template v-else>
-      <div class="quote-text" style="padding-top:8px">
+      <div class="quote-text">
         <div class="skeleton" style="width:100%;height:1em;margin-bottom:8px"></div>
         <div class="skeleton" style="width:72%;height:1em"></div>
       </div>
@@ -41,6 +41,9 @@ onMounted(loadQuote);
 .quote-body {
   display: flex;
   flex-direction: column;
+  height: 90px;
+  justify-content: center;
+  overflow: hidden;
 }
 .quote-text {
   font-size: 0.95rem;
@@ -48,6 +51,10 @@ onMounted(loadQuote);
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 12px;
   font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .quote-source {
   font-size: 0.75rem;
