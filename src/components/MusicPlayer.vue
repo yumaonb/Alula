@@ -450,9 +450,20 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s, background 0.2s;
   padding: 0;
   line-height: 1;
+  position: relative;
+}
+
+.ctrl-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  transition: opacity 0.2s;
+
 }
 
 .ctrl-btn svg {
@@ -462,7 +473,10 @@ onUnmounted(() => {
 
 .ctrl-btn:hover {
   color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.08);
+}
+
+.ctrl-btn:hover::before {
+  opacity: 1;
 }
 
 .play-btn {
@@ -513,15 +527,27 @@ onUnmounted(() => {
   padding: 5px 6px;
   border-radius: 5px;
   cursor: pointer;
-  transition: background 0.2s;
+  position: relative;
 }
 
-.playlist-item:hover {
+.playlist-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  transition: opacity 0.2s;
+
 }
 
-.playlist-item.active {
+.playlist-item:hover::before {
+  opacity: 1;
+}
+
+.playlist-item.active::before {
   background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
 }
 
 .pl-index {

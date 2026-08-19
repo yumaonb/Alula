@@ -40,12 +40,24 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link) {
   align-items: center;
   border-radius: 6px;
   padding: 1px 6px;
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):hover {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+
+}
+
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):hover::before {
+  opacity: 1;
 }
 
 ul,
@@ -65,7 +77,6 @@ ol {
 .bg-layer {
   position: fixed;
   inset: 0;
-  z-index: -1;
   background: var(--bg-image, none) center / cover no-repeat;
 }
 

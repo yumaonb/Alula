@@ -3,12 +3,11 @@
 /* 玻璃卡片 */
 .glass {
   background: transparent;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: none;
   border-radius: var(--radius);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  will-change: transform;
 }
 
 /* 玻璃圆形按钮 */
@@ -26,17 +25,31 @@
   font: inherit;
   text-decoration: none;
   background: transparent;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  transition: background var(--transition-base), box-shadow var(--transition-base),
-    transform var(--transition-base);
+  position: relative;
+  transition: transform var(--transition-base);
+}
+
+.glass-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+
 }
 
 .glass-btn:hover {
-  background: rgba(0, 0, 0, 0.4);
   transform: translateY(-3px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.glass-btn:hover::before {
+  opacity: 1;
 }
 
 /* 小号圆形按钮 */

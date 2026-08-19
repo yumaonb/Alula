@@ -148,18 +148,34 @@ import HamburgerMenu from "./HamburgerMenu.vue";
 
   .nav-links a {
     display: block;
+    position: relative;
     padding: 8px 20px;
     font-size: 0.95rem;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.75);
     border-radius: var(--radius);
-    transition: color 0.3s, background 0.3s;
+    overflow: hidden;
+  }
+
+  .nav-links a::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: inherit;
+
   }
 
   .nav-links a:hover,
   .nav-links a:focus-visible {
     color: #fff;
-    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-links a:hover::before,
+  .nav-links a:focus-visible::before {
+    opacity: 1;
   }
 
   /* 汉堡按钮（桌面隐藏） */
@@ -244,6 +260,7 @@ import HamburgerMenu from "./HamburgerMenu.vue";
     transform: translateY(-12px);
     transition: opacity 0.3s ease, transform 0.3s ease;
     width: 100%;
+    position: relative;
   }
 
   .mobile-dropdown.is-open .mobile-item {
@@ -272,17 +289,33 @@ import HamburgerMenu from "./HamburgerMenu.vue";
     border-radius: 0;
     border: none;
     text-decoration: none;
-    transition: background 0.15s ease, color 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mobile-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+
   }
 
   .mobile-link:hover,
   .mobile-link:focus-visible {
     color: #fff;
-    background: rgba(255, 255, 255, 0.1);
   }
 
-  .mobile-link:active {
+  .mobile-link:hover::before,
+  .mobile-link:focus-visible::before {
+    opacity: 1;
+  }
+
+  .mobile-link:active::before {
     background: rgba(255, 255, 255, 0.18);
+    opacity: 1;
   }
 
   .mobile-link-left {
@@ -296,11 +329,11 @@ import HamburgerMenu from "./HamburgerMenu.vue";
     height: 17px;
     color: rgba(255, 255, 255, 0.6);
     flex-shrink: 0;
-    transition: color 0.15s;
+    transition: filter 0.15s;
   }
 
   .mobile-link:hover .mobile-link-icon {
-    color: #fff;
+    filter: brightness(1.67);
   }
 
   .mobile-link-text {
@@ -313,11 +346,11 @@ import HamburgerMenu from "./HamburgerMenu.vue";
     height: 14px;
     color: rgba(255, 255, 255, 0.6);
     flex-shrink: 0;
-    transition: color 0.15s, transform 0.15s;
+    transition: filter 0.15s, transform 0.15s;
   }
 
   .mobile-link:hover .mobile-link-arrow {
-    color: #fff;
+    filter: brightness(1.67);
     transform: translateX(2px);
   }
 
@@ -328,14 +361,14 @@ import HamburgerMenu from "./HamburgerMenu.vue";
     background: rgba(0, 0, 0, 0.5);
     z-index: 90;
     opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
     -webkit-tap-highlight-color: transparent;
   }
 
   .mobile-overlay.is-open {
     opacity: 1;
-    visibility: visible;
+    pointer-events: auto;
   }
 
   /* 手机端适配 */
