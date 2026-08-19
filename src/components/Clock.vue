@@ -7,8 +7,14 @@
       </svg>
     </span>
     <div class="clock-info">
-      <span class="clock-time" aria-live="polite">{{ time }}</span>
-      <span class="clock-date">{{ date }}</span>
+      <template v-if="ready">
+        <span class="clock-time" aria-live="polite">{{ time }}</span>
+        <span class="clock-date">{{ date }}</span>
+      </template>
+      <template v-else>
+        <div class="skeleton" style="width:90px;height:1.4em;margin-bottom:4px"></div>
+        <div class="skeleton" style="width:72px;height:0.8em"></div>
+      </template>
     </div>
   </div>
 </template>
@@ -17,8 +23,9 @@
 // 每秒更新当前时间
 import { ref, onMounted, onUnmounted } from "vue";
 
-const time = ref("加载中...");
-const date = ref("加载中...");
+const ready = ref(false);
+const time = ref("");
+const date = ref("");
 let timer;
 
 function tick() {
@@ -36,6 +43,7 @@ function tick() {
 
 onMounted(() => {
   tick();
+  ready.value = true;
   timer = setInterval(tick, 1000);
 });
 

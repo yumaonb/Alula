@@ -1,8 +1,19 @@
 <template>
   <!-- 随机一言组件 -->
   <div class="quote-body">
-    <p class="quote-text">{{ text }}</p>
-    <p class="quote-source">{{ source }}</p>
+    <template v-if="ready">
+      <p class="quote-text">{{ text }}</p>
+      <p class="quote-source">{{ source }}</p>
+    </template>
+    <template v-else>
+      <div class="quote-text" style="padding-top:8px">
+        <div class="skeleton" style="width:100%;height:1em;margin-bottom:8px"></div>
+        <div class="skeleton" style="width:72%;height:1em"></div>
+      </div>
+      <div class="quote-source" style="text-align:right">
+        <div class="skeleton" style="display:inline-block;width:40%;height:0.7em"></div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -10,7 +21,8 @@
 import { ref, onMounted } from "vue";
 import { getRandomQuote } from "../data/quotes";
 
-const text = ref("加载中...");
+const ready = ref(false);
+const text = ref("");
 const source = ref("");
 
 function loadQuote() {
@@ -19,6 +31,7 @@ function loadQuote() {
   source.value = quote.fromWho
     ? `${quote.fromWho}「${quote.from}」`
     : quote.from || "";
+  ready.value = true;
 }
 
 onMounted(loadQuote);
@@ -34,7 +47,6 @@ onMounted(loadQuote);
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 12px;
-  padding-top: 8px;
   font-style: italic;
 }
 .quote-source {
