@@ -12,7 +12,6 @@ export default defineConfig({
     swup({
       containers: ["#swup"],
       cache: true,
-      accessibility: true,
       updateHead: true,
       theme: false,
     }),
