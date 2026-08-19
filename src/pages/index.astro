@@ -13,7 +13,7 @@ const nickname = '羽毛';
 
 // 右栏数据
 const startFullstackDate = '2024-03-23'; // 开始全栈学习日期（开发经验也是根据这个日期算的）
-const projectsCount = 12; // 项目个数（后续做完项目界面需要改为动态的）
+const projectsCount = '12个'; // 项目个数（后续做完项目界面需要改为动态的）
 
 // 联系方式数据
 const socialLinks = [
@@ -71,7 +71,7 @@ const socialLinks = [
         <DaysCounter startDate={startFullstackDate} client:media="(min-width: 769px)" />
         <div class="stat-card glass">
           <span class="stat-label">项目数量</span>
-          <span class="stat-value">{projectsCount}<small>个</small></span>
+          <span class="stat-value">{projectsCount}</span>
         </div>
       </div>
 
@@ -139,7 +139,6 @@ const socialLinks = [
   }
 
   .nickname {
-    font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
     font-size: 2rem;
     color: #fff;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
@@ -152,7 +151,6 @@ const socialLinks = [
     color: rgba(255, 255, 255, 0.6);
     letter-spacing: 0.25em;
     margin: 0;
-    font-family: 'Noto Sans SC', sans-serif;
   }
 
   /* 介绍卡片 */
@@ -170,7 +168,6 @@ const socialLinks = [
     color: rgba(255, 255, 255, 0.7);
     line-height: 1.7;
     margin: 0;
-    font-family: 'Noto Sans SC', sans-serif;
   }
 
   /* 联系方式 */
@@ -210,7 +207,6 @@ const socialLinks = [
     font-size: 0.72rem;
     color: rgba(255, 255, 255, 0.5);
     margin-bottom: 6px;
-    font-family: 'Noto Sans SC', sans-serif;
     white-space: nowrap;
   }
 
@@ -219,7 +215,6 @@ const socialLinks = [
     font-size: 1.35rem;
     font-weight: 700;
     color: #fff;
-    font-family: 'ZCOOL KuaiLe', cursive;
     line-height: 1.3;
   }
 

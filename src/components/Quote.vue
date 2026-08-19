@@ -10,7 +10,7 @@
 import { ref, onMounted } from "vue";
 import { getRandomQuote } from "../data/quotes";
 
-const text = ref("");
+const text = ref("加载中...");
 const source = ref("");
 
 function loadQuote() {

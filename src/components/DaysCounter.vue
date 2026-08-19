@@ -3,7 +3,7 @@
   <div class="stats-group">
     <div class="stat-card glass">
       <span class="stat-label">入坑全栈</span>
-      <span class="stat-value">{{ days === null ? '--' : days }}<small>天</small></span>
+      <span class="stat-value">{{ days === null ? '加载中' : `${days}天` }}</span>
     </div>
     <div class="stat-card glass">
       <span class="stat-label">经验积累</span>
@@ -31,7 +31,7 @@ function computeDays(startDate) {
 }
 
 const yearsLabel = computed(() => {
-  if (days.value === null) return "--";
+  if (days.value === null) return "加载中";
   const y = Math.floor(days.value / 365);
   return days.value % 365 > 0 ? `${y}年+` : `${y}年`;
 });

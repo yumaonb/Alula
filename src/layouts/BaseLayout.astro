@@ -92,7 +92,7 @@ const {
       </div>
     </div>
     <script>
-      const overlay = document.querySelector(".loading-overlay");
+      const overlay = document.querySelector(".loading-overlay") as HTMLElement | null;
       const hide = () => {
         overlay?.classList.add("loaded");
         overlay?.addEventListener("animationend", () => {

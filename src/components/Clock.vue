@@ -17,8 +17,8 @@
 // 每秒更新当前时间
 import { ref, onMounted, onUnmounted } from "vue";
 
-const time = ref("--:--:--");
-const date = ref("----/--/--");
+const time = ref("加载中...");
+const date = ref("加载中...");
 let timer;
 
 function tick() {

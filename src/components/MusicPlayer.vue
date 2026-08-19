@@ -324,7 +324,6 @@ onUnmounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'Noto Sans SC', sans-serif;
   font-weight: 600;
 }
 
@@ -335,7 +334,6 @@ onUnmounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'Noto Sans SC', sans-serif;
 }
 
 /* 播放进度条 */
@@ -567,7 +565,6 @@ onUnmounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'Noto Sans SC', sans-serif;
 }
 
 .playlist-item.active .pl-name {
