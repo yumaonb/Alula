@@ -20,6 +20,11 @@ function toggle() {
   dropdown?.classList.toggle(OPEN, opening)
   overlay?.classList.toggle(OPEN, opening)
   btn.setAttribute('aria-expanded', opening)
+  dropdown?.setAttribute('aria-hidden', String(!opening))
+  overlay?.setAttribute('aria-hidden', String(!opening))
+  dropdown?.querySelectorAll('.mobile-link').forEach(link => {
+    link.setAttribute('tabindex', opening ? '0' : '-1')
+  })
   document.body.style.overflow = opening ? 'hidden' : ''
 }
 
