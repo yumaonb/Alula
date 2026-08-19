@@ -1,38 +1,27 @@
 <template>
   <div class="clock-body">
     <svg class="clock-icon" width="100" height="100" viewBox="0 0 24 24" fill="none">
-      <!-- 背景圆 -->
-      <circle cx="12" cy="12" r="10.5" fill="rgba(255,255,255,0.08)" />
-      <circle cx="12" cy="12" r="10.5" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1" />
-      <!-- 普通刻度 -->
-      <line x1="16" y1="5.072" x2="16.464" y2="3.736" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
-      <line x1="18.928" y1="8" x2="20.017" y2="7.264" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
-      <line x1="18.928" y1="16" x2="20.017" y2="16.736" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
-      <line x1="16" y1="18.928" x2="16.464" y2="20.264" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
-      <line x1="8" y1="18.928" x2="7.536" y2="20.264" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
-      <line x1="5.072" y1="16" x2="3.983" y2="16.736" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
-      <line x1="5.072" y1="8" x2="3.983" y2="7.264" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
-      <line x1="8" y1="5.072" x2="7.536" y2="3.736" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
-      <!-- 12/3/6/9 突出刻度 -->
-      <line x1="12" y1="4" x2="12" y2="2.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7" />
-      <line x1="20" y1="12" x2="21.8" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7" />
-      <line x1="12" y1="20" x2="12" y2="21.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7" />
-      <line x1="4" y1="12" x2="2.2" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7" />
+      <circle cx="12" cy="12" r="10.8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.3" />
+      <!-- 四个简约刻度 -->
+      <line x1="12" y1="2.4" x2="12" y2="3.8" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
+      <line x1="21.6" y1="12" x2="20.2" y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
+      <line x1="12" y1="21.6" x2="12" y2="20.2" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
+      <line x1="2.4" y1="12" x2="3.8" y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
       <!-- 时针 -->
-      <line :x1="12" :y1="12.8" :x2="12" :y2="5.8"
-        stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+      <line :x1="12" :y1="12.8" :x2="12" :y2="7.2"
+        stroke="rgba(255,255,255,1)" stroke-width="2" stroke-linecap="round"
         :style="{ transform: `rotate(${hDeg}deg)`, transformOrigin: '12px 12px' }" />
       <!-- 分针 -->
-      <line :x1="12" :y1="13.2" :x2="12" :y2="3.8"
-        stroke="currentColor" stroke-width="1" stroke-linecap="round"
+      <line :x1="12" :y1="13.0" :x2="12" :y2="4.0"
+        stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round"
         :style="{ transform: `rotate(${mDeg}deg)`, transformOrigin: '12px 12px' }" />
       <!-- 秒针 -->
       <line
-        :x1="12" :y1="13.5" :x2="12" :y2="3.2"
-        stroke="rgba(255,255,255,0.55)" stroke-width="0.6" stroke-linecap="round"
+        :x1="12" :y1="13.3" :x2="12" :y2="3.5"
+        stroke="#ff4d4f" stroke-width="0.5" stroke-linecap="round"
         :style="{ transform: `rotate(${sDeg}deg)`, transformOrigin: '12px 12px' }" />
       <!-- 中心点 -->
-      <circle cx="12" cy="12" r="0.8" fill="currentColor" />
+      <circle cx="12" cy="12" r="0.7" fill="#ff4d4f" />
     </svg>
 
     <div class="clock-info">
@@ -191,27 +180,37 @@ onUnmounted(() => {
   align-items: center;
   gap: 16px;
   height: 108px;
-  overflow: hidden;
+  overflow: visible;
 }
 .clock-icon {
   flex-shrink: 0;
   color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    0 8px 20px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .clock-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 .clock-time {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   line-height: 1.2;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .clock-date {
   font-size: 1.05rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.38);
+  letter-spacing: 0.02em;
 }
 @media (min-width: 1024px) {
   .clock-time { font-size: 2.2rem; }
