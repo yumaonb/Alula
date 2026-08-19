@@ -1,6 +1,7 @@
 ---
 import { getImage } from "astro:assets";
 import bgImageRaw from "../assets/images/bj.jpg";
+import avatarRaw from "../assets/images/tx.png";
 import "../assets/css/global.css";
 import NavBar from "../components/NavBar.astro";
 import Footer from "../components/Footer.astro";
@@ -10,6 +11,13 @@ const bgImage = await getImage({
   format: "webp",
   quality: 80,
   width: 1920,
+});
+
+const avatarImage = await getImage({
+  src: avatarRaw,
+  format: "webp",
+  quality: 80,
+  width: 192,
 });
 
 interface Props {
@@ -71,6 +79,7 @@ const {
     <meta name="description" content={description} />
     <meta name="color-scheme" content="dark" />
     <link rel="preload" as="image" href={bgImage.src} />
+    <link rel="icon" type="image/webp" href={avatarImage.src} />
     <title>{title}</title>
     <slot name="head" />
   </head>
