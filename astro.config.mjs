@@ -11,9 +11,7 @@ export default defineConfig({
     icon(),
     swup({
       containers: ["#swup"],
-      smoothScrolling: true,
       cache: true,
-      preload: true,
       accessibility: true,
       updateHead: true,
       theme: false,
