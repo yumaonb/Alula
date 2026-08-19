@@ -19,7 +19,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { getRandomQuote } from "../data/quotes";
+import { getRandomQuote } from "../../data/quotes";
 
 const ready = ref(false);
 const text = ref("");
