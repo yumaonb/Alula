@@ -1,4 +1,7 @@
-/* 骨架屏 shimmer 动画 */
+/* ========================================
+ * skeleton.css — 骨架屏样式
+ * ======================================== */
+
 @keyframes skeleton-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }

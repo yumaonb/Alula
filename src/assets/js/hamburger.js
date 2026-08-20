@@ -1,3 +1,8 @@
+/**
+ * hamburger.js — 汉堡菜单交互
+ * 由 NavBar.astro 按需动态 import，无需手动调用
+ */
+
 const OPEN = 'is-open';
 
 function getEls() {

@@ -1,5 +1,7 @@
 <template>
-  <!-- 入坑全栈时间、经验积累、项目数量 -->
+  <!-- DaysCounter.vue — 数据统计卡片 -->
+  <!-- Props: startDate(string)、projectsCount(string) -->
+  <!-- 用法：<DaysCounter startDate="2024-03-23" projectsCount="12个" client:visible /> -->
   <div class="stats-row">
     <div class="stat-card glass">
       <span class="stat-label">入坑全栈</span>

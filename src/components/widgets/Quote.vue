@@ -1,5 +1,6 @@
 <template>
-  <!-- 随机一言组件 -->
+  <!-- Quote.vue — 随机一言 -->
+  <!-- 用法：<Quote client:visible /> -->
   <div class="quote-body">
     <template v-if="ready">
       <p class="quote-text">{{ text }}</p>

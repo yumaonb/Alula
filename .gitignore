@@ -19,3 +19,6 @@ pnpm-debug.log*
 
 # JetBrains 配置文件夹
 .idea/
+
+# 编辑器配置文件夹
+.cursor/

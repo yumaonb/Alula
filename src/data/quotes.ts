@@ -1,6 +1,7 @@
-
-//  随机一言数据集
-//  每条包含 { text, from?, fromWho? }
+/**
+ * quotes.ts — 随机一言数据集
+ * 用法：import { getRandomQuote } from "../../data/quotes"
+ */
 
 export interface Quote {
   text: string;

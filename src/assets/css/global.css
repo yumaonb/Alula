@@ -1,8 +1,9 @@
-/* 全局样式 */
+/* ========================================
+ * global.css — 全局样式
+ * ======================================== */
 @import "./variables.css";
 @import "./utilities.css";
 
-/* 基础样式 */
 *,
 *::before,
 *::after {
@@ -103,7 +104,7 @@ ol {
   .hero { padding: 120px 0 80px; }
 }
 
-/* 页面过渡动画（切换页面的） */
+/* ---- Swup 页面切换动画 ---- */
 
 #swup.transition-main {
   opacity: 0;
