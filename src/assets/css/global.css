@@ -68,7 +68,7 @@ ol {
 .page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   position: relative;
 }
 
@@ -88,6 +88,7 @@ ol {
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
   padding: 96px 0 48px;
   position: relative;
 }
