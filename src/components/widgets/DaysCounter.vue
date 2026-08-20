@@ -1,6 +1,6 @@
 <template>
-  <!-- 天数统计组件 -->
-  <div class="stats-group">
+  <!-- 入坑全栈时间、经验积累、项目数量 -->
+  <div class="stats-row">
     <div class="stat-card glass">
       <span class="stat-label">入坑全栈</span>
       <span v-if="ready" class="stat-value">{{ days }}天</span>
@@ -11,15 +11,19 @@
       <span v-if="ready" class="stat-value">{{ yearsLabel }}</span>
       <span v-else class="stat-value"><span class="skeleton" style="display:inline-block;width:48px;height:1em;vertical-align:middle"></span></span>
     </div>
+    <div class="stat-card glass">
+      <span class="stat-label">项目数量</span>
+      <span class="stat-value">{{ projectsCount }}</span>
+    </div>
   </div>
 </template>
 
 <script setup>
-// 天数统计组件，按客户端时间计算
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
 const props = defineProps({
   startDate: { type: String, required: true },
+  projectsCount: { type: String, default: "0个" },
 });
 
 const ready = ref(false);
@@ -38,7 +42,6 @@ const yearsLabel = computed(() => {
   return days.value % 365 > 0 ? `${y}年+` : `${y}年`;
 });
 
-// 每天零点重新计算，保证不刷新界面也可以更新天数
 function scheduleMidnightRefresh() {
   const now = new Date();
   const nextMidnight = new Date(
@@ -65,7 +68,31 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.stats-group {
-  display: contents;
+.stats-row {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-card {
+  flex: 1;
+  padding: 16px 8px;
+  text-align: center;
+  border-radius: var(--radius);
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
 }
 </style>

@@ -1,0 +1,254 @@
+---
+// 我的历程组件
+const items = [
+  {
+    date: '2024.03',
+    title: '踏入全栈开发',
+    desc: '决定系统学习前端与后端技术，开启全栈之旅。',
+    color: '#42b883',
+    tags: ['JavaScript', 'HTML/CSS'],
+  },
+  {
+    date: '2024.06',
+    title: 'Vue 3 深入学习',
+    desc: '开始系统学习 Vue 3 生态，Composition API、Pinia、Vue Router 逐步掌握。',
+    color: '#42b883',
+    tags: ['Vue 3', 'Pinia', 'Vue Router'],
+  },
+  {
+    date: '2024.09',
+    title: 'TypeScript 上手',
+    desc: '拥抱类型系统，开始用 TypeScript 重写项目，代码质量和可维护性显著提升。',
+    color: '#3178c6',
+    tags: ['TypeScript', '类型体操'],
+  },
+  {
+    date: '2024.12',
+    title: 'React 初探',
+    desc: '拓展技术视野，学习 React 生态，对比不同框架的设计哲学。',
+    color: '#61dafb',
+    tags: ['React', 'Hooks', 'JSX'],
+  },
+  {
+    date: '2025.03',
+    title: '全栈项目实践',
+    desc: '完成多个全栈项目，前后端联调、数据库设计、部署上线全流程走通。',
+    color: '#68a063',
+    tags: ['Node.js', 'MongoDB', 'Docker'],
+  },
+  {
+    date: '2025.06',
+    title: 'Astro + 静态站点',
+    desc: '用 Astro 搭建个人网站「羽毛的小屋」，探索现代前端框架的无限可能。',
+    color: '#ff5d01',
+    tags: ['Astro', 'SSG', 'Vue'],
+  },
+  {
+    date: '2025.09',
+    title: '持续进化中...',
+    desc: '深入学习工程化、性能优化、设计模式，向着更高层次迈进。',
+    color: '#c084fc',
+    tags: ['学习中', '成长中'],
+  },
+];
+---
+
+<div class="timeline">
+  <div class="timeline-track">
+    <div class="timeline-line"></div>
+    <div class="timeline-line-fill"></div>
+  </div>
+  {items.map((item, i) => (
+    <div class="timeline-item" style={{ '--accent': item.color, '--i': i }}>
+      <div class="timeline-dot">
+        <div class="timeline-dot-inner"></div>
+        <div class="timeline-dot-ring"></div>
+      </div>
+      <div class="timeline-card glass">
+        <div class="timeline-date">{item.date}</div>
+        <div class="timeline-title">{item.title}</div>
+        {item.desc && <div class="timeline-desc">{item.desc}</div>}
+        {item.tags?.length > 0 && (
+          <div class="timeline-tags">
+            {item.tags.map((tag) => (
+              <span class="timeline-tag">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  .timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 8px 0 8px 40px;
+  }
+
+  /* 竖线 */
+  .timeline-track {
+    position: absolute;
+    left: 14px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+  }
+
+  .timeline-line {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 1px;
+  }
+
+  .timeline-line-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(130, 180, 255, 0.6));
+    border-radius: 1px;
+    transform-origin: top;
+    animation: line-grow linear both;
+    animation-timeline: scroll(root);
+  }
+
+  @keyframes line-grow {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+
+  /* 节点 */
+  .timeline-item {
+    position: relative;
+    padding: 12px 0 24px 32px;
+    animation: item-enter linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+
+  @keyframes item-enter {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: -33px;
+    top: 18px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .timeline-dot-inner {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent);
+    z-index: 2;
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  .timeline-dot-ring {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    opacity: 0.3;
+  }
+
+  /* 卡片 */
+  .timeline-card {
+    padding: 18px 22px;
+    border-radius: var(--radius);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timeline-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+    opacity: 0.6;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .timeline-date {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timeline-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+    margin-bottom: 8px;
+  }
+
+  .timeline-desc {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.65;
+  }
+
+  .timeline-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .timeline-tag {
+    font-size: 0.68rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .timeline {
+      padding-left: 32px;
+    }
+
+    .timeline-track {
+      left: 8px;
+    }
+
+    .timeline-dot {
+      left: -30px;
+    }
+
+    .timeline-card {
+      padding: 14px 16px;
+    }
+
+    .timeline-title {
+      font-size: 0.95rem;
+    }
+  }
+</style>

@@ -63,21 +63,17 @@ const socialLinks = [
     <div class="right-col">
       <!-- 实时时钟 -->
       <div class="island-slot glass">
-        <Clock client:media="(min-width: 769px)" />
+        <Clock client:visible />
       </div>
 
       <!-- 入坑全栈时间、开发经验、项目数量 -->
       <div class="stats-row">
-        <DaysCounter startDate={startFullstackDate} client:media="(min-width: 769px)" />
-        <div class="stat-card glass">
-          <span class="stat-label">项目数量</span>
-          <span class="stat-value">{projectsCount}</span>
-        </div>
+        <DaysCounter startDate={startFullstackDate} projectsCount={projectsCount} client:visible />
       </div>
 
       <!-- 随机一言 -->
       <div class="island-slot glass">
-        <Quote client:media="(min-width: 769px)" />
+        <Quote client:visible />
       </div>
     </div>
   </div>
@@ -187,41 +183,6 @@ const socialLinks = [
     flex-direction: column;
     gap: 16px;
     flex-shrink: 0;
-  }
-
-  /* 学习全栈时间、开发经验、项目数量 */
-  .stats-row {
-    display: flex;
-    gap: 12px;
-  }
-
-  .stat-card {
-    flex: 1;
-    padding: 16px 8px;
-    text-align: center;
-    border-radius: var(--radius);
-  }
-
-  .stat-label {
-    display: block;
-    font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.5);
-    margin-bottom: 6px;
-    white-space: nowrap;
-  }
-
-  .stat-value {
-    display: block;
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.3;
-  }
-
-  .stat-value small {
-    font-size: 0.7rem;
-    font-weight: 400;
-    opacity: 0.7;
   }
 
   /* 岛屿容器 */
