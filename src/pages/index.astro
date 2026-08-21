@@ -9,13 +9,7 @@ import { Icon } from 'astro-icon/components';
 import { Image } from 'astro:assets';
 import avatarImg from '../assets/images/tx.png';
 
-// 页面数据
-
 const nickname = '羽毛';
-
-// 右栏数据
-const startFullstackDate = '2024-03-23'; // 开始全栈学习日期（开发经验也是根据这个日期算的）
-const projectsCount = '12个'; // 项目个数（后续做完项目界面需要改为动态的）
 
 // 联系方式数据
 const socialLinks = [
@@ -65,17 +59,17 @@ const socialLinks = [
     <div class="right-col">
       <!-- 实时时钟 -->
       <div class="island-slot glass">
-        <Clock client:visible />
+        <Clock client:media="(min-width: 768px)" />
       </div>
 
       <!-- 入坑全栈时间、开发经验、项目数量 -->
       <div class="stats-row">
-        <DaysCounter startDate={startFullstackDate} projectsCount={projectsCount} client:visible />
+        <DaysCounter client:media="(min-width: 768px)" />
       </div>
 
       <!-- 随机一言 -->
       <div class="island-slot glass">
-        <Quote client:visible />
+        <Quote client:media="(min-width: 768px)" />
       </div>
     </div>
   </div>
@@ -91,7 +85,7 @@ const socialLinks = [
     justify-content: center;
     gap: 48px;
     max-width: 1100px;
-    margin: 0 auto;
+    margin: auto 0;
     padding: 24px 24px 0;
   }
 

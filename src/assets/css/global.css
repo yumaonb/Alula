@@ -89,7 +89,7 @@ ol {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   padding: 96px 0 48px;
   position: relative;
 }

@@ -1,7 +1,6 @@
 <template>
   <!-- DaysCounter.vue — 数据统计卡片 -->
-  <!-- Props: startDate(string)、projectsCount(string) -->
-  <!-- 用法：<DaysCounter startDate="2024-03-23" projectsCount="12个" client:visible /> -->
+  <!-- 数据已内聚到组件内，外部直接 <DaysCounter client:visible /> 即可 -->
   <div class="stats-row">
     <div class="stat-card glass">
       <span class="stat-label">入坑全栈</span>
@@ -23,17 +22,17 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
-const props = defineProps({
-  startDate: { type: String, required: true },
-  projectsCount: { type: String, default: "0个" },
-});
+// ========== 在此修改数据 ==========
+const startDate = "2024-03-23"; // 开始全栈学习日期
+const projectsCount = "12个";   // 项目个数
+// ===================================
 
 const ready = ref(false);
 const days = ref(0);
 let midnightTimer;
 
-function computeDays(startDate) {
-  const start = new Date(startDate);
+function computeDays(dateStr) {
+  const start = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - start.getTime();
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -47,19 +46,17 @@ const yearsLabel = computed(() => {
 function scheduleMidnightRefresh() {
   const now = new Date();
   const nextMidnight = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1,
+    now.getFullYear(), now.getMonth(), now.getDate() + 1,
     0, 0, 0, 0,
   );
   midnightTimer = setTimeout(() => {
-    days.value = computeDays(props.startDate);
+    days.value = computeDays(startDate);
     scheduleMidnightRefresh();
   }, nextMidnight.getTime() - now.getTime());
 }
 
 onMounted(() => {
-  days.value = computeDays(props.startDate);
+  days.value = computeDays(startDate);
   ready.value = true;
   scheduleMidnightRefresh();
 });
@@ -73,6 +70,7 @@ onUnmounted(() => {
 .stats-row {
   display: flex;
   gap: 12px;
+  width: 100%;
 }
 
 .stat-card {

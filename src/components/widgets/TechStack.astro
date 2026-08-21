@@ -1,0 +1,102 @@
+---
+// TechStack.astro — 技术栈
+
+const techStack = [
+  {
+    category: '前端',
+    items: ['HTML', 'CSS', 'JavaScript', 'TypeScript', 'Vue', 'Astro'],
+  },
+  {
+    category: '数据库',
+    items: ['MySQL'],
+  },
+  {
+    category: '运维',
+    items: ['Linux', 'Nginx', '宝塔', '1Panel', 'Docker'],
+  },
+  {
+    category: '工具',
+    items: ['Git', 'GitHub', 'pnpm', 'npm'],
+  },
+];
+---
+
+<div class="tech-wrapper glass">
+  <div class="tech-list">
+    {techStack.map((cat, i) => (
+      <div class={`tech-row${i < techStack.length - 1 ? ' tech-row--border' : ''}`}>
+        <span class="tech-label">{cat.category}</span>
+        <div class="tech-tags">
+          {cat.items.map((name) => (
+            <span class="tech-tag">{name}</span>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+.tech-wrapper {
+  width: 100%;
+  padding: 20px 22px;
+  border-radius: var(--radius);
+}
+
+.tech-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.tech-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 0;
+}
+
+.tech-row--border {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tech-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  min-width: 40px;
+  flex-shrink: 0;
+  letter-spacing: 0.06em;
+}
+
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tech-tag {
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  transition: all 0.25s ease;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.tech-tag:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .tech-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+</style>
