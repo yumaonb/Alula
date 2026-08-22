@@ -1,6 +1,5 @@
 <template>
   <!-- DaysCounter.vue — 数据统计卡片 -->
-  <!-- 入坑天数和经验为本地计算，项目数量从 GitHub API 动态获取 -->
   <div class="stats-row">
     <div class="stat-card glass">
       <span class="stat-label">入坑全栈</span>
@@ -28,11 +27,9 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { fetchRepoCount } from "../../assets/js/github.js";
 
-// ========== 配置 ==========
-const startDate = "2024-03-23"; // 开始全栈学习日期
-const githubUsername = "yumaonb";
-// ===========================
+const startDate = "2024-03-23";
 
 const ready = ref(false);
 const days = ref(0);
@@ -40,11 +37,10 @@ const projectsCount = ref(0);
 const projectsLoaded = ref(false);
 let midnightTimer;
 
-function computeDays(dateStr) {
-  const start = new Date(dateStr);
+function computeDays() {
+  const start = new Date(startDate);
   const now = new Date();
-  const diffMs = now.getTime() - start.getTime();
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 const yearsLabel = computed(() => {
@@ -54,40 +50,24 @@ const yearsLabel = computed(() => {
 
 function scheduleMidnightRefresh() {
   const now = new Date();
-  const nextMidnight = new Date(
-    now.getFullYear(), now.getMonth(), now.getDate() + 1,
-    0, 0, 0, 0,
-  );
+  const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
   midnightTimer = setTimeout(() => {
-    days.value = computeDays(startDate);
+    days.value = computeDays();
     scheduleMidnightRefresh();
   }, nextMidnight.getTime() - now.getTime());
 }
 
-async function fetchProjectsCount() {
+onMounted(async () => {
+  days.value = computeDays();
+  ready.value = true;
+  scheduleMidnightRefresh();
   try {
-    const res = await fetch(
-      `https://api.github.com/users/${githubUsername}/repos?per_page=1&type=public`
-    );
-    if (!res.ok) throw new Error();
-    // 用 Link header 或直接取 public_repos 字段
-    const userRes = await fetch(`https://api.github.com/users/${githubUsername}`);
-    if (userRes.ok) {
-      const userData = await userRes.json();
-      projectsCount.value = userData.public_repos || 0;
-    }
+    projectsCount.value = await fetchRepoCount();
   } catch {
     projectsCount.value = 0;
   } finally {
     projectsLoaded.value = true;
   }
-}
-
-onMounted(() => {
-  days.value = computeDays(startDate);
-  ready.value = true;
-  scheduleMidnightRefresh();
-  fetchProjectsCount();
 });
 
 onUnmounted(() => {
