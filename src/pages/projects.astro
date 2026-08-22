@@ -1,0 +1,312 @@
+---
+// projects.astro — 项目展示页
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Icon } from 'astro-icon/components';
+import { projects, type Project } from '../data/projects';
+
+// 按 pinned 优先排序
+const sorted = [...projects].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+
+// 语言颜色映射
+const langColors: Record<string, string> = {
+  TypeScript: '#3178c6',
+  JavaScript: '#f1e05a',
+  Vue: '#41b883',
+  HTML: '#e34c26',
+  CSS: '#563d7c',
+  Markdown: '#083fa1',
+  Python: '#3572A5',
+  Go: '#00ADD8',
+  Rust: '#dea584',
+  Java: '#b07219',
+};
+
+function getColor(lang: string | null): string {
+  if (!lang) return '#8b8b8b';
+  return langColors[lang] || '#8b8b8b';
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<BaseLayout title="项目 - 羽毛的小屋">
+  <div class="projects-page">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <h1 class="page-title">
+        我的项目
+      </h1>
+      <p class="page-desc">这里是我的一些开源项目，欢迎Star或Fork</p>
+    </div>
+
+    <!-- 项目卡片网格 -->
+    <div class="projects-grid">
+      {sorted.map((project, i) => (
+        <a
+          href={project.url}
+          class={`project-card glass ${project.pinned ? 'is-pinned' : ''}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={`animation-delay: ${i * 0.06}s`}
+        >
+          {/* 卡片头部：左侧置顶图标(可选)+标题，右侧 GitHub 图标 */}
+          <div class="card-header">
+            <div class="card-header-left">
+              {project.pinned && (
+                <Icon name="la:thumbtack" class="pin-icon" />
+              )}
+              <h2 class="card-name">{project.name}</h2>
+            </div>
+            <div class="card-header-right">
+              <Icon name="la:github" class="gh-icon" />
+            </div>
+          </div>
+
+          {/* 简介 */}
+          <p class="card-desc">{project.description}</p>
+
+          {/* 标签 */}
+          {project.topics.length > 0 && (
+            <div class="card-topics">
+              {project.topics.map((t) => (
+                <span class="topic-tag">{t}</span>
+              ))}
+            </div>
+          )}
+
+          {/* 底部统计 */}
+          <div class="card-footer">
+            {project.language && (
+              <span class="stat">
+                <span class="lang-dot" style={`background: ${getColor(project.language)};`}></span>
+                {project.language}
+              </span>
+            )}
+            <span class="stat">
+              <Icon name="la:star" class="stat-icon" />
+              {project.stars}
+            </span>
+            <span class="stat">
+              <Icon name="la:code-branch" class="stat-icon" />
+              {project.forks}
+            </span>
+            <span class="stat update-time">
+              {formatDate(project.lastUpdated)}
+            </span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* ===== 页面 ===== */
+  .projects-page {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* 标题区 */
+  .page-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 0 8px;
+  }
+
+  .page-desc {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+  }
+
+  /* ===== 卡片网格：最大 2 列 ===== */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  /* ===== 单张卡片 ===== */
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    border-radius: var(--radius);
+    text-decoration: none;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.3s ease;
+    animation: card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .project-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+
+  /* ===== 卡片头部 ===== */
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 0;
+    gap: 8px;
+  }
+
+  .card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .card-header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .pin-icon {
+    width: 16px;
+    height: 16px;
+    color: rgba(255, 200, 60, 0.9);
+    flex-shrink: 0;
+  }
+
+  .gh-icon {
+    width: 28px;
+    height: 28px;
+    color: rgba(255, 255, 255, 0.55);
+    flex-shrink: 0;
+  }
+
+  .card-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+  }
+
+  /* ===== 简介 ===== */
+  .card-desc {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.6;
+    padding: 10px 20px 0;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+  }
+
+  /* ===== 标签 ===== */
+  .card-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px 20px 0;
+  }
+
+  .topic-tag {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 2px 10px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  /* ===== 底部统计 ===== */
+  .card-footer {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 16px;
+    margin-top: auto;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .stat-icon {
+    width: 0.85em;
+    height: 0.85em;
+    color: inherit;
+  }
+
+  .lang-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .update-time {
+    margin-left: auto;
+    font-size: 0.7rem;
+    opacity: 0.6;
+  }
+
+  /* ===== 手机端适配 ===== */
+  @media (max-width: 768px) {
+    .projects-page {
+      padding: 0 16px;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+    }
+
+    .projects-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+</style>

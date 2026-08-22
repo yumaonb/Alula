@@ -35,7 +35,7 @@ a {
 }
 
 /* 全站链接 hover 效果：文字周围出现柔和光晕，类似按钮 */
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link) {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.project-card) {
   display: inline-flex;
   align-items: center;
   border-radius: 6px;
