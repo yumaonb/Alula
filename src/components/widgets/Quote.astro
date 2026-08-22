@@ -1,0 +1,44 @@
+---
+// Quote.astro — 随机一言
+import { getRandomQuote } from '../../data/quotes';
+
+const quote = getRandomQuote();
+const source = quote.fromWho
+  ? `${quote.fromWho}「${quote.from}」`
+  : quote.from || '';
+---
+
+<div class="quote-body">
+  <p class="quote-text">{quote.text}</p>
+  <p class="quote-source">{source}</p>
+</div>
+
+<style>
+.quote-body {
+  display: flex;
+  flex-direction: column;
+  height: 90px;
+  justify-content: center;
+  overflow: hidden;
+}
+.quote-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 12px;
+  font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.quote-source {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: right;
+}
+@media (min-width: 1024px) {
+  .quote-text { font-size: 1rem; }
+}
+</style>

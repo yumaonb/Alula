@@ -3,7 +3,7 @@
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Clock from '../components/widgets/Clock.vue';
-import Quote from '../components/widgets/Quote.vue';
+import Quote from '../components/widgets/Quote.astro';
 import DaysCounter from '../components/widgets/DaysCounter.vue';
 import { Icon } from 'astro-icon/components';
 import { Image } from 'astro:assets';
@@ -69,7 +69,7 @@ const socialLinks = [
 
       <!-- 随机一言 -->
       <div class="island-slot glass">
-        <Quote client:media="(min-width: 768px)" />
+        <Quote />
       </div>
     </div>
   </div>
