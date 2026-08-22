@@ -5,14 +5,22 @@ import { Icon } from 'astro-icon/components';
 
 const sponsorLink = {
   name: '爱发电',
-  href: 'https://www.ifdian.net/a/yumaonb',
+  href: 'https://www.ifdian.net/a/yumaonb/plan',
   desc: '前往爱发电支持我们的创作',
   icon: 'la:heart',
 };
 
+const sponsorList = {
+  icon: 'la:users',
+  title: '爱发电赞助名单',
+  desc: '感谢每一位赞助者',
+  href: 'https://www.ifdian.net/a/yumaonb?tab=sponsor',
+  target: '_blank',
+};
+
 const supportActions = [
   { icon: 'la:star', title: 'Star 仓库', desc: '给项目点个 Star 鼓励一下', href: 'https://github.com/yumaonb/jieshaoye/', target: '_blank' },
-  { icon: 'la:share-alt', title: '分享本站', desc: '把本站分享给更多朋友' },
+  { icon: 'la:share-square', title: '分享本站', desc: '把本站分享给更多朋友' },
   { icon: 'la:bookmark', title: '收藏本站', desc: '按 Ctrl+D 收藏到书签' },
 ];
 ---
@@ -37,6 +45,15 @@ const supportActions = [
         <div class="hero-arrow">
           <Icon name="la:angle-right" />
         </div>
+      </div>
+    </a>
+
+    <!-- 赞助名单 -->
+    <a href={sponsorList.href} class="action-card glass" target={sponsorList.target} rel="noopener">
+      <Icon name={sponsorList.icon} class="action-icon" />
+      <div class="action-body">
+        <span class="action-title">{sponsorList.title}</span>
+        <span class="action-desc">{sponsorList.desc}</span>
       </div>
     </a>
 
@@ -78,7 +95,7 @@ const supportActions = [
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 36px;
+    gap: 12px;
   }
 
   /* ====== 标题区 ====== */
@@ -199,6 +216,7 @@ const supportActions = [
     display: flex;
     align-items: center;
     gap: 16px;
+    width: 100%;
     padding: 18px 20px;
     border-radius: 12px;
     text-decoration: none;
@@ -251,7 +269,7 @@ const supportActions = [
   @media (max-width: 768px) {
     .sponsor-page {
       padding: 0 16px;
-      gap: 28px;
+      gap: 10px;
     }
 
     .header-title {
