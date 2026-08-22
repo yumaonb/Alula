@@ -1,20 +1,27 @@
 <template>
   <!-- DaysCounter.vue — 数据统计卡片 -->
-  <!-- 数据已内聚到组件内，外部直接 <DaysCounter client:visible /> 即可 -->
+  <!-- 入坑天数和经验为本地计算，项目数量从 GitHub API 动态获取 -->
   <div class="stats-row">
     <div class="stat-card glass">
       <span class="stat-label">入坑全栈</span>
       <span v-if="ready" class="stat-value">{{ days }}天</span>
-      <span v-else class="stat-value"><span class="skeleton" style="display:inline-block;width:60px;height:1em;vertical-align:middle"></span></span>
+      <span v-else class="stat-value">
+        <span class="skeleton" style="display:inline-block;width:60px;height:1em;vertical-align:middle"></span>
+      </span>
     </div>
     <div class="stat-card glass">
       <span class="stat-label">经验积累</span>
       <span v-if="ready" class="stat-value">{{ yearsLabel }}</span>
-      <span v-else class="stat-value"><span class="skeleton" style="display:inline-block;width:48px;height:1em;vertical-align:middle"></span></span>
+      <span v-else class="stat-value">
+        <span class="skeleton" style="display:inline-block;width:48px;height:1em;vertical-align:middle"></span>
+      </span>
     </div>
     <div class="stat-card glass">
       <span class="stat-label">项目数量</span>
-      <span class="stat-value">{{ projectsCount }}</span>
+      <span v-if="projectsLoaded" class="stat-value">{{ projectsCount }}个</span>
+      <span v-else class="stat-value">
+        <span class="skeleton" style="display:inline-block;width:36px;height:1em;vertical-align:middle"></span>
+      </span>
     </div>
   </div>
 </template>
@@ -22,13 +29,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
-// ========== 在此修改数据 ==========
+// ========== 配置 ==========
 const startDate = "2024-03-23"; // 开始全栈学习日期
-const projectsCount = "12个";   // 项目个数
-// ===================================
+const githubUsername = "yumaonb";
+// ===========================
 
 const ready = ref(false);
 const days = ref(0);
+const projectsCount = ref(0);
+const projectsLoaded = ref(false);
 let midnightTimer;
 
 function computeDays(dateStr) {
@@ -55,10 +64,30 @@ function scheduleMidnightRefresh() {
   }, nextMidnight.getTime() - now.getTime());
 }
 
+async function fetchProjectsCount() {
+  try {
+    const res = await fetch(
+      `https://api.github.com/users/${githubUsername}/repos?per_page=1&type=public`
+    );
+    if (!res.ok) throw new Error();
+    // 用 Link header 或直接取 public_repos 字段
+    const userRes = await fetch(`https://api.github.com/users/${githubUsername}`);
+    if (userRes.ok) {
+      const userData = await userRes.json();
+      projectsCount.value = userData.public_repos || 0;
+    }
+  } catch {
+    projectsCount.value = 0;
+  } finally {
+    projectsLoaded.value = true;
+  }
+}
+
 onMounted(() => {
   days.value = computeDays(startDate);
   ready.value = true;
   scheduleMidnightRefresh();
+  fetchProjectsCount();
 });
 
 onUnmounted(() => {
