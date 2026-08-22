@@ -1,0 +1,285 @@
+---
+// sponsor.astro — 赞助页面
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Icon } from 'astro-icon/components';
+
+const sponsorLink = {
+  name: '爱发电',
+  href: 'https://www.ifdian.net/a/yumaonb',
+  desc: '前往爱发电支持我们的创作',
+  icon: 'la:heart',
+};
+
+const supportActions = [
+  { icon: 'la:star', title: 'Star 仓库', desc: '给项目点个 Star 鼓励一下', href: 'https://github.com/yumaonb/jieshaoye/', target: '_blank' },
+  { icon: 'la:share-alt', title: '分享本站', desc: '把本站分享给更多朋友' },
+  { icon: 'la:bookmark', title: '收藏本站', desc: '按 Ctrl+D 收藏到书签' },
+];
+---
+
+<BaseLayout title="赞助 - 羽毛的小屋">
+  <div class="sponsor-page">
+
+    <!-- 标题区 -->
+    <header class="sponsor-header">
+      <h1 class="header-title">赞助支持</h1>
+      <p class="header-desc">如果我的内容对你有帮助，欢迎请我喝杯咖啡</p>
+    </header>
+
+    <!-- 主赞助卡片 -->
+    <a href={sponsorLink.href} class="hero-card glass" target="_blank" rel="noopener">
+      <div class="hero-card-inner">
+        <div class="hero-text">
+          <span class="hero-label">推荐支持</span>
+          <h2 class="hero-name">{sponsorLink.name}</h2>
+          <p class="hero-desc">{sponsorLink.desc}</p>
+        </div>
+        <div class="hero-arrow">
+          <Icon name="la:angle-right" />
+        </div>
+      </div>
+    </a>
+
+    <!-- 其他支持方式 -->
+    <section class="other-section">
+      <p class="other-label">其他方式</p>
+      <div class="action-grid">
+        {supportActions.map((a) => (
+          a.href ? (
+            <a href={a.href} class="action-card glass" target={a.target} rel="noopener">
+              <Icon name={a.icon} class="action-icon" />
+              <div class="action-body">
+                <span class="action-title">{a.title}</span>
+                <span class="action-desc">{a.desc}</span>
+              </div>
+            </a>
+          ) : (
+            <div class="action-card glass">
+              <Icon name={a.icon} class="action-icon" />
+              <div class="action-body">
+                <span class="action-title">{a.title}</span>
+                <span class="action-desc">{a.desc}</span>
+              </div>
+            </div>
+          )
+        ))}
+      </div>
+    </section>
+
+  </div>
+</BaseLayout>
+
+<style>
+  .sponsor-page {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 36px;
+  }
+
+  /* ====== 标题区 ====== */
+  .sponsor-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-title {
+    font-size: 2rem;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    margin: 0 0 8px;
+  }
+
+  .header-desc {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+  }
+
+  /* ====== 主赞助卡片 ====== */
+  .hero-card {
+    display: block;
+    width: 100%;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+    transition: filter 0.25s ease;
+  }
+
+  .hero-card:hover {
+    filter: brightness(1.15);
+  }
+
+  .hero-card-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 28px 24px;
+  }
+
+  .hero-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .hero-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .hero-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+
+  .hero-desc {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0;
+  }
+
+  .hero-arrow {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+
+  .hero-arrow :global(svg) {
+    width: 20px;
+    height: 20px;
+  }
+
+  .hero-card:hover .hero-arrow {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* ====== 其他支持方式 ====== */
+  .other-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .other-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.3);
+    padding-left: 4px;
+    margin: 0;
+  }
+
+  .action-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .action-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: filter 0.25s ease;
+  }
+
+  .action-card:hover {
+    filter: brightness(1.15);
+  }
+
+  .action-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    color: rgba(255, 255, 255, 0.45);
+    transition: color 0.25s ease;
+  }
+
+  .action-card:hover .action-icon {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .action-icon :global(svg) {
+    width: 30px;
+    height: 30px;
+  }
+
+  .action-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .action-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .action-desc {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  /* ====== 手机端适配 ====== */
+  @media (max-width: 768px) {
+    .sponsor-page {
+      padding: 0 16px;
+      gap: 28px;
+    }
+
+    .header-title {
+      font-size: 1.5rem;
+    }
+
+    .hero-card-inner {
+      padding: 22px 18px;
+      gap: 16px;
+    }
+
+    .hero-icon {
+      width: 44px;
+      height: 44px;
+    }
+
+    .hero-name {
+      font-size: 1.05rem;
+    }
+
+    .action-card {
+      padding: 15px 16px;
+      gap: 14px;
+    }
+
+    .action-icon {
+      width: 25px;
+      height: 25px;
+    }
+  }
+</style>

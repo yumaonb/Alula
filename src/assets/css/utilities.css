@@ -31,27 +31,11 @@
   -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   position: relative;
-  transition: transform var(--transition-base);
-}
-
-.glass-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: rgba(0, 0, 0, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-  opacity: 0;
-  transition: opacity var(--transition-base);
-
+  transition: filter var(--transition-base);
 }
 
 .glass-btn:hover {
-  transform: translateY(-3px);
-}
-
-.glass-btn:hover::before {
-  opacity: 1;
+  filter: brightness(1.2);
 }
 
 /* 小号圆形按钮 */
