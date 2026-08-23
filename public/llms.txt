@@ -9,7 +9,7 @@
 
 ## Source
 
-- [GitHub 仓库](https://github.com/yumaonb/jieshaoye/): 项目源码已开源至 GitHub
+- [GitHub 仓库](https://github.com/yumaonb/YuSwift/): 项目源码已开源至 GitHub
 
 ## Optional
 
