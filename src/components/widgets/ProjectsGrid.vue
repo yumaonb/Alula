@@ -86,9 +86,32 @@ import { Icon } from '@iconify/vue';
 import { fetchRepos } from '../../assets/js/github.js';
 
 const langColors = {
-  TypeScript: '#3178c6', JavaScript: '#f1e05a', Vue: '#41b883',
-  HTML: '#e34c26', CSS: '#563d7c', Markdown: '#083fa1',
+  // 前端框架
+  TypeScript: '#3178c6', JavaScript: '#f1e05a',
+  Vue: '#41b883', React: '#61dafb', Svelte: '#ff3e00', Astro: '#ff5a03',
+  // 标记 / 样式
+  HTML: '#e34c26', CSS: '#563d7c', SCSS: '#c6538c', Sass: '#a53b70', Less: '#1d365d',
+  Markdown: '#083fa1', SVG: '#ff9900',
+  // 主流语言
   Python: '#3572A5', Go: '#00ADD8', Rust: '#dea584', Java: '#b07219',
+  C: '#555555', 'C++': '#f34b7d', 'C#': '#178600', Swift: '#F05138',
+  Kotlin: '#A97BFF', Ruby: '#701516', PHP: '#4F5D95', Dart: '#00B4AB',
+  Lua: '#000080', Scala: '#c22d40', Shell: '#89e051', Zig: '#ec915c',
+  Haskell: '#5e5086', R: '#198CE7', MATLAB: '#e16737',
+  'Objective-C': '#438eff', Elixir: '#6e4a7e', Clojure: '#db5855',
+  Perl: '#0298c3', Julia: '#a270ba', Nim: '#ffc200', OCaml: '#3be133',
+  Groovy: '#4298b8', Tcl: '#e4cc98', Crystal: '#000101', Elm: '#60b5cc',
+  PureScript: '#1D222D', CoffeeScript: '#244776', FSharp: '#b845fc',
+  Ada: '#02f88c', Fortran: '#4d41b1', Pascal: '#E3F171',
+  VHDL: '#adb2cb', Verilog: '#b2b7f8', SystemVerilog: '#DAE1C2',
+  Assembly: '#6E4C13', AWK: '#c30e80',
+  // JVM / .NET / 其他
+  KotlinScript: '#A97BFF', V: '#4f87c4', Nix: '#7e7eff',
+  // 配置 / 构建 / 数据
+  Makefile: '#427819', CMake: '#DA3434', Meson: '#007800', Dockerfile: '#384d54',
+  TOML: '#9c4221', JSON: '#292929', YAML: '#cb171e', XML: '#0060ac',
+  PowerShell: '#012456', Batchfile: '#C1F12E', Jupyter: '#F37626',
+  'Jupyter Notebook': '#F37626', NASL: '#aaca00',
 };
 
 const repos = ref([]);
