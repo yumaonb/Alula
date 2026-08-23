@@ -11,17 +11,17 @@ const motto = '阅己 越己 悦己';
 ---
 
 <BaseLayout title="关于 - 羽毛的小屋">
-  <div class="about-page">
+  <div class="about-page page-container">
 
     <!-- ========== 个人介绍区 ========== -->
     <section class="intro-section">
       <div class="intro-header glass">
-        <div class="intro-avatar-ring">
-          <Image src={avatarImg} alt="头像" class="intro-avatar-img" width={100} height={100} loading="eager" />
+        <div class="avatar-ring" style="--avatar-size:100px;">
+          <Image src={avatarImg} alt="头像" class="avatar-img" width={100} height={100} loading="eager" />
         </div>
         <div class="intro-info">
-          <h1 class="intro-name">羽毛</h1>
-          <p class="intro-motto">{motto}</p>
+          <h1 class="intro-name section-title">羽毛</h1>
+          <p class="intro-motto text-motto">{motto}</p>
         </div>
       </div>
       <DaysCounter client:visible />
@@ -36,11 +36,8 @@ const motto = '阅己 越己 悦己';
 
 <style>
   .about-page {
-    width: 100%;
     min-width: 0;
     max-width: 800px;
-    margin: 0 auto;
-    padding: 0 24px 0;
     display: flex;
     flex-direction: column;
     gap: 40px;
@@ -63,41 +60,10 @@ const motto = '阅己 越己 悦己';
     width: 100%;
   }
 
-  .intro-avatar-ring {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    padding: 2px;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
-    flex-shrink: 0;
-  }
-
-  .intro-avatar-img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
   .intro-info {
     display: flex;
     flex-direction: column;
     gap: 6px;
-  }
-
-  .intro-name {
-    font-size: 1.8rem;
-    color: #fff;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    margin: 0;
-  }
-
-  .intro-motto {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.6);
-    letter-spacing: 0.25em;
-    margin: 0;
   }
 
   .intro-text {
@@ -106,12 +72,9 @@ const motto = '阅己 越己 悦己';
     border-radius: var(--radius);
   }
 
-
-
   /* ========== 手机端适配 ========== */
   @media (max-width: 768px) {
     .about-page {
-      padding: 0 16px 0;
       gap: 28px;
     }
 
@@ -119,9 +82,8 @@ const motto = '阅己 越己 悦己';
       padding: 24px 20px;
     }
 
-    .intro-avatar-ring {
-      width: 80px;
-      height: 80px;
+    .avatar-ring {
+      --avatar-size: 80px;
     }
 
     .intro-name {

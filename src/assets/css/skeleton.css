@@ -18,9 +18,13 @@
   animation: skeleton-shimmer 1.8s ease-in-out infinite;
   border-radius: 6px;
   min-height: 1em;
-  color: transparent !important;
   user-select: none;
   pointer-events: none;
+}
+
+.skeleton,
+.skeleton * {
+  color: transparent;
 }
 
 /* 骨架屏过渡：内容就绪后淡入 */
