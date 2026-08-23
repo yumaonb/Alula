@@ -1,17 +1,23 @@
 # 羽毛的小屋
 
-> 羽毛的小屋是一个个人网站，使用 Astro + Vue 3 + TypeScript 构建。包含实时时钟、随机一言等组件，以及赞助页面。
+> 羽毛的小屋是一个个人网站，使用 Astro + Vue 3 + TypeScript 构建，采用毛玻璃暗色主题设计。包含实时时钟、随机一言、入坑天数统计等组件。
 
 ## Pages
 
-- [首页](https://yumaonb.github.io/jieshaoye/): 展示个人头像、昵称、签名、技术栈介绍和联系方式
-- [赞助](https://yumaonb.github.io/jieshaoye/sponsor): 赞助页面，包含赞赏码
+- [首页](https://yumaonb.github.io/jieshaoye/): 展示个人头像、昵称「羽毛」、签名「阅己 越己 悦己」、技术栈介绍和联系方式，右侧栏包含实时时钟、入坑全栈天数统计和随机一言
+- [关于](https://yumaonb.github.io/jieshaoye/about/): 个人介绍页，包含头像、技术栈展示（前端/后端/数据库/运维/工具）和 Markdown 自述内容
+- [项目](https://yumaonb.github.io/jieshaoye/projects/): 开源项目展示页，以卡片网格形式展示项目列表
+- [友情链接](https://yumaonb.github.io/jieshaoye/friends/): 友情链接页，以双列网格展示友链卡片，支持申请友链
+- [赞助](https://yumaonb.github.io/jieshaoye/sponsor/): 赞助支持页，可通过「爱发电」进行赞助，也可 Star 仓库、分享或收藏本站
+
+## Social
+
+- [GitHub](https://github.com/yumaonb): 羽毛的 GitHub 主页
+- [Bilibili](https://b23.tv/XFTBHN3): 羽毛的 Bilibili 主页
+- [快手](https://v.kuaishou.com/JwRUGjtp): 羽毛的快手主页
+- [抖音](https://v.douyin.com/UrbqZZXQBzc/): 羽毛的抖音主页
+- [QQ](https://qm.qq.com/q/UhGbjbysQW): 羽毛的 QQ
 
 ## Source
 
 - [GitHub 仓库](https://github.com/yumaonb/YuSwift/): 项目源码已开源至 GitHub
-
-## Optional
-
-- [Bilibili](https://b23.tv/XFTBHN3): 羽毛的 Bilibili 主页
-- [GitHub 个人主页](https://github.com/yumaonb): 羽毛的 GitHub 主页
