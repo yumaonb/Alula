@@ -1,0 +1,158 @@
+---
+// friends.astro — 友情链接页面
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const friends = [
+  {
+    name: '示例友链',
+    avatar: '头像链接',
+    desc: '介绍',
+    url: '网址',
+  },
+  {
+    name: '示例友链',
+    avatar: '头像链接',
+    desc: '介绍',
+    url: '网址',
+  },
+];
+---
+
+<BaseLayout title="友情链接 - 羽毛的小屋">
+  <div class="friends-page page-container">
+
+    <!-- 标题区 -->
+    <header class="friends-header">
+      <h1 class="section-title">友情链接</h1>
+      <p class="section-desc">欢迎各位互加友链，本站域名后续可能更换，如介意请勿申请友链</p>
+    </header>
+
+    <!-- 友链网格 -->
+    <div class="friends-grid">
+      {friends.map((f) => (
+        <a href={f.url} class="friend-card glass" target="_blank" rel="noopener">
+          <div class="friend-avatar avatar-ring" style="--avatar-size:52px;">
+            <img src={f.avatar} alt={f.name} class="avatar-img" loading="lazy" />
+          </div>
+          <div class="friend-info">
+            <span class="friend-name">{f.name}</span>
+            <span class="friend-desc">{f.desc}</span>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <!-- 申请友链 -->
+    <section class="apply-section">
+      <p class="apply-label">申请友链</p>
+      <div class="apply-card glass">
+        <p class="apply-text">
+          如果你想交换友链，请通过首页联系方式联系我
+        </p>
+      </div>
+    </section>
+
+  </div>
+</BaseLayout>
+
+<style>
+  .friends-page {
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  /* ====== 标题区 ====== */
+  .friends-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ====== 友链网格 ====== */
+  .friends-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .friend-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 18px;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 12px;
+  }
+
+  .friend-avatar {
+    flex-shrink: 0;
+    margin: 4px 0 4px 2px;
+  }
+
+  .friend-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .friend-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .friend-desc {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ====== 申请友链 ====== */
+  .apply-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .apply-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.3);
+    padding-left: 4px;
+  }
+
+  .apply-card {
+    padding: 20px 24px;
+    border-radius: var(--radius);
+  }
+
+  .apply-text {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.7;
+  }
+
+  /* ====== 手机端适配 ====== */
+  @media (max-width: 640px) {
+    .friends-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .friend-card {
+      padding: 14px 16px;
+    }
+  }
+</style>
