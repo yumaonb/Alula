@@ -7,6 +7,7 @@ import { Image } from 'astro:assets';
 import avatarImg from '../assets/images/avatar.png';
 import { Content } from '../content/about.md';
 import { nickname, motto } from '../data/profile';
+import Markdown from '../components/layout/Markdown.astro';
 ---
 
 <BaseLayout title="关于 - 羽毛的小屋">
@@ -26,7 +27,9 @@ import { nickname, motto } from '../data/profile';
       <DaysCounter client:visible />
       <TechStack />
       <div class="intro-text glass">
-        <Content />
+        <Markdown>
+          <Content />
+        </Markdown>
       </div>
     </section>
 
