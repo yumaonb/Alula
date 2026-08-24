@@ -42,7 +42,7 @@ export async function fetchRepos() {
       stargazers_count: r.stargazers_count,
       forks_count: r.forks_count,
       topics: r.topics || [],
-      pushed_at: r.pushed_at,
+      created_at: r.created_at,
     }))
     .sort((a, b) => b.stargazers_count - a.stargazers_count);
 

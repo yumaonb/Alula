@@ -73,7 +73,7 @@
             <Icon icon="la:code-branch" class="stat-icon" />
             {{ repo.forks_count }}
           </span>
-          <span class="stat update-time">{{ formatDate(repo.pushed_at) }}</span>
+          <span class="stat update-time">{{ formatDate(repo.created_at) }}</span>
         </div>
       </a>
     </template>
