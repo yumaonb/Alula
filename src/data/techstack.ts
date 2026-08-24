@@ -15,7 +15,7 @@ export const techStack: TechCategory[] = [
   },
   {
     category: '后端',
-    items: ['还没学'],
+    items: ['PHP'],
   },
   {
     category: '数据库',
