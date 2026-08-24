@@ -2,15 +2,15 @@
 // index.astro — 首页
 
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Clock from '../components/widgets/Clock.vue';
+import Clock from '../components/widgets/Clock.svelte';
 import Quote from '../components/widgets/Quote.astro';
-import DaysCounter from '../components/widgets/DaysCounter.vue';
+import DaysCounter from '../components/widgets/DaysCounter.svelte';
 import { Icon } from 'astro-icon/components';
 import { Image } from 'astro:assets';
 import avatarImg from '../assets/images/avatar.png';
 import { nickname, motto, intro, socialLinks } from '../data/profile';
 ---
-<BaseLayout title="首页 - 羽毛的小屋">
+<BaseLayout title="首页">
   <div class="content-wrapper">
     <!-- 左栏 -->
     <div class="left-col">

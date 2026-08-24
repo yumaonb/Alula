@@ -1,14 +1,13 @@
 ---
 // Footer.astro — 页脚组件
-
+import { site } from '../../data/site';
 ---
 
 <footer class="site-footer glass">
   <div class="footer-inner">
-    <p class="footer-copy">Copyright © 2026 羽毛. All Rights Reserved</p>
+    <p class="footer-copy">{site.footerCopyright}</p>
     <p class="footer-note">
-      由 <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> 和
-      <a href="https://vuejs.org" target="_blank" rel="noopener noreferrer">Vue</a> 驱动
+      <Fragment set:html={site.footerNote} />
     </p>
   </div>
 </footer>

@@ -9,6 +9,7 @@ import "../assets/css/global.css";
 import "../assets/css/skeleton.css";
 import NavBar from "../components/layout/NavBar.astro";
 import Footer from "../components/layout/Footer.astro";
+import { site } from "../data/site";
 
 const avatarImage = await getImage({
   src: avatarRaw,
@@ -23,20 +24,22 @@ interface Props {
 }
 
 const {
-  title = "羽毛的小屋",
-  description = "羽毛的小屋",
+  title,
+  description = site.description,
 } = Astro.props;
+
+const pageTitle = title ? `${title} - ${site.name}` : site.name;
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={site.lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content={site.colorScheme} />
     <link rel="icon" type="image/webp" href={avatarImage.src} />
-    <title>{title}</title>
+    <title>{pageTitle}</title>
     <slot name="head" />
   </head>
   <body>

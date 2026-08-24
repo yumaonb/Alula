@@ -11,7 +11,7 @@ export interface TechCategory {
 export const techStack: TechCategory[] = [
   {
     category: '前端',
-    items: ['HTML', 'CSS', 'JavaScript', 'TypeScript', 'Vue', 'Astro'],
+    items: ['HTML', 'CSS', 'JavaScript', 'TypeScript', 'Svelte', 'Astro'],
   },
   {
     category: '后端',

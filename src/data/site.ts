@@ -22,7 +22,7 @@ export const site: SiteConfig = {
   name: '羽毛的小屋',
   description: '羽毛的小屋',
   footerCopyright: 'Copyright © 2026 羽毛. All Rights Reserved',
-  footerNote: '由 <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> 和 <a href="https://vuejs.org" target="_blank" rel="noopener noreferrer">Vue</a> 驱动',
+  footerNote: '由 <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> 和 <a href="https://svelte.dev" target="_blank" rel="noopener noreferrer">Svelte</a> 驱动',
   lang: 'zh-CN',
   colorScheme: 'dark',
 };

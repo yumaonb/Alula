@@ -1,7 +1,7 @@
 ---
 // about.astro — 关于页面
 import BaseLayout from '../layouts/BaseLayout.astro';
-import DaysCounter from '../components/widgets/DaysCounter.vue';
+import DaysCounter from '../components/widgets/DaysCounter.svelte';
 import TechStack from '../components/widgets/TechStack.astro';
 import { Image } from 'astro:assets';
 import avatarImg from '../assets/images/avatar.png';
@@ -10,7 +10,7 @@ import { nickname, motto } from '../data/profile';
 import Markdown from '../components/layout/Markdown.astro';
 ---
 
-<BaseLayout title="关于 - 羽毛的小屋">
+<BaseLayout title="关于">
   <div class="about-page page-container">
 
     <!-- ========== 个人介绍区 ========== -->

@@ -2,13 +2,14 @@
 // NavBar.astro — 导航栏
 
 import { Icon } from "astro-icon/components";
+import { site } from "../../data/site";
 ---
 
 <nav class="navbar glass">
   <div class="nav-inner">
     <a href="/" class="nav-logo" aria-label="首页">
       <Icon name="la:home" class="nav-home-icon" />
-      羽毛的小屋
+      {site.name}
     </a>
 
     <!-- 桌面端链接 -->
