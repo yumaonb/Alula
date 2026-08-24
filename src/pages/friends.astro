@@ -1,21 +1,7 @@
 ---
 // friends.astro — 友情链接页面
 import BaseLayout from '../layouts/BaseLayout.astro';
-
-const friends = [
-  {
-    name: '示例友链',
-    avatar: '头像链接',
-    desc: '介绍',
-    url: '网址',
-  },
-  {
-    name: '示例友链',
-    avatar: '头像链接',
-    desc: '介绍',
-    url: '网址',
-  },
-];
+import { friends } from '../data/friends';
 ---
 
 <BaseLayout title="友情链接 - 羽毛的小屋">

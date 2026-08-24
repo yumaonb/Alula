@@ -1,28 +1,6 @@
 ---
 // TechStack.astro — 技术栈
-
-const techStack = [
-  {
-    category: '前端',
-    items: ['HTML', 'CSS', 'JavaScript', 'TypeScript', 'Vue', 'Astro'],
-  },
-  {
-    category: '后端',
-    items: ['还没学'],
-  },
-  {
-    category: '数据库',
-    items: ['MySQL'],
-  },
-  {
-    category: '运维',
-    items: ['Linux', 'Nginx', '宝塔', '1Panel', 'Docker'],
-  },
-  {
-    category: '工具',
-    items: ['Git', 'GitHub', 'pnpm', 'npm'],
-  },
-];
+import { techStack } from '../../data/techstack';
 ---
 
 <div class="tech-wrapper glass">

@@ -83,7 +83,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
-import { fetchRepos } from '../../assets/js/github.js';
+import { fetchRepos } from '../../assets/js/github';
 
 const langColors = {
   // 前端框架

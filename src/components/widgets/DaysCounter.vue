@@ -2,7 +2,7 @@
   <!-- DaysCounter.vue — 数据统计卡片 -->
   <div class="stats-row">
     <div class="stat-card glass">
-      <span class="stat-label">入坑全栈</span>
+      <span class="stat-label">{{ label }}</span>
       <span v-if="ready" class="stat-value">{{ days }}天</span>
       <span v-else class="stat-value">
         <span class="skeleton" style="display:inline-block;width:60px;height:1em;vertical-align:middle"></span>
@@ -27,9 +27,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { fetchRepoCount } from "../../assets/js/github.js";
+import { fetchRepoCount } from "../../assets/js/github";
+import { daysCounterConfig } from "../../data/dayscounter";
 
-const startDate = "2024-03-23";
+const { label, startDate } = daysCounterConfig;
 
 const ready = ref(false);
 const days = ref(0);

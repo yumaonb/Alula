@@ -8,17 +8,7 @@ import DaysCounter from '../components/widgets/DaysCounter.vue';
 import { Icon } from 'astro-icon/components';
 import { Image } from 'astro:assets';
 import avatarImg from '../assets/images/avatar.png';
-
-const nickname = '羽毛';
-
-// 联系方式数据
-const socialLinks = [
-  { icon: 'la:github', label: 'GitHub', url: 'https://github.com/yumaonb' },
-  { icon: 'simple-icons:bilibili', label: 'Bilibili', url: 'https://b23.tv/XFTBHN3' },
-  { icon: 'simple-icons:kuaishou', label: '快手', url: 'https://v.kuaishou.com/JwRUGjtp' },
-  { icon: 'simple-icons:tiktok', label: '抖音', url: 'https://v.douyin.com/UrbqZZXQBzc/' },
-  { icon: 'la:qq', label: 'QQ', url: 'https://qm.qq.com/q/UhGbjbysQW' },
-];
+import { nickname, motto, intro, socialLinks } from '../data/profile';
 ---
 <BaseLayout title="首页 - 羽毛的小屋">
   <div class="content-wrapper">
@@ -31,18 +21,13 @@ const socialLinks = [
         </div>
         <div class="avatar-text">
           <h1 class="nickname section-title">{nickname}</h1>
-          <p class="motto text-motto">阅己 越己 悦己</p>
+          <p class="motto text-motto">{motto}</p>
         </div>
       </div>
 
       <!-- 介绍 -->
       <div class="intro-card glass">
-        <div class="intro-about">
-          <p>这里是羽毛的小屋，一位热爱探索的学生。</p>
-          <p>本项目技术栈：Astro · Vue 3 · TypeScript</p>
-          <p>源码已开源至github：<a href="https://github.com/yumaonb/YuSwift/" target="_blank" rel="noopener">点我前往项目地址</a></p>
-          <p>本站随时可能更换域名，建议收藏项目地址或收藏中转页：<a href="https://yumaonb.github.io/" target="_blank" rel="noopener">yumaonb.github.io</a></p>
-        </div>
+        <div class="intro-about" set:html={intro}></div>
       </div>
 
       <!-- 联系方式 -->
