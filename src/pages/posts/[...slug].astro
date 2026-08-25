@@ -1,0 +1,181 @@
+---
+// /posts/[...slug].astro — 文章详情页 & 分类列表页
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostsLayout from '../../layouts/PostsLayout.astro';
+import PostCard from '../../components/widgets/PostCard.astro';
+import Breadcrumb from '../../components/widgets/Breadcrumb.astro';
+import { Icon } from 'astro-icon/components';
+import '../../assets/css/markdown.css';
+import {
+  type PostModule,
+  buildCategoryMeta,
+  isCategoryPath,
+  getCategoryPosts,
+  getCategoryDisplayName,
+  buildCategoryBreadcrumbs,
+  extractCategoryFromSlug,
+  buildPostBreadcrumbs,
+  formatDate,
+} from '../../lib/category';
+
+// ====== 分类元数据 ======
+const categoryJsonFiles = import.meta.glob('../../content/posts/**/index.json', { eager: true });
+const categoryMdFiles = import.meta.glob('../../content/posts/**/index.md', { eager: true });
+const categoryMeta = buildCategoryMeta(categoryJsonFiles, categoryMdFiles);
+
+// ====== getStaticPaths ======
+export function getStaticPaths() {
+  const postModules = import.meta.glob('../../content/posts/**/*.md', { eager: true });
+  const cj = import.meta.glob('../../content/posts/**/index.json', { eager: true });
+  const cm = import.meta.glob('../../content/posts/**/index.md', { eager: true });
+  const catMeta = buildCategoryMeta(cj, cm);
+
+  const paths: { params: { slug: string }; props: any }[] = [];
+  for (const [filePath] of Object.entries(postModules)) {
+    const path = filePath.replace('../../content/posts/', '').replace(/\.md$/, '');
+    if (isCategoryPath(path)) continue;
+    paths.push({ params: { slug: path }, props: { type: 'post', filePath, slug: path } });
+  }
+  for (const catPath of Object.keys(catMeta)) {
+    paths.push({ params: { slug: catPath }, props: { type: 'category', category: catPath } });
+  }
+  return paths;
+}
+
+const { type } = Astro.props;
+
+// ====== 分类页面数据 ======
+let catCategory = '';
+let catName = '';
+let catDesc = '';
+let catPosts: { slug: string; frontmatter: any }[] = [];
+let catBreadcrumbs: { label: string; href?: string }[] = [];
+
+if (type === 'category') {
+  catCategory = Astro.props.category;
+  const postModules = import.meta.glob('../../content/posts/**/*.md', { eager: true });
+  catPosts = getCategoryPosts(postModules, catCategory);
+
+  const meta = categoryMeta[catCategory] || { name: catCategory.split('/').pop() };
+  catName = meta.name || catCategory.split('/').pop() || catCategory;
+  catDesc = meta.description || '';
+  catBreadcrumbs = buildCategoryBreadcrumbs(catCategory, categoryMeta);
+}
+
+// ====== 文章页面数据 ======
+let postFm: any = {};
+let postCompiledHtml = '';
+let postHeadings: { depth: number; slug: string; text: string }[] = [];
+let postCategory = '';
+let postCategoryName = '';
+let postBreadcrumbs: { label: string; href?: string }[] = [];
+let postDateFormatted = '';
+
+if (type === 'post') {
+  const { filePath, slug } = Astro.props;
+  const allPosts = import.meta.glob<PostModule>('../../content/posts/**/*.md', { eager: true });
+  const post = allPosts[filePath];
+
+  if (post) {
+    postFm = post.frontmatter;
+    postCompiledHtml = post.compiledContent();
+    // 使用 getHeadings() 获取标题（remark/remark-slug 已处理）
+    const rawHeadings = post.getHeadings();
+    for (const h of rawHeadings) {
+      // 取 h1、h2、h3，由 TOC 组件决定显示哪些
+      if (h.depth >= 1 && h.depth <= 3) {
+        postHeadings.push({ depth: h.depth, slug: h.slug, text: h.text });
+      }
+    }
+    postCategory = extractCategoryFromSlug(slug);
+    postCategoryName = getCategoryDisplayName(postCategory, categoryMeta);
+    postBreadcrumbs = buildPostBreadcrumbs(postCategory, postFm.title, categoryMeta);
+    if (postFm.date) {
+      postDateFormatted = formatDate(postFm.date);
+    }
+  }
+}
+---
+
+{type === 'category' && (
+  <BaseLayout title={`${catName} - 文章分类`}>
+    <div class="category-page page-container">
+      <Breadcrumb items={catBreadcrumbs} />
+      <div class="category-header">
+        <h1 class="category-title section-title">{catName}</h1>
+        {catDesc && <p class="category-desc section-desc">{catDesc}</p>}
+        <p class="category-count section-desc">共 {catPosts.length} 篇文章</p>
+      </div>
+      <div class="posts-grid">
+        {catPosts.map((post: any) => (
+          <PostCard title={post.frontmatter.title || '无标题'} date={post.frontmatter.date || ''}
+            description={post.frontmatter.description || ''} image={post.frontmatter.image || ''}
+            tags={post.frontmatter.tags || []} pinned={post.frontmatter.pinned || false}
+            url={`/posts/${post.slug}/`} category={catCategory} />
+        ))}
+      </div>
+      {catPosts.length === 0 && <div class="posts-empty glass"><p>该分类下暂无文章</p></div>}
+    </div>
+  </BaseLayout>
+)}
+
+{type === 'post' && (
+  <PostsLayout title={postFm.title} description={postFm.description} headings={postHeadings} breadcrumbs={postBreadcrumbs}>
+    <header class="post-header">
+      <h1 class="post-title">
+        {postFm.pinned && <span class="post-title-pin"><Icon name="la:thumbtack" class="pin-icon" /></span>}
+        {postFm.title}
+      </h1>
+      <div class="post-meta">
+        {postDateFormatted && (
+          <span class="post-meta-item">
+            <Icon name="la:calendar" class="meta-icon" />
+            <time datetime={postFm.date}>{postDateFormatted}</time>
+          </span>
+        )}
+        {postCategory && (
+          <span class="post-meta-item">
+            <Icon name="la:folder-open" class="meta-icon" />
+            <a href={`/posts/${postCategory}/`} class="post-meta-link">{postCategoryName}</a>
+          </span>
+        )}
+        {postFm.tags && postFm.tags.length > 0 && (
+          <span class="post-meta-item">
+            <Icon name="la:tag" class="meta-icon" />
+            {postFm.tags.map((tag: string, i: number) => (
+              <span>
+                <a href={`/posts/?tag=${encodeURIComponent(tag)}`} class="post-meta-link">{tag}</a>
+                {i < postFm.tags.length - 1 && <span class="meta-sep">/</span>}
+              </span>
+            ))}
+          </span>
+        )}
+      </div>
+      {postFm.image && <div class="post-cover"><img src={postFm.image} alt={postFm.title} /></div>}
+    </header>
+    <div class="markdown-body" set:html={postCompiledHtml} />
+  </PostsLayout>
+)}
+
+<style>
+  .category-page { max-width: 1000px; min-width: 0; display: flex; flex-direction: column; gap: 32px; }
+  .category-header { text-align: center; }
+  .category-title { margin-bottom: 8px; }
+  .category-count { margin-top: 4px; }
+  .posts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .posts-empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.45); border-radius: var(--radius); }
+  .post-header { margin-bottom: 24px; }
+  .post-title { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.3; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px; }
+  .post-title-pin { display: inline-flex; flex-shrink: 0; }
+  .post-title-pin .pin-icon { width: 22px; height: 22px; }
+  .post-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .post-meta-item { display: inline-flex; align-items: center; gap: 5px; font-size: 0.85rem; color: rgba(255,255,255,0.5); }
+  .meta-icon { width: 15px; height: 15px; opacity: 0.6; flex-shrink: 0; position: relative; top: -1px; }
+  .post-meta-link { color: rgba(255,255,255,0.65); text-decoration: none; transition: color 0.2s; }
+  .post-meta-link::before { display: none; }
+  .post-meta-link:hover { color: #fff; }
+  .meta-sep { margin: 0 2px; color: rgba(255,255,255,0.3); }
+  .post-cover { margin-top: 20px; border-radius: 8px; overflow: hidden; }
+  .post-cover img { width: 100%; height: auto; display: block; }
+  @media (max-width: 768px) { .posts-grid { grid-template-columns: 1fr; gap: 16px; } .post-title { font-size: 1.5rem; } }
+</style>

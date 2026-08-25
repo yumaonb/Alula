@@ -1,0 +1,87 @@
+---
+// PostsLayout.astro — 文章页面布局
+import BaseLayout from './BaseLayout.astro';
+import TableOfContents from '../components/widgets/TableOfContents.astro';
+import Breadcrumb from '../components/widgets/Breadcrumb.astro';
+import '../assets/css/markdown.css';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  title: string;
+  description?: string;
+  headings: Heading[];
+  breadcrumbs: BreadcrumbItem[];
+}
+
+const { title, description, headings, breadcrumbs } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="post-page page-container">
+    <Breadcrumb items={breadcrumbs} />
+
+    <div class="post-layout">
+      <article class="post-content glass">
+        <slot />
+      </article>
+
+      <aside class="post-sidebar">
+        <TableOfContents headings={headings} />
+      </aside>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .post-page {
+    max-width: 1100px;
+    min-width: 0;
+  }
+
+  .post-layout {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  .post-content {
+    flex: 1;
+    min-width: 0;
+    padding: 36px 40px;
+    border-radius: var(--radius);
+  }
+
+  .post-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
+  }
+
+  /* 768px 以下：隐藏侧边栏，文章全宽 */
+  @media (max-width: 768px) {
+    .post-layout {
+      display: block;
+    }
+
+    .post-sidebar {
+      display: none;
+    }
+
+    .post-content {
+      width: 100%;
+      padding: 16px;
+      border-radius: 0;
+    }
+  }
+</style>

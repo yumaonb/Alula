@@ -1,0 +1,73 @@
+---
+// Breadcrumb.astro — 面包屑导航
+interface BreadcrumbItem {
+  label: string;
+  href?: string; // 最后一项不带链接
+}
+
+interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+---
+
+{items.length > 1 && (
+  <nav class="breadcrumb" aria-label="面包屑导航">
+    {items.map((item, index) => (
+      <span class="breadcrumb-item">
+        {index > 0 && <span class="breadcrumb-sep">/</span>}
+        {item.href ? (
+          <a href={item.href} class="breadcrumb-link">{item.label}</a>
+        ) : (
+          <span class="breadcrumb-current">{item.label}</span>
+        )}
+      </span>
+    ))}
+  </nav>
+)}
+
+<style>
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin: 0 0 12px;
+    font-size: 0.85rem;
+  }
+
+  .breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .breadcrumb-sep {
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0 4px;
+    font-size: 0.8em;
+  }
+
+  .breadcrumb-link {
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+  }
+
+  .breadcrumb-link::before {
+    display: none;
+  }
+
+  .breadcrumb-link:hover {
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .breadcrumb-current {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+  }
+</style>

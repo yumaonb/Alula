@@ -90,18 +90,8 @@ ol {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 96px 0 48px;
+  padding: 84px 0 32px;
   position: relative;
-}
-
-/* 手机端内边距 */
-@media (max-width: 640px) {
-  .hero { padding: 80px 0 40px; }
-}
-
-/* 电脑端内边距 */
-@media (min-width: 1024px) {
-  .hero { padding: 120px 0 80px; }
 }
 
 /* ---- Swup 页面切换动画 ---- */

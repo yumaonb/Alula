@@ -1,0 +1,184 @@
+---
+// TableOfContents.astro — 目录组件
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+// 判断有哪些级别
+const hasH1 = headings.some(h => h.depth === 1);
+const hasH2 = headings.some(h => h.depth === 2);
+
+// 有 h1 → 显示 h1+h2；无 h1 有 h2 → 显示 h2+h3；都没有 → 不显示
+let tocItems: Heading[] = [];
+let childDepth = 0; // 子级的 depth 值
+
+if (hasH1) {
+  tocItems = headings.filter(h => h.depth === 1 || h.depth === 2);
+  childDepth = 2;
+} else if (hasH2) {
+  tocItems = headings.filter(h => h.depth === 2 || h.depth === 3);
+  childDepth = 3;
+}
+---
+
+{tocItems.length > 0 && (
+  <nav class="toc glass" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ul class="toc-list" id="toc-list">
+      {tocItems.map((heading) => (
+        <li
+          class={`toc-item${heading.depth === childDepth ? ' toc-child' : ''}`}
+          data-target={heading.slug}
+        >
+          <a href={`#${heading.slug}`} class="toc-link">
+            {heading.text.replace(/\s*#$/, '')}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<script>
+  function initToc() {
+    const tocLinks = document.querySelectorAll('.toc-link');
+    const tocItems = document.querySelectorAll('.toc-item');
+    if (tocLinks.length === 0) return;
+
+    const headingElements: Element[] = [];
+    tocItems.forEach(item => {
+      const slug = item.getAttribute('data-target');
+      if (slug) {
+        const heading = document.getElementById(slug);
+        if (heading) headingElements.push(heading);
+      }
+    });
+
+    if (headingElements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            tocItems.forEach(item => {
+              item.classList.toggle('active', item.getAttribute('data-target') === id);
+            });
+          }
+        });
+      },
+      {
+        rootMargin: '-80px 0px -70% 0px',
+        threshold: 0,
+      }
+    );
+
+    headingElements.forEach(h => observer.observe(h));
+
+    tocLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const slug = (link as HTMLAnchorElement).getAttribute('href')?.slice(1);
+        if (!slug) return;
+        const target = document.getElementById(slug);
+        if (target) {
+          const offset = 90;
+          const top = target.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initToc);
+  document.addEventListener('swup:contentReplaced', initToc);
+</script>
+
+<style>
+  .toc {
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding: 20px 16px;
+    border-radius: var(--radius);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .toc::-webkit-scrollbar { width: 3px; }
+  .toc::-webkit-scrollbar-track { background: transparent; }
+  .toc::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+
+  .toc-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .toc-item {
+    border-radius: 6px;
+    transition: background 0.2s ease;
+  }
+
+  /* 子级缩进（由 JS class 控制，不依赖固定 depth） */
+  .toc-child {
+    padding-left: 16px;
+  }
+  .toc-child .toc-link {
+    font-size: 0.78rem;
+  }
+
+  .toc-link {
+    display: block;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    border-radius: 6px;
+    line-height: 1.5;
+    transition: color 0.2s ease, background 0.2s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .toc-link::before { display: none; }
+
+  .toc-link:hover {
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .toc-item.active .toc-link {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    font-weight: 500;
+  }
+
+  .toc-item.active {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  @media (max-width: 768px) {
+    .toc { display: none; }
+  }
+</style>

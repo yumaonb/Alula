@@ -1,0 +1,90 @@
+---
+// /posts/ — 文章列表首页
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/widgets/PostCard.astro';
+import Breadcrumb from '../../components/widgets/Breadcrumb.astro';
+import { buildCategoryMeta, buildAllPosts } from '../../lib/category';
+
+// 导入分类元数据
+const categoryJsonFiles = import.meta.glob('../../content/posts/**/index.json', { eager: true });
+const categoryMdFiles = import.meta.glob('../../content/posts/**/index.md', { eager: true });
+const categoryMeta = buildCategoryMeta(categoryJsonFiles, categoryMdFiles);
+
+// 导入所有博客文章并构建列表
+const postModules = import.meta.glob('../../content/posts/**/*.md', { eager: true });
+const posts = buildAllPosts(postModules, categoryMeta);
+
+const breadcrumbs = [
+  { label: '文章', href: '/posts/' },
+];
+---
+
+<BaseLayout title="文章">
+  <div class="posts-page page-container">
+    <Breadcrumb items={breadcrumbs} />
+
+    <div class="posts-header">
+      <h1 class="posts-title section-title">文章</h1>
+      <p class="posts-desc section-desc">记录学习过程中的所见所闻</p>
+    </div>
+
+    <div class="posts-grid">
+      {posts.map(post => (
+        <PostCard
+          title={post.title}
+          date={post.date}
+          description={post.description}
+          image={post.image}
+          tags={post.tags}
+          pinned={post.pinned}
+          url={`/posts/${post.slug}/`}
+          category={post.category || undefined}
+        />
+      ))}
+    </div>
+
+    {posts.length === 0 && (
+      <div class="posts-empty glass">
+        <p>暂无文章</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .posts-page {
+    max-width: 1000px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .posts-header {
+    text-align: center;
+  }
+
+  .posts-title {
+    margin-bottom: 8px;
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .posts-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.45);
+    border-radius: var(--radius);
+  }
+
+  @media (max-width: 768px) {
+    .posts-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+</style>
