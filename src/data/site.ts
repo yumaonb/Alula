@@ -6,6 +6,8 @@
 export interface SiteConfig {
   /** 站点名称 */
   name: string;
+  /** 站点域名 */
+  domain: string;
   /** 站点描述（SEO） */
   description: string;
   /** 页脚版权文字 */
@@ -20,6 +22,7 @@ export interface SiteConfig {
 
 export const site: SiteConfig = {
   name: '羽毛的小屋',
+  domain: 'ym.2v.nz',
   description: '羽毛的小屋',
   footerCopyright: 'Copyright © 2026 羽毛. All Rights Reserved',
   footerNote: '由 <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> 和 <a href="https://svelte.dev" target="_blank" rel="noopener noreferrer">Svelte</a> 驱动',

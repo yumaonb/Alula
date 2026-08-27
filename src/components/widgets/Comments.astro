@@ -1,6 +1,9 @@
 ---
 // Comments.astro — giscus 评论区
 // 仅在文章页使用；通过 swup 的 reloadScripts 在每次页面切换时重新挂载
+import { site } from '../../data/site';
+
+const giscusTheme = `https://${site.domain}/css/giscus.css`;
 ---
 
 <div id="comments-section" class="comments-section glass">
@@ -8,7 +11,7 @@
   <div id="comments" class="giscus-container"></div>
 </div>
 
-<script is:inline>
+<script is:inline define:vars={{ giscusTheme }}>
   (function mountGiscus() {
     const host = document.getElementById('comments');
     if (!host) return;
@@ -30,7 +33,7 @@
     s.setAttribute('data-reactions-enabled', '0');
     s.setAttribute('data-emit-metadata', '1');
     s.setAttribute('data-input-position', 'top');
-    s.setAttribute('data-theme', 'https://cdn.jsdelivr.net/gh/yumaonb/YuSwift@main/public/css/giscus.css');
+    s.setAttribute('data-theme', giscusTheme);
     s.setAttribute('data-lang', 'zh-CN');
     s.setAttribute('data-loading', 'lazy');
     host.appendChild(s);
