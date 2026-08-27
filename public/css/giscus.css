@@ -115,16 +115,16 @@ main .pagination-loader-container {
   background-color: var(--color-btn-bg);
 }
 
-main .gsc-loading-image {
-  background-image: url("https://github.githubassets.com/images/mona-loading-dark.gif");
-}
+/* 使用 giscus 内置 loading 图标，不跨域引用 githubassets */
 
 /* 输入框聚焦:去掉发亮效果 */
 main textarea:focus,
 main textarea:focus-visible,
 main input:focus,
 main .form-control:focus,
-main .form-control:focus-visible {
+main .form-control:focus-visible,
+main [contenteditable]:focus,
+main [contenteditable]:focus-visible {
   border-color: var(--color-border-default) !important;
   box-shadow: none !important;
   outline: none !important;
@@ -134,5 +134,13 @@ main .form-control:focus-visible {
 main .gsc-comment-box:focus-within,
 main .gsc-comment-box-markdown:focus-within {
   border-color: var(--color-border-default) !important;
+  box-shadow: none !important;
+}
+
+/* 禁用所有聚焦环 */
+*:focus,
+*:focus-visible,
+*:focus-within {
+  outline: none !important;
   box-shadow: none !important;
 }
