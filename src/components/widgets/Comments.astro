@@ -3,7 +3,7 @@
 // 仅在文章页使用；通过 swup 的 reloadScripts 在每次页面切换时重新挂载
 ---
 
-<div class="comments-section glass">
+<div id="comments-section" class="comments-section glass">
   <h2 class="comments-title">评论</h2>
   <div id="comments" class="giscus-container"></div>
 </div>
@@ -41,6 +41,8 @@
   .comments-section {
     margin-top: 32px;
     padding: 28px;
+    /* 锚点滚动偏移：避开固定导航栏（桌面 68px + 20px 间距） */
+    scroll-margin-top: 78px;
   }
 
   .comments-title {

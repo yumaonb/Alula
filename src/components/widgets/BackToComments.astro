@@ -13,15 +13,14 @@ import { Icon } from 'astro-icon/components';
   if (!btn) return;
 
   function toggleBtn() {
-    var hasTarget = !!document.getElementById('comments');
+    var hasTarget = !!document.getElementById('comments-section');
     btn.classList.toggle('visible', hasTarget && window.scrollY > 300);
   }
 
   btn.addEventListener('click', function() {
-    var target = document.getElementById('comments');
+    var target = document.getElementById('comments-section');
     if (!target) return;
-    var y = target.getBoundingClientRect().top + window.scrollY - 88;
-    window.scrollTo({ top: y, behavior: 'smooth' });
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   window.addEventListener('scroll', toggleBtn, { passive: true });
