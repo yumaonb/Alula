@@ -1,23 +1,27 @@
 ---
-// BackToTop.astro — 返回顶部按钮
+// BackToComments.astro — 到评论按钮
 import { Icon } from 'astro-icon/components';
 ---
 
-<button class="back-to-top" id="back-to-top" aria-label="返回顶部">
-  <Icon name="la:arrow-up" class="back-to-top-icon" />
+<button class="back-to-comments" id="back-to-comments" aria-label="到评论">
+  <Icon name="la:comment" class="back-to-comments-icon" />
 </button>
 
 <script is:inline>
 (function() {
-  var btn = document.getElementById('back-to-top');
+  var btn = document.getElementById('back-to-comments');
   if (!btn) return;
 
   function toggleBtn() {
-    btn.classList.toggle('visible', window.scrollY > 300);
+    var hasTarget = !!document.getElementById('comments');
+    btn.classList.toggle('visible', hasTarget && window.scrollY > 300);
   }
 
   btn.addEventListener('click', function() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    var target = document.getElementById('comments');
+    if (!target) return;
+    var y = target.getBoundingClientRect().top + window.scrollY - 88;
+    window.scrollTo({ top: y, behavior: 'smooth' });
   });
 
   window.addEventListener('scroll', toggleBtn, { passive: true });
@@ -26,10 +30,10 @@ import { Icon } from 'astro-icon/components';
 </script>
 
 <style>
-  .back-to-top {
+  .back-to-comments {
     position: fixed;
     right: 20px;
-    bottom: 220px;
+    bottom: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -48,19 +52,19 @@ import { Icon } from 'astro-icon/components';
     z-index: 50;
   }
 
-  .back-to-top.visible {
+  .back-to-comments.visible {
     opacity: 1;
     transform: translateX(0);
     pointer-events: auto;
   }
 
-  .back-to-top:hover {
+  .back-to-comments:hover {
     color: rgba(255, 255, 255, 0.8);
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.15);
   }
 
-  .back-to-top-icon {
+  .back-to-comments-icon {
     width: 24px;
     height: 24px;
   }

@@ -5,6 +5,7 @@ import PostsLayout from '../../layouts/PostsLayout.astro';
 import PostCard from '../../components/posts/PostCard.astro';
 import Breadcrumb from '../../components/posts/Breadcrumb.astro';
 import Repost from '../../components/posts/Repost.astro';
+import Comments from '../../components/widgets/Comments.astro';
 import { Icon } from 'astro-icon/components';
 import { nickname } from '../../data/profile';
 import '../../assets/css/markdown.css';
@@ -187,6 +188,7 @@ if (type === 'post') {
     </header>
     <div class="markdown-body" set:html={postCompiledHtml} />
     <Repost title={postFm.title} date={postDateFormatted || postFm.date} />
+    <Comments slot="comments" />
   </PostsLayout>
 )}
 

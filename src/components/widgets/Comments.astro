@@ -1,0 +1,57 @@
+---
+// Comments.astro — giscus 评论区
+// 仅在文章页使用；通过 swup 的 reloadScripts 在每次页面切换时重新挂载
+---
+
+<div class="comments-section glass">
+  <h2 class="comments-title">评论</h2>
+  <div id="comments" class="giscus-container"></div>
+</div>
+
+<script is:inline>
+  (function mountGiscus() {
+    const host = document.getElementById('comments');
+    if (!host) return;
+
+    // 清理旧实例，避免重复挂载
+    const existing = host.querySelector('iframe.giscus-frame, script[src*="giscus.app/client.js"]');
+    if (existing) existing.remove();
+
+    const s = document.createElement('script');
+    s.src = 'https://giscus.app/client.js';
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.setAttribute('data-repo', 'yumaonb/YuSwift');
+    s.setAttribute('data-repo-id', 'R_kgDOT49iJA');
+    s.setAttribute('data-category', 'Comments');
+    s.setAttribute('data-category-id', 'DIC_kwDOT49iJM4DET8B');
+    s.setAttribute('data-mapping', 'pathname');
+    s.setAttribute('data-strict', '1');
+    s.setAttribute('data-reactions-enabled', '0');
+    s.setAttribute('data-emit-metadata', '1');
+    s.setAttribute('data-input-position', 'top');
+    s.setAttribute('data-theme', 'https://cdn.jsdelivr.net/gh/yumaonb/YuSwift@main/public/giscus.css');
+    s.setAttribute('data-lang', 'zh-CN');
+    s.setAttribute('data-loading', 'lazy');
+    host.appendChild(s);
+  })();
+</script>
+
+<style>
+  .comments-section {
+    margin-top: 32px;
+    padding: 28px;
+  }
+
+  .comments-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 16px 0;
+  }
+
+  .giscus-container {
+    min-height: 120px;
+    color: #fff;
+  }
+</style>
