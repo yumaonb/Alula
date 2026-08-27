@@ -119,19 +119,20 @@ main .gsc-loading-image {
   background-image: url("https://github.githubassets.com/images/mona-loading-dark.gif");
 }
 
-/* 输入框聚焦:蓝色改为白色 */
+/* 输入框聚焦:白色、减弱 */
 main textarea:focus,
 main textarea:focus-visible,
 main input:focus,
 main .form-control:focus,
 main .form-control:focus-visible {
-  border-color: rgba(255, 255, 255, 0.5) !important;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22) !important;
   outline: none !important;
 }
 
+/* 评论卡片本身聚焦时不点亮 */
 main .gsc-comment-box:focus-within,
 main .gsc-comment-box-markdown:focus-within {
-  border-color: rgba(255, 255, 255, 0.5) !important;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4) !important;
+  border-color: var(--color-border-default) !important;
+  box-shadow: none !important;
 }
