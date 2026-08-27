@@ -1,0 +1,67 @@
+---
+// BackToTop.astro — 返回顶部按钮
+import { Icon } from 'astro-icon/components';
+---
+
+<button class="back-to-top" id="back-to-top" aria-label="返回顶部">
+  <Icon name="la:arrow-up" class="back-to-top-icon" />
+</button>
+
+<script is:inline>
+(function() {
+  var btn = document.getElementById('back-to-top');
+  if (!btn) return;
+
+  function toggleBtn() {
+    btn.classList.toggle('visible', window.scrollY > 300);
+  }
+
+  btn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  window.addEventListener('scroll', toggleBtn, { passive: true });
+  toggleBtn();
+})();
+</script>
+
+<style>
+  .back-to-top {
+    position: fixed;
+    right: 20px;
+    bottom: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateX(80px);
+    transition: opacity 0.3s ease, transform 0.3s ease,
+                color 0.15s ease, background 0.15s ease;
+    pointer-events: none;
+    z-index: 50;
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .back-to-top:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .back-to-top-icon {
+    width: 24px;
+    height: 24px;
+  }
+</style>

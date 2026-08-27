@@ -1,0 +1,386 @@
+---
+// TableOfContents.astro — 目录组件（编译时生成，滚动高亮）
+import { Icon } from 'astro-icon/components';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+const hasH1 = headings.some(h => h.depth === 1);
+const hasH2 = headings.some(h => h.depth === 2);
+const hasH3 = headings.some(h => h.depth === 3);
+
+let tocItems: Heading[] = [];
+let childDepth = 0;
+
+if (hasH1 && hasH2) {
+  tocItems = headings.filter(h => h.depth <= 2);
+  childDepth = 2;
+} else if (hasH2 && hasH3) {
+  tocItems = headings.filter(h => h.depth >= 2 && h.depth <= 3);
+  childDepth = 3;
+} else if (hasH1) {
+  tocItems = headings.filter(h => h.depth === 1);
+} else if (hasH2) {
+  tocItems = headings.filter(h => h.depth === 2);
+} else if (hasH3) {
+  tocItems = headings.filter(h => h.depth === 3);
+}
+---
+
+{tocItems.length > 0 && (
+  <nav class="toc-nav" aria-label="文章目录">
+    <div class="toc-header">
+      <Icon name="la:list" class="toc-icon" />
+      <span>文章目录</span>
+    </div>
+    <div class="toc-track" id="toc-list">
+      <div class="toc-active-bar" id="toc-bar"></div>
+      <ul class="toc-list">
+        {tocItems.map((heading) => (
+          <li
+            class:list={['toc-item', { 'toc-sub': heading.depth > tocItems[0].depth }]}
+            data-target={heading.slug}
+          >
+            <a class="toc-link" data-target={heading.slug}>
+              {heading.depth > tocItems[0].depth && <span class="toc-dot"></span>}
+              {heading.text.replace(/\s*#$/, '')}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </nav>
+)}
+
+<script is:inline>
+(function() {
+  var NAV_HEIGHT = 80;
+  var isClickMode = false;
+  var isTrackScrolling = false;
+
+  function getNavOffset() {
+    var nav = document.querySelector('.navbar');
+    return nav ? nav.offsetHeight + 12 : NAV_HEIGHT;
+  }
+
+  function smoothScrollTo(target) {
+    var top = target.getBoundingClientRect().top + window.scrollY - getNavOffset();
+    if (Math.abs(top - window.scrollY) < 1) return;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+  }
+
+  /* 竖线定位：两阶段动画——先延伸到底部，再收回顶部 */
+  var barAnimating = false;
+
+  function positionBar(useTransition) {
+    var bar = document.getElementById('toc-bar');
+    var activeEl = document.querySelector('.toc-item.active');
+    var trackEl = document.getElementById('toc-list');
+    if (!bar || !activeEl || !trackEl) return;
+    var linkEl = activeEl.querySelector('.toc-link');
+    if (!linkEl) return;
+
+    var newTop = linkEl.offsetTop;
+    var newH = linkEl.offsetHeight;
+    var oldTop = bar.style.top ? parseFloat(bar.style.top) : null;
+    var oldH = bar.style.height ? parseFloat(bar.style.height) : null;
+
+    /* 首次定位：直接设置，无动画 */
+    if (oldTop === null) {
+      bar.style.transition = 'none';
+      bar.style.top = newTop + 'px';
+      bar.style.height = newH + 'px';
+      bar.style.opacity = '1';
+      return;
+    }
+
+    /* 无变化或正在动画中，跳过 */
+    if (Math.abs(newTop - oldTop) < 1 && Math.abs(newH - oldH) < 1) return;
+    if (barAnimating && !useTransition) return;
+
+    if (isClickMode && !isTrackScrolling) {
+      /* 点击模式：整体平滑移动 */
+      bar.style.transition = 'top 0.15s ease-out, height 0.15s ease-out, opacity 0.2s ease';
+      bar.style.top = newTop + 'px';
+      bar.style.height = newH + 'px';
+      bar.style.opacity = '1';
+    } else if (Math.abs(newTop - oldTop) > 1) {
+      /* 滚动模式（页面滚动 + 目录滚动）：两阶段动画，区分方向 */
+      barAnimating = true;
+      bar.style.transition = 'none';
+
+      if (newTop > oldTop) {
+        /* 向下滚动：从顶部向下延伸 */
+        bar.style.top = oldTop + 'px';
+        bar.style.height = (newTop + newH - oldTop) + 'px';
+      } else {
+        /* 向上滚动：从底部向上延伸 */
+        bar.style.top = newTop + 'px';
+        bar.style.height = (oldTop + oldH - newTop) + 'px';
+      }
+      bar.style.opacity = '1';
+
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          bar.style.transition = 'top 0.12s ease-out, height 0.12s ease-out';
+          bar.style.top = newTop + 'px';
+          bar.style.height = newH + 'px';
+          setTimeout(function() { barAnimating = false; }, 130);
+        });
+      });
+    } else {
+      /* 高度微调：直接设置 */
+      bar.style.transition = 'none';
+      bar.style.top = newTop + 'px';
+      bar.style.height = newH + 'px';
+      bar.style.opacity = '1';
+    }
+  }
+
+  /* 点击目录项 */
+  document.addEventListener('click', function(e) {
+    var link = e.target.closest('.toc-link');
+    if (!link) return;
+    e.preventDefault();
+    var item = link.closest('.toc-item');
+    if (!item) return;
+    var id = item.getAttribute('data-target');
+    if (!id) return;
+    var el = document.getElementById(id);
+    if (!el) return;
+    isClickMode = true;
+    smoothScrollTo(el);
+    setTimeout(function() { isClickMode = false; }, 800);
+  });
+
+  /* ── 高亮 + 竖线 ── */
+  var lastActiveSlug = null;
+  var lastScrolledSlug = null;
+
+  function updateToc() {
+    var items = document.querySelectorAll('.toc-item');
+    if (items.length === 0) return;
+
+    var offset = getNavOffset();
+    var sy = window.scrollY;
+    var bestSlug = null;
+
+    items.forEach(function(item) {
+      var slug = item.getAttribute('data-target');
+      if (!slug) return;
+      var h = document.getElementById(slug);
+      if (!h) return;
+      if (h.getBoundingClientRect().top + sy <= sy + offset + 4) {
+        bestSlug = slug;
+      }
+    });
+
+    if (!bestSlug) bestSlug = items[0].getAttribute('data-target');
+
+    if (bestSlug !== lastActiveSlug) {
+      lastActiveSlug = bestSlug;
+      items.forEach(function(item) {
+        item.classList.toggle('active', item.getAttribute('data-target') === bestSlug);
+      });
+    }
+
+    var bar = document.getElementById('toc-bar');
+    var activeEl = document.querySelector('.toc-item.active');
+    var trackEl = document.getElementById('toc-list');
+    if (!bar || !activeEl || !trackEl) return;
+
+    var linkEl = activeEl.querySelector('.toc-link');
+    if (!linkEl) return;
+
+    var trackH = trackEl.clientHeight;
+    var midY = trackH / 2;
+    var linkH = linkEl.offsetHeight;
+    var contentTop = linkEl.offsetTop;
+    var maxScroll = trackEl.scrollHeight - trackH;
+
+    /* 目录归中滚动（仅页面滚动触发时执行） */
+    if (!isClickMode && maxScroll > 0) {
+      var desiredScroll = contentTop - midY + linkH / 2;
+      desiredScroll = Math.max(0, Math.min(desiredScroll, maxScroll));
+      var scrollDiff = Math.abs(desiredScroll - trackEl.scrollTop);
+      var shouldScroll = scrollDiff > 2 && bestSlug !== lastScrolledSlug;
+      if (shouldScroll) {
+        lastScrolledSlug = bestSlug;
+        trackEl.scrollTo({ top: desiredScroll, behavior: 'smooth' });
+      }
+    }
+
+    /* 定位竖线 */
+    positionBar(isClickMode || maxScroll <= 0);
+  }
+
+  var raf = false;
+  window.addEventListener('scroll', function() {
+    if (!raf) {
+      requestAnimationFrame(function() {
+        updateToc();
+        raf = false;
+      });
+      raf = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener('DOMContentLoaded', updateToc);
+  document.addEventListener('swup:contentReplaced', function() {
+    lastActiveSlug = null;
+    requestAnimationFrame(updateToc);
+  });
+  updateToc();
+
+  /* 目录自身滚动时实时更新竖线 */
+  document.addEventListener('scroll', function(e) {
+    var track = document.getElementById('toc-list');
+    if (!track || e.target !== track) return;
+    isTrackScrolling = true;
+    positionBar(false);
+    setTimeout(function() { isTrackScrolling = false; }, 50);
+  }, true);
+
+  /* ── 滚动隔离：鼠标在目录内滚动时不影响页面 ── */
+  document.addEventListener('wheel', function(e) {
+    var track = document.getElementById('toc-list');
+    if (!track || !track.contains(e.target)) return;
+
+    var atTop = track.scrollTop <= 0;
+    var atBottom = track.scrollTop + track.clientHeight >= track.scrollHeight - 1;
+
+    // 到顶/到底都完全不放行给页面
+    e.preventDefault();
+
+    // 手动让目录滚动
+    track.scrollTop += e.deltaY;
+    isTrackScrolling = true;
+    positionBar(false);
+    setTimeout(function() { isTrackScrolling = false; }, 50);
+  }, { passive: false });
+})();
+</script>
+
+<style>
+  .toc-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toc-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .toc-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.55;
+  }
+
+  .toc-track {
+    position: relative;
+    max-height: calc(100vh - 211px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-left: 6px;
+  }
+
+  .toc-track::-webkit-scrollbar { width: 2px; }
+  .toc-track::-webkit-scrollbar-track { background: transparent; }
+  .toc-track::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 2px; }
+
+  .toc-active-bar {
+    position: absolute;
+    left: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.85);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .toc-item {
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+
+  .toc-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+    white-space: nowrap;
+  }
+
+  .toc-link:hover {
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .toc-sub .toc-link {
+    padding-left: 6px;
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .toc-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    flex-shrink: 0;
+  }
+
+  .toc-sub .toc-link:hover {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  :global(.toc-item.active) .toc-link {
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 500;
+  }
+
+  :global(.toc-sub.active) .toc-link {
+    font-weight: 400;
+  }
+
+  :global(.toc-sub.active) .toc-dot {
+    background: rgba(255, 255, 255, 0.8);
+  }
+
+  @media (max-width: 768px) {
+    .toc-nav { display: none; }
+  }
+</style>

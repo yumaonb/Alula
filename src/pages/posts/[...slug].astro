@@ -1,72 +1,98 @@
 ---
-// /posts/[...slug].astro — 文章详情页 & 分类列表页
+// /posts/[...slug].astro - 文章详情页 & 分类列表页
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostsLayout from '../../layouts/PostsLayout.astro';
-import PostCard from '../../components/widgets/PostCard.astro';
-import Breadcrumb from '../../components/widgets/Breadcrumb.astro';
+import PostCard from '../../components/posts/PostCard.astro';
+import Breadcrumb from '../../components/posts/Breadcrumb.astro';
+import Repost from '../../components/posts/Repost.astro';
 import { Icon } from 'astro-icon/components';
+import { nickname } from '../../data/profile';
 import '../../assets/css/markdown.css';
 import {
   type PostModule,
   buildCategoryMeta,
+  extractCategoriesFromFrontmatter,
+  extractCategoryFromSlug,
   isCategoryPath,
   getCategoryPosts,
   getCategoryDisplayName,
   buildCategoryBreadcrumbs,
-  extractCategoryFromSlug,
   buildPostBreadcrumbs,
+  buildArticleCategories,
+  buildCategoryUrl,
+  stripContentRoot,
+  collectAllCategoryPaths,
+  resolveRoutePrefix,
   formatDate,
 } from '../../lib/category';
 
-// ====== 分类元数据 ======
+const rp = resolveRoutePrefix(import.meta.url);
+
+// ====== 分类元数据（支持多种配置文件格式） ======
 const categoryJsonFiles = import.meta.glob('../../content/posts/**/index.json', { eager: true });
 const categoryMdFiles = import.meta.glob('../../content/posts/**/index.md', { eager: true });
-const categoryMeta = buildCategoryMeta(categoryJsonFiles, categoryMdFiles);
+const categoryYamlFiles = import.meta.glob('../../content/posts/**/{_category.yml,_category.yaml,.category.yml}', { eager: true });
+const categoryTomlFiles = import.meta.glob('../../content/posts/**/_category.toml', { eager: true });
+const categoryMeta = buildCategoryMeta(categoryJsonFiles, categoryMdFiles, categoryYamlFiles, categoryTomlFiles);
 
 // ====== getStaticPaths ======
 export function getStaticPaths() {
   const postModules = import.meta.glob('../../content/posts/**/*.md', { eager: true });
   const cj = import.meta.glob('../../content/posts/**/index.json', { eager: true });
   const cm = import.meta.glob('../../content/posts/**/index.md', { eager: true });
-  const catMeta = buildCategoryMeta(cj, cm);
+  const cy = import.meta.glob('../../content/posts/**/{_category.yml,_category.yaml,.category.yml}', { eager: true });
+  const ct = import.meta.glob('../../content/posts/**/_category.toml', { eager: true });
+  const catMeta = buildCategoryMeta(cj, cm, cy, ct);
 
   const paths: { params: { slug: string }; props: any }[] = [];
+
   for (const [filePath] of Object.entries(postModules)) {
-    const path = filePath.replace('../../content/posts/', '').replace(/\.md$/, '');
+    const path = stripContentRoot(filePath);
     if (isCategoryPath(path)) continue;
     paths.push({ params: { slug: path }, props: { type: 'post', filePath, slug: path } });
   }
+
   for (const catPath of Object.keys(catMeta)) {
     paths.push({ params: { slug: catPath }, props: { type: 'category', category: catPath } });
   }
+
+  // 从文章 frontmatter 的 categories 中也收集分类路径，生成路由
+  const fmCategoryPaths = collectAllCategoryPaths(postModules);
+  for (const catPath of fmCategoryPaths) {
+    if (!catMeta[catPath]) {
+      paths.push({ params: { slug: catPath }, props: { type: 'category', category: catPath } });
+    }
+  }
+
   return paths;
 }
 
 const { type } = Astro.props;
 
 // ====== 分类页面数据 ======
-let catCategory = '';
+let catCategoryPath: string[] = [];
 let catName = '';
 let catDesc = '';
-let catPosts: { slug: string; frontmatter: any }[] = [];
+let catPosts: { slug: string; frontmatter: any; category: string }[] = [];
 let catBreadcrumbs: { label: string; href?: string }[] = [];
 
 if (type === 'category') {
-  catCategory = Astro.props.category;
+  catCategoryPath = (Astro.props.category as string).split('/');
   const postModules = import.meta.glob('../../content/posts/**/*.md', { eager: true });
-  catPosts = getCategoryPosts(postModules, catCategory);
+  catPosts = getCategoryPosts(postModules, catCategoryPath, categoryMeta);
 
-  const meta = categoryMeta[catCategory] || { name: catCategory.split('/').pop() };
-  catName = meta.name || catCategory.split('/').pop() || catCategory;
+  const metaKey = catCategoryPath.join('/');
+  const meta = categoryMeta[metaKey] || { name: catCategoryPath[catCategoryPath.length - 1] };
+  catName = meta.name || catCategoryPath[catCategoryPath.length - 1] || metaKey;
   catDesc = meta.description || '';
-  catBreadcrumbs = buildCategoryBreadcrumbs(catCategory, categoryMeta);
+  catBreadcrumbs = buildCategoryBreadcrumbs(catCategoryPath, categoryMeta, rp);
 }
 
 // ====== 文章页面数据 ======
 let postFm: any = {};
 let postCompiledHtml = '';
 let postHeadings: { depth: number; slug: string; text: string }[] = [];
-let postCategory = '';
+let postCategoryPath: string[] = [];
 let postCategoryName = '';
 let postBreadcrumbs: { label: string; href?: string }[] = [];
 let postDateFormatted = '';
@@ -79,17 +105,23 @@ if (type === 'post') {
   if (post) {
     postFm = post.frontmatter;
     postCompiledHtml = post.compiledContent();
-    // 使用 getHeadings() 获取标题（remark/remark-slug 已处理）
+
     const rawHeadings = post.getHeadings();
     for (const h of rawHeadings) {
-      // 取 h1、h2、h3，由 TOC 组件决定显示哪些
       if (h.depth >= 1 && h.depth <= 3) {
         postHeadings.push({ depth: h.depth, slug: h.slug, text: h.text });
       }
     }
-    postCategory = extractCategoryFromSlug(slug);
-    postCategoryName = getCategoryDisplayName(postCategory, categoryMeta);
-    postBreadcrumbs = buildPostBreadcrumbs(postCategory, postFm.title, categoryMeta);
+
+    // 分类提取：frontmatter 优先，目录结构兜底
+    const fmCategories = extractCategoriesFromFrontmatter(postFm);
+    const dirCategories = extractCategoryFromSlug(slug);
+    const articleCats = buildArticleCategories(fmCategories, dirCategories, categoryMeta);
+
+    postCategoryPath = articleCats.leaf ? articleCats.leaf.path : dirCategories;
+    postCategoryName = articleCats.leaf ? articleCats.leaf.name : '';
+    postBreadcrumbs = buildPostBreadcrumbs(postCategoryPath, postFm.title, categoryMeta, rp);
+
     if (postFm.date) {
       postDateFormatted = formatDate(postFm.date);
     }
@@ -111,7 +143,7 @@ if (type === 'post') {
           <PostCard title={post.frontmatter.title || '无标题'} date={post.frontmatter.date || ''}
             description={post.frontmatter.description || ''} image={post.frontmatter.image || ''}
             tags={post.frontmatter.tags || []} pinned={post.frontmatter.pinned || false}
-            url={`/posts/${post.slug}/`} category={catCategory} />
+            url={`/${rp}/${post.slug}/`} category={post.category} />
         ))}
       </div>
       {catPosts.length === 0 && <div class="posts-empty glass"><p>该分类下暂无文章</p></div>}
@@ -133,10 +165,10 @@ if (type === 'post') {
             <time datetime={postFm.date}>{postDateFormatted}</time>
           </span>
         )}
-        {postCategory && (
+        {postCategoryPath.length > 0 && (
           <span class="post-meta-item">
-            <Icon name="la:folder-open" class="meta-icon" />
-            <a href={`/posts/${postCategory}/`} class="post-meta-link">{postCategoryName}</a>
+            <Icon name="la:layer-group" class="meta-icon" />
+            <a href={buildCategoryUrl(postCategoryPath, categoryMeta, rp)} class="post-meta-link">{postCategoryName}</a>
           </span>
         )}
         {postFm.tags && postFm.tags.length > 0 && (
@@ -144,7 +176,7 @@ if (type === 'post') {
             <Icon name="la:tag" class="meta-icon" />
             {postFm.tags.map((tag: string, i: number) => (
               <span>
-                <a href={`/posts/?tag=${encodeURIComponent(tag)}`} class="post-meta-link">{tag}</a>
+                <a href={`/${rp}/?tag=${encodeURIComponent(tag)}`} class="post-meta-link">{tag}</a>
                 {i < postFm.tags.length - 1 && <span class="meta-sep">/</span>}
               </span>
             ))}
@@ -154,6 +186,7 @@ if (type === 'post') {
       {postFm.image && <div class="post-cover"><img src={postFm.image} alt={postFm.title} /></div>}
     </header>
     <div class="markdown-body" set:html={postCompiledHtml} />
+    <Repost title={postFm.title} date={postDateFormatted || postFm.date} />
   </PostsLayout>
 )}
 

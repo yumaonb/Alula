@@ -1,8 +1,11 @@
 ---
 // Breadcrumb.astro — 面包屑导航
+import { Icon } from 'astro-icon/components';
+
 interface BreadcrumbItem {
   label: string;
-  href?: string; // 最后一项不带链接
+  href?: string;
+  icon?: string;
 }
 
 interface Props {
@@ -12,15 +15,21 @@ interface Props {
 const { items } = Astro.props;
 ---
 
-{items.length > 1 && (
+{items.length > 0 && (
   <nav class="breadcrumb" aria-label="面包屑导航">
     {items.map((item, index) => (
       <span class="breadcrumb-item">
         {index > 0 && <span class="breadcrumb-sep">/</span>}
         {item.href ? (
-          <a href={item.href} class="breadcrumb-link">{item.label}</a>
+          <a href={item.href} class="breadcrumb-link">
+            {item.icon && <Icon name={item.icon} class="breadcrumb-icon" />}
+            {item.label}
+          </a>
         ) : (
-          <span class="breadcrumb-current">{item.label}</span>
+          <span class="breadcrumb-current">
+            {item.icon && <Icon name={item.icon} class="breadcrumb-icon" />}
+            {item.label}
+          </span>
         )}
       </span>
     ))}
@@ -33,7 +42,7 @@ const { items } = Astro.props;
     align-items: center;
     flex-wrap: wrap;
     gap: 2px;
-    margin: 0 0 12px;
+    margin: 0;
     font-size: 0.85rem;
   }
 
@@ -49,7 +58,19 @@ const { items } = Astro.props;
     font-size: 0.8em;
   }
 
+  .breadcrumb-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.65;
+    flex-shrink: 0;
+    position: relative;
+    top: -1px;
+  }
+
   .breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     color: rgba(255, 255, 255, 0.5);
     text-decoration: none;
     padding: 2px 6px;
@@ -67,6 +88,9 @@ const { items } = Astro.props;
   }
 
   .breadcrumb-current {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     color: rgba(255, 255, 255, 0.75);
     font-weight: 500;
   }

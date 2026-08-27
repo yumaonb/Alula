@@ -4,7 +4,6 @@ import svelte from "@astrojs/svelte";
 import icon from "astro-icon";
 import swup from "@swup/astro";
 import rehypeSlug from "rehype-slug";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
 // https://astro.build/config
 export default defineConfig({
@@ -21,23 +20,6 @@ export default defineConfig({
   markdown: {
     rehypePlugins: [
       rehypeSlug,
-      [
-        rehypeAutolinkHeadings,
-        {
-          behavior: "append",
-          content: {
-            type: "element",
-            tagName: "span",
-            properties: { class: "heading-anchor-icon", "aria-hidden": "true" },
-            children: [
-              {
-                type: "text",
-                value: "#",
-              },
-            ],
-          },
-        },
-      ],
     ],
   },
 });

@@ -1,7 +1,139 @@
 // category.ts - 分类逻辑模块
 //
-// 将目录结构分类的判断、元数据加载、面包屑构建等逻辑集中管理。
-// 后续适配多种分类方式时只需新增策略，不需要改动页面组件。
+// 实现文档定义的全自动多级分类兼容方案：
+// 1. Frontmatter 显式定义（最高优先级）
+// 2. 目录结构隐式定义（回退）
+// 3. 默认"未分类"（兜底）
+//
+// 后续适配多种分类方式时只需修改此文件，页面组件无需改动。
+
+// ========== 配置 ==========
+
+import { posts, type CategoryConfig } from "../data/posts";
+export type { CategoryConfig };
+export const defaultConfig: CategoryConfig = posts.category;
+export const contentRoot: string = posts.contentRoot;
+
+/**
+ * 从 Astro 页面组件的文件路径中自动识别路由前缀
+ * 例如 "src/pages/posts/[...slug].astro" → "posts"
+ * @param importMetaUrl - 页面组件中的 import.meta.url
+ */
+export function resolveRoutePrefix(importMetaUrl: string): string {
+  const url = new URL(importMetaUrl);
+  const dir = url.pathname.replace(/\\/g, "/");
+  // 匹配 .../pages/{folder}/... 模式
+  const match = dir.match(/\/pages\/([^/]+)\//);
+  return match ? match[1] : "posts";
+}
+
+/**
+ * 从 import.meta.glob 的 key 中提取相对路径
+ * 去除 contentRoot 前缀和 .md 后缀
+ */
+export function stripContentRoot(filePath: string): string {
+  // 匹配任意 content/posts 前缀（兼容不同目录结构）
+  const prefixPattern = new RegExp(`^.*?${escapeRegExp(contentRoot)}/`);
+  return filePath.replace(prefixPattern, "").replace(/\.md$/, "");
+}
+
+/**
+ * 从 slug 中提取分类
+ * slug 如 "tech/frontend/react" → ["tech", "frontend"]
+ */
+export function extractCategoryFromSlug(slug: string): string[] {
+  const parts = slug.split("/");
+  return parts.length > 1 ? parts.slice(0, -1) : [];
+}
+
+/**
+ * 从文件路径中提取分类（目录结构推断）
+ */
+export function extractCategoryFromFilePath(filePath: string): string[] {
+  const clean = stripContentRoot(filePath);
+  const parts = clean.split("/");
+  return parts.length > 1 ? parts.slice(0, -1) : [];
+}
+
+// ========== 轻量级 YAML 解析 ==========
+
+/**
+ * 解析简单的 YAML 格式（key: value，支持字符串、布尔、数字）
+ * 不依赖外部库，仅处理分类配置文件的常见格式
+ */
+function parseSimpleYaml(text: string): Record<string, any> {
+  const result: Record<string, any> = {};
+  const lines = text.split("\n");
+  for (const line of lines) {
+    // 跳过注释和空行
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    // 匹配 key: value
+    const match = trimmed.match(/^(['"]?)(\w+)\1\s*:\s*(.+)$/);
+    if (match) {
+      const [, , key, rawValue] = match;
+      const val = rawValue.trim();
+      // 布尔值
+      if (val === "true") { result[key] = true; continue; }
+      if (val === "false") { result[key] = false; continue; }
+      // 去除引号
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        result[key] = val.slice(1, -1);
+        continue;
+      }
+      // 数字
+      const num = Number(val);
+      if (!isNaN(num) && val !== "") { result[key] = num; continue; }
+      // 字符串
+      result[key] = val;
+    }
+  }
+  return result;
+}
+
+// ========== 轻量级 TOML 解析 ==========
+
+/**
+ * 解析简单的 TOML 格式（key = value）
+ * 仅处理分类配置文件的常见格式，不支持嵌套表和数组
+ */
+function parseSimpleToml(text: string): Record<string, any> {
+  const result: Record<string, any> = {};
+  const lines = text.split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    // 匹配 key = value
+    const match = trimmed.match(/^(\w+)\s*=\s*(.+)$/);
+    if (match) {
+      const [, key, rawValue] = match;
+      const val = rawValue.trim();
+      if (val === "true") { result[key] = true; continue; }
+      if (val === "false") { result[key] = false; continue; }
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        result[key] = val.slice(1, -1);
+        continue;
+      }
+      const num = Number(val);
+      if (!isNaN(num) && val !== "") { result[key] = num; continue; }
+      result[key] = val;
+    }
+  }
+  return result;
+}
+
+/** 根据文件扩展名选择解析器 */
+function parseConfigFile(content: any, filePath: string): Record<string, any> {
+  const raw = (content as any).default || content;
+  if (typeof raw === "object" && raw !== null) return raw;
+  if (typeof raw !== "string") return {};
+  if (filePath.endsWith(".toml")) return parseSimpleToml(raw);
+  return parseSimpleYaml(raw);
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 // ========== 类型定义 ==========
 
@@ -14,21 +146,43 @@ export interface PostModule {
     image?: string;
     tags?: string[];
     pinned?: boolean;
+    categories?: any;
+    category?: any;
+    "分类"?: any;
   };
   compiledContent(): string;
   getHeadings(): { depth: number; slug: string; text: string }[];
 }
 
-/** 分类元数据 */
+/** 分类元数据（来自目录下的配置文件） */
 export interface CategoryMeta {
   name?: string;
+  slug?: string;
   description?: string;
+  hidden?: boolean;
+  title?: string;
+}
+
+/** 标准分类节点 */
+export interface CategoryNode {
+  name: string;
+  slug: string;
+  path: string[];
+  level: number;
+}
+
+/** 文章分类信息 */
+export interface ArticleCategories {
+  fullPath: CategoryNode[];
+  root: CategoryNode | null;
+  leaf: CategoryNode | null;
 }
 
 /** 面包屑项 */
 export interface BreadcrumbItem {
   label: string;
   href?: string;
+  icon?: string; // astro-icon name, e.g. "la:home"
 }
 
 /** 文章列表项（用于索引页） */
@@ -40,31 +194,175 @@ export interface PostItem {
   image: string;
   tags: string[];
   pinned: boolean;
+  /** 分类路径 slug，如 "tech/frontend" */
   category: string;
+  /** 分类显示名称，如 "前端" */
   categoryDisplayName: string;
+}
+
+// ========== Frontmatter 分类提取 ==========
+
+/**
+ * 从 frontmatter 中提取分类层级数组
+ * 按文档规定的顺序自动检测数据类型：
+ * 1. 嵌套数组 → 取第一层
+ * 2. 对象数组（含 name/parent）→ 递归构建树
+ * 3. 字符串数组 → 按顺序作为层级
+ * 4. 字符串 → 检测分隔符拆分
+ * 5. 其他 → 转字符串尝试
+ *
+ * @returns 分类层级 slug 数组，如 ["tech", "frontend"]，提取失败返回 null
+ */
+export function extractCategoriesFromFrontmatter(frontmatter: any): string[] | null {
+  const cat =
+    frontmatter?.categories ??
+    frontmatter?.category ??
+    frontmatter?.["分类"];
+
+  // 空值检测
+  if (cat === null || cat === undefined) return null;
+  if (Array.isArray(cat) && cat.length === 0) return null;
+  if (typeof cat === "string" && cat.trim() === "") return null;
+
+  // 检测1：嵌套数组
+  if (Array.isArray(cat) && cat.length > 0 && Array.isArray(cat[0])) {
+    return cat[0] as string[];
+  }
+
+  // 检测2：对象数组（含 name/parent 字段）
+  if (Array.isArray(cat) && cat.length > 0 && typeof cat[0] === "object" && cat[0]?.name) {
+    const nodes = new Map<string, { name: string; parent?: string }>();
+    for (const item of cat) {
+      if (item?.name) nodes.set(item.name, item);
+    }
+    // 找根节点（没有 parent 的）
+    const roots = [...nodes.values()].filter((n) => !n.parent);
+    if (roots.length > 0) {
+      const path: string[] = [];
+      let current: { name: string; parent?: string } | undefined = roots[0];
+      while (current) {
+        path.push(slugify(current.name));
+        const children = [...nodes.values()].filter((n) => n.parent === current!.name);
+        current = children[0];
+      }
+      return path;
+    }
+    // 所有节点都有 parent，按 parent 链构建
+    if (cat.length > 0) {
+      const chain: string[] = [];
+      let current: any = cat[cat.length - 1];
+      while (current) {
+        chain.unshift(slugify(current.name));
+        current = current.parent ? nodes.get(current.parent) : null;
+      }
+      return chain;
+    }
+    return null;
+  }
+
+  // 检测3：字符串数组
+  if (Array.isArray(cat) && cat.length > 0 && typeof cat[0] === "string") {
+    return cat.map((s: string) => slugify(s));
+  }
+
+  // 检测4：字符串
+  if (typeof cat === "string") {
+    const trimmed = cat.trim();
+    if (trimmed.includes("/") || trimmed.includes(">")) {
+      return trimmed
+        .split(/[\/>]/)
+        .map((s: string) => s.trim())
+        .filter(Boolean)
+        .map((s: string) => slugify(s));
+    }
+    return [slugify(trimmed)];
+  }
+
+  // 检测5：其他情况，尝试转字符串
+  try {
+    const s = String(cat).trim();
+    if (s && s !== "[object Object]" && s !== "undefined") {
+      return [slugify(s)];
+    }
+  } catch {
+    // 忽略
+  }
+
+  return null;
 }
 
 // ========== 分类元数据 ==========
 
 /**
  * 从 import.meta.glob 结果中构建分类元数据字典
+ * 支持的配置文件（按优先级）：
+ * - _category.yml / _category.yaml
+ * - category.json
+ * - _category.toml
+ * - .category.yml
+ * - index.md（frontmatter）
  */
 export function buildCategoryMeta(
   globJsonFiles: Record<string, any>,
   globMdFiles: Record<string, any>,
+  globYamlFiles?: Record<string, any>,
+  globTomlFiles?: Record<string, any>,
 ): Record<string, CategoryMeta> {
   const meta: Record<string, CategoryMeta> = {};
 
-  for (const [fp, m] of Object.entries(globJsonFiles)) {
-    const key = fp.replace("../../content/posts/", "").replace("/index.json", "");
-    meta[key] = (m as any).default || m;
+  // 优先级1: _category.yml / _category.yaml / .category.yml
+  if (globYamlFiles) {
+    for (const [fp, m] of Object.entries(globYamlFiles)) {
+      const key = stripCategoryFilepath(fp);
+      if (!key) continue;
+      const parsed = parseConfigFile(m, fp);
+      if (Object.keys(parsed).length > 0) {
+        meta[key] = {
+          name: parsed.name,
+          slug: parsed.slug,
+          description: parsed.description,
+          hidden: parsed.hidden,
+          title: parsed.title,
+        };
+      }
+    }
   }
 
+  // 优先级2: category.json / index.json
+  for (const [fp, m] of Object.entries(globJsonFiles)) {
+    const key = stripCategoryFilepath(fp);
+    if (!key) continue;
+    if (!meta[key]) {
+      meta[key] = (m as any).default || m;
+    }
+  }
+
+  // 优先级3: _category.toml
+  if (globTomlFiles) {
+    for (const [fp, m] of Object.entries(globTomlFiles)) {
+      const key = stripCategoryFilepath(fp);
+      if (!key) continue;
+      if (!meta[key]) {
+        const parsed = parseConfigFile(m, fp);
+        meta[key] = {
+          name: parsed.name,
+          slug: parsed.slug,
+          description: parsed.description,
+          hidden: parsed.hidden,
+          title: parsed.title,
+        };
+      }
+    }
+  }
+
+  // 优先级4: index.md（frontmatter）
   for (const [fp, m] of Object.entries(globMdFiles)) {
-    const key = fp.replace("../../content/posts/", "").replace("/index.md", "");
+    const key = stripCategoryFilepath(fp);
+    if (!key) continue;
     if (!meta[key]) {
       meta[key] = {
         name: (m as any).frontmatter?.name,
+        slug: (m as any).frontmatter?.slug,
         description: (m as any).frontmatter?.description,
       };
     }
@@ -73,43 +371,112 @@ export function buildCategoryMeta(
   return meta;
 }
 
-// ========== 路径与分类判断 ==========
+/**
+ * 从配置文件路径中提取分类目录 key
+ * 如 "../../content/posts/tech/_category.yml" → "tech"
+ */
+function stripCategoryFilepath(fp: string): string | null {
+  const prefixPattern = new RegExp(`^.*?${escapeRegExp(contentRoot)}/`);
+  let key = fp.replace(prefixPattern, "");
+  // 去除配置文件名
+  key = key
+    .replace(/\/_category\.(ya?ml|toml)$/, "")
+    .replace(/\/\.category\.(ya?ml)$/, "")
+    .replace(/\/category\.json$/, "")
+    .replace(/\/index\.(json|md)$/, "");
+  return key || null;
+}
+
+// ========== Slug 生成 ==========
 
 /**
- * 从文件路径中提取分类
- * filePath 形如 "../../content/posts/tech/frontend/react/react-hooks.md"
- * 返回 "tech/frontend/react"，根级文章返回 ""
+ * 将分类名称转换为 URL 友好的 slug
+ * 中文保留 UTF-8，空格转连字符，去除特殊字符
  */
-export function extractCategoryFromFilePath(filePath: string): string {
-  const p = filePath.replace("../../content/posts/", "").replace(/\.md$/, "");
-  const parts = p.split("/");
-  return parts.length > 1 ? parts.slice(0, -1).join("/") : "";
+export function slugify(name: string): string {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\u4e00-\u9fff\u3400-\u4dbf-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 /**
- * 从 slug 中提取分类
+ * 获取分类的 slug：优先使用配置文件中的 slug，否则由 name 生成
  */
-export function extractCategoryFromSlug(slug: string): string {
-  const parts = slug.split("/");
-  return parts.length > 1 ? parts.slice(0, -1).join("/") : "";
+export function getCategorySlug(
+  categoryPath: string[],
+  categoryMeta: Record<string, CategoryMeta>,
+): string[] {
+  return categoryPath.map((segment, i) => {
+    const metaKey = categoryPath.slice(0, i + 1).join("/");
+    const meta = categoryMeta[metaKey];
+    if (meta?.slug) return meta.slug;
+    return segment;
+  });
 }
 
+// ========== 分类信息构建 ==========
+
 /**
- * 判断路径是否为分类索引（index.json 或 index.md）
+ * 构建文章的完整分类信息
+ * @param frontmatterCategories - 从 frontmatter 提取的分类 slug 数组
+ * @param directoryCategories - 从目录结构提取的分类 slug 数组
+ * @param categoryMeta - 分类元数据字典
+ * @returns 统一的 ArticleCategories 结构
  */
-export function isCategoryPath(path: string): boolean {
-  return path.endsWith("/index") || path === "index";
+export function buildArticleCategories(
+  frontmatterCategories: string[] | null,
+  directoryCategories: string[],
+  categoryMeta: Record<string, CategoryMeta>,
+): ArticleCategories {
+  // 优先级1: Frontmatter 显式定义
+  const rawPath = frontmatterCategories && frontmatterCategories.length > 0
+    ? frontmatterCategories
+    : directoryCategories.length > 0
+      ? directoryCategories
+      : [];
+
+  if (rawPath.length === 0) {
+    return { fullPath: [], root: null, leaf: null };
+  }
+
+  const slugPath = getCategorySlug(rawPath, categoryMeta);
+
+  const fullPath: CategoryNode[] = slugPath.map((slug, i) => {
+    const metaKey = rawPath.slice(0, i + 1).join("/");
+    const meta = categoryMeta[metaKey];
+    return {
+      name: meta?.name || rawPath[i],
+      slug,
+      path: slugPath.slice(0, i + 1),
+      level: i,
+    };
+  });
+
+  return {
+    fullPath,
+    root: fullPath[0] || null,
+    leaf: fullPath[fullPath.length - 1] || null,
+  };
 }
+
+// ========== 显示名称 ==========
 
 /**
  * 获取分类的显示名称
  */
 export function getCategoryDisplayName(
-  category: string,
+  categoryPath: string[],
   categoryMeta: Record<string, CategoryMeta>,
 ): string {
-  if (!category) return "";
-  return categoryMeta[category]?.name || category.split("/").pop() || category;
+  if (categoryPath.length === 0) return "";
+  const lastSegment = categoryPath[categoryPath.length - 1];
+  const metaKey = categoryPath.join("/");
+  return categoryMeta[metaKey]?.name || lastSegment;
 }
 
 // ========== 面包屑 ==========
@@ -118,19 +485,19 @@ export function getCategoryDisplayName(
  * 为分类页面构建面包屑导航
  */
 export function buildCategoryBreadcrumbs(
-  category: string,
+  categoryPath: string[],
   categoryMeta: Record<string, CategoryMeta>,
+  routePrefix: string,
 ): BreadcrumbItem[] {
-  const breadcrumbs: BreadcrumbItem[] = [{ label: "文章", href: "/posts/" }];
-  const parts = category.split("/");
-  let currentPath = "";
+  const breadcrumbs: BreadcrumbItem[] = [{ label: "文章首页", href: `/${routePrefix}/`, icon: "la:home" }];
+  let currentPath: string[] = [];
 
-  for (let i = 0; i < parts.length; i++) {
-    currentPath += (i > 0 ? "/" : "") + parts[i];
-    const catName = categoryMeta[currentPath]?.name || parts[i];
+  for (let i = 0; i < categoryPath.length; i++) {
+    currentPath.push(categoryPath[i]);
+    const catName = categoryMeta[currentPath.join("/")]?.name || categoryPath[i];
 
-    if (i < parts.length - 1) {
-      breadcrumbs.push({ label: catName, href: `/posts/${currentPath}/` });
+    if (i < categoryPath.length - 1) {
+      breadcrumbs.push({ label: catName, href: buildCategoryUrl(currentPath, categoryMeta, routePrefix) });
     } else {
       breadcrumbs.push({ label: catName });
     }
@@ -143,32 +510,73 @@ export function buildCategoryBreadcrumbs(
  * 为文章页面构建面包屑导航
  */
 export function buildPostBreadcrumbs(
-  postCategory: string,
+  categoryPath: string[],
   postTitle: string,
   categoryMeta: Record<string, CategoryMeta>,
+  routePrefix: string,
 ): BreadcrumbItem[] {
-  const breadcrumbs: BreadcrumbItem[] = [{ label: "文章", href: "/posts/" }];
+  const breadcrumbs: BreadcrumbItem[] = [{ label: "文章首页", href: `/${routePrefix}/`, icon: "la:home" }];
+  let currentPath: string[] = [];
 
-  if (postCategory) {
-    let bp = "";
-    for (const cp of postCategory.split("/")) {
-      bp += bp ? "/" + cp : cp;
-      const catLabel = categoryMeta[bp]?.name || cp;
-      breadcrumbs.push({ label: catLabel, href: `/posts/${bp}/` });
-    }
+  for (const segment of categoryPath) {
+    currentPath.push(segment);
+    const catLabel = categoryMeta[currentPath.join("/")]?.name || segment;
+    breadcrumbs.push({ label: catLabel, href: buildCategoryUrl(currentPath, categoryMeta, routePrefix) });
   }
 
   breadcrumbs.push({ label: postTitle });
   return breadcrumbs;
 }
 
-// ========== 文章列表 ==========
+// ========== URL 生成 ==========
 
 /**
- * 判断文章是否属于某个分类（包含子分类）
+ * 生成分类的 URL
+ * 格式: /[routePrefix]/[categoryBase/]slug1/slug2/
  */
-export function isPostInCategory(postPath: string, category: string): boolean {
-  return postPath === category || postPath.startsWith(category + "/");
+export function buildCategoryUrl(
+  categoryPath: string[],
+  categoryMeta: Record<string, CategoryMeta>,
+  routePrefix: string,
+  config: CategoryConfig = defaultConfig,
+): string {
+  const slugs = getCategorySlug(categoryPath, categoryMeta);
+  const parts: string[] = [routePrefix];
+  if (config.categoryBase) parts.push(config.categoryBase);
+  parts.push(...slugs);
+  return "/" + parts.join("/") + "/";
+}
+
+// ========== 文章筛选 ==========
+
+/**
+ * 判断文章是否属于某个分类（包含子分类匹配）
+ * 同时检查 frontmatter 分类和目录分类
+ */
+export function isPostInCategory(
+  postFrontmatterCategories: string[] | null,
+  postDirectoryCategories: string[],
+  targetCategoryPath: string[],
+): boolean {
+  const targetKey = targetCategoryPath.join("/");
+
+  // 检查 frontmatter 分类
+  if (postFrontmatterCategories && postFrontmatterCategories.length > 0) {
+    for (let i = 1; i <= postFrontmatterCategories.length; i++) {
+      const subPath = postFrontmatterCategories.slice(0, i).join("/");
+      if (subPath === targetKey) return true;
+    }
+  }
+
+  // 检查目录分类
+  if (postDirectoryCategories.length > 0) {
+    for (let i = 1; i <= postDirectoryCategories.length; i++) {
+      const subPath = postDirectoryCategories.slice(0, i).join("/");
+      if (subPath === targetKey) return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -176,22 +584,31 @@ export function isPostInCategory(postPath: string, category: string): boolean {
  */
 export function getCategoryPosts(
   allPostModules: Record<string, any>,
-  category: string,
-): { slug: string; frontmatter: any }[] {
-  const posts: { slug: string; frontmatter: any }[] = [];
+  targetCategoryPath: string[],
+  categoryMeta: Record<string, CategoryMeta>,
+): { slug: string; frontmatter: any; category: string }[] {
+  const result: { slug: string; frontmatter: any; category: string }[] = [];
 
   for (const [fp, mod] of Object.entries(allPostModules)) {
-    const p = (fp as string).replace("../../content/posts/", "").replace(/\.md$/, "");
-    if (isCategoryPath(p)) continue;
+    const clean = stripContentRoot(fp as string);
+    if (isCategoryPath(clean)) continue;
 
-    const postCategory = extractCategoryFromFilePath(fp);
-    if (isPostInCategory(postCategory, category)) {
-      posts.push({ slug: p, frontmatter: (mod as any).frontmatter });
+    const fm = (mod as any).frontmatter;
+    const fmCategories = extractCategoriesFromFrontmatter(fm);
+    const dirCategories = extractCategoryFromFilePath(fp);
+
+    if (isPostInCategory(fmCategories, dirCategories, targetCategoryPath)) {
+      const articleCats = buildArticleCategories(fmCategories, dirCategories, categoryMeta);
+      result.push({
+        slug: clean,
+        frontmatter: fm,
+        category: articleCats.leaf ? articleCats.leaf.path.join("/") : clean.split("/").slice(0, -1).join("/"),
+      });
     }
   }
 
-  sortPosts(posts);
-  return posts;
+  sortPosts(result);
+  return result;
 }
 
 /**
@@ -201,32 +618,70 @@ export function buildAllPosts(
   postModules: Record<string, any>,
   categoryMeta: Record<string, CategoryMeta>,
 ): PostItem[] {
-  const posts: PostItem[] = [];
+  const result: PostItem[] = [];
 
   for (const [filePath, mod] of Object.entries(postModules)) {
-    const p = filePath.replace("../../content/posts/", "").replace(/\.md$/, "");
-    if (isCategoryPath(p)) continue;
+    const clean = stripContentRoot(filePath);
+    if (isCategoryPath(clean)) continue;
 
-    const category = extractCategoryFromFilePath(filePath);
     const fm = (mod as any).frontmatter;
-    posts.push({
-      slug: p,
+    const fmCategories = extractCategoriesFromFrontmatter(fm);
+    const dirCategories = extractCategoryFromFilePath(filePath);
+    const articleCats = buildArticleCategories(fmCategories, dirCategories, categoryMeta);
+
+    result.push({
+      slug: clean,
       title: fm.title || "无标题",
       date: fm.date || "",
       description: fm.description || "",
       image: fm.image || "",
       tags: fm.tags || [],
       pinned: fm.pinned || false,
-      category,
-      categoryDisplayName: getCategoryDisplayName(category, categoryMeta),
+      category: articleCats.leaf ? articleCats.leaf.path.join("/") : "",
+      categoryDisplayName: articleCats.leaf ? articleCats.leaf.name : "",
     });
   }
 
-  sortPosts(posts);
-  return posts;
+  sortPosts(result);
+  return result;
+}
+
+// ========== 分类路径收集 ==========
+
+/**
+ * 从所有文章的 frontmatter 中收集全部唯一的分类路径
+ * 用于在 getStaticPaths 中生成分类页面路由
+ */
+export function collectAllCategoryPaths(
+  postModules: Record<string, any>,
+): string[] {
+  const categorySet = new Set<string>();
+
+  for (const [fp, mod] of Object.entries(postModules)) {
+    const clean = stripContentRoot(fp as string);
+    if (isCategoryPath(clean)) continue;
+
+    const fm = (mod as any).frontmatter;
+    const fmCategories = extractCategoriesFromFrontmatter(fm);
+    if (!fmCategories || fmCategories.length === 0) continue;
+
+    // 收集每一级父路径：["技术", "前端", "React"] → "技术", "技术/前端", "技术/前端/React"
+    for (let i = 1; i <= fmCategories.length; i++) {
+      categorySet.add(fmCategories.slice(0, i).join("/"));
+    }
+  }
+
+  return [...categorySet];
 }
 
 // ========== 通用工具 ==========
+
+/**
+ * 判断路径是否为分类索引文件
+ */
+export function isCategoryPath(path: string): boolean {
+  return path.endsWith("/index") || path === "index";
+}
 
 /**
  * 对文章列表排序：置顶优先，然后按日期降序

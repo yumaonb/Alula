@@ -1,28 +1,25 @@
 ---
-// /posts/ — 文章列表首页
+// /posts/ - 文章列表首页
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PostCard from '../../components/widgets/PostCard.astro';
-import Breadcrumb from '../../components/widgets/Breadcrumb.astro';
-import { buildCategoryMeta, buildAllPosts } from '../../lib/category';
+import PostCard from '../../components/posts/PostCard.astro';
+import { buildCategoryMeta, buildAllPosts, resolveRoutePrefix } from '../../lib/category';
 
-// 导入分类元数据
+// 导入分类元数据（支持多种配置文件格式）
 const categoryJsonFiles = import.meta.glob('../../content/posts/**/index.json', { eager: true });
 const categoryMdFiles = import.meta.glob('../../content/posts/**/index.md', { eager: true });
-const categoryMeta = buildCategoryMeta(categoryJsonFiles, categoryMdFiles);
+const categoryYamlFiles = import.meta.glob('../../content/posts/**/{_category.yml,_category.yaml,.category.yml}', { eager: true });
+const categoryTomlFiles = import.meta.glob('../../content/posts/**/_category.toml', { eager: true });
+const categoryMeta = buildCategoryMeta(categoryJsonFiles, categoryMdFiles, categoryYamlFiles, categoryTomlFiles);
 
 // 导入所有博客文章并构建列表
 const postModules = import.meta.glob('../../content/posts/**/*.md', { eager: true });
 const posts = buildAllPosts(postModules, categoryMeta);
 
-const breadcrumbs = [
-  { label: '文章', href: '/posts/' },
-];
+const rp = resolveRoutePrefix(import.meta.url);
 ---
 
 <BaseLayout title="文章">
   <div class="posts-page page-container">
-    <Breadcrumb items={breadcrumbs} />
-
     <div class="posts-header">
       <h1 class="posts-title section-title">文章</h1>
       <p class="posts-desc section-desc">记录学习过程中的所见所闻</p>
@@ -37,7 +34,7 @@ const breadcrumbs = [
           image={post.image}
           tags={post.tags}
           pinned={post.pinned}
-          url={`/posts/${post.slug}/`}
+          url={`/${rp}/${post.slug}/`}
           category={post.category || undefined}
         />
       ))}
