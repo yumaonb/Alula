@@ -32,6 +32,7 @@ const {
 } = Astro.props;
 
 const pageTitle = title ? `${title} - ${site.name}` : site.name;
+const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRaw.height}) { img.bg-layer { object-fit: fill; } }`;
 ---
 
 <!doctype html>
@@ -43,6 +44,7 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
     <meta name="color-scheme" content={site.colorScheme} />
     <link rel="icon" type="image/webp" href={avatarImage.src} />
     <title>{pageTitle}</title>
+    <style set:html={bgAspectStyle} />
     <slot name="head" />
   </head>
   <body>
@@ -51,8 +53,6 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
       src={bgImageRaw}
       alt=""
       class="bg-layer"
-      width={1920}
-      height={1080}
       loading="eager"
       decoding="async"
       aria-hidden="true"

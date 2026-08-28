@@ -13,7 +13,10 @@ export default defineConfig({
     swup({
       containers: ["#swup"],
       cache: true,
-      updateHead: true,
+      // @swup/head-plugin：切换页面时更新 head，并等待新样式表加载完成后再替换内容，避免样式闪烁
+      updateHead: {
+        awaitAssets: true,
+      },
       theme: false,
     }),
   ],
