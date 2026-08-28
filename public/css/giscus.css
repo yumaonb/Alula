@@ -50,8 +50,8 @@ main {
   --color-canvas-subtle: transparent;
 
   /* ---- 内部边框:半透明白,替代默认深灰 ---- */
-  --color-border-default: rgba(255, 255, 255, 0.14);
-  --color-border-muted: rgba(255, 255, 255, 0.08);
+  --color-border-default: rgba(255, 255, 255, 0.08);
+  --color-border-muted: rgba(255, 255, 255, 0.06);
 
   /* ---- 中性色(用于分割线/微妙底色) ---- */
   --color-neutral-muted: rgba(255, 255, 255, 0.04);
