@@ -38,6 +38,7 @@ const hasToc = headings && headings.length > 0;
         <article class="post-content glass">
           <slot />
         </article>
+        <slot name="postnav" />
         <slot name="comments" />
       </div>
       {hasToc && (

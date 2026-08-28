@@ -5,6 +5,7 @@ import PostsLayout from '../../layouts/PostsLayout.astro';
 import PostCard from '../../components/posts/PostCard.astro';
 import Breadcrumb from '../../components/posts/Breadcrumb.astro';
 import Repost from '../../components/posts/Repost.astro';
+import PostNav from '../../components/posts/PostNav.astro';
 import Comments from '../../components/widgets/Comments.astro';
 import { Icon } from 'astro-icon/components';
 import { nickname } from '../../data/profile';
@@ -97,6 +98,8 @@ let postCategoryPath: string[] = [];
 let postCategoryName = '';
 let postBreadcrumbs: { label: string; href?: string }[] = [];
 let postDateFormatted = '';
+let prevPost: { title: string; url: string } | null = null;
+let nextPost: { title: string; url: string } | null = null;
 
 if (type === 'post') {
   const { filePath, slug } = Astro.props;
@@ -125,6 +128,27 @@ if (type === 'post') {
 
     if (postFm.date) {
       postDateFormatted = formatDate(postFm.date);
+    }
+
+    // 上一篇/下一篇：按日期降序排列，上一篇为较新的文章，下一篇为较旧的文章
+    const sortedPosts = Object.entries(allPosts)
+      .filter(([fp, mod]) => {
+        const clean = stripContentRoot(fp);
+        return !isCategoryPath(clean) && mod.frontmatter?.date;
+      })
+      .map(([fp, mod]) => ({
+        slug: stripContentRoot(fp),
+        title: (mod as any).frontmatter.title || '无标题',
+        date: (mod as any).frontmatter.date,
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const idx = sortedPosts.findIndex((p) => p.slug === slug);
+    if (idx > 0) {
+      prevPost = { title: sortedPosts[idx - 1].title, url: `/${rp}/${sortedPosts[idx - 1].slug}/` };
+    }
+    if (idx >= 0 && idx < sortedPosts.length - 1) {
+      nextPost = { title: sortedPosts[idx + 1].title, url: `/${rp}/${sortedPosts[idx + 1].slug}/` };
     }
   }
 }
@@ -188,6 +212,7 @@ if (type === 'post') {
     </header>
     <div class="markdown-body" set:html={postCompiledHtml} />
     <Repost title={postFm.title} date={postDateFormatted || postFm.date} />
+    <PostNav slot="postnav" prev={prevPost} next={nextPost} />
     <Comments slot="comments" />
   </PostsLayout>
 )}

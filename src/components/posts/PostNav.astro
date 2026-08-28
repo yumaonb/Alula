@@ -1,0 +1,141 @@
+---
+// PostNav.astro — 文章上一篇/下一篇导航组件
+import { Icon } from 'astro-icon/components';
+
+interface NavPost {
+  title: string;
+  url: string;
+}
+
+interface Props {
+  prev?: NavPost | null; // 上一篇（较新）
+  next?: NavPost | null; // 下一篇（较旧）
+}
+
+const { prev = null, next = null } = Astro.props;
+---
+
+{(prev || next) && (
+  <nav class="post-nav" aria-label="文章导航">
+    {prev ? (
+      <a href={prev.url} class="post-nav-item post-nav-prev glass" rel="prev">
+        <span class="post-nav-label">
+          <Icon name="la:arrow-left" class="post-nav-icon" />
+          上一篇
+        </span>
+        <span class="post-nav-title">{prev.title}</span>
+      </a>
+    ) : (
+      <span class="post-nav-item post-nav-empty glass">
+        <span class="post-nav-label">
+          <Icon name="la:arrow-left" class="post-nav-icon" />
+          上一篇
+        </span>
+        <span class="post-nav-title">没有更多文章了</span>
+      </span>
+    )}
+    {next ? (
+      <a href={next.url} class="post-nav-item post-nav-next glass" rel="next">
+        <span class="post-nav-label">
+          下一篇
+          <Icon name="la:arrow-right" class="post-nav-icon" />
+        </span>
+        <span class="post-nav-title">{next.title}</span>
+      </a>
+    ) : (
+      <span class="post-nav-item post-nav-empty post-nav-next glass">
+        <span class="post-nav-label">
+          下一篇
+          <Icon name="la:arrow-right" class="post-nav-icon" />
+        </span>
+        <span class="post-nav-title">没有更多文章了</span>
+      </span>
+    )}
+  </nav>
+)}
+
+<style is:global>
+  .post-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .post-nav-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 20px;
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+    overflow: hidden;
+    transition: filter 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .post-nav-item::before {
+    display: none;
+  }
+
+  a.post-nav-item:hover {
+    filter: brightness(1.15);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .post-nav-next {
+    text-align: right;
+    align-items: flex-end;
+  }
+
+  .post-nav-empty {
+    pointer-events: none;
+  }
+
+  .post-nav-empty .post-nav-title {
+    color: rgba(255, 255, 255, 0.35);
+    font-weight: 400;
+  }
+
+  .post-nav-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .post-nav-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .post-nav-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    transition: color 0.2s;
+  }
+
+  a.post-nav-item:hover .post-nav-title {
+    color: #fff;
+  }
+
+  @media (max-width: 768px) {
+    .post-nav {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .post-nav-item {
+      padding: 14px 16px;
+    }
+  }
+</style>
