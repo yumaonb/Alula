@@ -12,6 +12,7 @@ import Footer from "../components/layout/Footer.astro";
 import BackToTop from "../components/widgets/BackToTop.astro";
 import BackToBottom from "../components/widgets/BackToBottom.astro";
 import BackToComments from "../components/widgets/BackToComments.astro";
+import ReadingProgress from "../components/widgets/ReadingProgress.astro";
 import { site } from "../data/site";
 
 const avatarImage = await getImage({
@@ -66,6 +67,7 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
     </div>
     <BackToTop />
     <BackToComments />
+    <ReadingProgress />
     <BackToBottom />
   </body>
 </html>

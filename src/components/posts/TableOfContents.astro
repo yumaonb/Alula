@@ -51,7 +51,6 @@ if (hasH1 && hasH2) {
             data-target={heading.slug}
           >
             <a class="toc-link" data-target={heading.slug}>
-              {heading.depth > tocItems[0].depth && <span class="toc-dot"></span>}
               {heading.text.replace(/\s*#$/, '')}
             </a>
           </li>
@@ -350,17 +349,9 @@ if (hasH1 && hasH2) {
   }
 
   .toc-sub .toc-link {
-    padding-left: 6px;
+    padding-left: 24px;
     font-size: 0.76rem;
     color: rgba(255, 255, 255, 0.45);
-  }
-
-  .toc-dot {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.35);
-    flex-shrink: 0;
   }
 
   .toc-sub .toc-link:hover {
@@ -374,10 +365,6 @@ if (hasH1 && hasH2) {
 
   .toc-sub.active .toc-link {
     font-weight: 400;
-  }
-
-  .toc-sub.active .toc-dot {
-    background: rgba(255, 255, 255, 0.8);
   }
 
   @media (max-width: 768px) {
