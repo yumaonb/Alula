@@ -66,6 +66,21 @@ export function getStaticPaths() {
     }
   }
 
+  // 从文章的目录结构中收集隐式分类路径，生成路由（无 index.json / frontmatter 的兜底）
+  const existingSlugs = new Set(paths.map(p => p.params.slug));
+  for (const [filePath] of Object.entries(postModules)) {
+    const path = stripContentRoot(filePath);
+    if (isCategoryPath(path)) continue;
+    const dirCategories = extractCategoryFromSlug(path);
+    for (let i = 1; i <= dirCategories.length; i++) {
+      const catPath = dirCategories.slice(0, i).join('/');
+      if (!existingSlugs.has(catPath)) {
+        existingSlugs.add(catPath);
+        paths.push({ params: { slug: catPath }, props: { type: 'category', category: catPath } });
+      }
+    }
+  }
+
   return paths;
 }
 
