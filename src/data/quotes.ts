@@ -1,6 +1,6 @@
 /**
  * quotes.ts — 随机一言数据集
- * 用法：import { getRandomQuote } from "../../data/quotes"
+ * 在此文件中添加、删除或修改语录即可自定义。
  */
 
 export interface Quote {
@@ -9,7 +9,7 @@ export interface Quote {
   fromWho?: string;
 }
 
-const quotes: Quote[] = [
+export const quotes: Quote[] = [
   // —— 诗词 ——
   { text: "人生若只如初见，何事秋风悲画扇。", from: "木兰花·拟古决绝词柬友", fromWho: "纳兰性德" },
   { text: "山有木兮木有枝，心悦君兮君不知。", from: "越人歌", fromWho: "佚名" },
@@ -52,9 +52,3 @@ const quotes: Quote[] = [
   { text: "愿你出走半生，归来仍是少年。", from: "归途" },
   { text: "你所浪费的今天，是昨天死去的人奢望的明天。", from: "哈佛校训" },
 ];
-
-/** 随机返回一条一言 */
-export function getRandomQuote(): Quote {
-  const idx = Math.floor(Math.random() * quotes.length);
-  return quotes[idx];
-}

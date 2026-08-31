@@ -1,17 +1,26 @@
 ---
-// Quote.astro — 随机一言
-import { getRandomQuote } from '../../data/quotes';
-
-const quote = getRandomQuote();
-const source = quote.fromWho
-  ? `${quote.fromWho}「${quote.from}」`
-  : quote.from || '';
+// Quote.astro — 随机一言（客户端随机）
+import { quotes } from '../../data/quotes';
 ---
 
-<div class="quote-body">
-  <p class="quote-text">{quote.text}</p>
-  <p class="quote-source">{source}</p>
+<div class="quote-body" id="quote-box">
+  <p class="quote-text" id="quote-text"></p>
+  <p class="quote-source" id="quote-source"></p>
 </div>
+
+<script is:inline define:vars={{ quotes }}>
+  (function () {
+    var idx = Math.floor(Math.random() * quotes.length);
+    var q = quotes[idx];
+    var textEl = document.getElementById('quote-text');
+    var sourceEl = document.getElementById('quote-source');
+    if (textEl) textEl.textContent = q.text;
+    var source = q.fromWho
+      ? q.fromWho + '\u300C' + q.from + '\u300D'
+      : q.from || '';
+    if (sourceEl) sourceEl.textContent = source;
+  })();
+</script>
 
 <style>
 .quote-body {
