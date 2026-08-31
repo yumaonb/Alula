@@ -1,17 +1,28 @@
 ---
 title: "分类系统"
-date: 2024-12-15
-description: "本博客的分类识别机制详解，包括 Frontmatter 分类、目录结构分类和配置文件用法。"
+date: 2026-08-31
+description: "本博客的分类识别机制详解，包括目录结构分类、Frontmatter 分类和配置文件用法。"
 image: ""
 tags: ["博客", "教程", "配置"]
 pinned: false
 ---
 
-## 推荐方式：目录结构分类
+## 概述
 
-**最推荐使用目录结构来组织分类。** 只需将文章放入对应目录，分类自动识别，无需在每篇文章中重复写 `categories` 字段。
+本博客支持两种分类方式，系统按以下优先级自动识别：
 
-例如：
+1. **Frontmatter 显式定义** — 在文章的 frontmatter 中写 `categories` 字段
+2. **目录结构隐式推断** — 根据文章所在的目录路径自动生成分类
+
+两种方式可以混用，Frontmatter 优先级更高。如果没有写任何分类信息，文章会归入根目录。
+
+---
+
+## 目录结构分类（推荐）
+
+**最推荐的方式。** 只需将文章放入对应目录，分类自动识别，无需在每篇文章中重复写 `categories` 字段。
+
+### 基本用法
 
 ```
 src/content/posts/
@@ -25,11 +36,20 @@ src/content/posts/
     └── travel.md              → 自动分类: ["life"]
 ```
 
-文章 `tech/frontend/css-grid.md` 会自动获得分类 `["tech", "frontend"]`，完全不用在 frontmatter 里写任何分类字段。
+文章 `tech/frontend/css-grid.md` 会自动获得分类路径 `["tech", "frontend"]`，URL 为 `/posts/tech/frontend/css-grid/`。
 
-### 配合配置文件自定义显示名称
+### 配置文件自定义显示名称
 
 没有配置文件时，分类显示名就是目录名（如 `tech`）。想显示中文名，在对应目录下放一个配置文件即可：
+
+```
+src/content/posts/tech/
+├── _category.yml              ← 分类配置文件
+├── frontend/
+│   ├── _category.yml          ← 子分类配置文件
+│   └── css-grid.md
+└── typescript.md
+```
 
 **`tech/_category.yml`：**
 
@@ -45,37 +65,125 @@ name: "前端"
 description: "HTML、CSS、JavaScript、框架等前端技术"
 ```
 
-**不放配置文件则直接使用目录名。**
+不放配置文件则直接使用目录名作为显示名。
 
 ### 支持的配置文件名
 
-| 文件名 | 格式 |
-|---|---|
-| `_category.yml` / `_category.yaml` | YAML |
-| `category.json` | JSON |
-| `_category.toml` | TOML |
-| `.category.yml` | YAML |
+同级目录下存在多个配置文件时，按优先级取第一个生效：
 
-### 目录分类的优先级
+| 优先级 | 文件名 | 格式 |
+|---|---|---|
+| 1 | `_category.yml` / `_category.yaml` | YAML |
+| 2 | `.category.yml` | YAML |
+| 3 | `category.json` | JSON |
+| 4 | `index.json` | JSON |
+| 5 | `_category.toml` | TOML |
+| 6 | `index.md` | Markdown frontmatter |
 
-Frontmatter 中的 `categories` 字段优先级高于目录推断。如果两者都有，以 frontmatter 为准。
+### 配置文件字段
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `name` | `string` | **是** | 分类显示名称，如 `"前端"`。不填则使用目录名 |
+| `description` | `string` | 否 | 分类描述，显示在分类列表页标题下方 |
+| `title` | `string` | 否 | 备用标题字段，功能与 `name` 相同 |
+
+> `name` 是唯一有实际用途的必填字段。如果只写其他字段而不写 `name`，分类显示名将回退为目录名。
+
+### 各格式完整示例
+
+**YAML（`_category.yml` 或 `_category.yaml`）：**
+
+```yaml
+name: "前端"
+description: "HTML、CSS、JavaScript、框架等前端技术"
+```
+
+**YAML 隐藏文件风格（`.category.yml`）：**
+
+```yaml
+name: "前端"
+description: "HTML、CSS、JavaScript、框架等前端技术"
+```
+
+**JSON（`category.json`）：**
+
+```json
+{
+  "name": "前端",
+  "description": "HTML、CSS、JavaScript、框架等前端技术"
+}
+```
+
+**JSON 索引文件（`index.json`）：**
+
+```json
+{
+  "name": "前端",
+  "description": "HTML、CSS、JavaScript、框架等前端技术"
+}
+```
+
+**TOML（`_category.toml`）：**
+
+```toml
+name = "前端"
+description = "HTML、CSS、JavaScript、框架等前端技术"
+```
+
+**Markdown frontmatter（`index.md`）：**
+
+```markdown
+---
+name: "前端"
+description: "HTML、CSS、JavaScript、框架等前端技术"
+---
+
+本分类包含前端相关技术文章。
+```
+
+---
 
 ## Frontmatter 分类（备选方式）
 
-如果不方便使用目录结构，也可以在每篇文章的 frontmatter 中写 `categories` 字段。具体格式见[文章字段参考](/posts/yuswift/posts/fields/)。
+如果不方便使用目录结构，也可以在每篇文章的 frontmatter 中写 `categories` 字段。
 
-### 支持的格式速查
+### 字段名
 
-| 格式 | 示例 |
-|---|---|
-| 字符串数组 | `categories: ["技术", "前端"]` |
-| 嵌套数组 | `categories: [["技术", "前端"]]` |
-| 对象数组 | `categories: [{name: "前端", parent: "技术"}]` |
-| 斜杠字符串 | `categories: "技术/前端"` |
-| 大于号字符串 | `categories: "技术 > 前端"` |
-| 纯字符串 | `categories: "技术"` |
+支持三种写法，按优先级自动识别：
 
-字段名支持 `categories`、`category`、`分类` 三种写法，按优先级自动识别。
+| 优先级 | 字段名 | 示例 |
+|---|---|---|
+| 1 | `categories` | `categories: ["技术", "前端"]` |
+| 2 | `category` | `category: "技术/前端"` |
+| 3 | `分类` | `分类: ["技术", "前端"]` |
+
+### 支持的值格式
+
+| 格式 | 示例 | 识别结果 |
+|---|---|---|
+| 字符串数组 | `categories: ["技术", "前端"]` | `["技术", "前端"]` |
+| 嵌套数组 | `categories: [["技术", "前端"]]` | `["技术", "前端"]` |
+| 对象数组 | `categories: [{name: "前端", parent: "技术"}]` | `["技术", "前端"]` |
+| 斜杠字符串 | `categories: "技术/前端"` | `["技术", "前端"]` |
+| 大于号字符串 | `categories: "技术 > 前端"` | `["技术", "前端"]` |
+| 纯字符串 | `categories: "技术"` | `["技术"]` |
+
+> 对象数组格式中，系统会自动识别 `parent` 字段构建层级关系，最终提取出从根到叶的路径。
+
+### 示例
+
+```yaml
+---
+title: "CSS Grid 完全指南"
+categories: ["技术", "前端"]
+tags: ["CSS", "布局"]
+---
+
+正文内容...
+```
+
+---
 
 ## 分类 URL 配置
 
@@ -93,6 +201,8 @@ export const posts: PostsConfig = {
 };
 ```
 
+不同平台的推荐配置：
+
 | 平台 | 原 URL 格式 | `categoryBase` |
 |---|---|---|
 | Hexo | `/编程/Python/` | `""` |
@@ -102,24 +212,41 @@ export const posts: PostsConfig = {
 | VuePress | `/categories/前端/` | `"categories"` |
 | VitePress | `/categories/前端/` | `"categories"` |
 
-## 文章标签
+---
 
-标签通过 frontmatter 的 `tags` 字段定义，与分类是独立的两套系统：
+## 标签与分类的区别
+
+标签和分类是两套独立的系统：
+
+| | 分类 | 标签 |
+|---|---|---|
+| **组织方式** | 层级结构（树形） | 扁平结构（横向关联） |
+| **定义位置** | 目录结构或 frontmatter `categories` | frontmatter `tags` |
+| **一篇文章** | 通常属于一个分类路径 | 可以有多个标签 |
+| **URL** | `/posts/tech/frontend/` | `/posts/?tag=CSS` |
 
 ```yaml
 ---
-tags: ["Vue", "JavaScript", "前端"]
+categories: ["技术", "前端"]
+tags: ["CSS", "布局", "教程"]
 ---
 ```
 
-标签显示在文章卡片和详情页中，点击可跳转到按标签筛选的列表页。分类用于层级组织，标签用于横向关联。
+---
 
-## 自动识别规则总结
+## 自动识别流程
 
 ```
-文章的 frontmatter 有 categories 字段？
-  ├── 有 → 使用 frontmatter 的分类
+文章的 frontmatter 有 categories / category / 分类 字段？
+  ├── 有且非空 → 使用 frontmatter 定义的分类
   └── 没有 → 从文件目录路径推断分类
-              ├── 目录下有配置文件？→ 使用配置文件中的 name
-              └── 没有配置文件 → 直接使用目录名
+              ├── 目录下有配置文件？→ 使用配置文件中的 name 作为显示名
+              └── 没有配置文件 → 直接使用目录名作为显示名
 ```
+
+**优先级总结：**
+
+1. Frontmatter `categories` > Frontmatter `category` > Frontmatter `分类`
+2. Frontmatter 分类 > 目录结构推断
+3. 配置文件 `name` > 目录名
+4. 配置文件优先级：`_category.yml` > `.category.yml` > `category.json` > `index.json` > `_category.toml` > `index.md`

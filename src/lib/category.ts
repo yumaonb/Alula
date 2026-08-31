@@ -157,9 +157,7 @@ export interface PostModule {
 /** 分类元数据（来自目录下的配置文件） */
 export interface CategoryMeta {
   name?: string;
-  slug?: string;
   description?: string;
-  hidden?: boolean;
   title?: string;
 }
 
@@ -319,9 +317,7 @@ export function buildCategoryMeta(
       if (Object.keys(parsed).length > 0) {
         meta[key] = {
           name: parsed.name,
-          slug: parsed.slug,
           description: parsed.description,
-          hidden: parsed.hidden,
           title: parsed.title,
         };
       }
@@ -346,9 +342,7 @@ export function buildCategoryMeta(
         const parsed = parseConfigFile(m, fp);
         meta[key] = {
           name: parsed.name,
-          slug: parsed.slug,
           description: parsed.description,
-          hidden: parsed.hidden,
           title: parsed.title,
         };
       }
@@ -362,7 +356,6 @@ export function buildCategoryMeta(
     if (!meta[key]) {
       meta[key] = {
         name: (m as any).frontmatter?.name,
-        slug: (m as any).frontmatter?.slug,
         description: (m as any).frontmatter?.description,
       };
     }
@@ -404,21 +397,6 @@ export function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-/**
- * 获取分类的 slug：优先使用配置文件中的 slug，否则由 name 生成
- */
-export function getCategorySlug(
-  categoryPath: string[],
-  categoryMeta: Record<string, CategoryMeta>,
-): string[] {
-  return categoryPath.map((segment, i) => {
-    const metaKey = categoryPath.slice(0, i + 1).join("/");
-    const meta = categoryMeta[metaKey];
-    if (meta?.slug) return meta.slug;
-    return segment;
-  });
-}
-
 // ========== 分类信息构建 ==========
 
 /**
@@ -444,15 +422,13 @@ export function buildArticleCategories(
     return { fullPath: [], root: null, leaf: null };
   }
 
-  const slugPath = getCategorySlug(rawPath, categoryMeta);
-
-  const fullPath: CategoryNode[] = slugPath.map((slug, i) => {
+  const fullPath: CategoryNode[] = rawPath.map((segment, i) => {
     const metaKey = rawPath.slice(0, i + 1).join("/");
     const meta = categoryMeta[metaKey];
     return {
-      name: meta?.name || rawPath[i],
-      slug,
-      path: slugPath.slice(0, i + 1),
+      name: meta?.name || segment,
+      slug: segment,
+      path: rawPath.slice(0, i + 1),
       level: i,
     };
   });
@@ -540,10 +516,9 @@ export function buildCategoryUrl(
   routePrefix: string,
   config: CategoryConfig = defaultConfig,
 ): string {
-  const slugs = getCategorySlug(categoryPath, categoryMeta);
   const parts: string[] = [routePrefix];
   if (config.categoryBase) parts.push(config.categoryBase);
-  parts.push(...slugs);
+  parts.push(...categoryPath);
   return "/" + parts.join("/") + "/";
 }
 
