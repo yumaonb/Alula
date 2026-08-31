@@ -13,13 +13,13 @@ pinned: false
 
 1. 把所有 `.md` 文件复制到 `src/content/posts/`
 2. 确保每篇有 `title` 和 `date` 字段
-3. [非必要]添加 `categories` 字段（格式见[分类系统](/posts/yuswift/posts/categories/)）
+3. [非必要]添加 `categories` 字段（格式见[分类系统](/posts/alula/posts/categories/)）
 
 文章会自动出现在 `/posts/` 路径下。
 
 ## 分类配置
 
-不同平台的分类 URL 格式不同，通过 `src/data/posts.ts` 的 `categoryBase` 配置。详见[分类系统](/posts/yuswift/posts/categories/)。
+不同平台的分类 URL 格式不同，通过 `src/data/posts.ts` 的 `categoryBase` 配置。详见[分类系统](/posts/alula/posts/categories/)。
 
 ## 各平台迁移指南
 

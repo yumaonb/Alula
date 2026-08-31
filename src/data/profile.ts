@@ -16,7 +16,7 @@ export const nickname = '羽毛';
 export const motto = '阅己 越己 悦己';
 
 /** 首页自我介绍（支持 HTML） */
-export const intro = '这里是羽毛的小屋，一位热爱探索的学生<br>本项目技术栈：Astro · Svelte · TypeScript<br>源码已开源至github：<a href="https://github.com/yumaonb/YuSwift/" target="_blank" rel="noopener">点我前往项目地址</a><br>本站随时可能更换域名，建议收藏项目地址或收藏中转页：<a href="https://yumaonb.github.io/" target="_blank" rel="noopener">yumaonb.github.io</a>';
+export const intro = '这里是羽毛的小屋，一位热爱探索的学生<br>本项目技术栈：Astro · Svelte · TypeScript<br>源码已开源至github：<a href="https://github.com/yumaonb/Alula/" target="_blank" rel="noopener">点我前往项目地址</a><br>本站随时可能更换域名，建议收藏项目地址或收藏中转页：<a href="https://yumaonb.github.io/" target="_blank" rel="noopener">yumaonb.github.io</a>';
 
 /** 联系方式 */
 export const socialLinks: SocialLink[] = [

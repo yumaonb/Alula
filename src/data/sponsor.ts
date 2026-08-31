@@ -45,7 +45,7 @@ export const sponsorList: SponsorList = {
 
 /** 其他支持方式 */
 export const supportActions: SupportAction[] = [
-  { icon: 'la:star', title: 'Star 仓库', desc: '给项目点个 Star 鼓励一下', href: 'https://github.com/yumaonb/YuSwift/', target: '_blank' },
+  { icon: 'la:star', title: 'Star 仓库', desc: '给项目点个 Star 鼓励一下', href: 'https://github.com/yumaonb/Alula/', target: '_blank' },
   { icon: 'la:share-square', title: '分享本站', desc: '把本站分享给更多朋友' },
   { icon: 'la:bookmark', title: '收藏本站', desc: '按 Ctrl+D 收藏到书签' },
 ];

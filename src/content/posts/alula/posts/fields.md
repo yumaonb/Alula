@@ -77,7 +77,7 @@ pinned: true
 
 ### categories
 
-分类元数据，支持多种格式。详细说明见[分类系统](/posts/yuswift/posts/categories/)。
+分类元数据，支持多种格式。详细说明见[分类系统](/posts/alula/posts/categories/)。
 
 ```yaml
 ---

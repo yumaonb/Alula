@@ -6,6 +6,6 @@
 
 ## 关于本站
 
-本站名为「羽毛的小屋」，基于 **Astro + Svelte + TypeScript** 构建，源码已开源至 [GitHub](https://github.com/yumaonb/YuSwift/)。
+本站名为「羽毛的小屋」，基于 **Astro + Svelte + TypeScript** 构建，源码已开源至 [GitHub](https://github.com/yumaonb/Alula/)。
 
 本站域名后续可能更换，建议收藏项目地址或收藏中转页 [yumaonb.github.io](https://yumaonb.github.io/)。

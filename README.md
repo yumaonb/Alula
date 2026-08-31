@@ -1,4 +1,4 @@
-# YuSwift
+# Alula
 
 ![Node.js >= 18](https://img.shields.io/badge/node.js->=18-339933?logo=node.js&logoColor=white)
 ![pnpm >= 9](https://img.shields.io/badge/pnpm->=9-F69220?logo=pnpm&logoColor=white)
