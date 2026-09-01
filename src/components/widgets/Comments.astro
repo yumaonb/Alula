@@ -7,8 +7,10 @@ const giscusTheme = `https://${site.domain}/css/giscus.css`;
 ---
 
 <div id="comments-section" class="comments-section glass glass-tall">
-  <h2 class="comments-title">评论</h2>
-  <div id="comments" class="giscus-container"></div>
+  <div class="comments-inner">
+    <h2 class="comments-title">评论</h2>
+    <div id="comments" class="giscus-container"></div>
+  </div>
 </div>
 
 <script is:inline define:vars={{ giscusTheme }}>
@@ -43,9 +45,13 @@ const giscusTheme = `https://${site.domain}/css/giscus.css`;
 <style>
   .comments-section {
     margin-top: 32px;
-    padding: 28px;
     /* 锚点滚动偏移：避开固定导航栏（桌面 68px + 20px 间距） */
     scroll-margin-top: 78px;
+  }
+
+  /* 内边距放在内部包裹层：.glass-tall 的模糊伪元素只铺满容器内容盒 */
+  .comments-inner {
+    padding: 28px;
   }
 
   .comments-title {

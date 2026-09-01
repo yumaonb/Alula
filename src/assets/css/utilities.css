@@ -75,7 +75,8 @@
  * （滚动时贴住视口，等效 backdrop-filter 的采样区域，不受容器高度限制），
  * 容器自身用 overflow: clip + 圆角裁剪模糊层（overflow: clip 不影响后代模糊；
  * 勿改用 clip-path，实测 Chromium 中祖先 clip-path 会使后代 backdrop-filter 失效）。
- * 注意：自身需要滚动（overflow: auto/hidden）或内部依赖溢出显示的容器勿用。
+ * 注意：容器自身不要设置 padding（模糊层只铺满内容盒，内边距请放到内部
+ * 包裹层），自身需要滚动（overflow: auto/hidden）或内部依赖溢出显示的容器勿用。
  * 不支持 overflow: clip 的浏览器自动回退为容器直接模糊（.glass 原表现）。
  */
 @supports (overflow: clip) {

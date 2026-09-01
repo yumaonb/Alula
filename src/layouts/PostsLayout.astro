@@ -36,7 +36,9 @@ const hasToc = headings && headings.length > 0;
           <Breadcrumb items={breadcrumbs} />
         </div>
         <article class="post-content glass glass-tall">
-          <slot />
+          <div class="post-content-inner">
+            <slot />
+          </div>
         </article>
         <slot name="postnav" />
         <slot name="comments" />
@@ -72,8 +74,12 @@ const hasToc = headings && headings.length > 0;
   }
 
   .post-content {
-    padding: 36px 40px;
     border-radius: var(--radius);
+  }
+
+  /* 内边距放在内部包裹层：.glass-tall 的模糊伪元素只铺满容器内容盒 */
+  .post-content-inner {
+    padding: 36px 40px;
   }
 
   .post-sidebar {
@@ -96,9 +102,11 @@ const hasToc = headings && headings.length > 0;
     }
 
     .post-content {
-      width: 100%;
-      padding: 16px;
       border-radius: 0;
+    }
+
+    .post-content-inner {
+      padding: 16px;
     }
   }
 </style>
