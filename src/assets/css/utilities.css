@@ -68,6 +68,39 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
+/* ---- 高玻璃容器 ----
+ * 供内容可能超过手机 GPU 纹理上限（约 4096px）的玻璃容器使用：
+ * 超高元素上的 backdrop-filter 会被部分手机浏览器静默丢弃（矮元素不受影响）。
+ * 原理：模糊改由一个始终只有一屏高（100vh）的 sticky ::before 伪元素承担
+ * （滚动时贴住视口，等效 backdrop-filter 的采样区域，不受容器高度限制），
+ * 容器自身用 overflow: clip + 圆角裁剪模糊层（overflow: clip 不影响后代模糊；
+ * 勿改用 clip-path，实测 Chromium 中祖先 clip-path 会使后代 backdrop-filter 失效）。
+ * 注意：自身需要滚动（overflow: auto/hidden）或内部依赖溢出显示的容器勿用。
+ * 不支持 overflow: clip 的浏览器自动回退为容器直接模糊（.glass 原表现）。
+ */
+@supports (overflow: clip) {
+  .glass-tall {
+    overflow: clip;
+    position: relative;
+    /* 模糊改由 ::before 伪元素承担，避免超高元素模糊失效 */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .glass-tall::before {
+    content: '';
+    display: block;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    margin-bottom: -100vh; /* 抵消自身高度，不占布局空间 */
+    z-index: -1;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
 /* 玻璃圆形按钮 */
 .glass-btn {
   display: inline-flex;
