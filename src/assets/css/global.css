@@ -134,35 +134,53 @@ ol {
   height: 24px;
 }
 
-/* ---- Swup 页面切换动画 ---- */
+/* ---- Swup 页面切换（离场用真实 DOM + 进场用整页快照） ---- */
 
-#swup.transition-main {
-  opacity: 0;
-  transform: translateY(30px);
+/* 离场：点击后旧页立即原位渐隐 0.2s（仅 opacity，无位移，导航栏不抖）。
+   :not(.is-rendering) 确保只在新内容替换前生效；both 保持隐藏直到替换完成 */
+html.is-animating:not(.is-rendering) .transition-main {
+  animation: page-exit 0.2s ease both;
 }
 
-html:not(.is-changing) #swup.transition-main {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+/* 进场：新页整页快照原位渐显 */
+::view-transition-new(root) {
+  animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-html.is-animating #swup.transition-main {
-  animation: swup-exit 0.2s ease-in both;
+/* 旧页快照无需动画：截快照时旧内容已隐藏，快照本就是「背景 + 导航栏」，保持原样即可 */
+::view-transition-old(root) {
+  animation: none;
 }
 
-html.is-changing:not(.is-animating) #swup.transition-main {
-  animation: swup-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+/* 根元素兜底深色：防止过度滚动回弹等极端情况露出白色画布 */
+html {
+  background-color: #12121a;
 }
 
-@keyframes swup-exit {
-  0% { opacity: 1; }
-  15% { opacity: 0; }
-  100% { opacity: 0; }
+@keyframes page-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
-@keyframes swup-enter {
-  0% {opacity: 0;}
-  100% {opacity: 1;}
+@keyframes page-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
+
+/* 用户偏好减少动态效果时：全部跳过，新页面就绪后直接切换 */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  html.is-animating:not(.is-rendering) .transition-main {
+    animation: none;
+  }
+}
+
