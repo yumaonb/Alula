@@ -26,6 +26,10 @@ export const techStack: TechCategory[] = [
     items: ['Linux', 'Nginx', '宝塔', '1Panel', 'Docker'],
   },
   {
+    category: '脚本',
+    items: ['Shell'],
+  },
+  {
     category: '工具',
     items: ['Git', 'GitHub', 'pnpm', 'npm'],
   },
