@@ -23,9 +23,9 @@
 
   function update() {
     // 有评论区（文章页）时不显示，逻辑与 BackToComments 正好相反；
-    // 显示条件和返回顶部/底部一致：滚动超过 300px 才出现
+    // 显示条件和返回顶部/底部一致：滚动超过 100px 才出现
     var hasComments = !!document.getElementById('comments-section');
-    btn.classList.toggle('visible', !hasComments && window.scrollY > 300);
+    btn.classList.toggle('visible', !hasComments && window.scrollY > 100);
 
     var max = document.documentElement.scrollHeight - window.innerHeight;
     var p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;

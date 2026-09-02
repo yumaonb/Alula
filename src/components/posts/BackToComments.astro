@@ -14,7 +14,7 @@ import { Icon } from 'astro-icon/components';
 
   function toggleBtn() {
     var hasTarget = !!document.getElementById('comments-section');
-    btn.classList.toggle('visible', hasTarget && window.scrollY > 300);
+    btn.classList.toggle('visible', hasTarget && window.scrollY > 100);
   }
 
   btn.addEventListener('click', function() {

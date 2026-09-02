@@ -13,7 +13,7 @@ import { Icon } from 'astro-icon/components';
   if (!btn) return;
 
   function toggleBtn() {
-    btn.classList.toggle('visible', window.scrollY > 300);
+    btn.classList.toggle('visible', window.scrollY > 100);
   }
 
   btn.addEventListener('click', function() {
