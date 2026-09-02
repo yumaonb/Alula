@@ -93,15 +93,28 @@ ol {
   position: relative;
 }
 
-/* ---- 返回按钮组 ---- */
-.back-to-widget {
+/* ---- 侧边悬浮按钮列 ---- */
+.side-widgets {
   position: fixed;
   right: 20px;
+  bottom: 100px; /* 锚点：调这一个值即可整体升降 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 50;
+}
+
+/* 显隐只做水平平移，占位固定；槽位由容器自底向上分配 */
+.back-to-widget {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 54px;
   height: 54px;
+  margin-top: 8px;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.03);
@@ -110,17 +123,34 @@ ol {
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   opacity: 0;
-  transform: translateX(60px);
-  transition: opacity 0.18s ease, transform 0.18s ease,
-              color 0.15s ease, background 0.15s ease;
+  transform: translateX(80px);
+  visibility: hidden;
   pointer-events: none;
-  z-index: 50;
+  /* visibility 延迟到滑出动画播完再生效 */
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.2s,
+              color 0.15s ease, background 0.15s ease;
 }
 
 .back-to-widget.visible {
   opacity: 1;
   transform: translateX(0);
+  visibility: visible;
   pointer-events: auto;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0s,
+              color 0.15s ease, background 0.15s ease;
+}
+
+/* 当前页面不适用的按钮移除占位，只在 swup 切页时重估 */
+.back-to-widget.unavailable {
+  display: none;
+}
+
+/* swup 切页挂起期间视觉压制所有按钮 */
+.side-widgets.navigating .back-to-widget {
+  opacity: 0;
+  transform: translateX(80px);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .back-to-widget:hover {
@@ -134,10 +164,9 @@ ol {
   height: 24px;
 }
 
-/* ---- Swup 页面切换（离场用真实 DOM + 进场用整页快照） ---- */
+/* ---- Swup 页面切换：离场用真实 DOM，进场用整页快照 ---- */
 
-/* 离场：点击后旧页立即原位渐隐 0.2s（仅 opacity，无位移，导航栏不抖）。
-   :not(.is-rendering) 确保只在新内容替换前生效；both 保持隐藏直到替换完成 */
+/* 离场：旧页原位渐隐；:not(.is-rendering) 确保只在新内容替换前生效 */
 html.is-animating:not(.is-rendering) .transition-main {
   animation: page-exit 0.2s ease both;
 }
@@ -147,7 +176,7 @@ html.is-animating:not(.is-rendering) .transition-main {
   animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* 旧页快照无需动画：截快照时旧内容已隐藏，快照本就是「背景 + 导航栏」，保持原样即可 */
+/* 旧页快照无需动画：截快照时旧内容已隐藏 */
 ::view-transition-old(root) {
   animation: none;
 }

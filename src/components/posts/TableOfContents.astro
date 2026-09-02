@@ -62,6 +62,10 @@ if (hasH1 && hasH2) {
 
 <script is:inline>
 (function() {
+  // swup 每次切页都会重新执行本脚本，只允许初始化一次，防止重复绑定监听
+  if (window.__tocInit) return;
+  window.__tocInit = true;
+
   var NAV_HEIGHT = 80;
   var isClickMode = false;
   var isTrackScrolling = false;
@@ -77,8 +81,8 @@ if (hasH1 && hasH2) {
     window.scrollTo({ top: top, behavior: 'smooth' });
   }
 
-  /* 竖线定位：两阶段动画——先延伸到底部，再收回顶部 */
-  var barAnimating = false;
+  /* 竖线两阶段动画：先延伸盖住新旧位置，再收回多余部分 */
+  var snapBarNext = false;
 
   function positionBar(useTransition) {
     var bar = document.getElementById('toc-bar');
@@ -92,9 +96,11 @@ if (hasH1 && hasH2) {
     var newH = linkEl.offsetHeight;
     var oldTop = bar.style.top ? parseFloat(bar.style.top) : null;
     var oldH = bar.style.height ? parseFloat(bar.style.height) : null;
+    var animating = bar._animating === true;
 
-    /* 首次定位：直接设置，无动画 */
-    if (oldTop === null) {
+    if (oldTop === null || snapBarNext) {
+      /* 首次定位 / 外部要求瞬移（如抽屉打开时）：直接设置不播动画 */
+      snapBarNext = false;
       bar.style.transition = 'none';
       bar.style.top = newTop + 'px';
       bar.style.height = newH + 'px';
@@ -102,9 +108,8 @@ if (hasH1 && hasH2) {
       return;
     }
 
-    /* 无变化或正在动画中，跳过 */
     if (Math.abs(newTop - oldTop) < 1 && Math.abs(newH - oldH) < 1) return;
-    if (barAnimating && !useTransition) return;
+    if (animating && !useTransition) return;
 
     if (isClickMode && !isTrackScrolling) {
       /* 点击模式：整体平滑移动 */
@@ -113,16 +118,16 @@ if (hasH1 && hasH2) {
       bar.style.height = newH + 'px';
       bar.style.opacity = '1';
     } else if (Math.abs(newTop - oldTop) > 1) {
-      /* 滚动模式（页面滚动 + 目录滚动）：两阶段动画，区分方向 */
-      barAnimating = true;
+      /* 滚动模式：区分方向的两阶段动画 */
+      bar._animating = true;
       bar.style.transition = 'none';
 
       if (newTop > oldTop) {
-        /* 向下滚动：从顶部向下延伸 */
+        /* 向下：顶部不动，向下延伸 */
         bar.style.top = oldTop + 'px';
         bar.style.height = (newTop + newH - oldTop) + 'px';
       } else {
-        /* 向上滚动：从底部向上延伸 */
+        /* 向上：底部不动，向上延伸 */
         bar.style.top = newTop + 'px';
         bar.style.height = (oldTop + oldH - newTop) + 'px';
       }
@@ -133,11 +138,11 @@ if (hasH1 && hasH2) {
           bar.style.transition = 'top 0.12s ease-out, height 0.12s ease-out';
           bar.style.top = newTop + 'px';
           bar.style.height = newH + 'px';
-          setTimeout(function() { barAnimating = false; }, 130);
+          setTimeout(function() { bar._animating = false; }, 130);
         });
       });
-    } else {
-      /* 高度微调：直接设置 */
+    } else if (!animating) {
+      /* 高度微调：动画进行中不允许直接拍平，否则向上延伸会被打断 */
       bar.style.transition = 'none';
       bar.style.top = newTop + 'px';
       bar.style.height = newH + 'px';
@@ -145,7 +150,7 @@ if (hasH1 && hasH2) {
     }
   }
 
-  /* 点击目录项 */
+  /* ---- 点击目录项 ---- */
   document.addEventListener('click', function(e) {
     var link = e.target.closest('.toc-link');
     if (!link) return;
@@ -161,7 +166,7 @@ if (hasH1 && hasH2) {
     setTimeout(function() { isClickMode = false; }, 800);
   });
 
-  /* ── 高亮 + 竖线 ── */
+  /* ---- 高亮 + 竖线 ---- */
   var lastActiveSlug = null;
   var lastScrolledSlug = null;
 
@@ -218,7 +223,6 @@ if (hasH1 && hasH2) {
       }
     }
 
-    /* 定位竖线 */
     positionBar(isClickMode || maxScroll <= 0);
   }
 
@@ -234,7 +238,7 @@ if (hasH1 && hasH2) {
   }, { passive: true });
 
   document.addEventListener('DOMContentLoaded', updateToc);
-  document.addEventListener('swup:contentReplaced', function() {
+  document.addEventListener('swup:content:replace', function() {
     lastActiveSlug = null;
     requestAnimationFrame(updateToc);
   });
@@ -249,7 +253,7 @@ if (hasH1 && hasH2) {
     setTimeout(function() { isTrackScrolling = false; }, 50);
   }, true);
 
-  /* ── 滚动隔离：鼠标在目录内滚动时不影响页面 ── */
+  /* ---- 滚动隔离：目录内滚动不放行给页面 ---- */
   document.addEventListener('wheel', function(e) {
     var track = document.getElementById('toc-list');
     if (!track || !track.contains(e.target)) return;
@@ -266,6 +270,12 @@ if (hasH1 && hasH2) {
     positionBar(false);
     setTimeout(function() { isTrackScrolling = false; }, 50);
   }, { passive: false });
+
+  /* 供目录抽屉打开时调用：竖线直接显示在当前位置，不播动画 */
+  window.__tocSnap = function() {
+    snapBarNext = true;
+    updateToc();
+  };
 })();
 </script>
 
@@ -365,9 +375,5 @@ if (hasH1 && hasH2) {
 
   .toc-sub.active .toc-link {
     font-weight: 400;
-  }
-
-  @media (max-width: 768px) {
-    .toc-nav { display: none; }
   }
 </style>

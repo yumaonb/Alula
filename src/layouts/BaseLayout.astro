@@ -13,6 +13,7 @@ import BackToTop from "../components/layout/BackToTop.astro";
 import BackToBottom from "../components/layout/BackToBottom.astro";
 import BackToComments from "../components/posts/BackToComments.astro";
 import ReadingProgress from "../components/layout/ReadingProgress.astro";
+import TocModal from "../components/posts/TocModal.astro";
 import { site } from "../data/site";
 
 const avatarImage = await getImage({
@@ -65,9 +66,82 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
       </main>
       <Footer />
     </div>
-    <BackToTop />
-    <BackToComments />
-    <ReadingProgress />
-    <BackToBottom />
+    <div class="side-widgets" id="side-widgets">
+      <BackToTop />
+      <TocModal />
+      <ReadingProgress />
+      <BackToComments />
+      <BackToBottom />
+    </div>
+    <script is:inline data-swup-ignore-script>
+      // swup 切页联动：点击链接即收回侧边按钮并挂起显示判定；
+      // 内容替换后监视滚动，静止 150ms 才解除，避免平滑回顶期间按钮闪现。
+      // data-swup-ignore-script：只执行一次，防止每次切页重复绑定监听
+      (function() {
+        var container = document.getElementById('side-widgets');
+        if (!container) return;
+
+        var QUIET_MS = 150;        // 判定滚动静止的无滚动时长
+        var CAP_MS = 2500;         // 兜底计时首次触发时间
+        var CAP_EXTEND_MS = 400;   // 滚动未停时的续期步长
+        var MAX_SUSPEND_MS = 6000; // 挂起绝对上限
+        var settleTimer = null;
+        var capTimer = null;
+        var watching = false;
+        var suspendStart = 0;
+        var lastScrollAt = 0;
+
+        function onScroll() {
+          lastScrollAt = Date.now();
+          if (settleTimer) clearTimeout(settleTimer);
+          settleTimer = setTimeout(settle, QUIET_MS);
+        }
+
+        function startWatch() {
+          if (watching) return;
+          watching = true;
+          window.addEventListener('scroll', onScroll, { passive: true });
+          settleTimer = setTimeout(settle, QUIET_MS); // 无滚动事件（无复位/瞬时复位）也能解除
+        }
+
+        function teardown() {
+          if (settleTimer) { clearTimeout(settleTimer); settleTimer = null; }
+          if (capTimer) { clearTimeout(capTimer); capTimer = null; }
+          if (watching) {
+            watching = false;
+            window.removeEventListener('scroll', onScroll);
+          }
+        }
+
+        function settle() {
+          teardown();
+          container.classList.remove('navigating');
+        }
+
+        function capTick() {
+          capTimer = null;
+          var scrollActive = watching && Date.now() - lastScrollAt < QUIET_MS;
+          var withinCeiling = Date.now() - suspendStart < MAX_SUSPEND_MS;
+          if (scrollActive && withinCeiling) {
+            capTimer = setTimeout(capTick, CAP_EXTEND_MS); // 回顶动画未停，不放行
+            return;
+          }
+          settle();
+        }
+
+        document.addEventListener('swup:visit:start', function() {
+          teardown(); // 快速连续切页：清掉上一轮的监听和计时器
+          container.classList.add('navigating');
+          container.querySelectorAll('.back-to-widget').forEach(function(b) {
+            b.classList.remove('visible');
+          });
+          suspendStart = Date.now();
+          lastScrollAt = 0;
+          capTimer = setTimeout(capTick, CAP_MS);
+        });
+
+        document.addEventListener('swup:content:replace', startWatch);
+      })();
+    </script>
   </body>
 </html>

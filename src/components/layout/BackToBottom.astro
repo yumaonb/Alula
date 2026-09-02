@@ -7,7 +7,7 @@ import { Icon } from 'astro-icon/components';
   <Icon name="la:arrow-down" class="back-to-widget-icon" />
 </button>
 
-<script is:inline>
+<script is:inline data-swup-ignore-script>
 (function() {
   var btn = document.getElementById('back-to-bottom');
   if (!btn) return;
@@ -24,7 +24,3 @@ import { Icon } from 'astro-icon/components';
   toggleBtn();
 })();
 </script>
-
-<style>
-  .back-to-widget { bottom: 100px; }
-</style>

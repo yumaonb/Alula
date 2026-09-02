@@ -57,6 +57,6 @@ function onSwupReplace() {
 
 document.addEventListener('click', onClick);
 document.addEventListener('keydown', onKeydown);
-window.addEventListener('swup:contentReplaced', onSwupReplace);
+window.addEventListener('swup:content:replace', onSwupReplace);
 
 export {};

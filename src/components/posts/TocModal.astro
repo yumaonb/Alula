@@ -1,0 +1,269 @@
+---
+// TocModal.astro — 文章目录悬浮按钮 + 抽屉弹窗
+// 用法：<TocModal />
+// 移动端打开抽屉时直接搬入桌面端 TableOfContents 的 .toc-nav 节点复用
+import { Icon } from 'astro-icon/components';
+---
+
+<button class="back-to-widget" id="toc-fab" aria-label="文章目录" aria-haspopup="dialog" aria-expanded="false">
+  <!-- 内联路径：不依赖侧栏 .toc-header 里的 symbol（抽屉打开时它会被摘离文档） -->
+  <svg class="back-to-widget-icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+    <path d="M4 5v6h6V5zm2 2h2v2H6zm6 0v2h15V7zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2z"/>
+  </svg>
+</button>
+
+<div class="toc-modal" id="toc-modal" role="dialog" aria-modal="true" aria-label="文章目录">
+  <div class="toc-modal-mask" data-toc-close></div>
+  <div class="toc-modal-panel">
+    <div class="toc-modal-header">
+      <span class="toc-modal-title">
+        <!-- 内联路径而非 <use> 引用：la:list 的 symbol 定义在侧栏 .toc-header 的 svg 里，
+             open() 摘走 .toc-header 时会把它带离文档，<use> 引用随之失效导致图标消失 -->
+        <svg class="toc-modal-title-icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+          <path d="M4 5v6h6V5zm2 2h2v2H6zm6 0v2h15V7zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2z"/>
+        </svg>
+        文章目录
+      </span>
+      <button class="toc-modal-close" data-toc-close aria-label="关闭目录">
+        <Icon name="la:times" />
+      </button>
+    </div>
+    <div class="toc-modal-body" id="toc-modal-body"></div>
+  </div>
+</div>
+
+<script is:inline data-swup-ignore-script>
+(function() {
+  var fab = document.getElementById('toc-fab');
+  var modal = document.getElementById('toc-modal');
+  var body = document.getElementById('toc-modal-body');
+  if (!fab || !modal || !body) return;
+
+  // .side-widgets 是 fixed + z-index，会创建层叠上下文压住弹窗，故挂到 body
+  document.body.appendChild(modal);
+
+  var isOpen = false;
+  var lastFocus = null;
+  var hosted = null;       // 移入抽屉的桌面端目录节点
+  var hostHome = null;     // 它原来的位置
+  var navHeader = null;    // 目录自带的 .toc-header（抽屉头部已有标题，寄存避免重复）
+  var settleTimer = null;
+  var lastHiddenAt = 0;
+
+  function updateVisibility() {
+    // 滚动超过 100px 才显示；桌面端由 CSS 隐藏
+    fab.classList.toggle('visible', window.scrollY > 100);
+  }
+
+  /* 页面没有目录时移除占位；增减推迟到按钮完全收回后应用 */
+  function syncAvailability() {
+    var wantUnavailable = !document.querySelector('.toc-nav .toc-link');
+    if (fab.classList.contains('unavailable') === wantUnavailable) return;
+
+    var settled = !fab.classList.contains('visible') && Date.now() - lastHiddenAt > 300;
+    if (!settled) {
+      if (!settleTimer) {
+        settleTimer = setTimeout(function() {
+          settleTimer = null;
+          syncAvailability();
+        }, 400);
+      }
+      return;
+    }
+    fab.classList.toggle('unavailable', wantUnavailable);
+  }
+
+  function open() {
+    if (isOpen) return;
+    var nav = document.querySelector('.toc-nav');
+    if (!nav) return;
+    isOpen = true;
+    lastFocus = document.activeElement;
+    hostHome = nav.parentNode;
+    hosted = nav;
+    navHeader = nav.querySelector('.toc-header');
+    if (navHeader) navHeader.remove();
+    body.appendChild(nav);
+    if (window.__tocSnap) window.__tocSnap(); // 竖线直接落在当前位置，不播动画
+    modal.classList.add('open');
+    fab.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    var closeBtn = modal.querySelector('.toc-modal-close');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function close() {
+    if (!isOpen) return;
+    isOpen = false;
+    modal.classList.remove('open');
+    fab.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    if (hosted && hostHome && hostHome.isConnected) {
+      hostHome.appendChild(hosted);
+      if (navHeader) hosted.prepend(navHeader); // 目录自带的标题放回原位
+    }
+    hosted = null;
+    hostHome = null;
+    navHeader = null;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  fab.addEventListener('click', open);
+
+  modal.addEventListener('click', function(e) {
+    if (e.target.closest('[data-toc-close]')) { close(); return; }
+    // 点击目录项：滚动由 TableOfContents 的委托监听处理，这里只收起抽屉
+    if (e.target.closest('.toc-link')) close();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && isOpen) close();
+  });
+
+  window.addEventListener('scroll', function() {
+    var wasShown = fab.classList.contains('visible');
+    updateVisibility();
+    if (wasShown && !fab.classList.contains('visible')) lastHiddenAt = Date.now();
+  }, { passive: true });
+
+  // 点链接开始切换时先收起抽屉，新内容就位后重估按钮可用性
+  document.addEventListener('swup:visit:start', function() {
+    if (isOpen) close();
+  });
+
+  document.addEventListener('swup:content:replace', function() {
+    syncAvailability();
+    updateVisibility();
+  });
+
+  syncAvailability();
+  updateVisibility();
+})();
+</script>
+
+<!-- 样式用 is:global：目录节点是运行时搬入的 DOM，带不上 Astro 的 scoped 属性；
+     类名统一 toc-modal- 前缀避免冲突 -->
+<style is:global>
+  /* 触发按钮：仅移动端显示（ID 优先级高于 .back-to-widget.visible） */
+  @media (min-width: 769px) {
+    #toc-fab { display: none; }
+  }
+
+  /* ---- 弹窗：右侧抽屉（背景带玻璃感，对齐 .glass 卡片） ---- */
+  .toc-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 110; /* 盖过导航栏(100) */
+    visibility: hidden;
+    pointer-events: none;
+    /* 关闭时延迟生效，让遮罩淡出和抽屉收回播完 */
+    transition: visibility 0s linear 0.25s;
+  }
+
+  .toc-modal.open {
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+
+  .toc-modal-mask {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .toc-modal.open .toc-modal-mask { opacity: 1; }
+
+  .toc-modal-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 85vw);
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius) 0 0 var(--radius);
+    background: transparent;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 1px 0 0 rgba(255, 255, 255, 0.08);
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .toc-modal.open .toc-modal-panel { transform: translateX(0); }
+
+  .toc-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 10px 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+  }
+
+  /* 标题风格与侧栏目录的 .toc-header 一致 */
+  .toc-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .toc-modal-title-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.55;
+  }
+
+  .toc-modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .toc-modal-close svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .toc-modal-close:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  /* ---- 宿主的桌面端目录：占满抽屉高度，滚动交给 .toc-track ---- */
+  .toc-modal-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    padding: 4px 10px 10px;
+  }
+
+  /* 让目录在抽屉里撑满可伸缩；侧栏在移动端由 PostsLayout 隐藏，
+     此处不存在与 scoped 样式的优先级竞争 */
+  .toc-modal-body .toc-nav {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* 侧栏场景轨道有 max-height 上限，抽屉内改为撑满 */
+  .toc-modal .toc-modal-body .toc-track {
+    max-height: none;
+    flex: 1;
+  }
+</style>
