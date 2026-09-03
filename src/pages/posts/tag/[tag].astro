@@ -1,0 +1,146 @@
+﻿---
+// [tag].astro — 标签文章列表页
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import GlobalSidebar from '../../../components/posts/GlobalSidebar.astro';
+import PostCard from '../../../components/posts/PostCard.astro';
+import PostSearch from '../../../components/posts/PostSearch.astro';
+import Breadcrumb from '../../../components/posts/Breadcrumb.astro';
+import {
+  buildCategoryMeta,
+  buildAllPosts,
+  resolveRoutePrefix,
+} from '../../../lib/category';
+import '../../../assets/css/posts-listing.css';
+
+const categoryMeta = buildCategoryMeta(
+  import.meta.glob('../../../content/posts/**/index.json', { eager: true }),
+  import.meta.glob('../../../content/posts/**/index.md', { eager: true }),
+  import.meta.glob('../../../content/posts/**/{_category.yml,_category.yaml,.category.yml}', { eager: true }),
+  import.meta.glob('../../../content/posts/**/_category.toml', { eager: true }),
+);
+const postModules = import.meta.glob('../../../content/posts/**/*.md', { eager: true });
+const allPosts = buildAllPosts(postModules, categoryMeta);
+
+const rp = resolveRoutePrefix(import.meta.url);
+
+export function getStaticPaths() {
+  const categoryMeta = buildCategoryMeta(
+    import.meta.glob('../../../content/posts/**/index.json', { eager: true }),
+    import.meta.glob('../../../content/posts/**/index.md', { eager: true }),
+    import.meta.glob('../../../content/posts/**/{_category.yml,_category.yaml,.category.yml}', { eager: true }),
+    import.meta.glob('../../../content/posts/**/_category.toml', { eager: true }),
+  );
+  const posts = buildAllPosts(
+    import.meta.glob('../../../content/posts/**/*.md', { eager: true }),
+    categoryMeta,
+  );
+  const tags = new Set<string>();
+  for (const post of posts) post.tags.forEach(t => tags.add(t));
+  return [...tags].map(tag => ({ params: { tag }, props: { tag } }));
+}
+
+const { tag } = Astro.props;
+const posts = allPosts
+  .filter(post => post.tags.includes(tag))
+  .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+
+const breadcrumbs = [
+  { label: '文章列表', href: `/${rp}/` },
+  { label: `标签：${tag}` },
+];
+---
+
+<BaseLayout title={`${tag} - 文章标签`}>
+  <div class="category-page page-container">
+    <div class="category-header">
+      <h1 class="category-title section-title">
+        #{tag}<span class="title-count-sep"> — </span><span id="posts-count" class="posts-count">共 {posts.length} 篇文章</span>
+      </h1>
+      <div class="category-header-search">
+        <PostSearch placeholder={`在「${tag}」标签中搜索…`} />
+      </div>
+    </div>
+
+    <div class="posts-with-sidebar">
+      <GlobalSidebar activeTag={tag} />
+      <div class="posts-content">
+        <div class="posts-grid" id="posts-grid">
+          {posts.map((post, i) => (
+            <div class="post-card-slot" data-index={i} data-slug={`/${rp}/${post.slug}/`}>
+              <PostCard
+                title={post.title}
+                date={post.date}
+                description={post.description}
+                image={post.image}
+                tags={post.tags}
+                pinned={post.pinned}
+                url={`/${rp}/${post.slug}/`}
+                category={post.category || undefined}
+              />
+            </div>
+          ))}
+        </div>
+
+
+        <div class="posts-empty glass" id="posts-empty" hidden>
+          <p>没有找到符合条件的文章</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    import '../../../assets/js/post-listing';
+  </script>
+</BaseLayout>
+
+<style>
+  /* 左侧边栏 + 内容列 */
+  .posts-with-sidebar {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .posts-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .category-page {
+    width: 100%;
+    max-width: 1200px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .category-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .category-title { font-size: 1.6rem; }
+  .category-header-search { width: min(360px, 100%); }
+
+  /* 侧边栏 + 文章卡片：位于标题/搜索/计数下方 */
+  .posts-with-sidebar {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .posts-content {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  @media (max-width: 1199px) {
+    .posts-with-sidebar { gap: 0; flex-wrap: wrap; }
+  }
+  @media (max-width: 768px) {
+    .category-header { flex-direction: column; align-items: stretch; gap: 12px; }
+    .category-header-search { width: 100%; }
+    .category-title { font-size: 1.35rem; text-align: center; justify-content: center; }
+  }
+</style>

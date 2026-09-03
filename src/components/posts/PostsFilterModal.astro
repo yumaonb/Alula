@@ -1,0 +1,230 @@
+---
+// PostsFilterModal.astro — 分类与标签筛选抽屉
+// 用法：<PostsFilterModal />（放在含 .posts-sidebar 的文章区页面中）
+// 触发按钮是 PostsFilterFab；打开时把侧边栏的分类树 + 标签云搬入复用，关闭时搬回
+import { Icon } from 'astro-icon/components';
+---
+
+<div class="pfilter-modal" id="posts-filter-modal" role="dialog" aria-modal="true" aria-label="分类与标签">
+  <div class="pfilter-modal-mask" data-pfilter-close></div>
+  <div class="pfilter-modal-panel">
+    <div class="pfilter-modal-header">
+      <span class="pfilter-modal-title">
+        <Icon name="la:tags" class="pfilter-modal-title-icon" />
+        分类与标签
+      </span>
+      <button class="pfilter-modal-close" data-pfilter-close aria-label="关闭筛选">
+        <Icon name="la:times" />
+      </button>
+    </div>
+    <div class="pfilter-modal-body" id="posts-filter-modal-body"></div>
+  </div>
+</div>
+
+<script is:inline>
+(function() {
+  // 按钮在 BaseLayout 的 .side-widgets 里（<main> 之后），脚本解析时它还不存在，
+  // 必须等 DOM 就绪再绑定
+  function init() {
+    var fab = document.getElementById('posts-filter-fab');
+    var modal = document.getElementById('posts-filter-modal');
+    var body = document.getElementById('posts-filter-modal-body');
+    var sidebar = document.querySelector('.posts-sidebar');
+    if (!fab || !modal || !body || !sidebar) return;
+    // 防止 swup 重放脚本时重复初始化
+    if (modal.dataset.pfilterInit) return;
+    modal.dataset.pfilterInit = '1';
+
+    // 清掉上一页遗留的弹窗
+    var staleModals = document.body.querySelectorAll('.pfilter-modal');
+    for (var j = 0; j < staleModals.length; j++) {
+      if (staleModals[j] !== modal) staleModals[j].remove();
+    }
+    // .side-widgets 是 fixed 层叠上下文，弹窗挂到 body 防止被压住
+    document.body.appendChild(modal);
+
+    var isOpen = false;
+    var lastFocus = null;
+    // 抽屉只承载分类树 + 标签云，作者名片留在侧边栏
+    var filterRoot = sidebar.querySelector('.sidebar-filter') || sidebar;
+
+    function open() {
+      if (isOpen || !modal.isConnected || !filterRoot.children.length) return;
+      isOpen = true;
+      lastFocus = document.activeElement;
+      body.appendChild(filterRoot);
+      modal.classList.add('open');
+      fab.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+      var closeBtn = modal.querySelector('.pfilter-modal-close');
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function close() {
+      if (!isOpen) return;
+      isOpen = false;
+      modal.classList.remove('open');
+      fab.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+      sidebar.appendChild(filterRoot);
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    fab.addEventListener('click', open);
+
+    modal.addEventListener('click', function(e) {
+      if (e.target.closest('[data-pfilter-close]')) { close(); return; }
+      // 选中分类/标签后自动收起
+      if (e.target.closest('.cat-item') || e.target.closest('.chip')) close();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && isOpen) close();
+    });
+
+    // 拖宽窗口进入桌面端时自动收起，复用 NavBar 的共享监听器
+    function onEnterDesktop() { if (isOpen) close(); }
+    if (typeof window.__onEnterDesktop === 'function') {
+      window.__onEnterDesktop(onEnterDesktop);
+    } else {
+      window.matchMedia('(min-width: 769px)').addEventListener('change', function(e) {
+        if (e.matches) onEnterDesktop();
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+<!-- 样式 is:global：节点是运行时搬入的 DOM，带不上 scoped 属性；类名统一 pfilter- 前缀 -->
+<style is:global>
+  /* ---- 弹窗：右侧抽屉 ---- */
+  .pfilter-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    visibility: hidden;
+    pointer-events: none;
+    transition: visibility 0s linear 0.25s;
+  }
+
+  .pfilter-modal.open {
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+
+  .pfilter-modal-mask {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .pfilter-modal.open .pfilter-modal-mask { opacity: 1; }
+
+  .pfilter-modal-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 85vw);
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius) 0 0 var(--radius);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 1px 0 0 rgba(255, 255, 255, 0.08);
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .pfilter-modal.open .pfilter-modal-panel { transform: translateX(0); }
+
+  .pfilter-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 10px 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    .pfilter-modal-header { min-height: 56px; }
+  }
+
+  .pfilter-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .pfilter-modal-title-icon {
+    width: 18px;
+    height: 18px;
+    opacity: 0.65;
+  }
+
+  .pfilter-modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .pfilter-modal-close svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pfilter-modal-close:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  /* 抽屉主体：分类 + 标签上下排列，整体滚动 */
+  .pfilter-modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding: 14px 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* 侧栏面板搬入抽屉后去掉 sticky/max-height；.sidebar-filter 的 sticky 会把
+     内容压到抽屉中部，一并还原，让内容顶到上方 */
+  .pfilter-modal-body .glass,
+  .pfilter-modal-body .sidebar-filter {
+    position: static !important;
+    max-height: none;
+    top: auto !important;
+    overflow: visible;
+  }
+
+  .pfilter-modal-body .cat-panel,
+  .pfilter-modal-body .tag-panel {
+    padding: 14px;
+  }
+</style>

@@ -1,87 +1,131 @@
----
-// /posts/ - 文章列表首页
+﻿---
+// index.astro — 文章列表首页
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import GlobalSidebar from '../../components/posts/GlobalSidebar.astro';
 import PostCard from '../../components/posts/PostCard.astro';
+import PostSearch from '../../components/posts/PostSearch.astro';
 import { buildCategoryMeta, buildAllPosts, resolveRoutePrefix } from '../../lib/category';
+import '../../assets/css/posts-listing.css';
 
-// 导入分类元数据（支持多种配置文件格式）
-const categoryJsonFiles = import.meta.glob('../../content/posts/**/index.json', { eager: true });
-const categoryMdFiles = import.meta.glob('../../content/posts/**/index.md', { eager: true });
-const categoryYamlFiles = import.meta.glob('../../content/posts/**/{_category.yml,_category.yaml,.category.yml}', { eager: true });
-const categoryTomlFiles = import.meta.glob('../../content/posts/**/_category.toml', { eager: true });
-const categoryMeta = buildCategoryMeta(categoryJsonFiles, categoryMdFiles, categoryYamlFiles, categoryTomlFiles);
-
-// 导入所有博客文章并构建列表
+const categoryMeta = buildCategoryMeta(
+  import.meta.glob('../../content/posts/**/index.json', { eager: true }),
+  import.meta.glob('../../content/posts/**/index.md', { eager: true }),
+  import.meta.glob('../../content/posts/**/{_category.yml,_category.yaml,.category.yml}', { eager: true }),
+  import.meta.glob('../../content/posts/**/_category.toml', { eager: true }),
+);
 const postModules = import.meta.glob('../../content/posts/**/*.md', { eager: true });
 const posts = buildAllPosts(postModules, categoryMeta);
-
 const rp = resolveRoutePrefix(import.meta.url);
 ---
 
-<BaseLayout title="文章">
+<BaseLayout title="文章列表">
   <div class="posts-page page-container">
+    <!-- 标题 + 搜索 同行 -->
     <div class="posts-header">
-      <h1 class="posts-title section-title">文章</h1>
-      <p class="posts-desc section-desc">记录学习过程中的所见所闻</p>
-    </div>
-
-    <div class="posts-grid">
-      {posts.map(post => (
-        <PostCard
-          title={post.title}
-          date={post.date}
-          description={post.description}
-          image={post.image}
-          tags={post.tags}
-          pinned={post.pinned}
-          url={`/${rp}/${post.slug}/`}
-          category={post.category || undefined}
-        />
-      ))}
-    </div>
-
-    {posts.length === 0 && (
-      <div class="posts-empty glass">
-        <p>暂无文章</p>
+      <h1 class="posts-title section-title">
+        文章列表<span class="title-count-sep"> — </span><span id="posts-count" class="posts-count">共 {posts.length} 篇文章</span>
+      </h1>
+      <div class="posts-header-search">
+        <PostSearch placeholder="搜索文章…" />
       </div>
-    )}
+    </div>
+
+    <div class="posts-with-sidebar">
+      <GlobalSidebar />
+      <div class="posts-content">
+        <div class="posts-grid" id="posts-grid">
+          {posts.map((post, i) => (
+            <div class="post-card-slot" data-index={i} data-slug={`/${rp}/${post.slug}/`}>
+              <PostCard
+                title={post.title}
+                date={post.date}
+                description={post.description}
+                image={post.image}
+                tags={post.tags}
+                pinned={post.pinned}
+                url={`/${rp}/${post.slug}/`}
+                category={post.category || undefined}
+              />
+            </div>
+          ))}
+        </div>
+
+
+        <div class="posts-empty glass" id="posts-empty" hidden>
+          <p>没有找到符合条件的文章</p>
+        </div>
+      </div>
+    </div>
   </div>
 </BaseLayout>
 
+<script>
+  import '../../assets/js/post-listing';
+</script>
+
 <style>
   .posts-page {
-    max-width: 1000px;
+    width: 100%;
+    max-width: 1200px;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: 20px;
+  }
+
+  .posts-with-sidebar {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .posts-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
   .posts-header {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
   }
 
   .posts-title {
-    margin-bottom: 8px;
+    font-size: 1.6rem;
   }
 
-  .posts-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+  .posts-header-search {
+    width: min(360px, 100%);
   }
 
-  .posts-empty {
-    text-align: center;
-    padding: 60px 20px;
-    color: rgba(255, 255, 255, 0.45);
-    border-radius: var(--radius);
+  @media (max-width: 1199px) {
+    .posts-with-sidebar {
+      gap: 0;
+    }
   }
 
   @media (max-width: 768px) {
-    .posts-grid {
-      grid-template-columns: 1fr;
-      gap: 16px;
+    .posts-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .posts-title {
+      font-size: 1.35rem;
+      text-align: center;
+      /* h1 是 flex 容器，水平居中要用 justify-content（text-align 对文本节点不生效） */
+      justify-content: center;
+    }
+
+    .posts-header-search {
+      width: 100%;
     }
   }
 </style>

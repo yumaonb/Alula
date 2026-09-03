@@ -1,0 +1,101 @@
+---
+// PostTagCloud.astro — 标签云面板（链接模式：点击跳转到标签页）
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  tags: { name: string; count: number }[];
+  /** 生成标签链接的函数，如 (name) => `/posts/tag/${name}/` */
+  tagUrl: (name: string) => string;
+  /** 当前所在标签（高亮用，可选） */
+  activeTag?: string;
+}
+
+const { tags, tagUrl, activeTag = '' } = Astro.props;
+---
+
+<section class="tag-panel glass">
+  <h2 class="tag-panel-title">
+    <Icon name="la:tags" class="tag-panel-icon" />
+    标签
+  </h2>
+  <div class="tag-panel-body">
+    {tags.map(tag => (
+      <a
+        href={tagUrl(tag.name)}
+        class:list={['chip', { 'chip--active': tag.name === activeTag }]}
+      >
+        {tag.name}<span class="chip-count">{tag.count}</span>
+      </a>
+    ))}
+  </div>
+</section>
+
+<style>
+  .tag-panel {
+    padding: 16px;
+    border-radius: var(--radius);
+  }
+
+  .tag-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  .tag-panel-icon {
+    width: 12px;
+    height: 12px;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .tag-panel-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.55);
+    font: inherit;
+    font-size: 0.74rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .chip:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+
+  .chip--active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  }
+
+  .chip-count {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .chip--active .chip-count {
+    color: rgba(255, 255, 255, 0.7);
+  }
+</style>

@@ -1,6 +1,7 @@
 ---
-// PostsLayout.astro — 文章页面布局
+// PostsLayout.astro — 文章详情页布局（左侧边栏 + 正文 + 目录）
 import BaseLayout from './BaseLayout.astro';
+import GlobalSidebar from '../components/posts/GlobalSidebar.astro';
 import TableOfContents from '../components/posts/TableOfContents.astro';
 import Breadcrumb from '../components/posts/Breadcrumb.astro';
 import '../assets/css/markdown.css';
@@ -29,33 +30,46 @@ const hasToc = headings && headings.length > 0;
 ---
 
 <BaseLayout title={title} description={description}>
-  <div class="post-page page-container">
-    <div class="post-layout">
-      <div class="post-main">
-        <div class="breadcrumb-wrap">
-          <Breadcrumb items={breadcrumbs} />
+  <div class="posts-with-sidebar">
+    <GlobalSidebar>
+      <Breadcrumb items={breadcrumbs} slot="top" />
+    </GlobalSidebar>
+    <div class="posts-content">
+      <div class="post-layout">
+        <div class="post-main">
+          <article class="post-content glass glass-tall" data-pagefind-body>
+            <div class="post-content-inner">
+              <slot />
+            </div>
+          </article>
+          <slot name="postnav" />
+          <slot name="comments" />
         </div>
-        <article class="post-content glass glass-tall">
-          <div class="post-content-inner">
-            <slot />
-          </div>
-        </article>
-        <slot name="postnav" />
-        <slot name="comments" />
+        {hasToc && (
+          <aside class="post-sidebar">
+            <TableOfContents headings={headings} />
+          </aside>
+        )}
       </div>
-      {hasToc && (
-        <aside class="post-sidebar">
-          <TableOfContents headings={headings} />
-        </aside>
-      )}
     </div>
   </div>
 </BaseLayout>
 
 <style>
-  .post-page {
-    max-width: 1300px;
+  /* 左侧边栏 + 内容列 */
+  .posts-with-sidebar {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
     min-width: 0;
+  }
+
+  .posts-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 1000px;
   }
 
   .post-layout {
@@ -69,12 +83,15 @@ const hasToc = headings && headings.length > 0;
     min-width: 0;
   }
 
-  .breadcrumb-wrap {
-    margin-bottom: 14px;
-  }
-
   .post-content {
     border-radius: var(--radius);
+  }
+
+  /* 桌面端侧边栏顶部有面包屑行，仅正文下移同高与名片顶对齐；目录列不跟随 */
+  @media (min-width: 1200px) {
+    .post-main {
+      padding-top: 38px;
+    }
   }
 
   /* 内边距放在内部包裹层：.glass-tall 的模糊伪元素只铺满容器内容盒 */
@@ -90,6 +107,13 @@ const hasToc = headings && headings.length > 0;
     /* max-height: calc(100vh - 88px - 60px - 35px); */
     overflow-y: auto;
     scrollbar-width: thin;
+  }
+
+  @media (max-width: 1199px) {
+    .posts-with-sidebar {
+      gap: 0;
+      flex-wrap: wrap;
+    }
   }
 
   @media (max-width: 768px) {

@@ -1,0 +1,309 @@
+/* posts-listing.css — 文章列表页共享样式（列表页与分类页共用） */
+
+/* ---- 列表区 ---- */
+.posts-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- 结果统计栏 ---- */
+.posts-result-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.posts-count {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.4);
+  padding-left: 4px;
+}
+
+/* 标题与计数垂直居中对齐 */
+.posts-title,
+.category-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* 标题与计数的连接符：字号必须和 .posts-count 一致，
+   否则 flex 居中后两者不在同一水平线上 */
+.title-count-sep {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 400;
+}
+
+.posts-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.posts-reset:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.reset-icon {
+  width: 11px;
+  height: 11px;
+}
+
+/* ---- 文章列表（横向卡片，所有卡片等宽铺满内容列） ---- */
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(460px, 100%), 1fr));
+  align-items: stretch;
+  gap: 16px;
+}
+
+.post-card-slot,
+.post-card-slot .post-card {
+  width: 100%;
+}
+
+.post-card-slot {
+  min-width: 0;
+}
+
+/* ---- 搜索结果分页 ---- */
+.posts-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.posts-pager:empty {
+  display: none;
+}
+
+.pager-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pager-btn:hover:not(:disabled) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.pager-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pager-btn--active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.pager-ellipsis {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.82rem;
+  padding: 0 2px;
+}
+
+/* hidden 属性优先：防止组件的 display:flex/inline-flex 覆盖 UA 的 display:none */
+.posts-empty[hidden],
+.posts-reset[hidden],
+.post-card-slot[hidden] {
+  display: none !important;
+}
+
+/* ---- 搜索结果下拉浮层（Pagefind，由 post-listing.ts 渲染） ---- */
+.post-search-wrap {
+  position: relative;
+}
+
+.post-search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  max-height: min(520px, 62vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  /* 与网站 .glass 通用容器同一套玻璃语言 */
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.post-search-dropdown[hidden] {
+  display: none !important;
+}
+
+/* 浮层内纤细滚动条（贴合深色玻璃风格） */
+.post-search-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.post-search-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.post-search-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.psd-item {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.psd-item:hover,
+.psd-item--active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.psd-item--active {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.psd-item-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.psd-item-excerpt {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.5);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Pagefind 高亮标记 */
+.psd-item-excerpt mark {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.psd-empty {
+  flex-shrink: 0;
+  padding: 20px 12px;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+}
+
+/* ---- 空状态 ---- */
+.posts-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(255, 255, 255, 0.45);
+  border-radius: var(--radius);
+}
+
+.empty-icon {
+  width: 28px;
+  height: 28px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ---- 分类项（树节点与「全部文章」共用） ---- */
+.cat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 0.84rem;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.cat-item:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.cat-item--active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.cat-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat-count {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.cat-item--active .cat-count {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---- 响应式 ---- */
+/* 侧边栏显隐由 GlobalSidebar（<1200px 隐藏）与 PostsFilterModal 抽屉负责 */

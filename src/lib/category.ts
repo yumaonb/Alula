@@ -621,6 +621,66 @@ export function buildAllPosts(
   return result;
 }
 
+/**
+ * 构建分类树（含各层级中间节点）
+ * count 为该分类及其所有子孙分类下的文章总数
+ */
+export interface CategoryTreeNode {
+  /** 完整 slug 路径，如 "devnotes/css" */
+  path: string;
+  /** 显示名称 */
+  name: string;
+  /** 子树内的文章总数 */
+  count: number;
+  children: CategoryTreeNode[];
+}
+
+export function buildCategoryTree(
+  posts: PostItem[],
+  categoryMeta: Record<string, CategoryMeta>,
+): CategoryTreeNode[] {
+  const nodes = new Map<string, CategoryTreeNode>();
+
+  const ensure = (path: string): CategoryTreeNode => {
+    let node = nodes.get(path);
+    if (node) return node;
+    const parts = path.split('/');
+    const parentPath = parts.slice(0, -1).join('/');
+    node = { path, name: '', count: 0, children: [] };
+    nodes.set(path, node);
+    if (parentPath) ensure(parentPath).children.push(node);
+    return node;
+  };
+
+  // 为所有层级创建节点，并把文章计入叶子节点
+  for (const post of posts) {
+    if (!post.category) continue;
+    const parts = post.category.split('/');
+    for (let i = 1; i <= parts.length; i++) ensure(parts.slice(0, i).join('/'));
+    ensure(post.category).count += 1;
+  }
+
+  // 填充显示名称
+  for (const [path, node] of nodes) {
+    const last = path.split('/').pop() || path;
+    node.name = categoryMeta[path]?.name || last;
+  }
+
+  // 自底向上汇总子树计数并排序
+  const finalize = (node: CategoryTreeNode): void => {
+    node.children.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+    for (const child of node.children) {
+      finalize(child);
+      node.count += child.count;
+    }
+  };
+
+  const roots = [...nodes.values()].filter(n => !n.path.includes('/'));
+  roots.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh'));
+  for (const root of roots) finalize(root);
+  return roots;
+}
+
 // ========== 分类路径收集 ==========
 
 /**

@@ -1,7 +1,8 @@
----
-// /posts/[...slug].astro - 文章详情页 & 分类列表页
+﻿---
+// [...slug].astro — 文章详情页 & 分类列表页
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostsLayout from '../../layouts/PostsLayout.astro';
+import GlobalSidebar from '../../components/posts/GlobalSidebar.astro';
 import PostCard from '../../components/posts/PostCard.astro';
 import Breadcrumb from '../../components/posts/Breadcrumb.astro';
 import Repost from '../../components/posts/Repost.astro';
@@ -27,6 +28,8 @@ import {
   resolveRoutePrefix,
   formatDate,
 } from '../../lib/category';
+import PostSearch from '../../components/posts/PostSearch.astro';
+import '../../assets/css/posts-listing.css';
 
 const rp = resolveRoutePrefix(import.meta.url);
 
@@ -172,21 +175,37 @@ if (type === 'post') {
 {type === 'category' && (
   <BaseLayout title={`${catName} - 文章分类`}>
     <div class="category-page page-container">
-      <Breadcrumb items={catBreadcrumbs} />
       <div class="category-header">
-        <h1 class="category-title section-title">{catName}</h1>
-        {catDesc && <p class="category-desc section-desc">{catDesc}</p>}
-        <p class="category-count section-desc">共 {catPosts.length} 篇文章</p>
+        <h1 class="category-title section-title">
+          {catName}<span class="title-count-sep"> — </span><span id="posts-count" class="posts-count">共 {catPosts.length} 篇文章</span>
+        </h1>
+        <div class="category-header-search">
+          <PostSearch placeholder={`在「${catName}」中搜索…`} />
+        </div>
       </div>
-      <div class="posts-grid">
-        {catPosts.map((post: any) => (
-          <PostCard title={post.frontmatter.title || '无标题'} date={post.frontmatter.date || ''}
-            description={post.frontmatter.description || ''} image={post.frontmatter.image || ''}
-            tags={post.frontmatter.tags || []} pinned={post.frontmatter.pinned || false}
-            url={`/${rp}/${post.slug}/`} category={post.category} />
-        ))}
+
+      <div class="posts-with-sidebar">
+        <GlobalSidebar />
+        <div class="posts-content">
+          <div class="posts-grid" id="posts-grid">
+            {catPosts.map((post: any, i: number) => (
+              <div class="post-card-slot" data-index={i} data-slug={`/${rp}/${post.slug}/`}>
+                <PostCard title={post.frontmatter.title || '无标题'} date={post.frontmatter.date || ''}
+                  description={post.frontmatter.description || ''} image={post.frontmatter.image || ''}
+                  tags={post.frontmatter.tags || []} pinned={post.frontmatter.pinned || false}
+                  url={`/${rp}/${post.slug}/`} category={post.category} />
+              </div>
+            ))}
+          </div>
+
+
+          <div class="posts-empty glass" id="posts-empty" hidden>
+            <p>没有找到符合条件的文章</p>
+          </div>
+
+          {catPosts.length === 0 && <div class="posts-empty glass"><p>该分类下暂无文章</p></div>}
+        </div>
       </div>
-      {catPosts.length === 0 && <div class="posts-empty glass"><p>该分类下暂无文章</p></div>}
     </div>
   </BaseLayout>
 )}
@@ -216,7 +235,7 @@ if (type === 'post') {
             <Icon name="la:tag" class="meta-icon" />
             {postFm.tags.map((tag: string, i: number) => (
               <span>
-                <a href={`/${rp}/?tag=${encodeURIComponent(tag)}`} class="post-meta-link">{tag}</a>
+                <a href={`/${rp}/tag/${encodeURIComponent(tag)}/`} class="post-meta-link">{tag}</a>
                 {i < postFm.tags.length - 1 && <span class="meta-sep">/</span>}
               </span>
             ))}
@@ -225,20 +244,67 @@ if (type === 'post') {
       </div>
       {postFm.image && <div class="post-cover"><img src={postFm.image} alt={postFm.title} /></div>}
     </header>
-    <div class="markdown-body" set:html={postCompiledHtml} />
+    <div class="markdown-body" set:html={postCompiledHtml}></div>
     <Repost title={postFm.title} date={postDateFormatted || postFm.date} />
     <PostNav slot="postnav" prev={prevPost} next={nextPost} />
     <Comments slot="comments" />
   </PostsLayout>
 )}
 
+<!-- 文章列表搜索脚本（无 #posts-grid 时自动跳过，文章详情页不受影响） -->
+<script>
+  import '../../assets/js/post-listing';
+</script>
+
 <style>
-  .category-page { max-width: 1000px; min-width: 0; display: flex; flex-direction: column; gap: 32px; }
-  .category-header { text-align: center; }
-  .category-title { margin-bottom: 8px; }
-  .category-count { margin-top: 4px; }
-  .posts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
-  .posts-empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.45); border-radius: var(--radius); }
+  .posts-with-sidebar {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .posts-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .category-page {
+    width: 100%;
+    max-width: 1200px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .category-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .category-title { font-size: 1.6rem; }
+  .category-header-search { width: min(360px, 100%); }
+
+  .posts-with-sidebar {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .posts-content {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  @media (max-width: 1199px) {
+    .posts-with-sidebar { gap: 0; flex-wrap: wrap; }
+  }
+  @media (max-width: 768px) {
+    .category-header { flex-direction: column; align-items: stretch; gap: 12px; }
+    .category-header-search { width: 100%; }
+    .category-title { font-size: 1.35rem; text-align: center; justify-content: center; }
+  }
+  /* .posts-grid / .posts-empty 等共享样式见 assets/css/posts-listing.css */
   .post-header { margin-bottom: 24px; }
   .post-title { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.3; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px; }
   .post-title-pin { display: inline-flex; flex-shrink: 0; }

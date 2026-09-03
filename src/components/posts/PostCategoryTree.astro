@@ -1,0 +1,99 @@
+---
+// PostCategoryTree.astro — 分类树面板（点击跳转到分类页）
+// 父分类可展开子分类；分类项为链接导航，箭头按钮负责展开/收起
+import { Icon } from 'astro-icon/components';
+import PostCategoryNode from './PostCategoryNode.astro';
+import type { CategoryTreeNode } from '../../lib/category';
+
+interface Props {
+  tree: CategoryTreeNode[];
+  /** 生成分类链接的函数，如 (path) => `/posts/${path}/` */
+  categoryUrl: (path: string) => string;
+  /** 当前所在分类路径（高亮 + 自动展开祖先，可选） */
+  activeCategory?: string;
+}
+
+const { tree, categoryUrl, activeCategory = '' } = Astro.props;
+---
+
+<section class="cat-panel glass">
+  <h2 class="cat-panel-title">
+    <Icon name="la:layer-group" class="cat-panel-icon" />
+    分类
+  </h2>
+
+  <div class="cat-panel-body" id="category-tree">
+    <ul class="cat-root-list">
+      {tree.map(node => (
+        <PostCategoryNode
+          node={node}
+          depth={0}
+          activeCategory={activeCategory}
+          linkMode={true}
+          categoryUrl={categoryUrl}
+        />
+      ))}
+    </ul>
+  </div>
+</section>
+
+<script is:inline>
+  // 展开/收起子分类：事件委托到 document，swup 切页后依然有效
+  // （hoisted 模块脚本在 swup 换页后不会重新执行，故用 is:inline + 委托）
+  (function() {
+    if (window.__postCatTreeBound) return;
+    window.__postCatTreeBound = true;
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest ? e.target.closest('button.cat-toggle') : null;
+      if (!btn || !document.contains(btn)) return;
+      var node = btn.closest('.cat-node');
+      if (!node) return;
+      var children = node.querySelector(':scope > .cat-children');
+      if (!children) return;
+      var open = !children.hidden;
+      children.hidden = open;
+      node.classList.toggle('cat-node--open', !open);
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+  })();
+</script>
+
+<style>
+  .cat-panel {
+    padding: 16px;
+    border-radius: var(--radius);
+  }
+
+  .cat-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  .cat-panel-icon {
+    width: 12px;
+    height: 12px;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .cat-panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cat-root-list {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+</style>

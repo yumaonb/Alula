@@ -58,7 +58,7 @@ function formatDate(dateStr: string): string {
 <style>
   .post-card {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     border-radius: var(--radius);
     overflow: hidden;
     transition: filter 0.3s ease, box-shadow 0.3s ease;
@@ -78,9 +78,11 @@ function formatDate(dateStr: string): string {
 
   .post-card-cover {
     display: block;
-    width: 100%;
-    aspect-ratio: 16 / 9;
+    width: 280px;
+    flex-shrink: 0;
+    aspect-ratio: 16 / 10;
     overflow: hidden;
+    align-self: stretch;
   }
 
   .post-card-cover img {
@@ -90,6 +92,8 @@ function formatDate(dateStr: string): string {
   }
 
   .post-card-body {
+    flex: 1;
+    min-width: 0;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -167,6 +171,9 @@ function formatDate(dateStr: string): string {
   }
 
   @media (max-width: 768px) {
+    /* 手机端恢复上下结构：封面整宽在上，内容在下 */
+    .post-card { flex-direction: column; }
+    .post-card-cover { width: 100%; aspect-ratio: 16 / 9; }
     .post-card-body { padding: 16px; }
     .post-card-title { font-size: 1rem; }
   }

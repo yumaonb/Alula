@@ -1,0 +1,150 @@
+---
+// GlobalSidebar.astro — 文章区左侧边栏
+// 用法：<GlobalSidebar />
+import AuthorCard from '../widgets/AuthorCard.astro';
+import PostCategoryTree from './PostCategoryTree.astro';
+import PostTagCloud from './PostTagCloud.astro';
+import PostsFilterModal from './PostsFilterModal.astro';
+import {
+  buildCategoryMeta,
+  buildAllPosts,
+  buildCategoryTree,
+  buildCategoryUrl,
+  resolveRoutePrefix,
+} from '../../lib/category';
+
+interface Props {
+  activeTag?: string;
+}
+const { activeTag = '' } = Astro.props;
+
+const rp = resolveRoutePrefix(import.meta.url);
+
+const categoryMeta = buildCategoryMeta(
+  import.meta.glob('../../content/posts/**/index.json', { eager: true }),
+  import.meta.glob('../../content/posts/**/index.md', { eager: true }),
+  import.meta.glob('../../content/posts/**/{_category.yml,_category.yaml,.category.yml}', { eager: true }),
+  import.meta.glob('../../content/posts/**/_category.toml', { eager: true }),
+);
+const posts = buildAllPosts(
+  import.meta.glob('../../content/posts/**/*.md', { eager: true }),
+  categoryMeta,
+);
+
+const categoryTree = buildCategoryTree(posts, categoryMeta);
+
+const tagCounts = new Map<string, number>();
+for (const post of posts) {
+  for (const tag of post.tags) tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+}
+const tags = [...tagCounts.entries()]
+  .map(([name, count]) => ({ name, count }))
+  .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh'));
+
+const catUrl = (path: string) => buildCategoryUrl(path.split('/'), categoryMeta, rp);
+const tagUrl = (name: string) => `/${rp}/tag/${encodeURIComponent(name)}/`;
+
+// ====== 当前页对应的分类（用于高亮 + 自动展开祖先） ======
+// 收集分类树中全部分类路径
+const allCatPaths = new Set<string>();
+const collect = (nodes: ReturnType<typeof buildCategoryTree>) => {
+  for (const n of nodes) { allCatPaths.add(n.path); collect(n.children); }
+};
+collect(categoryTree);
+
+// 从 URL 解析出 /{rp}/ 之后的路径段，取能匹配到分类的最长前缀
+// 文章页（末段是文件名）→ 匹配到其所属分类；分类页 → 匹配到自身
+const segments = Astro.url.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+const rpIdx = segments.indexOf(rp);
+const catSegments = rpIdx >= 0 ? segments.slice(rpIdx + 1) : segments;
+let activeCategory = '';
+for (let i = catSegments.length; i > 0; i--) {
+  const candidate = decodeURIComponent(catSegments.slice(0, i).join('/'));
+  if (allCatPaths.has(candidate)) { activeCategory = candidate; break; }
+}
+---
+
+<aside class="global-sidebar posts-sidebar">
+  <div class="sidebar-top"><slot name="top" /></div>
+  <AuthorCard />
+
+  <div class="sidebar-filter">
+    {categoryTree.length > 0 && (
+      <PostCategoryTree tree={categoryTree} categoryUrl={catUrl} activeCategory={activeCategory} />
+    )}
+    {tags.length > 0 && (
+      <PostTagCloud tags={tags} tagUrl={tagUrl} activeTag={activeTag} />
+    )}
+  </div>
+</aside>
+
+<!-- 放在 aside 之外：移动端侧边栏整体隐藏时抽屉仍可用 -->
+<PostsFilterModal />
+
+<!-- 移动端面包屑：桌面端由侧边栏内的面包屑行展示 -->
+<div class="mobile-breadcrumb"><slot name="top" /></div>
+
+<style>
+  .global-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    /* 拉伸到与内容列同高：让内部的 .sidebar-filter 有滚动行程，sticky 才能生效 */
+    align-self: stretch;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 10;
+  }
+
+  /* 面包屑行：不换行，放不下时向右延伸到文章区上方；空时不占位 */
+  .sidebar-top {
+    display: flex;
+    align-items: center;
+    overflow: visible;
+    white-space: nowrap;
+    min-height: 22px;
+  }
+
+  .sidebar-top:empty {
+    display: none;
+  }
+
+  /* 分类树 + 标签云：随页面滚动，滚到分类处再固定 */
+  .sidebar-filter {
+    position: sticky;
+    top: 84px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: calc(100vh - 104px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .mobile-breadcrumb {
+    display: none;
+  }
+
+  .mobile-breadcrumb:empty {
+    display: none;
+  }
+
+  /* 移动端由 PostsFilterModal 抽屉承载分类+标签 */
+  @media (max-width: 1199px) {
+    .global-sidebar {
+      display: none;
+    }
+
+    /* 普通文档流，随页面滚动（仅文章详情页有面包屑） */
+    .mobile-breadcrumb:not(:empty) {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      overflow: visible;
+      white-space: nowrap;
+      margin-top: -20px;
+      padding: 0 4px 8px;
+    }
+  }
+</style>

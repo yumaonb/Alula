@@ -4,12 +4,15 @@ import svelte from "@astrojs/svelte";
 import icon from "astro-icon";
 import swup from "@swup/astro";
 import rehypeSlug from "rehype-slug";
+import pagefind from "astro-pagefind";
 
 // https://astro.build/config
 export default defineConfig({
   integrations: [
     svelte(),
     icon(),
+    // Pagefind 全文搜索：构建后自动索引 dist/，开发服务器也会把 /pagefind/* 指向 dist/（需先构建一次）
+    pagefind(),
     swup({
       containers: ["#swup"],
       cache: true,

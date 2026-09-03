@@ -1,0 +1,96 @@
+---
+// AuthorCard.astro — 作者名片
+// 用法：<AuthorCard />
+import { getImage } from 'astro:assets';
+import avatarRaw from '../../assets/images/avatar.png';
+import { nickname, motto, socialLinks } from '../../data/profile';
+import { Icon } from 'astro-icon/components';
+
+const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, width: 96 });
+---
+
+<div class="author-card glass">
+  <div class="author-main">
+    <div class="avatar-ring author-avatar-ring">
+      <img src={avatar.src} alt={nickname} class="avatar-img" width="56" height="56" loading="eager" />
+    </div>
+    <div class="author-text">
+      <span class="author-name">{nickname}</span>
+      <span class="author-motto">{motto}</span>
+    </div>
+  </div>
+  <div class="author-socials">
+    {socialLinks.map(s => (
+      <a href={s.url} target="_blank" rel="noopener" aria-label={s.label} class="author-social">
+        <Icon name={s.icon} class="social-icon" />
+      </a>
+    ))}
+  </div>
+</div>
+
+<style>
+  .author-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: var(--radius);
+  }
+
+  .author-main {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .author-avatar-ring {
+    --avatar-size: 56px;
+  }
+
+  .author-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .author-name {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .author-motto {
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.05em;
+  }
+
+  .author-socials {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .author-social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+
+  .author-social:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .social-icon {
+    width: 16px;
+    height: 16px;
+  }
+</style>

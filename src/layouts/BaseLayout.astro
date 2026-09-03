@@ -14,6 +14,7 @@ import BackToBottom from "../components/layout/BackToBottom.astro";
 import BackToComments from "../components/posts/BackToComments.astro";
 import ReadingProgress from "../components/layout/ReadingProgress.astro";
 import TocModal from "../components/posts/TocModal.astro";
+import PostsFilterFab from "../components/posts/PostsFilterFab.astro";
 import { site } from "../data/site";
 
 const avatarImage = await getImage({
@@ -26,11 +27,13 @@ const avatarImage = await getImage({
 interface Props {
   title?: string;
   description?: string;
+  bodyClass?: string;
 }
 
 const {
   title,
   description = site.description,
+  bodyClass = "",
 } = Astro.props;
 
 const pageTitle = title ? `${title} - ${site.name}` : site.name;
@@ -49,7 +52,7 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
     <style set:html={bgAspectStyle} />
     <slot name="head" />
   </head>
-  <body>
+  <body class={bodyClass}>
 
     <Image
       src={bgImageRaw}
@@ -69,6 +72,7 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
     <div class="side-widgets" id="side-widgets">
       <BackToTop />
       <TocModal />
+      <PostsFilterFab />
       <ReadingProgress />
       <BackToComments />
       <BackToBottom />
@@ -142,6 +146,10 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
 
         document.addEventListener('swup:content:replace', startWatch);
       })();
+    </script>
+    <script>
+      // 搜索模块：确保每页都加载，swup 切页后由 PostSearch.astro 的 is:inline 脚本调用 window.__initPostSearch
+      import '../assets/js/post-listing';
     </script>
   </body>
 </html>
