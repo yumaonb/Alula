@@ -39,23 +39,27 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
     <!-- 其他支持方式 -->
     <section class="other-section">
-      <p class="other-label">其他方式</p>
+      <div class="other-header">
+        <span class="other-line"></span>
+        <p class="other-label">其他方式</p>
+        <span class="other-line"></span>
+      </div>
       <div class="action-grid">
         {supportActions.map((a) => (
           a.href ? (
-            <a href={a.href} class="action-card glass" target={a.target} rel="noopener">
-              <Icon name={a.icon} class="action-icon" />
-              <div class="action-body">
-                <span class="action-title">{a.title}</span>
-                <span class="action-desc">{a.desc}</span>
+            <a href={a.href} class="grid-card glass" target={a.target} rel="noopener">
+              <Icon name={a.icon} class="grid-icon" />
+              <div class="grid-body">
+                <span class="grid-title">{a.title}</span>
+                <span class="grid-desc">{a.desc}</span>
               </div>
             </a>
           ) : (
-            <div class="action-card glass">
-              <Icon name={a.icon} class="action-icon" />
-              <div class="action-body">
-                <span class="action-title">{a.title}</span>
-                <span class="action-desc">{a.desc}</span>
+            <div class="grid-card glass">
+              <Icon name={a.icon} class="grid-icon" />
+              <div class="grid-body">
+                <span class="grid-title">{a.title}</span>
+                <span class="grid-desc">{a.desc}</span>
               </div>
             </div>
           )
@@ -155,25 +159,98 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
   /* ====== 其他支持方式 ====== */
   .other-section {
+    margin-top: 14px;
     width: 100%;
     display: flex;
     flex-direction: column;
+    gap: 16px;
+  }
+
+  /* 分组标题：左右短线夹住文字，比纯小字更醒目 */
+  .other-header {
+    display: flex;
+    align-items: center;
     gap: 14px;
   }
 
-  .other-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.3);
-    padding-left: 4px;
+  .other-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.18));
   }
 
+  .other-line:last-child {
+    background: linear-gradient(to left, transparent, rgba(255, 255, 255, 0.18));
+  }
+
+  .other-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+  }
+
+  /* 三张卡片横向排列，窄屏回落为纵向 */
   .action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  /* 横排卡片：图标居中在上、文字在下 */
+  .grid-card {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
     gap: 10px;
+    padding: 22px 14px 18px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: filter 0.25s ease;
+  }
+
+  .grid-card:hover {
+    filter: brightness(1.15);
+  }
+
+  .grid-icon {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.25s ease;
+  }
+
+  .grid-icon :global(svg) {
+    width: 30px;
+    height: 30px;
+  }
+
+  .grid-card:hover .grid-icon {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .grid-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .grid-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .grid-desc {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.35);
   }
 
   .action-card {
@@ -257,6 +334,32 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     .action-icon {
       width: 25px;
       height: 25px;
+    }
+
+    .action-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .grid-card {
+      flex-direction: row;
+      text-align: left;
+      padding: 15px 16px;
+      gap: 14px;
+    }
+
+    .grid-body {
+      flex: 1;
+    }
+
+    .grid-icon {
+      width: 22px;
+      height: 22px;
+    }
+
+    .other-section {
+      margin-top: 6px;
+      gap: 14px;
     }
   }
 </style>
