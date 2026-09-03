@@ -96,7 +96,7 @@ ol {
 /* ---- 侧边悬浮按钮列 ---- */
 .side-widgets {
   position: fixed;
-  right: 20px;
+  right: 10px;
   bottom: 100px; /* 锚点：调这一个值即可整体升降 */
   display: flex;
   flex-direction: column;
@@ -111,12 +111,12 @@ ol {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 54px;
-  height: 54px;
+  width: 44px;
+  height: 44px;
   margin-top: 8px;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  border-radius: 5px;
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -160,8 +160,8 @@ ol {
 }
 
 .back-to-widget-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 
 /* 移动端缩小悬浮按钮，减少对正文的遮挡 */
