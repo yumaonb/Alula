@@ -164,6 +164,24 @@ ol {
   height: 24px;
 }
 
+/* 移动端缩小悬浮按钮，减少对正文的遮挡 */
+@media (max-width: 768px) {
+  .side-widgets {
+    right: 8px;
+  }
+
+  .back-to-widget {
+    width: 38px;
+    height: 38px;
+    margin-top: 6px;
+  }
+
+  .back-to-widget-icon {
+    width: 17px;
+    height: 17px;
+  }
+}
+
 /* ---- Swup 页面切换：离场用真实 DOM，进场用整页快照 ---- */
 
 /* 离场：旧页原位渐隐；:not(.is-rendering) 确保只在新内容替换前生效 */
