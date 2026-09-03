@@ -25,6 +25,7 @@
     "svelte": "^5.56.10"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "@iconify-json/simple-icons": "^1.2.93",
     "typescript": "^5.3.3"
   },

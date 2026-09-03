@@ -120,6 +120,17 @@ import { Icon } from 'astro-icon/components';
     if (e.key === 'Escape' && isOpen) close();
   });
 
+  /* 拖宽窗口越过断点进入桌面端时，自动收起目录抽屉。
+     优先复用 NavBar 加载的共享 matchMedia 监听器，避免重复监听 */
+  function onEnterDesktop() { if (isOpen) close(); }
+  if (typeof window.__onEnterDesktop === 'function') {
+    window.__onEnterDesktop(onEnterDesktop);
+  } else {
+    window.matchMedia('(min-width: 769px)').addEventListener('change', function(e) {
+      if (e.matches) onEnterDesktop();
+    });
+  }
+
   window.addEventListener('scroll', function() {
     var wasShown = fab.classList.contains('visible');
     updateVisibility();

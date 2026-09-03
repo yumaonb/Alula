@@ -2,6 +2,7 @@
  * hamburger.js — 汉堡菜单交互
  * 由 NavBar.astro 按需动态 import，无需手动调用
  */
+import { onEnterDesktop } from './breakpoint.js';
 
 const OPEN = 'is-open';
 
@@ -54,6 +55,9 @@ function onKeydown(e) {
 function onSwupReplace() {
   closeIfOpen();
 }
+
+/* 拖宽窗口越过断点进入桌面端时，自动收起汉堡菜单 */
+onEnterDesktop(closeIfOpen);
 
 document.addEventListener('click', onClick);
 document.addEventListener('keydown', onKeydown);

@@ -101,6 +101,10 @@ import { site } from "../../data/site";
 <div class="mobile-overlay" aria-hidden="true"></div>
 
 <script>
+  // 断点监听器全局只创建一份 matchMedia；供汉堡菜单与目录抽屉共享
+  import { onEnterDesktop } from '../../assets/js/breakpoint.js';
+  window.__onEnterDesktop = onEnterDesktop;
+
   const mq = window.matchMedia('(max-width: 768px)');
   let loaded = false;
 
