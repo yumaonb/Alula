@@ -1,0 +1,199 @@
+---
+// CustomScrollbar.astro — 自定义悬浮滚动条（覆盖在页面之上，不占布局空间）
+---
+
+<div class="custom-scrollbar-container" id="custom-scrollbar">
+  <div class="custom-scrollbar-track" id="scrollbar-track">
+    <div class="custom-scrollbar-thumb" id="scrollbar-thumb"></div>
+  </div>
+</div>
+
+<script is:inline data-swup-ignore-script>
+(function() {
+  var container = document.getElementById('custom-scrollbar');
+  var track = document.getElementById('scrollbar-track');
+  var thumb = document.getElementById('scrollbar-thumb');
+  if (!container || !track || !thumb) return;
+
+  var isDragging = false;
+  var startY = 0;
+  var startScrollTop = 0;
+  var hideTimer = null;
+  var HOVER_ZONE = 60; // 鼠标距右边缘多少 px 内触发显示
+  var HIDE_DELAY = 1500;
+
+  function hasScroll() {
+    return document.documentElement.scrollHeight > window.innerHeight + 2;
+  }
+
+  function showScrollbar() {
+    container.classList.add('visible');
+  }
+
+  function scheduleHide() {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function() {
+      if (!isDragging) container.classList.remove('visible');
+    }, HIDE_DELAY);
+  }
+
+  function updateScrollbar() {
+    if (!hasScroll()) {
+      container.classList.remove('visible');
+      return;
+    }
+
+    var scrollTop = window.scrollY;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    var trackHeight = track.clientHeight;
+    var thumbHeight = Math.max(30, (window.innerHeight / document.documentElement.scrollHeight) * trackHeight);
+    var thumbTop = (scrollTop / docHeight) * (trackHeight - thumbHeight);
+
+    thumb.style.height = thumbHeight + 'px';
+    thumb.style.transform = 'translateY(' + thumbTop + 'px)';
+
+    showScrollbar();
+    scheduleHide();
+  }
+
+  function onMouseDown(e) {
+    e.preventDefault();
+    isDragging = true;
+    startY = e.clientY;
+    startScrollTop = window.scrollY;
+    document.body.style.userSelect = 'none';
+    thumb.classList.add('active');
+    // 拖拽期间锁定显示，清除隐藏计时器
+    clearTimeout(hideTimer);
+  }
+
+  function onMouseMove(e) {
+    if (!isDragging) return;
+    var deltaY = e.clientY - startY;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    var trackHeight = track.clientHeight;
+    var thumbHeight = thumb.clientHeight;
+    var scrollDelta = (deltaY / (trackHeight - thumbHeight)) * docHeight;
+    window.scrollTo(0, startScrollTop + scrollDelta);
+  }
+
+  function onMouseUp() {
+    if (!isDragging) return;
+    isDragging = false;
+    document.body.style.userSelect = '';
+    thumb.classList.remove('active');
+    // 松手后重新调度隐藏（如果鼠标不在滚动条区域内）
+    scheduleHide();
+  }
+
+  // 鼠标靠近右侧边缘时自动显示
+  document.addEventListener('mousemove', function(e) {
+    if (isDragging) return;
+    var distFromRight = window.innerWidth - e.clientX;
+    if (distFromRight < HOVER_ZONE && hasScroll()) {
+      showScrollbar();
+      scheduleHide();
+    }
+  }, { passive: true });
+
+  // 鼠标进入滚动条区域时保持显示
+  container.addEventListener('mouseenter', function() {
+    if (!isDragging) {
+      clearTimeout(hideTimer);
+      showScrollbar();
+    }
+  });
+
+  container.addEventListener('mouseleave', function() {
+    if (!isDragging) scheduleHide();
+  });
+
+  // 点击轨道跳转
+  track.addEventListener('click', function(e) {
+    if (e.target === thumb) return;
+    var rect = track.getBoundingClientRect();
+    var clickY = e.clientY - rect.top;
+    var trackHeight = track.clientHeight;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    var scrollTarget = (clickY / trackHeight) * docHeight;
+    window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+  });
+
+  thumb.addEventListener('mousedown', onMouseDown);
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+
+  window.addEventListener('scroll', updateScrollbar, { passive: true });
+  window.addEventListener('resize', updateScrollbar, { passive: true });
+
+  // swup 切页后重新计算
+  document.addEventListener('swup:content:replace', function() {
+    requestAnimationFrame(updateScrollbar);
+  });
+
+  // 初始显示
+  updateScrollbar();
+  setTimeout(updateScrollbar, 600);
+})();
+</script>
+
+<style>
+  .custom-scrollbar-container {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 8px;
+    z-index: 9999;
+    padding: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    margin: 0;
+  }
+
+  .custom-scrollbar-container.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .custom-scrollbar-track {
+    position: relative;
+    width: 6px;
+    height: 100%;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+  }
+
+  .custom-scrollbar-thumb {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.45);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+    cursor: grab;
+    min-height: 30px;
+  }
+
+  .custom-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .custom-scrollbar-thumb.active {
+    cursor: grabbing;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  /* 移动端隐藏自定义滚动条 */
+  @media (max-width: 768px) {
+    .custom-scrollbar-container {
+      display: none;
+    }
+  }
+</style>
