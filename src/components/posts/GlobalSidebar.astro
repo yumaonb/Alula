@@ -44,7 +44,7 @@ const tags = [...tagCounts.entries()]
 const catUrl = (path: string) => buildCategoryUrl(path.split('/'), categoryMeta, rp);
 const tagUrl = (name: string) => `/${rp}/tag/${encodeURIComponent(name)}/`;
 
-// ====== 当前页对应的分类（用于高亮 + 自动展开祖先） ======
+// ---- 当前页对应的分类（用于高亮 + 自动展开祖先） ----
 // 收集分类树中全部分类路径
 const allCatPaths = new Set<string>();
 const collect = (nodes: ReturnType<typeof buildCategoryTree>) => {

@@ -1,4 +1,4 @@
-// category.ts - 分类逻辑模块
+// category.ts — 分类逻辑模块
 //
 // 实现文档定义的全自动多级分类兼容方案：
 // 1. Frontmatter 显式定义（最高优先级）
@@ -7,7 +7,7 @@
 //
 // 后续适配多种分类方式时只需修改此文件，页面组件无需改动。
 
-// ========== 配置 ==========
+// ---- 配置 ----
 
 import { posts, type CategoryConfig } from "../data/posts";
 export type { CategoryConfig };
@@ -55,7 +55,7 @@ export function extractCategoryFromFilePath(filePath: string): string[] {
   return parts.length > 1 ? parts.slice(0, -1) : [];
 }
 
-// ========== 轻量级 YAML 解析 ==========
+// ---- 轻量级 YAML 解析 ----
 
 /**
  * 解析简单的 YAML 格式（key: value，支持字符串、布尔、数字）
@@ -65,33 +65,27 @@ function parseSimpleYaml(text: string): Record<string, any> {
   const result: Record<string, any> = {};
   const lines = text.split("\n");
   for (const line of lines) {
-    // 跳过注释和空行
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
-    // 匹配 key: value
     const match = trimmed.match(/^(['"]?)(\w+)\1\s*:\s*(.+)$/);
     if (match) {
       const [, , key, rawValue] = match;
       const val = rawValue.trim();
-      // 布尔值
       if (val === "true") { result[key] = true; continue; }
       if (val === "false") { result[key] = false; continue; }
-      // 去除引号
       if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
         result[key] = val.slice(1, -1);
         continue;
       }
-      // 数字
       const num = Number(val);
       if (!isNaN(num) && val !== "") { result[key] = num; continue; }
-      // 字符串
       result[key] = val;
     }
   }
   return result;
 }
 
-// ========== 轻量级 TOML 解析 ==========
+// ---- 轻量级 TOML 解析 ----
 
 /**
  * 解析简单的 TOML 格式（key = value）
@@ -103,7 +97,6 @@ function parseSimpleToml(text: string): Record<string, any> {
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
-    // 匹配 key = value
     const match = trimmed.match(/^(\w+)\s*=\s*(.+)$/);
     if (match) {
       const [, key, rawValue] = match;
@@ -135,7 +128,7 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// ========== 类型定义 ==========
+// ---- 类型定义 ----
 
 /** 文章模块（Astro import.meta.glob 的结果） */
 export interface PostModule {
@@ -198,7 +191,7 @@ export interface PostItem {
   categoryDisplayName: string;
 }
 
-// ========== Frontmatter 分类提取 ==========
+// ---- Frontmatter 分类提取 ----
 
 /**
  * 从 frontmatter 中提取分类层级数组
@@ -217,7 +210,6 @@ export function extractCategoriesFromFrontmatter(frontmatter: any): string[] | n
     frontmatter?.category ??
     frontmatter?.["分类"];
 
-  // 空值检测
   if (cat === null || cat === undefined) return null;
   if (Array.isArray(cat) && cat.length === 0) return null;
   if (typeof cat === "string" && cat.trim() === "") return null;
@@ -289,7 +281,7 @@ export function extractCategoriesFromFrontmatter(frontmatter: any): string[] | n
   return null;
 }
 
-// ========== 分类元数据 ==========
+// ---- 分类元数据 ----
 
 /**
  * 从 import.meta.glob 结果中构建分类元数据字典
@@ -380,7 +372,7 @@ function stripCategoryFilepath(fp: string): string | null {
   return key || null;
 }
 
-// ========== Slug 生成 ==========
+// ---- Slug 生成 ----
 
 /**
  * 将分类名称转换为 URL 友好的 slug
@@ -397,7 +389,7 @@ export function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-// ========== 分类信息构建 ==========
+// ---- 分类信息构建 ----
 
 /**
  * 构建文章的完整分类信息
@@ -440,7 +432,7 @@ export function buildArticleCategories(
   };
 }
 
-// ========== 显示名称 ==========
+// ---- 显示名称 ----
 
 /**
  * 获取分类的显示名称
@@ -455,7 +447,7 @@ export function getCategoryDisplayName(
   return categoryMeta[metaKey]?.name || lastSegment;
 }
 
-// ========== 面包屑 ==========
+// ---- 面包屑 ----
 
 /**
  * 为分类页面构建面包屑导航
@@ -504,7 +496,7 @@ export function buildPostBreadcrumbs(
   return breadcrumbs;
 }
 
-// ========== URL 生成 ==========
+// ---- URL 生成 ----
 
 /**
  * 生成分类的 URL
@@ -522,7 +514,7 @@ export function buildCategoryUrl(
   return "/" + parts.join("/") + "/";
 }
 
-// ========== 文章筛选 ==========
+// ---- 文章筛选 ----
 
 /**
  * 判断文章是否属于某个分类（包含子分类匹配）
@@ -681,7 +673,7 @@ export function buildCategoryTree(
   return roots;
 }
 
-// ========== 分类路径收集 ==========
+// ---- 分类路径收集 ----
 
 /**
  * 从所有文章的 frontmatter 中收集全部唯一的分类路径
@@ -709,7 +701,7 @@ export function collectAllCategoryPaths(
   return [...categorySet];
 }
 
-// ========== 通用工具 ==========
+// ---- 通用工具 ----
 
 /**
  * 判断路径是否为分类索引文件

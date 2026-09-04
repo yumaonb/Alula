@@ -261,10 +261,8 @@ if (hasH1 && hasH2) {
     var atTop = track.scrollTop <= 0;
     var atBottom = track.scrollTop + track.clientHeight >= track.scrollHeight - 1;
 
-    // 到顶/到底都完全不放行给页面
     e.preventDefault();
 
-    // 手动让目录滚动
     track.scrollTop += e.deltaY;
     isTrackScrolling = true;
     positionBar(false);

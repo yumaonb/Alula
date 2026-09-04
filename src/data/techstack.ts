@@ -1,5 +1,5 @@
 /**
- * TechStack.ts — 技术栈数据
+ * techstack.ts — 技术栈数据
  * 用法：import { techStack } from "@/data/techstack"
  */
 

@@ -19,7 +19,7 @@
   var startY = 0;
   var startScrollTop = 0;
   var hideTimer = null;
-  var HOVER_ZONE = 60; // 鼠标距右边缘多少 px 内触发显示
+  var HOVER_ZONE = 60;
   var HIDE_DELAY = 1500;
 
   function hasScroll() {
@@ -63,7 +63,6 @@
     startScrollTop = window.scrollY;
     document.body.style.userSelect = 'none';
     thumb.classList.add('active');
-    // 拖拽期间锁定显示，清除隐藏计时器
     clearTimeout(hideTimer);
   }
 
@@ -82,11 +81,9 @@
     isDragging = false;
     document.body.style.userSelect = '';
     thumb.classList.remove('active');
-    // 松手后重新调度隐藏（如果鼠标不在滚动条区域内）
     scheduleHide();
   }
 
-  // 鼠标靠近右侧边缘时自动显示
   document.addEventListener('mousemove', function(e) {
     if (isDragging) return;
     var distFromRight = window.innerWidth - e.clientX;
@@ -96,7 +93,6 @@
     }
   }, { passive: true });
 
-  // 鼠标进入滚动条区域时保持显示
   container.addEventListener('mouseenter', function() {
     if (!isDragging) {
       clearTimeout(hideTimer);
@@ -108,7 +104,6 @@
     if (!isDragging) scheduleHide();
   });
 
-  // 点击轨道跳转
   track.addEventListener('click', function(e) {
     if (e.target === thumb) return;
     var rect = track.getBoundingClientRect();
@@ -126,12 +121,10 @@
   window.addEventListener('scroll', updateScrollbar, { passive: true });
   window.addEventListener('resize', updateScrollbar, { passive: true });
 
-  // swup 切页后重新计算
   document.addEventListener('swup:content:replace', function() {
     requestAnimationFrame(updateScrollbar);
   });
 
-  // 初始显示
   updateScrollbar();
   setTimeout(updateScrollbar, 600);
 })();

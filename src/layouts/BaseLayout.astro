@@ -87,10 +87,10 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
         var container = document.getElementById('side-widgets');
         if (!container) return;
 
-        var QUIET_MS = 150;        // 判定滚动静止的无滚动时长
-        var CAP_MS = 2500;         // 兜底计时首次触发时间
-        var CAP_EXTEND_MS = 400;   // 滚动未停时的续期步长
-        var MAX_SUSPEND_MS = 6000; // 挂起绝对上限
+        var QUIET_MS = 150;
+        var CAP_MS = 2500;
+        var CAP_EXTEND_MS = 400;
+        var MAX_SUSPEND_MS = 6000;
         var settleTimer = null;
         var capTimer = null;
         var watching = false;

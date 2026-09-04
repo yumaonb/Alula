@@ -139,24 +139,19 @@
 <div class="clock-body">
   <svg class="clock-icon" width="100" height="100" viewBox="0 0 24 24" fill="none">
     <circle cx="12" cy="12" r="10.8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.3" />
-    <!-- 四个简约刻度 -->
     <line x1="12" y1="2.4" x2="12" y2="3.8" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
     <line x1="21.6" y1="12" x2="20.2" y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
     <line x1="12" y1="21.6" x2="12" y2="20.2" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
     <line x1="2.4" y1="12" x2="3.8" y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
-    <!-- 时针 -->
     <line x1="12" y1="12.8" x2="12" y2="7.2"
       stroke="rgba(255,255,255,1)" stroke-width="2" stroke-linecap="round"
       style="transform: rotate({hDeg}deg); transform-origin: 12px 12px;" />
-    <!-- 分针 -->
     <line x1="12" y1="13.0" x2="12" y2="4.0"
       stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round"
       style="transform: rotate({mDeg}deg); transform-origin: 12px 12px;" />
-    <!-- 秒针 -->
     <line x1="12" y1="13.3" x2="12" y2="3.5"
       stroke="#ff4d4f" stroke-width="0.5" stroke-linecap="round"
       style="transform: rotate({sDeg}deg); transform-origin: 12px 12px;" />
-    <!-- 中心点 -->
     <circle cx="12" cy="12" r="0.7" fill="#ff4d4f" />
   </svg>
 

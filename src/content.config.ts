@@ -1,3 +1,4 @@
+// content.config.ts — 内容集合定义
 import { defineCollection, z } from 'astro:content';
 
 const posts = defineCollection({

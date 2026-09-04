@@ -1,3 +1,4 @@
+// env.d.ts — TypeScript 环境类型声明
 /// <reference types="astro/client" />
 
 interface Window {
