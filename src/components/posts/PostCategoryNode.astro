@@ -68,32 +68,31 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
     padding-left: calc(var(--depth) * 14px);
   }
 
-  /* 数量标签 */
   /* 右侧展开按钮 */
   .cat-toggle {
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     margin-left: auto;
     padding: 0;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
     background: transparent;
-    color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.55);
     cursor: pointer;
     transition: color 0.15s ease;
   }
 
   .cat-toggle:hover {
-    color: rgba(255, 255, 255, 0.8);
+    color: #fff;
   }
 
   .cat-toggle-icon {
-    width: 9px;
-    height: 9px;
+    width: 13px;
+    height: 13px;
     transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
@@ -102,7 +101,7 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
   }
 
   .cat-node--open > .cat-row .cat-toggle {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.85);
   }
 
   /* 子分类展开动画 */

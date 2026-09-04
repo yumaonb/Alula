@@ -297,6 +297,3 @@
   text-overflow: ellipsis;
   min-width: 0;
 }
-
-/* ---- 响应式 ---- */
-/* 侧边栏显隐由 GlobalSidebar（<1200px 隐藏）与 PostsFilterModal 抽屉负责 */
