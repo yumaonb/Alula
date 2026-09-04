@@ -9,12 +9,12 @@ import "../assets/css/global.css";
 import "../assets/css/skeleton.css";
 import NavBar from "../components/layout/NavBar.astro";
 import Footer from "../components/layout/Footer.astro";
-import BackToTop from "../components/layout/BackToTop.astro";
-import BackToBottom from "../components/layout/BackToBottom.astro";
-import BackToComments from "../components/posts/BackToComments.astro";
-import ReadingProgress from "../components/layout/ReadingProgress.astro";
-import TocModal from "../components/posts/TocModal.astro";
-import PostsFilterFab from "../components/posts/PostsFilterFab.astro";
+import BackToTop from "../components/layout/BackToTop.svelte";
+import BackToBottom from "../components/layout/BackToBottom.svelte";
+import BackToComments from "../components/posts/BackToComments.svelte";
+import ReadingProgress from "../components/layout/ReadingProgress.svelte";
+import TocModal from "../components/posts/TocModal.svelte";
+import PostsFilterFab from "../components/posts/PostsFilterFab.svelte";
 import CustomScrollbar from "../components/layout/CustomScrollbar.astro";
 import { site } from "../data/site";
 
@@ -71,12 +71,12 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
       <Footer />
     </div>
     <div class="side-widgets" id="side-widgets">
-      <BackToTop />
-      <TocModal />
-      <PostsFilterFab />
-      <ReadingProgress />
-      <BackToComments />
-      <BackToBottom />
+      <BackToTop client:load />
+      <TocModal client:load />
+      <PostsFilterFab client:load />
+      <ReadingProgress client:load />
+      <BackToComments client:load />
+      <BackToBottom client:load />
     </div>
     <CustomScrollbar />
     <script is:inline data-swup-ignore-script>
@@ -148,10 +148,6 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
 
         document.addEventListener('swup:content:replace', startWatch);
       })();
-    </script>
-    <script>
-      // 搜索模块：确保每页都加载，swup 切页后由 PostSearch.astro 的 is:inline 脚本调用 window.__initPostSearch
-      import '../assets/js/post-listing';
     </script>
   </body>
 </html>

@@ -3,7 +3,7 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import GlobalSidebar from '../../../components/posts/GlobalSidebar.astro';
 import PostCard from '../../../components/posts/PostCard.astro';
-import PostSearch from '../../../components/posts/PostSearch.astro';
+import PostSearch from '../../../components/posts/PostSearch.svelte';
 import Breadcrumb from '../../../components/posts/Breadcrumb.astro';
 import {
   buildCategoryMeta,
@@ -57,7 +57,7 @@ const breadcrumbs = [
         #{tag}<span class="title-count-sep"> — </span><span id="posts-count" class="posts-count">共 {posts.length} 篇文章</span>
       </h1>
       <div class="category-header-search">
-        <PostSearch placeholder={`在「${tag}」标签中搜索…`} filterUrls={posts.map(p => `/${rp}/${p.slug}/`)} />
+        <PostSearch placeholder={`在「${tag}」标签中搜索…`} filterUrls={posts.map(p => `/${rp}/${p.slug}/`)} client:load />
       </div>
     </div>
 
@@ -88,9 +88,6 @@ const breadcrumbs = [
       </div>
     </div>
   </div>
-  <script>
-    import '../../../assets/js/post-listing';
-  </script>
 </BaseLayout>
 
 <style>

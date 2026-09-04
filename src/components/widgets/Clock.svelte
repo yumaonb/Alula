@@ -1,7 +1,6 @@
 <!-- Clock.svelte — 实时时钟 -->
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import Icon from '@iconify/svelte';
 
   let ready = $state(false);
   let now = $state(new Date());

@@ -28,7 +28,7 @@ import {
   resolveRoutePrefix,
   formatDate,
 } from '../../lib/category';
-import PostSearch from '../../components/posts/PostSearch.astro';
+import PostSearch from '../../components/posts/PostSearch.svelte';
 import '../../assets/css/posts-listing.css';
 
 const rp = resolveRoutePrefix(import.meta.url);
@@ -180,7 +180,7 @@ if (type === 'post') {
           {catName}<span class="title-count-sep"> — </span><span id="posts-count" class="posts-count">共 {catPosts.length} 篇文章</span>
         </h1>
         <div class="category-header-search">
-          <PostSearch placeholder={`在「${catName}」中搜索…`} categoryPath={buildCategoryUrl(catCategoryPath, categoryMeta, rp)} />
+          <PostSearch placeholder={`在「${catName}」中搜索…`} categoryPath={buildCategoryUrl(catCategoryPath, categoryMeta, rp)} client:load />
         </div>
       </div>
 
@@ -252,10 +252,6 @@ if (type === 'post') {
 )}
 
 <!-- 文章列表搜索脚本（无 #posts-grid 时自动跳过，文章详情页不受影响） -->
-<script>
-  import '../../assets/js/post-listing';
-</script>
-
 <style>
   .posts-with-sidebar {
     display: flex;
