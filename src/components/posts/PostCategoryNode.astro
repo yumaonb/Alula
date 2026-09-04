@@ -1,18 +1,15 @@
 ---
-// PostCategoryNode.astro — 分类树节点（递归组件，配合 PostCategoryTree 使用）
+// PostCategoryNode.astro — 分类树节点（递归组件）
+// 布局：[缩进] [数量] [分类名(链接)] ................ [▶ 展开按钮]
 import { Icon } from 'astro-icon/components';
 import type { CategoryTreeNode } from '../../lib/category';
-// 递归渲染子分类：Astro 中自引用需显式 import 自身
 import Self from './PostCategoryNode.astro';
 
 interface Props {
   node: CategoryTreeNode;
   depth: number;
-  /** 当前选中的分类路径（slug 用 / 连接），空串表示全部 */
   activeCategory?: string;
-  /** 为 true 时分类项渲染为链接（导航到分类页），否则为筛选按钮 */
   linkMode?: boolean;
-  /** linkMode 下生成分类链接的函数 */
   categoryUrl?: (path: string) => string;
 }
 
@@ -20,7 +17,6 @@ const { node, depth, activeCategory = '', linkMode = false, categoryUrl } = Astr
 
 const hasChildren = node.children.length > 0;
 const isActive = node.path === activeCategory;
-// 当前选中分类位于该节点子树内时自动展开
 const isOpen = hasChildren
   && (activeCategory === node.path || activeCategory.startsWith(node.path + '/'));
 const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
@@ -31,29 +27,22 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
     {linkMode ? (
       <a href={url} class:list={['cat-item', { 'cat-item--active': isActive }]} data-category={node.path}>
         <span class="cat-name">{node.name}</span>
-        <span class="cat-count">{node.count}</span>
       </a>
     ) : (
       <button type="button" class:list={['cat-item', { 'cat-item--active': isActive }]} data-category={node.path}>
         <span class="cat-name">{node.name}</span>
-        <span class="cat-count">{node.count}</span>
       </button>
     )}
     {hasChildren && (
-      <button
-        type="button"
-        class="cat-toggle"
-        aria-label={isOpen ? '收起子分类' : '展开子分类'}
-        aria-expanded={isOpen ? 'true' : 'false'}
-      >
-        <Icon name="la:chevron-right" class="cat-toggle-icon" />
+      <button type="button" class="cat-toggle" aria-label={isOpen ? '收起' : '展开'} aria-expanded={isOpen ? 'true' : 'false'}>
+        <Icon name="la:angle-right" class="cat-toggle-icon" />
       </button>
     )}
   </div>
 
   {hasChildren && (
-    <ul class="cat-children" hidden={!isOpen}>
-      {node.children.map(child => (
+    <ul class="cat-children">
+      {node.children.map((child) => (
         <Self
           node={child}
           depth={depth + 1}
@@ -74,47 +63,67 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
   .cat-row {
     display: flex;
     align-items: center;
-    gap: 2px;
-    /* 层级缩进 */
-    padding-left: calc(10px + var(--depth) * 14px);
+    gap: 0;
+    padding: 2px 0;
+    padding-left: calc(var(--depth) * 14px);
   }
 
-  /* .cat-item / .cat-name / .cat-count 样式见 assets/css/posts-listing.css */
-
-  /* 展开/收起箭头 */
+  /* 数量标签 */
+  /* 右侧展开按钮 */
   .cat-toggle {
+    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
+    margin-left: auto;
     padding: 0;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     background: transparent;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.25);
     cursor: pointer;
-    transition: color 0.2s ease, background 0.2s ease;
+    transition: color 0.15s ease;
   }
 
   .cat-toggle:hover {
     color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.08);
   }
 
   .cat-toggle-icon {
-    width: 12px;
-    height: 12px;
-    transition: transform 0.2s ease;
+    width: 9px;
+    height: 9px;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .cat-node--open > .cat-row .cat-toggle-icon {
     transform: rotate(90deg);
   }
 
+  .cat-node--open > .cat-row .cat-toggle {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* 子分类展开动画 */
   .cat-children {
     margin: 0;
     padding: 0;
+    list-style: none;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.2s ease;
+  }
+
+  .cat-node--open > .cat-children {
+    max-height: 500px;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cat-children { transition: none; }
+    .cat-toggle-icon { transition: none; }
   }
 </style>

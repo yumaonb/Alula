@@ -57,7 +57,7 @@ const breadcrumbs = [
         #{tag}<span class="title-count-sep"> — </span><span id="posts-count" class="posts-count">共 {posts.length} 篇文章</span>
       </h1>
       <div class="category-header-search">
-        <PostSearch placeholder={`在「${tag}」标签中搜索…`} />
+        <PostSearch placeholder={`在「${tag}」标签中搜索…`} filterUrls={posts.map(p => `/${rp}/${p.slug}/`)} />
       </div>
     </div>
 

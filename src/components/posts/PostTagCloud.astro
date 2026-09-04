@@ -24,7 +24,7 @@ const { tags, tagUrl, activeTag = '' } = Astro.props;
         href={tagUrl(tag.name)}
         class:list={['chip', { 'chip--active': tag.name === activeTag }]}
       >
-        {tag.name}<span class="chip-count">{tag.count}</span>
+        {tag.name}
       </a>
     ))}
   </div>
@@ -88,14 +88,5 @@ const { tags, tagUrl, activeTag = '' } = Astro.props;
     color: #fff;
     background: rgba(255, 255, 255, 0.16);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
-  }
-
-  .chip-count {
-    font-size: 0.66rem;
-    color: rgba(255, 255, 255, 0.35);
-  }
-
-  .chip--active .chip-count {
-    color: rgba(255, 255, 255, 0.7);
   }
 </style>

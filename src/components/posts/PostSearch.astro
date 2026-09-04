@@ -6,9 +6,11 @@ import { Icon } from 'astro-icon/components';
 
 interface Props {
   placeholder?: string;
+  categoryPath?: string;
+  filterUrls?: string[];
 }
 
-const { placeholder = '搜索文章…' } = Astro.props;
+const { placeholder = '搜索文章…', categoryPath, filterUrls } = Astro.props;
 ---
 
 <div class="post-search-wrap">
@@ -21,6 +23,8 @@ const { placeholder = '搜索文章…' } = Astro.props;
       placeholder={placeholder}
       autocomplete="off"
       spellcheck="false"
+      {...categoryPath ? { 'data-category': categoryPath } : {}}
+      {...filterUrls ? { 'data-filter-urls': filterUrls.join(',') } : {}}
     />
     <button type="button" class="post-search-clear" aria-label="清空搜索" hidden>
       <Icon name="la:times" class="post-search-clear-icon" />

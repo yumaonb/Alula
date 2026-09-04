@@ -180,7 +180,7 @@ if (type === 'post') {
           {catName}<span class="title-count-sep"> — </span><span id="posts-count" class="posts-count">共 {catPosts.length} 篇文章</span>
         </h1>
         <div class="category-header-search">
-          <PostSearch placeholder={`在「${catName}」中搜索…`} />
+          <PostSearch placeholder={`在「${catName}」中搜索…`} categoryPath={buildCategoryUrl(catCategoryPath, categoryMeta, rp)} />
         </div>
       </div>
 

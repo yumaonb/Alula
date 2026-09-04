@@ -1,15 +1,13 @@
 ---
-// PostCategoryTree.astro — 分类树面板（点击跳转到分类页）
-// 父分类可展开子分类；分类项为链接导航，箭头按钮负责展开/收起
+// PostCategoryTree.astro — 分类树面板
+// 点击右侧箭头展开/收起子分类，点击分类名跳转
 import { Icon } from 'astro-icon/components';
 import PostCategoryNode from './PostCategoryNode.astro';
 import type { CategoryTreeNode } from '../../lib/category';
 
 interface Props {
   tree: CategoryTreeNode[];
-  /** 生成分类链接的函数，如 (path) => `/posts/${path}/` */
   categoryUrl: (path: string) => string;
-  /** 当前所在分类路径（高亮 + 自动展开祖先，可选） */
   activeCategory?: string;
 }
 
@@ -38,8 +36,7 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
 </section>
 
 <script is:inline>
-  // 展开/收起子分类：事件委托到 document，swup 切页后依然有效
-  // （hoisted 模块脚本在 swup 换页后不会重新执行，故用 is:inline + 委托）
+  // 点击右侧展开按钮切换子分类，不影响分类名链接的导航
   (function() {
     if (window.__postCatTreeBound) return;
     window.__postCatTreeBound = true;
@@ -48,19 +45,18 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
       if (!btn || !document.contains(btn)) return;
       var node = btn.closest('.cat-node');
       if (!node) return;
-      var children = node.querySelector(':scope > .cat-children');
-      if (!children) return;
-      var open = !children.hidden;
-      children.hidden = open;
-      node.classList.toggle('cat-node--open', !open);
-      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+      e.preventDefault();
+      e.stopPropagation();
+      node.classList.toggle('cat-node--open');
+      btn.setAttribute('aria-expanded',
+        node.classList.contains('cat-node--open') ? 'true' : 'false');
     });
   })();
 </script>
 
 <style>
   .cat-panel {
-    padding: 16px;
+    padding: 14px 12px;
     border-radius: var(--radius);
   }
 
@@ -68,25 +64,24 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.35);
-    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    margin-bottom: 8px;
     padding-left: 4px;
   }
 
   .cat-panel-icon {
-    width: 12px;
-    height: 12px;
-    color: rgba(255, 255, 255, 0.35);
+    width: 11px;
+    height: 11px;
+    color: rgba(255, 255, 255, 0.3);
   }
 
   .cat-panel-body {
     display: flex;
     flex-direction: column;
-    gap: 2px;
   }
 
   .cat-root-list {
@@ -94,6 +89,6 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 0;
   }
 </style>

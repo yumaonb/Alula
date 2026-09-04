@@ -71,12 +71,27 @@ class SearchController {
     if (!this.kw) { this.data = []; this.close(); return; }
     this.dd.hidden = false;
     this.dd.innerHTML = '<div class="psd-empty">搜索中…</div>';
+    let loaded: PagefindData[] = [];
     try {
       const pf = await loadPagefind();
       const res = await pf.search(this.kw);
-      const loaded = await Promise.all(res.results.map((r: any) => r.data()));
+      loaded = await Promise.all(res.results.map((r: any) => r.data()));
       if (s !== this.seq) return;
-      this.data = loaded;
+      // 按分类过滤：data-category 属性存在时仅保留该分类下的文章
+      const category = this.el.getAttribute('data-category');
+      if (category) {
+        const prefix = category.startsWith('/') ? category : '/' + category;
+        this.data = loaded.filter((it: PagefindData) => it.url.startsWith(prefix));
+      }
+      // 按指定 URL 列表过滤：data-filter-urls 属性存在时仅保留列表中的文章
+      const filterUrls = this.el.getAttribute('data-filter-urls');
+      if (filterUrls) {
+        const allowed = new Set(filterUrls.split(',').map(u => u.trim()));
+        this.data = loaded.filter((it: PagefindData) => allowed.has(it.url));
+      }
+      if (!category && !filterUrls) {
+        this.data = loaded;
+      }
     } catch {
       if (s !== this.seq) return;
       this.dd.innerHTML = '<div class="psd-empty">搜索索引不可用（请先构建站点）</div>';
