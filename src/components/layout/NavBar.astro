@@ -8,7 +8,7 @@ import { site } from "../../data/site";
 <nav class="navbar glass">
   <div class="nav-inner">
     <a href="/" class="nav-logo" aria-label="首页">
-      <Icon name="la:home" class="nav-home-icon" />
+      <img src="/images/logo.png" alt="" class="nav-logo-img" width="32" height="32" />
       {site.name}
     </a>
 
@@ -152,10 +152,12 @@ import { site } from "../../data/site";
     white-space: nowrap;
   }
 
-  .nav-home-icon {
-    width: 1.15em;
-    height: 1.15em;
-    color: inherit;
+  .nav-logo-img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 8px;
+    flex-shrink: 0;
   }
 
   /* 桌面端链接 */
@@ -396,6 +398,12 @@ import { site } from "../../data/site";
 
     .nav-logo {
       font-size: 1.05rem;
+    }
+
+    .nav-logo-img {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
     }
 
     .nav-links {

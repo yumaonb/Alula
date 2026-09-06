@@ -1,11 +1,20 @@
 ---
-// PostCard.astro — 文章卡片组件（整个卡片可点击），参考 Fuwari 布局
+// PostCard.astro — 文章卡片
+//
+// 布局参考 Fuwari 主题的文章卡片（保留本站暗色玻璃风格，非直接移植）：
+//   - 标题前主色竖条（accent bar）为白色，配合本站白字主题；
+//   - 元信息行（日期 / 分类 / 字数 / 评论数）带图标，图标与文章详情页一致；
+//   - 桌面端：封面固定在卡片右侧（约 28% 宽，图片拉伸铺满），
+//     无封面时右侧显示「进入」按钮；
+//   - 手机端：封面移到顶部，accent bar 与「进入」按钮隐藏，正文完整保留。
+//
+// 卡片整体可点击（stretched-link 模式），分类名称额外做成独立链接指向分类页。
 import { Icon } from 'astro-icon/components';
 import ImageWrapper from './ImageWrapper.astro';
 
 interface Props {
   title: string;
-  /** 已格式化的日期（YYYY-MM-DD）或可解析的日期串 */
+  /** 已格式化日期（YYYY-MM-DD），空串不显示 */
   date: string;
   description?: string;
   image?: string;
@@ -13,34 +22,102 @@ interface Props {
   tags?: string[];
   pinned?: boolean;
   url: string;
-  /** 分类显示名（如「CSS」），展示在卡片上 */
+  /** 分类显示名（如「CSS」），不传则不显示 */
   category?: string;
+  /** 分类页 URL（有分类时传入，分类名做成链接） */
+  categoryUrl?: string;
+  /** 评论数；不传（数据不可用）则不显示 */
+  commentCount?: number;
+  /** 估算字数；不传则不显示（放在评论数前） */
+  words?: number;
 }
 
-const { title, date, description, image, basePath = "/", tags = [], pinned = false, url, category } = Astro.props;
+const {
+  title,
+  date,
+  description,
+  image,
+  basePath = "/",
+  tags = [],
+  pinned = false,
+  url,
+  category,
+  categoryUrl,
+  commentCount,
+  words,
+} = Astro.props;
 
 const hasCover = !!image;
+const hasStats = typeof words === 'number' && words > 0;
+const hasMeta = !!date || !!category || hasStats || commentCount !== undefined;
 ---
 
-<a href={url} class:list={["post-card glass", { "has-cover": hasCover }]} aria-label={title}>
-  <!-- 文本内容区域（左侧） -->
+<article class:list={["post-card glass", { "has-cover": hasCover }]}>
+  <!-- 全卡片点击层 -->
+  <a href={url} class="post-card-link" aria-label={title}></a>
+
+  <!-- 封面图（桌面在右 / 手机在顶部） -->
+  {hasCover && (
+    <div class="post-card-cover" aria-hidden="true">
+      <span class="cover-ph-icon"><Icon name="mdi:image-outline" /></span>
+      <ImageWrapper src={image!} basePath={basePath} alt={title} />
+      <span class="cover-overlay">
+        <Icon name="mdi:chevron-right" class="cover-chevron" />
+      </span>
+    </div>
+  )}
+
+  <!-- 无封面时的「进入」按钮（桌面端，纯装饰：整卡已是链接） -->
+  {!hasCover && (
+    <span class="post-card-enter" aria-hidden="true">
+      <Icon name="mdi:chevron-right" class="post-card-enter-icon" />
+    </span>
+  )}
+
+  <!-- 正文 -->
   <div class="post-card-body">
-    <div class="post-card-meta">
+    <div class="post-card-head">
+      <span class="post-card-accent" aria-hidden="true"></span>
       {pinned && (
-        <span class="post-card-pin">
+        <span class="post-card-pin" title="置顶">
           <Icon name="la:thumbtack" class="pin-icon" />
         </span>
       )}
       <h3 class="post-card-title">{title}</h3>
-      <Icon name="mdi:chevron-right" class="post-card-chevron" />
     </div>
 
-    <div class="post-card-sub">
-      <time class="post-card-date" datetime={date}>{date}</time>
-      {category && (
-        <span class="post-card-category">{category}</span>
-      )}
-    </div>
+    {hasMeta && (
+      <div class="post-card-meta">
+        {date && (
+          <span class="post-card-meta-item">
+            <Icon name="la:calendar" class="meta-icon" />
+            <time datetime={date}>{date}</time>
+          </span>
+        )}
+        {category && (
+          <span class="post-card-meta-item">
+            <Icon name="la:layer-group" class="meta-icon" />
+            {categoryUrl ? (
+              <a href={categoryUrl} class="post-card-category" title={`分类：${category}`}>{category}</a>
+            ) : (
+              <span class="post-card-category">{category}</span>
+            )}
+          </span>
+        )}
+        {hasStats && (
+          <span class="post-card-meta-item" title={`${words} 字`}>
+            <Icon name="la:file-alt" class="meta-icon" />
+            <span>{words} 字</span>
+          </span>
+        )}
+        {commentCount !== undefined && (
+          <span class="post-card-meta-item" title={`${commentCount} 条评论`}>
+            <Icon name="la:comments" class="meta-icon" />
+            <span>{commentCount}</span>
+          </span>
+        )}
+      </div>
+    )}
 
     {description && (
       <p class="post-card-desc">{description}</p>
@@ -48,38 +125,29 @@ const hasCover = !!image;
 
     {tags.length > 0 && (
       <div class="post-card-tags">
-        {tags.map(tag => (
-          <span class="post-card-tag">{tag}</span>
+        {tags.map((tag) => (
+          <a
+            href={`/posts/tag/${encodeURIComponent(tag)}/`}
+            class="post-card-tag"
+            title={`标签：${tag}`}
+          >{tag}</a>
         ))}
       </div>
     )}
   </div>
-
-  <!-- 封面图片区域（右侧） -->
-  {hasCover && (
-    <div class="post-card-cover">
-      <span class="cover-ph-icon" aria-hidden="true"><Icon name="mdi:image-outline" /></span>
-      <ImageWrapper src={image!} basePath={basePath} alt={title} class="w-full object-contain" />
-    </div>
-  )}
-</a>
+</article>
 
 <style>
+  /* ---- 卡片骨架 ---- */
   .post-card {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
+    position: relative;
+    display: block;
     border-radius: var(--radius);
     overflow: hidden;
-    max-height: 204px;
-    transition: filter 0.3s ease, box-shadow 0.3s ease;
     text-decoration: none;
     color: inherit;
     cursor: pointer;
-  }
-
-  .post-card::before {
-    display: none;
+    transition: filter 0.3s ease, box-shadow 0.3s ease;
   }
 
   .post-card:hover {
@@ -87,28 +155,64 @@ const hasCover = !!image;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
   }
 
-  /* 文本区域（左侧，flex: 1 自动撑满） */
-  .post-card-body {
-    flex: 1;
-    min-width: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow: hidden;
+  /* 全卡片点击层：抵消全局链接样式的干扰 */
+  .post-card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    padding: 0;
+    border-radius: 0;
+    overflow: visible;
   }
 
-  .post-card-meta {
+  .post-card-link::before {
+    display: none;
+  }
+
+  /* ---- 正文（在点击层之上；整体不拦截点击，仅分类链接可点） ---- */
+  .post-card-body {
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  /* 桌面端：有封面留出右侧封面位；无封面留出「进入」按钮位 */
+  .has-cover .post-card-body {
+    padding-right: calc(28% + 36px);
+  }
+
+  .post-card:not(.has-cover) .post-card-body {
+    padding-right: calc(52px + 28px);
+  }
+
+  .post-card-head {
     display: flex;
     align-items: center;
-    gap: 6px;
-    position: relative;
+    gap: 8px;
+  }
+
+  /* ---- 白色竖条（标题前，参考 Fuwari） ---- */
+  .post-card-accent {
+    flex-shrink: 0;
+    width: 4px;
+    height: 1.15em;
+    min-height: 16px;
+    border-radius: 4px;
+    background: #fff;
   }
 
   .post-card-pin {
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
+    color: #fff;
   }
 
   .pin-icon {
@@ -117,7 +221,7 @@ const hasCover = !!image;
   }
 
   .post-card-title {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #fff;
     line-height: 1.4;
@@ -126,37 +230,51 @@ const hasCover = !!image;
     min-width: 0;
   }
 
-  .post-card-chevron {
-    flex-shrink: 0;
-    width: 1.5rem;
-    height: 1.5rem;
-    opacity: 0;
-    transition: opacity 0.3s, transform 0.3s;
-    color: var(--primary, #e4b1f0);
-  }
-
-  .post-card:hover .post-card-chevron {
-    opacity: 1;
-    transform: translateX(-4px);
-  }
-
-  .post-card-sub {
+  /* ---- 元信息行：日期 / 分类 / 评论数（图标与详情页一致） ---- */
+  .post-card-meta {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 6px 16px;
   }
 
-  .post-card-date {
+  .post-card-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+  }
+
+  .meta-icon {
+    width: 15px;
+    height: 15px;
+    opacity: 0.6;
+    flex-shrink: 0;
+    position: relative;
+    top: -1px;
   }
 
   .post-card-category {
-    font-size: 0.75rem;
+    /* 抵消全局链接样式 */
+    display: inline;
+    padding: 0;
+    border-radius: 0;
+    position: static;
+    overflow: visible;
+    pointer-events: auto;
     color: rgba(255, 255, 255, 0.65);
-    background: rgba(255, 255, 255, 0.08);
-    padding: 2px 8px;
-    border-radius: 4px;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .post-card-category::before {
+    display: none;
+  }
+
+  .post-card:hover .post-card-category {
+    color: #fff;
   }
 
   .post-card-desc {
@@ -174,30 +292,85 @@ const hasCover = !!image;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 4px;
   }
 
   .post-card-tag {
+    display: inline-block;
     font-size: 0.72rem;
     color: rgba(255, 255, 255, 0.5);
     background: rgba(255, 255, 255, 0.06);
     padding: 3px 8px;
     border-radius: 4px;
+    text-decoration: none;
+    position: relative;
+    z-index: 3;
+    pointer-events: auto;
+    transition: color 0.2s ease, background 0.2s ease;
   }
 
-  /* 封面图片 — 右侧固定宽度区域 */
+  .post-card-tag:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  /* ---- 「进入」按钮（无封面时，桌面端右侧） ---- */
+  .post-card-enter {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: 52px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .post-card:hover .post-card-enter {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 1px #fff;
+  }
+
+  .post-card-enter-icon {
+    width: 1.9rem;
+    height: 1.9rem;
+    color: #fff;
+    transform: translateX(-2px);
+    transition: transform 0.25s ease;
+  }
+
+  .post-card:hover .post-card-enter-icon {
+    transform: translateX(0);
+  }
+
+  /* ---- 封面图（桌面：右侧固定区域） ---- */
   .post-card-cover {
-    flex-shrink: 0;
-    width: 200px;
-    padding: 12px 12px 12px 0;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: 28%;
+    z-index: 2;
+    pointer-events: none;
     display: none;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .has-cover .post-card-cover {
+    display: block;
   }
 
   .post-card-cover img {
+    position: relative;
     width: 100%;
-    height: auto;
-    object-fit: contain;
-    border-radius: 12px;
+    height: 100%;
+    object-fit: fill; /* 封面不符合尺寸时拉伸铺满 */
     display: block;
     transition: transform 0.3s ease;
   }
@@ -206,38 +379,73 @@ const hasCover = !!image;
     transform: scale(1.02);
   }
 
-  .has-cover .post-card-cover {
-    display: block;
+  /* 封面悬停遮罩 + 箭头（深灰半透明，接近 fuwari 的观感） */
+  .cover-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
+  .post-card:hover .cover-overlay {
+    opacity: 1;
+  }
+
+  .cover-chevron {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: #fff;
+    transform: translateX(-6px);
+    transition: transform 0.3s ease;
+  }
+
+  .post-card:hover .cover-chevron {
+    transform: translateX(0);
+  }
+
+  /* ---- 手机端：封面移到顶部，进入按钮/竖条隐藏，正文完整保留 ---- */
   @media (max-width: 768px) {
-    /* 手机端：封面整宽在上，文本在下 */
-    .post-card {
-      flex-direction: column;
-      max-height: none;
-    }
-
-    .post-card-cover {
-      width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 9;
-      padding: 0;
-      display: block;
-    }
-
-    .post-card-cover img {
-      border-radius: 0;
-    }
-
-    .post-card-body {
+    .has-cover .post-card-body,
+    .post-card:not(.has-cover) .post-card-body {
       padding: 16px;
     }
 
-    .post-card-title {
-      font-size: 1rem;
+    .post-card-accent {
+      display: none;
     }
 
-    .post-card-chevron {
+    .post-card-enter {
+      display: none;
+    }
+
+    .post-card-cover {
+      position: relative;
+      top: auto;
+      right: auto;
+      bottom: auto;
+      width: auto;
+      display: block;
+      margin: 12px 12px 0;
+      max-height: 20vh;
+      border-radius: var(--radius);
+    }
+
+    .post-card-cover img {
+      height: auto;
+      max-height: 20vh;
+      object-fit: fill;
+    }
+
+    .post-card-title {
+      font-size: 1.05rem;
+    }
+
+    .cover-overlay {
       display: none;
     }
   }

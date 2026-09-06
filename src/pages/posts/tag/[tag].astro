@@ -45,6 +45,9 @@ const posts = data.posts.filter((post) => post.tags.includes(tag));
                 pinned={post.pinned}
                 url={post.url}
                 category={post.categoryDisplayName || undefined}
+                categoryUrl={post.categoryUrl || undefined}
+                commentCount={post.commentCount}
+                words={post.words}
               />
             </div>
           ))}

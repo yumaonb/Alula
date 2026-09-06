@@ -16,6 +16,7 @@ import {
   type CategoryTreeNode,
   type PostItem,
 } from './category';
+import { commentCountFor, loadCommentCounts } from './comment-counts';
 
 /** 内容根目录（相对项目根，与 posts 集合目录一致） */
 const contentRoot = 'content/posts';
@@ -69,9 +70,26 @@ export interface BlogData {
 
 let cache: Promise<BlogData> | null = null;
 
+/**
+ * 粗略统计 markdown 正文的字数：中文字符 + 英文单词。
+ * 去掉代码块、行内代码与图片，尽量贴近实际阅读量。
+ */
+function countWords(body: string): number {
+  const cleaned = body
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+  const cjk = (cleaned.match(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]/g) || []).length;
+  const latin = (cleaned.replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]/g, ' ').match(/[A-Za-z0-9]+/g) || []).length;
+  return cjk + latin;
+}
+
 async function buildData(): Promise<BlogData> {
   const entries = await getCollection('posts');
   const meta = buildCategoryMeta();
+  // 构建期拉取一次 giscus 评论数；失败为 null（所有卡片隐藏评论数）
+  const commentCounts = await loadCommentCounts();
 
   const posts: PostItem[] = entries
     .map((e) => {
@@ -79,6 +97,8 @@ async function buildData(): Promise<BlogData> {
       const parts = e.id.split('/');
       // 分类 = 文件所在目录（content/posts 之内的路径）
       const category = parts.slice(0, -1).join('/');
+      const url = `/${[postRoute, ...parts].join('/')}/`;
+      const words = countWords(e.body || '');
       return {
         slug: e.id,
         title: d.title ?? '无标题',
@@ -91,8 +111,11 @@ async function buildData(): Promise<BlogData> {
         categoryDisplayName: category
           ? meta[category]?.name || parts[parts.length - 2]
           : '',
+        categoryUrl: category ? `/${[postRoute, ...category.split('/')].join('/')}/` : '',
+        commentCount: commentCountFor(commentCounts, url),
         basePath: category ? `${contentRoot}/${category}` : contentRoot,
-        url: `/${[postRoute, ...parts].join('/')}/`,
+        url,
+        words,
       } satisfies PostItem;
     })
     .sort((a, b) => {

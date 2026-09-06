@@ -47,10 +47,16 @@ export interface PostItem {
   category: string;
   /** 分类显示名称（无分类时为空串） */
   categoryDisplayName: string;
+  /** 分类页 URL（无分类时为空串），如 /posts/devnotes/css/ */
+  categoryUrl: string;
+  /** 评论数（构建期由 giscus 数据而来；拉取失败时为 undefined，卡片隐藏评论数） */
+  commentCount?: number;
   /** 图片基准目录（相对 src/），供 ImageWrapper 解析相对图片 */
   basePath: string;
   /** 文章完整 URL，如 /posts/devnotes/css/at-rule/ */
   url: string;
+  /** 估算字数（中文字符数 + 英文单词数，粗略，不含代码块） */
+  words: number;
 }
 
 /** 面包屑项 */

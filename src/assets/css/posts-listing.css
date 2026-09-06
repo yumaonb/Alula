@@ -75,11 +75,10 @@
   padding-left: 4px;
 }
 
-/* ---- 文章列表（横向卡片，所有卡片等宽铺满内容列） ---- */
+/* ---- 文章列表（Fuwari 式纵向堆叠，卡片铺满内容列） ---- */
 .posts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(460px, 100%), 1fr));
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
