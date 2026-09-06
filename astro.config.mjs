@@ -138,9 +138,12 @@ export default defineConfig({
     // 删除展示性 HTML 注释（保留水合锚点）
     stripSafeComments(),
     // 独立文件压缩；按官方要求放在集成列表最后
+    // CSS 必须保持 false：compress 底层用 lightningcss，会无条件删掉不带前缀的
+    // backdrop-filter、只保留 -webkit- 版，导致 Firefox 等只支持原版属性的浏览器
+    // 全站玻璃模糊失效。CSS 压缩已由 Astro 自带的 esbuild 完成，无需此处重复。
     compress({
       HTML: false,
-      CSS: true,
+      CSS: false,
       JavaScript: true,
       SVG: true,
       JSON: true,
