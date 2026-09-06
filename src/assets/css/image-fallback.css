@@ -1,0 +1,143 @@
+/* image-fallback.css — 封面图 / 正文图片 占位与加载失败降级
+ *
+ * 占位配色统一为「中性半透明灰 + 白色图标」，与站点玻璃卡片、正文占位块一致。
+ *
+ * 封面机制（.post-cover / .post-card-cover）：
+ *   1. 容器始终铺一层半透明浅灰底 + 居中白色占位图标
+ *      （图标用图标库 mdi:image-outline，模板里 <span class="cover-ph-icon"> 渲染）；
+ *   2. 图片成功加载后盖住占位（图片 position:relative 层序在图标之上）；
+ *   3. 图片加载失败时 image-fallback.js 给 <img> 追加 .img-failed 隐藏，
+ *      露出容器占位效果；
+ *   4. 容器无图片子元素（构建期本地图片缺失）或只剩失败图片时，
+ *      保持封面版式，避免塌陷。
+ *
+ * 正文图片机制（.markdown-body）：
+ *   1. 图片尚未加载完成 / 加载失败时，图片自身铺占位底 + 居中图标
+ *      （图标与封面占位一致，为 mdi:image-outline 的内联副本；JS 在图片
+ *      成功加载后追加 .img-loaded，移除占位底）；
+ *   2. 图片加载失败时 image-fallback.js 将 <img> 替换为 .img-ph 占位块，
+ *      保留高度与 alt 语义（读屏器仍表现为图片）。
+ */
+
+/* 加载失败的图片：隐藏（占位效果由容器 / 占位块提供） */
+.img-failed {
+  display: none !important;
+}
+
+/* ---- 文章详情页封面 ---- */
+.post-cover {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* 图片盖在占位图标之上（图标为绝对定位，图片需相对定位提升层序） */
+.post-cover img {
+  position: relative;
+}
+
+/* 封面占位图标：白色、居中、弱化 */
+.cover-ph-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: #fff;
+  opacity: 0.5;
+}
+
+.post-cover .cover-ph-icon svg {
+  width: 84px;
+  height: 84px;
+}
+
+/* 无图片子元素（构建期缺失）或只剩失败图片时保留封面版式 */
+@supports (selector(:has(.img-failed))) {
+  .post-cover:not(:has(img)),
+  .post-cover:has(.img-failed) {
+    aspect-ratio: 21 / 9;
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  @supports (selector(:has(.img-failed))) {
+    .post-cover:not(:has(img)),
+    .post-cover:has(.img-failed) {
+      aspect-ratio: 16 / 9;
+      min-height: 120px;
+    }
+  }
+}
+
+/* ---- 文章列表卡片封面 ---- */
+.post-card-cover {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.post-card-cover img {
+  position: relative;
+}
+
+.post-card-cover .cover-ph-icon svg {
+  width: 44px;
+  height: 44px;
+}
+
+@supports (selector(:has(.img-failed))) {
+  .post-card-cover:not(:has(img)),
+  .post-card-cover:has(.img-failed) {
+    min-height: 170px;
+  }
+}
+
+/* ---- 正文图片：未加载完成 / 加载失败时的占位底（加载成功后 JS 加 .img-loaded 移除） ----
+ * 与封面占位一致：mdi:image-outline 白色半透明图标 + 淡灰底 */
+.markdown-body img:not(.img-loaded) {
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' fill-opacity='0.5' d='M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-5.04 9.29l-2.75 3.54l-1.96-2.36L6.5 17h11z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 84px 84px;
+  border-radius: 8px;
+}
+
+/* 无宽高属性的正文图片（外链图等）：加载完成前给一个最小占位盒子，
+ * 保证上面的占位底可见（带 width/height 属性的图片由 markdown.css
+ * 按属性预留等比例空间，无需此兜底） */
+.markdown-body img:not([width]):not([height]):not(.img-loaded) {
+  min-width: 100%;
+  min-height: 160px;
+}
+
+/* 正文图片可点击放大（配合 lightbox.js 灯箱） */
+.markdown-body img {
+  cursor: zoom-in;
+}
+
+/* ---- 正文图片占位块（加载失败时替换 <img>，居中图标 + 淡灰半透明底） ---- */
+.img-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 140px;
+  margin: 1em 0;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  user-select: none;
+  cursor: default;
+}
+
+/* 占位图标：白色，居中（容器 flex 居中） */
+.img-ph svg {
+  width: 46px;
+  height: 46px;
+  color: #fff;
+  opacity: 0.75;
+  flex-shrink: 0;
+}

@@ -7,12 +7,14 @@ import bgImageRaw from "../assets/images/background.jpg";
 import avatarRaw from "../assets/images/avatar.png";
 import "../assets/css/global.css";
 import "../assets/css/skeleton.css";
+import "../assets/css/image-fallback.css";
 import NavBar from "../components/layout/NavBar.astro";
 import Footer from "../components/layout/Footer.astro";
 import SideWidgets from "../components/layout/SideWidgets.astro";
 import TocModal from "../components/posts/TocModal.svelte";
 import PostsFilterModal from "../components/posts/PostsFilterModal.svelte";
 import CustomScrollbar from "../components/layout/CustomScrollbar.astro";
+import { Icon } from "astro-icon/components";
 import { site } from "../data/site";
 
 const avatarImage = await getImage({
@@ -69,12 +71,24 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
     </div>
     <!-- 侧边悬浮按钮列：静态标记，运行时（可用性/显隐/进度）由 swup-widgets.js 控制 -->
     <SideWidgets />
+    <!-- 正文图片占位图标模板：隐藏不占位，图片加载失败时由 image-fallback.js 克隆 -->
+    <div id="alula-img-ph-icon" hidden>
+      <Icon name="mdi:image-off-outline" />
+    </div>
     <TocModal client:idle />
     <PostsFilterModal client:idle />
     <CustomScrollbar />
     <script>
       // swup-widgets.js：侧边按钮运行时控制器（模块脚本只执行一次，无需 is:inline）
       import '../assets/js/swup-widgets.js';
+    </script>
+    <script>
+      // image-fallback.js：封面图加载失败时隐藏破损图片、露出占位背景
+      import '../assets/js/image-fallback.js';
+    </script>
+    <script>
+      // lightbox.js：正文图片灯箱触发器（灯箱本体懒加载，首次点击才加载）
+      import '../assets/js/lightbox.js';
     </script>
   </body>
 </html>

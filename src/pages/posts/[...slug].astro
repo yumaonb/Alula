@@ -167,7 +167,12 @@ if (type === 'category') {
           </span>
         )}
       </div>
-      {post.image && <div class="post-cover"><ImageWrapper src={post.image} basePath={post.basePath} alt={post.title} class="w-full" style="width: 100%; height: auto; display: block;" /></div>}
+      {post.image && (
+        <div class="post-cover">
+          <span class="cover-ph-icon" aria-hidden="true"><Icon name="mdi:image-outline" /></span>
+          <ImageWrapper src={post.image} basePath={post.basePath} alt={post.title} class="w-full" style="width: 100%; height: auto; display: block;" />
+        </div>
+      )}
     </header>
     <div class="markdown-body">
       <PostContent />

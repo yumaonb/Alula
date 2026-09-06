@@ -63,7 +63,7 @@ description: "这篇文章介绍了如何使用 CSS Grid 布局"
 文章封面图路径，字符串类型。显示在文章详情页标题下方和文章卡片右侧。支持两种写法：
 
 - **`/` 开头**：从 `public/` 目录提供，如 `/images/cover.png` 对应 `public/images/cover.png`，原样引用不做处理。
-- **相对路径**（不以 `/` 开头）：视为本地图片，交给 `astro:assets` 压缩并重命名（产物在 `/_astro/` 下）。路径以**文章所在目录**为基准解析，最终落在 `src/` 内。例如位于 `src/content/posts/测试/` 的文章写 `../../assets/images/x.jpg`，实际指向 `src/content/assets/images/x.jpg`。
+- **相对路径**（不以 `/` 开头）：视为本地图片，交给 `astro:assets` 压缩并重命名（产物在 `/_astro/` 下）。路径以**文章所在目录**为基准解析，最终落在 `src/` 内。例如位于 `src/content/posts/2024/` 的文章写 `../../assets/images/x.jpg`，实际指向 `src/content/assets/images/x.jpg`。
 
 建议把图片统一放进 `src/content/assets/images/` 或 `public/`，方便管理。
 

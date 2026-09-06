@@ -177,20 +177,17 @@
   margin: 2em 0;
 }
 
-/* ---- 图片 ---- */
+/* ---- 图片 ----
+ * 说明：图片 block 化，且不声明 width——
+ * 浏览器在图片加载完成前会按 width/height 属性预留等比例空间，
+ * 让加载占位底（image-fallback.css）可见，且加载后无布局跳动。
+ */
 .markdown-body img {
+  display: block;
   max-width: 100%;
-  height: auto !important;
-  width: auto !important;
+  height: auto;
   border-radius: 8px;
   margin: 1em 0;
-}
-
-/* 清除 Astro Image 组件可能添加的内联尺寸 */
-.markdown-body img[width],
-.markdown-body img[height] {
-  width: auto !important;
-  height: auto !important;
 }
 
 /* ---- 脚注 ---- */

@@ -1,0 +1,27 @@
+/* lightbox.css — photoswipe 灯箱主题微调（仅覆盖 CSS 变量，灯箱本体用库）
+ * 随 lightbox-core.js 懒加载，在库样式之后加载，覆盖生效。
+ */
+
+.pswp {
+  /* 背景与站点深色玻璃风格一致，图标更淡更贴合整体观感 */
+  --pswp-bg: rgba(8, 8, 14, 0.94);
+  --pswp-placeholder-bg: rgba(255, 255, 255, 0.06);
+  --pswp-root-z-index: 10000;
+  --pswp-icon-color: rgba(255, 255, 255, 0.9);
+  --pswp-icon-color-secondary: rgba(255, 255, 255, 0.55);
+  /* 图标描边阴影调细、减淡，避免图标轮廓显得臃肿看不清形状 */
+  --pswp-icon-stroke-color: rgba(255, 255, 255, 0.45);
+  --pswp-icon-stroke-width: 1px;
+  --pswp-preloader-color: rgba(255, 255, 255, 0.4);
+  --pswp-preloader-color-secondary: rgba(8, 8, 14, 0.9);
+}
+
+/* 灯箱内的图片圆角，与正文图片一致 */
+.pswp__img {
+  border-radius: 8px;
+}
+
+/* 文章详情页封面图可点击放大（与正文图片一致的提示光标） */
+.post-cover img {
+  cursor: zoom-in;
+}

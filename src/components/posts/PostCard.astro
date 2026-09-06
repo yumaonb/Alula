@@ -58,6 +58,7 @@ const hasCover = !!image;
   <!-- 封面图片区域（右侧） -->
   {hasCover && (
     <div class="post-card-cover">
+      <span class="cover-ph-icon" aria-hidden="true"><Icon name="mdi:image-outline" /></span>
       <ImageWrapper src={image!} basePath={basePath} alt={title} class="w-full object-contain" />
     </div>
   )}
