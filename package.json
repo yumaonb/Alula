@@ -29,6 +29,8 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@iconify-json/simple-icons": "^1.2.93",
+    "@playform/compress": "^0.2.5",
+    "astro-html-minifier-next": "^3.0.0",
     "pagefind": "^1.5.2",
     "typescript": "^5.3.3"
   },
