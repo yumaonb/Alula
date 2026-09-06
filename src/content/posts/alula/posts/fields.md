@@ -1,6 +1,6 @@
 ---
 title: "文章元数据"
-date: 2024-12-15
+date: 2026-9-6
 description: "完整的文章 frontmatter 元数据说明，包括各字段的类型、默认行为与用法。"
 image: ""
 tags: ["博客", "教程", "配置"]
