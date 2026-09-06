@@ -2,9 +2,8 @@
 // BaseLayout.astro — 基础布局
 // 用法：<BaseLayout title="页面标题"> ... </BaseLayout>
 
-import { Image, getImage } from "astro:assets";
+import { Image } from "astro:assets";
 import bgImageRaw from "../assets/images/background.jpg";
-import avatarRaw from "../assets/images/avatar.png";
 import "../assets/css/global.css";
 import "../assets/css/skeleton.css";
 import "../assets/css/image-fallback.css";
@@ -16,13 +15,6 @@ import PostsFilterModal from "../components/posts/PostsFilterModal.svelte";
 import CustomScrollbar from "../components/layout/CustomScrollbar.astro";
 import { Icon } from "astro-icon/components";
 import { site } from "../data/site";
-
-const avatarImage = await getImage({
-  src: avatarRaw,
-  format: "webp",
-  quality: 80,
-  width: 192,
-});
 
 interface Props {
   title?: string;
@@ -47,7 +39,7 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="color-scheme" content={site.colorScheme} />
-    <link rel="icon" type="image/webp" href={avatarImage.src} />
+    <link rel="icon" type="image/png" href="/images/logo.png" />
     <title>{pageTitle}</title>
     <style set:html={bgAspectStyle} />
     <slot name="head" />
