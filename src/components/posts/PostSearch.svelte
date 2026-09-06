@@ -1,6 +1,7 @@
 <!-- PostSearch.svelte — 文章搜索框组件 -->
 <script>
   import { onMount, onDestroy } from 'svelte';
+  import Icon from '@iconify/svelte';
 
   let { placeholder = '搜索文章…', categoryPath = '', filterUrls = [] } = $props();
 
@@ -141,9 +142,7 @@
 
 <div class="post-search-wrap">
   <div class="post-search">
-    <svg class="post-search-icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
-      <path d="M19.4 15a6.4 6.4 0 0 0 1.3-3.8 6.5 6.5 0 1 0-6.5 6.5 6.4 6.4 0 0 0 3.8-1.3l5.3 5.3a.7.7 0 0 0 1-1l-4.9-5.7zM13 19.1a5.1 5.1 0 1 1 5.1-5.1 5.1 5.1 0 0 1-5.1 5.1z"/>
-    </svg>
+    <Icon icon="la:search" class="post-search-icon" aria-hidden="true" />
     <input
       bind:this={inputEl}
       bind:value={kw}
@@ -221,11 +220,12 @@
       0 4px 16px rgba(0, 0, 0, 0.2);
   }
 
-  .post-search-icon {
+  :global(.post-search-icon) {
     width: 15px;
     height: 15px;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.45);
     flex-shrink: 0;
+    transform: rotate(-90deg);
   }
 
   .post-search-input {
