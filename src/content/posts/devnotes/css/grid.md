@@ -2,9 +2,7 @@
 title: "Grid网格布局"
 date: 2026-09-06
 description: "本文章记录CSS Grid网格布局相关知识，包含网格结构定义、对齐方式与项目定位等，算是个快速查阅的文档，整体偏向于教学性质"
-image: ""
 tags: ["CSS", "编程"]
-pinned: false
 ---
 
 ## 一、开启 Grid 容器

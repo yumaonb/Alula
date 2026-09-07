@@ -2,9 +2,7 @@
 title: "Flex弹性布局"
 date: 2026-09-05
 description: "本文章记录Flex弹性布局相关知识，包含容器属性与子项属性等，算是个快速查阅的文档，整体偏向于教学性质"
-image: ""
 tags: ["CSS", "编程"]
-pinned: false
 ---
 
 ## 一、开启 Flex 容器

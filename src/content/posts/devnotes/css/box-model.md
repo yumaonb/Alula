@@ -2,9 +2,7 @@
 title: "CSS盒模型"
 date: 2026-09-02
 description: "本文章记录CSS盒模型相关知识，包含盒模型尺寸计算、padding、border、margin 与外边距合并等，算是个快速查阅的文档，整体偏向于教学性质"
-image: ""
 tags: ["CSS", "编程"]
-pinned: false
 ---
 
 ## 一、盒模型核心

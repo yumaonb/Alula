@@ -2,9 +2,7 @@
 title: "分类系统"
 date: 2026-08-31
 description: "本博客的分类由文章所在的目录结构决定；目录下的 index.json 可配置分类显示名与描述。"
-image: ""
 tags: ["博客", "教程", "配置"]
-pinned: false
 ---
 
 ## 概述

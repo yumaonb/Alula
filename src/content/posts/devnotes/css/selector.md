@@ -2,9 +2,7 @@
 title: "CSS选择器"
 date: 2026-08-30
 description: "本文章记录CSS选择器相关代码，算是个快速查阅的文档，整体偏向于教学性质"
-image: ""
 tags: ["CSS", "编程"]
-pinned: false
 ---
 
 ## 一、基础选择器

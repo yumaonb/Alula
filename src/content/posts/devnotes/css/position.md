@@ -2,9 +2,7 @@
 title: "CSS定位"
 date: 2026-09-03
 description: "本文章记录CSS定位相关知识，包含 static、relative、absolute、fixed、sticky 与层叠顺序等，算是个快速查阅的文档，整体偏向于教学性质"
-image: ""
 tags: ["CSS", "编程"]
-pinned: false
 ---
 
 ## 一、定位类型（position 属性）

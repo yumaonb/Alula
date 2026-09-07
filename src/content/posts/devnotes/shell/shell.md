@@ -2,9 +2,7 @@
 title: "Shell 速查表"
 date: 2026-09-07
 description: "本文章记录Shell脚本常用的语法与技巧，包含变量、条件判断、循环、数组、函数与输入输出等，算是个快速查阅的文档，整体偏向于教学性质"
-image: ""
 tags: ["Shell", "编程"]
-pinned: false
 ---
 
 ## 一、脚本基础结构

@@ -2,9 +2,7 @@
 title: "CSS At-rule（@规则）"
 date: 2026-09-01
 description: "本文章记录CSS At-rule相关指令，算是个快速查阅的文档，整体偏向于教学性质"
-image: ""
 tags: ["CSS", "编程"]
-pinned: false
 ---
 
 > At-rule 是 CSS 中以 @ 符号开头的指令式语句，用于控制样式表行为、定义变量、引入外部资源或设置条件规则。
