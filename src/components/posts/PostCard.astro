@@ -8,7 +8,7 @@
 //     无封面时右侧显示「进入」按钮；
 //   - 手机端：封面移到顶部，accent bar 与「进入」按钮隐藏，正文完整保留。
 //
-// 卡片整体可点击（stretched-link 模式），分类链做成独立链接指向各级分类页。
+// 标题 / 封面 / 「进入」按钮为独立链接；分类、标签各自可点；卡片本身不可点击。
 import { Icon } from 'astro-icon/components';
 import ImageWrapper from './ImageWrapper.astro';
 import type { CategoryTrailItem } from '../../lib/category';
@@ -53,25 +53,22 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
 ---
 
 <article class:list={["post-card glass", { "has-cover": hasCover }]}>
-  <!-- 全卡片点击层 -->
-  <a href={url} class="post-card-link" aria-label={title}></a>
-
   <!-- 封面图（桌面在右 / 手机在顶部） -->
   {hasCover && (
-    <div class="post-card-cover" aria-hidden="true">
+    <a href={url} class="post-card-cover" aria-label={`阅读：${title}`}>
       <span class="cover-ph-icon"><Icon name="mdi:image-outline" /></span>
       <ImageWrapper src={image!} basePath={basePath} alt={title} />
       <span class="cover-overlay">
         <Icon name="mdi:chevron-right" class="cover-chevron" />
       </span>
-    </div>
+    </a>
   )}
 
-  <!-- 无封面时的「进入」按钮（桌面端，纯装饰：整卡已是链接） -->
+  <!-- 无封面时的「进入」按钮（桌面端） -->
   {!hasCover && (
-    <span class="post-card-enter" aria-hidden="true">
+    <a href={url} class="post-card-enter" aria-label={`阅读：${title}`}>
       <Icon name="mdi:chevron-right" class="post-card-enter-icon" />
-    </span>
+    </a>
   )}
 
   <!-- 正文 -->
@@ -83,7 +80,9 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
           <Icon name="la:thumbtack" class="pin-icon" />
         </span>
       )}
-      <h3 class="post-card-title">{title}</h3>
+      <h3 class="post-card-title">
+        <a href={url} class="post-card-title-link">{title}</a>
+      </h3>
     </div>
 
     {hasMeta && (
@@ -147,33 +146,10 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     display: block;
     border-radius: var(--radius);
     overflow: hidden;
-    text-decoration: none;
     color: inherit;
-    cursor: pointer;
-    transition: filter 0.3s ease, box-shadow 0.3s ease;
   }
 
-  .post-card:hover {
-    filter: brightness(1.15);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-  }
-
-  /* 全卡片点击层：抵消全局链接样式的干扰 */
-  .post-card-link {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    display: block;
-    padding: 0;
-    border-radius: 0;
-    overflow: visible;
-  }
-
-  .post-card-link::before {
-    display: none;
-  }
-
-  /* ---- 正文（在点击层之上；整体不拦截点击，仅分类链接可点） ---- */
+  /* ---- 正文（整体不拦截点击，仅标题 / 分类 / 标签可点） ---- */
   .post-card-body {
     position: relative;
     z-index: 2;
@@ -231,6 +207,26 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     margin: 0;
     flex: 1;
     min-width: 0;
+  }
+
+  .post-card-title-link {
+    display: inline;
+    padding: 0;
+    border-radius: 0;
+    position: static;
+    overflow: visible;
+    pointer-events: auto;
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .post-card-title-link::before {
+    display: none;
+  }
+
+  .post-card-title-link:hover {
+    color: #fff;
   }
 
   /* ---- 元信息行：日期 / 分类 / 评论数（图标与详情页一致） ---- */
@@ -296,7 +292,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     display: none;
   }
 
-  .post-card:hover .post-card-category {
+  .post-card-category:hover {
     color: #fff;
   }
 
@@ -350,10 +346,16 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.06);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    pointer-events: auto;
+    text-decoration: none;
     transition: background 0.25s ease, box-shadow 0.25s ease;
   }
 
-  .post-card:hover .post-card-enter {
+  .post-card-enter::before {
+    display: none;
+  }
+
+  .post-card-enter:hover {
     background: rgba(255, 255, 255, 0.1);
     box-shadow: inset 0 0 0 1px #fff;
   }
@@ -366,7 +368,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     transition: transform 0.25s ease;
   }
 
-  .post-card:hover .post-card-enter-icon {
+  .post-card-enter:hover .post-card-enter-icon {
     transform: translateX(0);
   }
 
@@ -378,11 +380,17 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     bottom: 12px;
     width: 28%;
     z-index: 2;
-    pointer-events: none;
+    pointer-events: auto;
     display: none;
     border-radius: 12px;
     overflow: hidden;
     background-color: rgba(255, 255, 255, 0.06);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .post-card-cover::before {
+    display: none;
   }
 
   .has-cover .post-card-cover {
@@ -398,7 +406,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     transition: transform 0.3s ease;
   }
 
-  .post-card:hover .post-card-cover img {
+  .post-card-cover:hover img {
     transform: scale(1.02);
   }
 
@@ -413,9 +421,10 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     background: rgba(0, 0, 0, 0.45);
     opacity: 0;
     transition: opacity 0.3s ease;
+    pointer-events: none;
   }
 
-  .post-card:hover .cover-overlay {
+  .post-card-cover:hover .cover-overlay {
     opacity: 1;
   }
 
@@ -427,7 +436,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     transition: transform 0.3s ease;
   }
 
-  .post-card:hover .cover-chevron {
+  .post-card-cover:hover .cover-chevron {
     transform: translateX(0);
   }
 

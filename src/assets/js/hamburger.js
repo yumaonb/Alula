@@ -24,7 +24,7 @@ function toggle() {
   btn.setAttribute('aria-expanded', opening);
   dropdown?.setAttribute('aria-hidden', String(!opening));
   overlay?.setAttribute('aria-hidden', String(!opening));
-  dropdown?.querySelectorAll('.mobile-link').forEach(link => {
+  dropdown?.querySelectorAll('.mobile-link').forEach((link) => {
     link.setAttribute('tabindex', opening ? '0' : '-1');
   });
   document.body.style.overflow = opening ? 'hidden' : '';
@@ -61,6 +61,6 @@ onEnterDesktop(closeIfOpen);
 
 document.addEventListener('click', onClick);
 document.addEventListener('keydown', onKeydown);
-window.addEventListener('swup:content:replace', onSwupReplace);
+document.addEventListener('swup:content:replace', onSwupReplace);
 
 export {};
