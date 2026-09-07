@@ -32,6 +32,14 @@ export interface CategoryTreeNode {
   children: CategoryTreeNode[];
 }
 
+/** 分类链节点（文章所属分类的一级一级路径，如 开发速查 → CSS） */
+export interface CategoryTrailItem {
+  /** 该级分类显示名（有 index.json 用 name，否则用目录名） */
+  name: string;
+  /** 该级分类页 URL，如 /posts/devnotes/css/ */
+  url: string;
+}
+
 /** 文章列表项 */
 export interface PostItem {
   slug: string;
@@ -45,10 +53,8 @@ export interface PostItem {
   pinned: boolean;
   /** 所属分类 = 文章目录路径（content/posts 之内），如 "devnotes/css"；文章直接在根目录则为空串 */
   category: string;
-  /** 分类显示名称（无分类时为空串） */
-  categoryDisplayName: string;
-  /** 分类页 URL（无分类时为空串），如 /posts/devnotes/css/ */
-  categoryUrl: string;
+  /** 完整分类链（每级分类名 + 对应分类页 URL；无分类时为空数组） */
+  categoryTrail: CategoryTrailItem[];
   /** 评论数（构建期由 giscus 数据而来；拉取失败时为 undefined，卡片隐藏评论数） */
   commentCount?: number;
   /** 图片基准目录（相对 src/），供 ImageWrapper 解析相对图片 */
@@ -92,6 +98,28 @@ export function buildCategoryUrl(
   routePrefix: string = postRoute,
 ): string {
   return '/' + [routePrefix, ...categoryPath].join('/') + '/';
+}
+
+/**
+ * 构建文章的完整分类链：父分类 → … → 当前分类，每级带分类页 URL。
+ * 无分类时返回空数组。
+ */
+export function buildCategoryTrail(
+  category: string,
+  meta: Record<string, CategoryMeta>,
+  routePrefix: string = postRoute,
+): CategoryTrailItem[] {
+  const parts = category.split('/').filter(Boolean);
+  const trail: CategoryTrailItem[] = [];
+  let current: string[] = [];
+  for (const seg of parts) {
+    current.push(seg);
+    trail.push({
+      name: meta[current.join('/')]?.name || seg,
+      url: buildCategoryUrl(current, routePrefix),
+    });
+  }
+  return trail;
 }
 
 // ---- 分类树 ----

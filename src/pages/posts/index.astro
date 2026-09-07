@@ -37,8 +37,7 @@ const data = await loadBlogData();
                 tags={post.tags}
                 pinned={post.pinned}
                 url={post.url}
-                category={post.categoryDisplayName || undefined}
-                categoryUrl={post.categoryUrl || undefined}
+                categoryTrail={post.categoryTrail}
                 commentCount={post.commentCount}
                 words={post.words}
               />

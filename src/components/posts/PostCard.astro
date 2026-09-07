@@ -8,9 +8,10 @@
 //     无封面时右侧显示「进入」按钮；
 //   - 手机端：封面移到顶部，accent bar 与「进入」按钮隐藏，正文完整保留。
 //
-// 卡片整体可点击（stretched-link 模式），分类名称额外做成独立链接指向分类页。
+// 卡片整体可点击（stretched-link 模式），分类链做成独立链接指向各级分类页。
 import { Icon } from 'astro-icon/components';
 import ImageWrapper from './ImageWrapper.astro';
+import type { CategoryTrailItem } from '../../lib/category';
 
 interface Props {
   title: string;
@@ -22,10 +23,8 @@ interface Props {
   tags?: string[];
   pinned?: boolean;
   url: string;
-  /** 分类显示名（如「CSS」），不传则不显示 */
-  category?: string;
-  /** 分类页 URL（有分类时传入，分类名做成链接） */
-  categoryUrl?: string;
+  /** 完整分类链（父分类 → … → 当前分类）；不传则只显示日期/字数/评论数 */
+  categoryTrail?: CategoryTrailItem[];
   /** 评论数；不传（数据不可用）则不显示 */
   commentCount?: number;
   /** 估算字数；不传则不显示（放在评论数前） */
@@ -41,15 +40,16 @@ const {
   tags = [],
   pinned = false,
   url,
-  category,
-  categoryUrl,
+  categoryTrail,
   commentCount,
   words,
 } = Astro.props;
 
 const hasCover = !!image;
 const hasStats = typeof words === 'number' && words > 0;
-const hasMeta = !!date || !!category || hasStats || commentCount !== undefined;
+const trail = categoryTrail || [];
+const hasCategory = trail.length > 0;
+const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
 ---
 
 <article class:list={["post-card glass", { "has-cover": hasCover }]}>
@@ -94,14 +94,17 @@ const hasMeta = !!date || !!category || hasStats || commentCount !== undefined;
             <time datetime={date}>{date}</time>
           </span>
         )}
-        {category && (
+        {hasCategory && (
           <span class="post-card-meta-item">
             <Icon name="la:layer-group" class="meta-icon" />
-            {categoryUrl ? (
-              <a href={categoryUrl} class="post-card-category" title={`分类：${category}`}>{category}</a>
-            ) : (
-              <span class="post-card-category">{category}</span>
-            )}
+            <span class="post-card-categories">
+              {trail.map((item, i) => (
+                <span class="post-card-cat-item">
+                  {i > 0 && <span class="post-card-cat-sep" aria-hidden="true">/</span>}
+                  <a href={item.url} class="post-card-category" title={`分类：${item.name}`}>{item.name}</a>
+                </span>
+              ))}
+            </span>
           </span>
         )}
         {hasStats && (
@@ -256,8 +259,28 @@ const hasMeta = !!date || !!category || hasStats || commentCount !== undefined;
     top: -1px;
   }
 
+  .post-card-categories {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    column-gap: 4px;
+    row-gap: 2px;
+    white-space: normal;
+  }
+
+  .post-card-cat-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .post-card-cat-sep {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.85em;
+  }
+
   .post-card-category {
-    /* 抵消全局链接样式 */
+    /* 抵消全局链接样式 + 卡片正文 pointer-events:none，链接单独可点击 */
     display: inline;
     padding: 0;
     border-radius: 0;

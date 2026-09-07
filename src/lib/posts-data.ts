@@ -8,6 +8,7 @@
 // 只能在服务端（页面/Astro 组件 frontmatter）使用，禁止客户端引用。
 import { getCollection, type CollectionEntry } from 'astro:content';
 import {
+  buildCategoryTrail,
   buildCategoryTree,
   formatDate,
   postRoute,
@@ -108,10 +109,7 @@ async function buildData(): Promise<BlogData> {
         tags: Array.isArray(d.tags) ? d.tags : [],
         pinned: d.pinned === true,
         category,
-        categoryDisplayName: category
-          ? meta[category]?.name || parts[parts.length - 2]
-          : '',
-        categoryUrl: category ? `/${[postRoute, ...category.split('/')].join('/')}/` : '',
+        categoryTrail: category ? buildCategoryTrail(category, meta) : [],
         commentCount: commentCountFor(commentCounts, url),
         basePath: category ? `${contentRoot}/${category}` : contentRoot,
         url,

@@ -116,8 +116,7 @@ if (type === 'category') {
                   tags={p.tags}
                   pinned={p.pinned}
                   url={p.url}
-                  category={p.categoryDisplayName || undefined}
-                  categoryUrl={p.categoryUrl || undefined}
+                  categoryTrail={p.categoryTrail}
                   commentCount={p.commentCount}
                   words={p.words}
                 />
@@ -155,7 +154,7 @@ if (type === 'category') {
         {post.category && (
           <span class="post-meta-item">
             <Icon name="la:layer-group" class="meta-icon" />
-            <a href={buildCategoryUrl(post.category.split('/'), postRoute)} class="post-meta-link">{post.categoryDisplayName}</a>
+            <a href={buildCategoryUrl(post.category.split('/'), postRoute)} class="post-meta-link">{post.categoryTrail[post.categoryTrail.length - 1].name}</a>
           </span>
         )}
         {post.tags.length > 0 && (
