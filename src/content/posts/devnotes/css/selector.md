@@ -418,8 +418,6 @@ input:not(:disabled):focus {
 
 权重累加：链式组合的伪类越多，权重越高（如 div:hover:not(.active) 权重为 0,0,2,1）。
 
-```
-
 ## 五、伪类（单冒号 :）
 
 ### 5.1 状态伪类
