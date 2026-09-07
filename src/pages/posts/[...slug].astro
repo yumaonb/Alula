@@ -58,7 +58,7 @@ let nextPost: { title: string; url: string } | null = null;
 if (type === 'post') {
   const slug = Astro.props.slug as string;
   post = data.posts.find((p) => p.slug === slug);
-  entry = data.entries.find((e) => e.id === slug);
+  entry = data.entries.find((e) => e.slug === slug);
 
   if (post && entry) {
     const rendered = await renderPost(entry);

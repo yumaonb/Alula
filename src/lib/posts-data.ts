@@ -95,13 +95,13 @@ async function buildData(): Promise<BlogData> {
   const posts: PostItem[] = entries
     .map((e) => {
       const d = e.data as any;
-      const parts = e.id.split('/');
+      const parts = e.slug.split('/');
       // 分类 = 文件所在目录（content/posts 之内的路径）
       const category = parts.slice(0, -1).join('/');
       const url = `/${[postRoute, ...parts].join('/')}/`;
       const words = countWords(e.body || '');
       return {
-        slug: e.id,
+        slug: e.slug,
         title: d.title ?? '无标题',
         date: d.date ? formatDate(d.date) : '',
         description: typeof d.description === 'string' ? d.description : '',
