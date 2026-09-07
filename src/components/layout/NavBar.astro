@@ -255,6 +255,34 @@ import { site } from "../../data/site";
     border-top-color: rgba(255, 255, 255, 0.12);
   }
 
+  /* 切页收起：与 page-exit 同速（0.2s），丝滑且不与页面动画打架 */
+  .mobile-dropdown.is-closing-nav {
+    transition: max-height 0.2s ease, border-color 0.15s ease;
+  }
+
+  .mobile-overlay.is-closing-nav {
+    transition: opacity 0.2s ease;
+  }
+
+  .hamburger-btn.is-closing-nav .icon-bars,
+  .hamburger-btn.is-closing-nav .icon-close {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  /* 内容替换兜底：菜单仍未关闭时直接跳过过渡 */
+  .mobile-dropdown.no-transition,
+  .mobile-overlay.no-transition,
+  .hamburger-btn.no-transition .icon-bars,
+  .hamburger-btn.no-transition .icon-close {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .mobile-dropdown.no-transition .mobile-dropdown-inner,
+  .mobile-dropdown.no-transition .mobile-item {
+    animation: none !important;
+  }
+
   .mobile-dropdown.is-open .mobile-dropdown-inner {
     animation: mobile-inner-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
