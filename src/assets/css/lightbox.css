@@ -8,9 +8,9 @@
   --pswp-placeholder-bg: rgba(255, 255, 255, 0.06);
   --pswp-root-z-index: 10000;
   --pswp-icon-color: rgba(255, 255, 255, 0.9);
-  --pswp-icon-color-secondary: rgba(255, 255, 255, 0.55);
+  --pswp-icon-color-secondary: rgba(8, 8, 14, 0.85);
   /* 图标描边阴影调细、减淡，避免图标轮廓显得臃肿看不清形状 */
-  --pswp-icon-stroke-color: rgba(255, 255, 255, 0.45);
+  --pswp-icon-stroke-color: rgba(8, 8, 14, 0.5);
   --pswp-icon-stroke-width: 1px;
   --pswp-preloader-color: rgba(255, 255, 255, 0.4);
   --pswp-preloader-color-secondary: rgba(8, 8, 14, 0.9);
