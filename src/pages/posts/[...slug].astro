@@ -1,4 +1,4 @@
-﻿---
+---
 // [...slug].astro — 文章详情页 & 分类列表页（基于 astro:content 集合）
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostsLayout from '../../layouts/PostsLayout.astro';
@@ -172,7 +172,7 @@ if (type === 'category') {
       {post.image && (
         <div class="post-cover">
           <span class="cover-ph-icon" aria-hidden="true"><Icon name="mdi:image-outline" /></span>
-          <ImageWrapper src={post.image} basePath={post.basePath} alt={post.title} class="w-full" style="width: 100%; height: auto; display: block;" />
+          <ImageWrapper src={post.image} basePath={post.basePath} alt={post.title} class="w-full" style="width: 100%; height: auto; display: block;" sizes="(max-width: 768px) 100vw, 920px" widths={[1280, 1920]} />
         </div>
       )}
     </header>

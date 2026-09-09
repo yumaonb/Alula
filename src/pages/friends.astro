@@ -7,13 +7,11 @@ import { friends } from '../data/friends';
 <BaseLayout title="友情链接">
   <div class="friends-page page-container">
 
-    <!-- 标题区 -->
     <header class="friends-header">
       <h1 class="section-title">友情链接</h1>
       <p class="section-desc">欢迎各位互加友链，本站域名后续可能更换，如介意请勿申请友链</p>
     </header>
 
-    <!-- 友链网格 -->
     <div class="friends-grid">
       {friends.map((f) => (
         <a href={f.url} class="friend-card glass" target="_blank" rel="noopener">
@@ -28,7 +26,6 @@ import { friends } from '../data/friends';
       ))}
     </div>
 
-    <!-- 申请友链 -->
     <section class="apply-section">
       <p class="apply-label">申请友链</p>
       <div class="apply-card glass">

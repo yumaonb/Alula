@@ -45,7 +45,7 @@ a {
 }
 
 /* 全站链接 hover 效果：文字周围出现柔和光晕，类似按钮 */
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.project-card):not(.action-card):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(.cat-item):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag) {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.project-card):not(.action-card):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(.cat-item):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(.post-card-desc) {
   display: inline-flex;
   align-items: center;
   border-radius: 6px;
@@ -54,7 +54,7 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.projec
   overflow: hidden;
 }
 
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(.cat-item):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag)::before {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(.cat-item):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(.post-card-desc)::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -66,7 +66,7 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action
 
 }
 
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.cat-item):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):hover::before {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.cat-item):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(.post-card-desc):hover::before {
   opacity: 1;
 }
 

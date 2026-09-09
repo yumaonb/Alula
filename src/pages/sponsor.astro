@@ -8,13 +8,11 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 <BaseLayout title="赞助">
   <div class="sponsor-page page-container">
 
-    <!-- 标题区 -->
     <header class="sponsor-header">
       <h1 class="header-title section-title">赞助支持</h1>
       <p class="header-desc section-desc">如果我的内容对你有帮助，欢迎请我喝杯咖啡</p>
     </header>
 
-    <!-- 主赞助卡片 -->
     <a href={sponsorLink.href} class="hero-card glass" target="_blank" rel="noopener">
       <div class="hero-card-inner">
         <div class="hero-text">
@@ -28,7 +26,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       </div>
     </a>
 
-    <!-- 赞助名单 -->
     <a href={sponsorList.href} class="action-card glass" target={sponsorList.target} rel="noopener">
       <Icon name={sponsorList.icon} class="action-icon" />
       <div class="action-body">
@@ -37,7 +34,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       </div>
     </a>
 
-    <!-- 其他支持方式 -->
     <section class="other-section">
       <div class="other-header">
         <span class="other-line"></span>

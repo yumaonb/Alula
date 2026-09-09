@@ -1,7 +1,5 @@
-/**
- * profile.ts — 个人信息配置
- * 用法：import { nickname, motto, intro, socialLinks } from "@/data/profile"
- */
+// profile.ts — 个人信息配置
+// 用法：import { nickname, motto, intro, socialLinks } from "@/data/profile"
 
 export interface SocialLink {
   icon: string;

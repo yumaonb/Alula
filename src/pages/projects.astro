@@ -6,13 +6,11 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
 
 <BaseLayout title="项目">
   <div class="projects-page page-container">
-    <!-- 页面标题 -->
     <div class="page-header">
       <h1 class="page-title section-title">我的项目</h1>
       <p class="page-desc section-desc">这里是我的一些开源项目，欢迎Star或Fork</p>
     </div>
 
-    <!-- 项目卡片 -->
     <ProjectsGrid client:visible />
   </div>
 </BaseLayout>
@@ -23,7 +21,7 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
     max-width: 960px;
   }
 
-  /* 标题区 */
+  /* ---- 标题区 ---- */
   .page-header {
     text-align: center;
     margin-bottom: 40px;

@@ -12,9 +12,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 ---
 <BaseLayout title="首页">
   <div class="content-wrapper">
-    <!-- 左栏 -->
     <div class="left-col">
-      <!-- 头像 + 昵称 + 签名 -->
       <div class="avatar-section">
         <div class="avatar-ring">
           <Image src={avatarImg} alt="头像" class="avatar-img" width={120} height={120} loading="eager" />
@@ -25,12 +23,10 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
         </div>
       </div>
 
-      <!-- 介绍 -->
       <div class="intro-card glass">
         <div class="intro-about" set:html={intro}></div>
       </div>
 
-      <!-- 联系方式 -->
       <div class="social-row">
         {socialLinks.map((link) => (
           <a href={link.url} class="glass-btn" title={link.label} target="_blank" rel="noopener">
@@ -42,7 +38,6 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 
     <!-- 右栏（屏幕宽度小于769px隐藏） -->
     <div class="right-col">
-      <!-- 实时时钟 -->
       <div class="island-slot glass">
         <Clock client:load />
       </div>
@@ -52,7 +47,6 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
         <DaysCounter client:load />
       </div>
 
-      <!-- 随机一言 -->
       <div class="island-slot glass">
         <Quote />
       </div>
@@ -63,7 +57,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 </BaseLayout>
 
 <style>
-  /* 页面布局 */
+  /* ---- 页面布局 ---- */
   .content-wrapper {
     display: flex;
     align-items: flex-start;
@@ -74,7 +68,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     padding: 24px 24px 0;
   }
 
-  /* 左栏 */
+  /* ---- 左栏 ---- */
   .left-col {
     display: flex;
     flex-direction: column;
@@ -84,7 +78,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     flex-shrink: 0;
   }
 
-  /* 头像区域 */
+  /* ---- 头像区域 ---- */
   .avatar-section {
     display: flex;
     flex-direction: row;
@@ -102,7 +96,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     letter-spacing: 0.05em;
   }
 
-  /* 介绍卡片 */
+  /* ---- 介绍卡片 ---- */
   .intro-card {
     width: 100%;
     padding: 28px 24px;
@@ -118,7 +112,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     line-height: 1.7;
   }
 
-  /* 联系方式 */
+  /* ---- 联系方式 ---- */
   .social-row {
     display: flex;
     gap: 18px;
@@ -128,7 +122,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     align-self: center;
   }
 
-  /* 右栏 */
+  /* ---- 右栏 ---- */
   .right-col {
     width: 340px;
     display: flex;
@@ -138,14 +132,14 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     min-height: 406px;
   }
 
-  /* 岛屿容器 */
+  /* ---- 岛屿容器 ---- */
   .island-slot {
     width: 100%;
     padding: 14px 20px;
     border-radius: var(--radius);
   }
 
-  /* 手机端适配 */
+  /* ---- 手机端适配 ---- */
   @media (max-width: 768px) {
     .content-wrapper {
       flex-direction: column;

@@ -17,9 +17,7 @@ interface Props {
   description?: string;
   headings: Heading[];
   breadcrumbs: BreadcrumbItem[];
-  /** 侧栏分类树（来自 loadBlogData()） */
   categoryTree: CategoryTreeNode[];
-  /** 侧栏标签计数（来自 loadBlogData()） */
   sidebarTags: { name: string; count: number }[];
 }
 
@@ -59,8 +57,7 @@ const hasToc = headings && headings.length > 0;
 </BaseLayout>
 
 <style>
-  /* 整行容器：与列表/分类页一致，限制最大宽度并居中（main.hero 的
-     justify-content: center + width:100% 即可让该容器居中，不会贴左） */
+  /* 整行容器：与列表页一致，限宽并由父容器主轴居中 */
   .posts-with-sidebar {
     max-width: 1200px;
   }
@@ -88,9 +85,7 @@ const hasToc = headings && headings.length > 0;
   }
 
   .posts-sidebar-wrap {
-    /* 让侧栏拉伸到正文列高度：wrapper 对齐到行高（覆盖容器 align-items:flex-start），
-       内部 display:flex 使 .global-sidebar 的 align-self:stretch 生效，
-       .sidebar-filter 的 position:sticky 才有滚动行程（与列表页直接子元素一致） */
+    /* 侧栏拉伸到正文列高度，sticky 目录才有滚动行程 */
     align-self: stretch;
     display: flex;
   }
