@@ -437,16 +437,17 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     display: none;
   }
 
-  .post-card-cover img {
+  :global(.post-card-cover img) {
     position: relative;
     width: 100%;
     height: 100%;
-    object-fit: fill; /* 非 4:3 的图片拉伸为 4:3 填满 */
+    max-width: 100%;
+    object-fit: fill;
     display: block;
     transition: transform 0.22s ease;
   }
 
-  .post-card-cover:hover img {
+  :global(.post-card-cover:hover img) {
     transform: scale(1.02);
   }
 
@@ -501,7 +502,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
       border-radius: 10px;
     }
 
-    .post-card-cover:hover img {
+    :global(.post-card-cover:hover img) {
       transform: none;
     }
 
