@@ -1,7 +1,5 @@
-/**
- * friends.ts — 友情链接数据
- * 用法：import { friends } from "@/data/friends"
- */
+// friends.ts — 友情链接数据
+// 用法：import { friends } from "@/data/friends"
 
 export interface Friend {
   name: string;

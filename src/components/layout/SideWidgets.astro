@@ -1,19 +1,9 @@
-<!--
-  SideWidgets.astro — 侧边悬浮按钮列（纯静态标记）
-
-  由原来的 6 个独立按钮合并而来：返回顶部 / 文章目录 / 分类标签 / 阅读进度 / 到评论 / 到底部。
-
-  【重要】本组件只输出结构，不带任何交互逻辑、也不做 Svelte 岛 hydration。
-  可用性（.unavailable）、显隐（.visible）、紧凑态（.compact）、进度环、点击跳转
-  全部由全局脚本 src/assets/js/swup-widgets.js 管理——避免依赖某个岛是否水合。
-
-  DOM 约定（swup-widgets.js / TocModal / PostsFilterModal 都依赖它）：
-    - 容器：.side-widgets#side-widgets
-    - 每个按钮：.back-to-widget + data-widget="top|toc|filter|progress|comments|bottom"
-    - 目录 / 筛选按钮 id 固定为 #toc-fab / #posts-filter-fab（抽屉组件按此 id 监听）
-  → 后续新增界面只需在 swup-widgets.js 的 probe() 里扩展可用性规则。
--->
 ---
+// SideWidgets.astro — 侧边悬浮按钮列（纯静态标记，交互由 swup-widgets.js 控制）
+// 用法：<SideWidgets />（BaseLayout 引入）
+// DOM 约定：容器 #side-widgets；每个按钮 .back-to-widget +
+//   data-widget="top|toc|filter|progress|comments|bottom"；
+//   目录 / 筛选按钮 id 固定为 #toc-fab / #posts-filter-fab（由 TocModal / PostsFilterModal 监听）
 import { Icon } from 'astro-icon/components';
 ---
 

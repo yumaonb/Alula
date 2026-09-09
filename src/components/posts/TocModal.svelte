@@ -1,7 +1,5 @@
-<!-- TocModal.svelte — 文章目录抽屉弹窗（item7 后为纯抽屉）
-// 悬浮入口按钮已并入 SideWidgets.svelte（#toc-fab，同一 .back-to-widget 结构），
-// 本组件只负责抽屉本身：监听 #toc-fab 点击，把 .toc-nav 从文章侧栏挪进抽屉展示。
--->
+<!-- TocModal.svelte — 文章目录抽屉
+     入口：#toc-fab 按钮点击打开；打开时把 .toc-nav 从文章侧栏移入抽屉展示 -->
 <script>
   import { onMount } from 'svelte';
 

@@ -1,7 +1,7 @@
 ---
-// PostCard.astro — 文章卡片
-
-// 卡片本身不可点击，正文整体 pointer-events:none，仅各链接单独可点。
+// PostCard.astro — 文章卡片（封面 + 标题 + 介绍 + 元信息 + 标签）
+// 用法：<PostCard title={...} date={...} url={...} ... />
+// 卡片正文整体 pointer-events:none，仅各链接单独可点
 import { Icon } from 'astro-icon/components';
 import ImageWrapper from './ImageWrapper.astro';
 import type { CategoryTrailItem } from '../../lib/category';

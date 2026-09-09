@@ -1,4 +1,4 @@
-// techstack.ts — 技术栈数据
+// techstack.ts — 技术栈数据（按类别分组）
 // 用法：import { techStack } from "@/data/techstack"
 
 export interface TechCategory {

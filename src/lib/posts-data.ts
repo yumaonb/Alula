@@ -1,6 +1,6 @@
-// posts-data.ts — 文章数据统一入口（各页面/侧栏共用，仅服务端可用）
+// posts-data.ts — 文章数据统一入口（各页面 / 侧栏共用，仅服务端）
 // 用法：import { loadBlogData, renderPost, postBreadcrumbs } from "../../lib/posts-data"
-// 数据：{ meta, posts, entries, categoryTree, tags }，见 BlogData；模块级缓存，同一次构建共享一份。
+// 数据结构：{ meta, posts, entries, categoryTree, tags }，见 BlogData；模块级缓存。
 import { getCollection, type CollectionEntry } from 'astro:content';
 import {
   buildCategoryTrail,
@@ -14,12 +14,10 @@ import {
 } from './category';
 import { commentCountFor, loadCommentCounts } from './comment-counts';
 
-/** 相对项目根，必须与 posts 集合目录一致 */
 const contentRoot = 'content/posts';
 
 // ---- 分类元数据 ----
 
-/** 目录 key（相对 content/posts），如 "alula/posts/index.json" → "alula/posts" */
 function metaKeyOf(fileKey: string): string | null {
   const key = fileKey.replace(/\\/g, '/');
   const marker = `/${contentRoot}/`;
@@ -31,7 +29,6 @@ function metaKeyOf(fileKey: string): string | null {
 
 const metaJson = import.meta.glob('../content/posts/**/index.json', { eager: true });
 
-/** 分类元数据字典，仅解析各目录的 index.json */
 export function buildCategoryMeta(): Record<string, CategoryMeta> {
   const meta: Record<string, CategoryMeta> = {};
   for (const [fp, m] of Object.entries(metaJson)) {
@@ -61,7 +58,6 @@ export interface BlogData {
 
 let cache: Promise<BlogData> | null = null;
 
-/** 统计正文字数：中文字符 + 英文单词，剔除代码块与图片 */
 function countWords(body: string): number {
   const cleaned = body
     .replace(/```[\s\S]*?```/g, ' ')
@@ -120,13 +116,11 @@ async function buildData(): Promise<BlogData> {
   return { meta, posts, entries, categoryTree, tags };
 }
 
-/** 全站唯一数据入口，模块级缓存，各页面共用一份结果 */
 export async function loadBlogData(): Promise<BlogData> {
   cache ??= buildData();
   return cache;
 }
 
-/** 渲染文章，返回 Content 组件与 headings */
 export async function renderPost(entry: PostEntry) {
   return entry.render();
 }

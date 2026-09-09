@@ -1,6 +1,5 @@
 ---
-// index.astro — 首页
-
+// index.astro — 首页（头部 + 介绍 + 时钟 / 统计 / 一言）
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Clock from '../components/widgets/Clock.svelte';
 import Quote from '../components/widgets/Quote.astro';
@@ -36,13 +35,11 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
       </div>
     </div>
 
-    <!-- 右栏（屏幕宽度小于769px隐藏） -->
     <div class="right-col">
       <div class="island-slot glass">
         <Clock client:load />
       </div>
 
-      <!-- 入坑全栈时间、开发经验、项目数量 -->
       <div class="stats-row">
         <DaysCounter client:load />
       </div>

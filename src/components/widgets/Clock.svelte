@@ -1,4 +1,4 @@
-<!-- Clock.svelte — 实时时钟 -->
+<!-- Clock.svelte — 实时时钟（指针动画 + 时间/日期显示） -->
 <script>
   import { onMount, onDestroy } from 'svelte';
 

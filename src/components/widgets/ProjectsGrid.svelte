@@ -1,4 +1,4 @@
-<!-- ProjectsGrid.svelte — 项目展示卡片网格 -->
+<!-- ProjectsGrid.svelte — 项目展示卡片网格（GitHub 仓库） -->
 <script>
   import { onMount } from 'svelte';
   import Icon from '@iconify/svelte';

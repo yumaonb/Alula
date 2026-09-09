@@ -75,7 +75,7 @@
   padding-left: 4px;
 }
 
-/* ---- 文章列表（Fuwari 式纵向堆叠，卡片铺满内容列） ---- */
+/* ---- 文章列表：纵向堆叠，卡片铺满内容列 ---- */
 .posts-grid {
   display: flex;
   flex-direction: column;

@@ -1,6 +1,5 @@
-// content.config.ts — 内容集合定义
-// 只做基础元数据校验与默认值；分类完全由文章所在目录结构决定，
-// 不再适配任何其他博客的 frontmatter 分类字段（categories/category/分类 等一律忽略）。
+// content.config.ts — 内容集合定义（基础元数据校验与默认值）
+// 分类由文章在 content/posts/ 的目录结构决定，frontmatter 的 categories / category / 分类 字段一律忽略。
 import { defineCollection, z } from 'astro:content';
 
 const posts = defineCollection({

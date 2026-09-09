@@ -1,6 +1,6 @@
 ---
-// GlobalSidebar.astro — 文章区左侧边栏（数据由页面通过 props 注入，自身不再读文章）
-// 用法：<GlobalSidebar tree={data.categoryTree} tags={data.tags} activeTag={...} />
+// GlobalSidebar.astro — 文章区左侧边栏（分类树 + 标签云）
+// 用法：<GlobalSidebar tree={data.categoryTree} tags={data.tags} activeTag={activeTag} />
 import AuthorCard from '../widgets/AuthorCard.astro';
 import PostCategoryTree from './PostCategoryTree.astro';
 import PostTagCloud from './PostTagCloud.astro';

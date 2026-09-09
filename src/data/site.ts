@@ -1,7 +1,5 @@
-/**
- * site.ts — 站点配置
- * 用法：import { site } from "@/data/site"
- */
+// site.ts — 站点配置
+// 用法：import { site } from "@/data/site"
 
 export interface SiteConfig {
   /** 站点名称 */

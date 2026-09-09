@@ -1,6 +1,6 @@
 ---
-// NavBar.astro — 导航栏
-
+// NavBar.astro — 导航栏（桌面链接 + 移动端汉堡菜单）
+// 用法：<NavBar />（BaseLayout 引入）
 import { Icon } from "astro-icon/components";
 import { site } from "../../data/site";
 ---
@@ -12,7 +12,6 @@ import { site } from "../../data/site";
       {site.name}
     </a>
 
-    <!-- 桌面端链接 -->
     <ul class="nav-links">
       <li><a href="/">首页</a></li>
       <li><a href="/about/">关于</a></li>
@@ -22,7 +21,6 @@ import { site } from "../../data/site";
       <li><a href="/sponsor/">赞助</a></li>
     </ul>
 
-    <!-- 手机端汉堡按钮 -->
     <button
       class="hamburger-btn"
       aria-label="菜单"
@@ -34,7 +32,6 @@ import { site } from "../../data/site";
     </button>
   </div>
 
-  <!-- 手机端下拉菜单 -->
   <div id="mobile-dropdown" class="mobile-dropdown" aria-hidden="true">
     <div class="mobile-dropdown-inner">
       <ul class="mobile-menu">
@@ -97,7 +94,6 @@ import { site } from "../../data/site";
   </div>
 </nav>
 
-<!-- 遮罩层 -->
 <div class="mobile-overlay" aria-hidden="true"></div>
 
 <script>

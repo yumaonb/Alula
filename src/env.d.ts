@@ -1,4 +1,5 @@
 // env.d.ts — TypeScript 环境类型声明
+// 用法：由 TypeScript 自动加载，无需手动引用。
 /// <reference types="astro/client" />
 
 interface Window {

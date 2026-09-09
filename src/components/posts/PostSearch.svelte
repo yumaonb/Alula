@@ -1,4 +1,4 @@
-<!-- PostSearch.svelte — 文章搜索框组件 -->
+<!-- PostSearch.svelte — 文章全文搜索（基于 Pagefind） -->
 <script>
   import { onMount, onDestroy } from 'svelte';
   import Icon from '@iconify/svelte';

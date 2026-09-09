@@ -28,14 +28,13 @@ export async function getStaticPaths() {
     routes.push({ params: { slug: p.slug }, props: { type: 'post', slug: p.slug } });
   }
 
-  // 分类路由：分类描述文件 + 每篇文章的目录祖先 + frontmatter 分类祖先
+  // 分类路由：分类目录（index.json）+ 每篇文章所在目录的祖先目录
   const addCategory = (path: string) => {
     if (!path || seen.has(path)) return;
     seen.add(path);
     routes.push({ params: { slug: path }, props: { type: 'category', category: path } });
   };
 
-  // 分类路由：分类目录（index.json）+ 每篇文章所在目录的祖先目录
   for (const key of Object.keys(d.meta)) addCategory(key);
   for (const p of d.posts) {
     const parts = p.category.split('/').filter(Boolean);
@@ -47,7 +46,7 @@ export async function getStaticPaths() {
 
 const { type } = Astro.props;
 
-// ==================== 文章页 ====================
+// ---- 文章页数据 ----
 let post = undefined as (typeof data.posts)[number] | undefined;
 let entry = undefined as (typeof data.entries)[number] | undefined;
 let PostContent: any = undefined;
@@ -71,7 +70,7 @@ if (type === 'post') {
   }
 }
 
-// ==================== 分类页 ====================
+// ---- 分类页数据 ----
 let catPath: string[] = [];
 let catName = '';
 let catPosts = [] as typeof data.posts;

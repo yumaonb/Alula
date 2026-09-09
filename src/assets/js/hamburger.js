@@ -1,7 +1,5 @@
-/**
- * hamburger.js — 汉堡菜单交互
- * 由 NavBar.astro 按需动态 import，无需手动调用
- */
+// hamburger.js — 汉堡菜单交互（移动端下拉菜单开/关）
+// 用法：由 NavBar.astro 在移动端按需动态 import
 import { onEnterDesktop } from './breakpoint.js';
 
 const OPEN = 'is-open';

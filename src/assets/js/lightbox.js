@@ -1,8 +1,6 @@
-// lightbox.js — 正文图片 / 文章详情页封面 灯箱触发器（懒加载）
-//
-// 只在首次点击正文图片或详情页封面图时，才动态加载灯箱实现
-// lightbox-core.js（连同其样式 lightbox.css 一起按需加载）。
-// 点击监听挂在 document 上，swup 切页后产生的新图片同样生效。
+// lightbox.js — 灯箱触发入口（懒加载：首次点击才拉取 lightbox-core.js）
+// 用法：由 BaseLayout 引入：import "../assets/js/lightbox.js"
+// 点击监听挂在 document 上，swup 切页后的新图片同样生效
 (() => {
   if (window.__alula_lightbox_bound) return;
   window.__alula_lightbox_bound = true;

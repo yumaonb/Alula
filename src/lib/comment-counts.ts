@@ -1,17 +1,11 @@
 // comment-counts.ts — giscus 评论数（构建期从 GitHub API 拉取）
-//
-// 站点评论由 giscus 提供，按「pathname」映射到 GitHub Discussion：
-// giscus 创建讨论时会把讨论标题写成「去掉前导斜杠的页面路径」
-// （例如 /posts/devnotes/css/at-rule/ → 标题 "posts/devnotes/css/at-rule/"）。
-// 因此构建期拉取仓库全部 Discussions，按标题即可精确匹配每篇文章并取到评论数。
-//
-// 只允许在服务端（页面 / Astro 组件 frontmatter）使用，禁止客户端引用。
-// 任何网络异常都返回 null（调用方隐藏评论数），保证构建不因网络问题失败。
+// 用法：import { loadCommentCounts, commentCountFor } from "../../lib/comment-counts"
+// 匹配方式：giscus 按 pathname 映射讨论，讨论标题为「去掉前导斜杠的页面路径」，
+// 构建期拉取仓库全部 Discussions 按标题匹配每篇文章的评论数。
+// 仅限服务端使用；任何网络异常返回 null，调用方隐藏评论数，构建不因网络失败。
+
 import { githubUsername, githubRepo } from '../data/github';
 
-/**
- * 归一化路径（去掉首尾斜杠），如 "posts/devnotes/css/at-rule/" → "posts/devnotes/css/at-rule"
- */
 function normalizePath(path: string): string {
   return path.replace(/^\/+|\/+$/g, '');
 }
@@ -26,7 +20,6 @@ const PER_PAGE = 100;
 const MAX_PAGES = 20;
 const TIMEOUT_MS = 10_000;
 
-/** 拉取一页讨论；失败返回 null */
 async function fetchDiscussionsPage(page: number): Promise<DiscussionPage[] | null> {
   const url = `https://api.github.com/repos/${githubUsername}/${githubRepo}/discussions?per_page=${PER_PAGE}&page=${page}`;
   const controller = new AbortController();
@@ -46,12 +39,6 @@ async function fetchDiscussionsPage(page: number): Promise<DiscussionPage[] | nu
   }
 }
 
-/**
- * 拉取全仓库 giscus 讨论，建立「归一化路径 → 评论数」映射。
- *
- * @returns 成功返回映射（未匹配到讨论的路径不在其中）；
- *          整体失败（网络 / 限流 / 解析异常）返回 null，调用方据此隐藏评论数。
- */
 export async function loadCommentCounts(): Promise<Record<string, number> | null> {
   const counts: Record<string, number> = {};
   try {
@@ -71,11 +58,6 @@ export async function loadCommentCounts(): Promise<Record<string, number> | null
   }
 }
 
-/**
- * 取某篇文章的评论数。
- * @param counts loadCommentCounts 的返回值（null 表示不可用）
- * @param url    文章完整 URL，如 /posts/devnotes/css/at-rule/
- */
 export function commentCountFor(counts: Record<string, number> | null, url: string): number | undefined {
   if (!counts) return undefined;
   const key = normalizePath(url);

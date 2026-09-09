@@ -1,4 +1,5 @@
 // @ts-check
+// astro.config.mjs — 站点构建配置（Astro 集成 / 压缩 / 构建后清理注释）
 import { defineConfig } from "astro/config";
 import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import { join } from "node:path";

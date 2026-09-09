@@ -1,4 +1,5 @@
-// toc.js — 文章目录：高亮、竖线动画、点击滚动、滚动隔离
+// toc.js — 文章目录：活动高亮、指示竖线移动动画、点击平滑滚动、目录自身滚动隔离
+// 用法：由 TableOfContents.astro 引入：import "../../assets/js/toc.js"
 (function() {
   if (window.__tocInit) return;
   window.__tocInit = true;

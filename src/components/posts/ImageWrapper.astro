@@ -1,6 +1,6 @@
 ---
-// ImageWrapper.astro — 图片包装组件，支持本地图片自动压缩
-// 参考 Fuwari 的实现方式，支持自定义路径
+// ImageWrapper.astro — 图片包装：本地图片走 astro:assets 压缩，外链原样渲染
+// 用法：<ImageWrapper src={...} basePath={...} alt={...} sizes={...} widths={...} />
 import path from "node:path";
 
 interface Props {

@@ -1,6 +1,6 @@
 ---
-// PostCategoryTree.astro — 分类树面板
-// 点击右侧箭头展开/收起子分类，点击分类名跳转
+// PostCategoryTree.astro — 分类树面板（点击展开/收起，点分类名跳转）
+// 用法：<PostCategoryTree tree={...} categoryUrl={...} activeCategory={...} />
 import { Icon } from 'astro-icon/components';
 import PostCategoryNode from './PostCategoryNode.astro';
 import type { CategoryTreeNode } from '../../lib/category';

@@ -1,4 +1,5 @@
-<!-- PostsFilterModal.svelte — 分类与标签筛选抽屉 -->
+<!-- PostsFilterModal.svelte — 分类与标签筛选抽屉
+     入口：#posts-filter-fab 按钮点击打开；打开时把 sidebar-filter 移入抽屉展示 -->
 <script>
   import { onMount } from 'svelte';
   import Icon from '@iconify/svelte';

@@ -1,7 +1,5 @@
-/**
- * quotes.ts — 随机一言数据集
- * 在此文件中添加、删除或修改语录即可自定义。
- */
+// quotes.ts — 随机一言数据集（诗词 / 哲理 / 动漫 / 励志）
+// 用法：import { quotes } from "@/data/quotes"
 
 export interface Quote {
   text: string;

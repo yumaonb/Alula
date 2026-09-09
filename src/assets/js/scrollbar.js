@@ -1,4 +1,5 @@
-// scrollbar.js — 自定义悬浮滚动条
+// scrollbar.js — 自定义悬浮滚动条（鼠标拖动 / 点击轨道 / hover 定位）
+// 用法：由 CustomScrollbar.astro 引入：import "../../assets/js/scrollbar.js"
 (function() {
   var container = document.getElementById('custom-scrollbar');
   var track = document.getElementById('scrollbar-track');

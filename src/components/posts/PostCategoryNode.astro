@@ -1,6 +1,6 @@
 ---
 // PostCategoryNode.astro — 分类树节点（递归组件）
-// 布局：[缩进] [数量] [分类名(链接)] ................ [▶ 展开按钮]
+// 用法：<PostCategoryNode node={...} depth={...} ... />（由 PostCategoryTree 递归渲染）
 import { Icon } from 'astro-icon/components';
 import type { CategoryTreeNode } from '../../lib/category';
 import Self from './PostCategoryNode.astro';

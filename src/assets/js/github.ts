@@ -1,7 +1,5 @@
-/**
- * github.ts — GitHub API 查询模块
- * 提供带 localStorage 缓存的 GitHub 数据查询能力
- */
+// github.ts — GitHub 数据查询（带 localStorage 缓存）
+// 用法：import { fetchRepos, fetchRepoCount } from "../../assets/js/github"
 
 import { githubUsername, cacheTTL } from '../../data/github';
 

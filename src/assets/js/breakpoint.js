@@ -1,9 +1,5 @@
-/**
- * breakpoint.js — 共享的移动端/桌面端断点监听
- * 断点与 CSS 保持一致：≤768px 为移动端，≥769px 为桌面端。
- * 基于 matchMedia 的 change 事件，仅在跨越断点的那一刻触发一次，
- * 不会像 resize 监听那样在拖拽窗口时每帧执行。
- */
+// breakpoint.js — 共享的移动端/桌面端断点监听器
+// 用法：import { onEnterDesktop } from "../../assets/js/breakpoint.js"
 
 const mq = window.matchMedia('(min-width: 769px)');
 const subscribers = new Set();
@@ -14,9 +10,6 @@ function handleChange(e) {
   subscribers.forEach((fn) => fn());
 }
 
-/**
- * 订阅"进入桌面端"事件，返回取消订阅函数。
- */
 export function onEnterDesktop(fn) {
   subscribers.add(fn);
   if (!listening) {

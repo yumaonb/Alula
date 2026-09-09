@@ -1,21 +1,10 @@
-// swup-widgets.js — 侧边悬浮按钮列的运行时控制器（模块脚本，只执行一次）
-//
-// 配合 SideWidgets.astro（纯静态标记）使用：按钮的可用性、显隐、进度环、点击跳转
-// 全部在这里完成，不依赖任何 Svelte 岛 hydration，因此在 swup 切页后依然可靠。
-//
-// 职责划分：
-//   - 可用性：按页面类型 + 视口宽度重估每个按钮，用 .unavailable / .compact 表达
-//   - 显隐：滚动超过 100px 且非 unavailable 的按钮显示（.visible），由 scroll 驱动
-//   - 进度：更新阅读进度环的 stroke-dashoffset 与百分比文本
-//   - 点击：返回顶部 / 到底部 / 到评论在此委托处理；目录、筛选入口不做处理
-//     （TocModal / PostsFilterModal 按 #toc-fab / #posts-filter-fab 各自监听）
-//   - swup：切页开始即压制（容器 .navigating + 去 .visible）；新内容就绪后先按新页面重估
-//     可用性，但保持压制直到"页面完全回到顶部"再放行——放行依据三个条件，任选其一：
-//       ① 滚动事件把页面带回顶部（y ≤ SHOW_AT）
-//       ② swup 平滑滚动（scroll plugin）结束（swup:scroll:end），按落点恢复
-//       ③ 兜底：新页面渲染后短时间（250ms）内没有发生任何滚动动画，按当前位置恢复
-//     （兜底不做"900ms 后无条件放行"，因为滚动回顶可能远长于 900ms，
-//       若中途放行按钮会提前弹出——这正是本项目曾出现的缺陷。）
+// swup-widgets.js — 侧边悬浮按钮列运行时控制器（可用性 / 显隐 / 进度环 / 点击）
+// 用法：由 BaseLayout 引入：import "../assets/js/swup-widgets.js"
+// 职责：可用性按页面类型+视口重估（.unavailable/.compact）；滚动驱动显隐（.visible）；
+//       进度环更新（stroke-dashoffset + 百分比文本）；向上/向下/到评论跳转。
+//       目录（#toc-fab）与筛选（#posts-filter-fab）按钮分别由 TocModal / PostsFilterModal 监听。
+// 切页放行：切页开始即压制按钮，新内容就绪后保持压制，直到页面滚回顶部、
+//       平滑滚动结束（swup:scroll:end），或新内容渲染后 250ms 兜底超时为止。
 const container = document.getElementById('side-widgets');
 if (container) initSideWidgets(container);
 

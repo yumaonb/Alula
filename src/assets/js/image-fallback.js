@@ -1,17 +1,6 @@
-// image-fallback.js — 封面图 / 正文图片加载失败降级
-//
-// 机制：
-//   - 正文图片（.markdown-body 内）在「尚未加载完成 / 加载失败」时，
-//     由 CSS 在图片自身铺占位底 + 居中图标（见 image-fallback.css）；
-//     图片成功加载后 JS 追加 .img-loaded，移除占位底。
-//   - 图片加载失败时，将 <img> 替换为 .img-ph 占位块（淡灰半透明底 +
-//     居中白色图标，图标克隆自页面内的 mdi 图标模板），保留 alt 语义与高度。
-//   - 封面类（.post-cover / .post-card-cover）：失败时给 <img> 追加
-//     .img-failed 隐藏，露出容器占位背景。
-//
-// 由于本脚本是异步模块，图片可能在监听器挂上之前就已失败（error 事件错过），
-// 因此初始化、window.load、swup 切页后都会主动扫描一遍
-// 「img.complete && img.naturalWidth === 0」的图片做兜底处理。
+// image-fallback.js — 图片加载失败降级：正文图替换为占位块、封面图隐藏
+// 用法：由 BaseLayout 引入：import "../assets/js/image-fallback.js"
+// 扫尾：图片可能在监听器挂上前已失败，初始化 / window.load / swup 切页时都重扫一次
 (() => {
   if (window.__alula_image_fallback_bound) return;
   window.__alula_image_fallback_bound = true;

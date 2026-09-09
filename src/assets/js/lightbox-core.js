@@ -1,10 +1,6 @@
-// lightbox-core.js — 正文图片灯箱实现（基于 photoswipe 库）
-//
-// 懒加载：首次点击正文图片时，由 lightbox.js 动态 import 本模块，
-// 连同 photoswipe 的样式（以及本文件引入的轻量主题微调）一起按需加载。
-//
-// 库自带能力：缩放 / 双指手势 / 全屏 / 左右切换 / 计数器 / Esc 与点遮罩关闭；
-// 打开/关闭带从缩略图放大的过渡动画。swup 切页时自动关闭灯箱。
+// lightbox-core.js — 正文图片 / 详情页封面 灯箱实现（基于 photoswipe）
+// 用法：import { openLightbox } from "../../assets/js/lightbox-core.js"
+//       由 lightbox.js 在首次点击时动态 import，连同样式一起懒加载
 import PhotoSwipeLightbox from "photoswipe/lightbox";
 import PhotoSwipe from "photoswipe";
 import "photoswipe/style.css";
@@ -57,7 +53,6 @@ function buildDataSource() {
   });
 }
 
-/** 打开灯箱并定位到被点击的图片 */
 function openLightbox(img, clickEvent) {
   const dataSource = buildDataSource();
   const index = dataSource.findIndex((item) => item.element === img);

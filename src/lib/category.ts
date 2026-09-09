@@ -1,12 +1,6 @@
-// category.ts — 分类逻辑（纯函数 + 类型）
-//
-// 文章数据接入统一走 src/lib/posts-data.ts（基于 astro:content 的 getCollection），
-// 本文件只保留与 astro 运行环境无关的纯工具与类型，方便复用。
-//
-// 分类语义（唯一形式）：
-//   文章的分类 = 文章在 src/content/posts/ 下的目录路径（目录结构即分类）。
-//   不做其他博客格式的适配：frontmatter 里的 categories/category/分类 一律忽略，
-//   分类显示名由目录下的 index.json 提供（没有则直接用目录名）。
+// category.ts — 分类逻辑（纯函数 + 类型）：目录结构即分类，分类名由 index.json 提供
+// 用法：import { postRoute, buildCategoryUrl, buildCategoryTree, ... } from "../../lib/category"
+// 数据接入见 lib/posts-data.ts；frontmatter 中 categories/category/分类 字段一律忽略。
 
 /** 分类路由前缀（对应 src/pages/posts 目录），URL 形如 /posts/{slug}/ */
 export const postRoute = 'posts';
@@ -74,25 +68,16 @@ export interface BreadcrumbItem {
 
 // ---- 工具 ----
 
-/**
- * 格式化日期为 YYYY-MM-DD（无有效日期返回空串）
- */
 export function formatDate(value: string | Date): string {
   const d = typeof value === 'string' ? new Date(value) : value;
   if (!d || isNaN(d.getTime())) return '';
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/**
- * 文章是否属于某个分类（目标分类是文章分类的祖先或自身）
- */
 export function postMatchesCategory(post: PostItem, target: string): boolean {
   return !!post.category && (post.category === target || post.category.startsWith(target + '/'));
 }
 
-/**
- * 生成分类页 URL：/posts/{分类路径}/
- */
 export function buildCategoryUrl(
   categoryPath: string[],
   routePrefix: string = postRoute,
@@ -100,10 +85,6 @@ export function buildCategoryUrl(
   return '/' + [routePrefix, ...categoryPath].join('/') + '/';
 }
 
-/**
- * 构建文章的完整分类链：父分类 → … → 当前分类，每级带分类页 URL。
- * 无分类时返回空数组。
- */
 export function buildCategoryTrail(
   category: string,
   meta: Record<string, CategoryMeta>,
@@ -124,10 +105,6 @@ export function buildCategoryTrail(
 
 // ---- 分类树 ----
 
-/**
- * 构建分类树（含各层级中间节点）。
- * count 为该分类及其所有子孙分类下的文章总数。
- */
 export function buildCategoryTree(
   posts: PostItem[],
   categoryMeta: Record<string, CategoryMeta>,
