@@ -1,9 +1,10 @@
 // content.config.ts — 内容集合定义（基础元数据校验与默认值）
 // 分类由文章在 content/posts/ 的目录结构决定，frontmatter 的 categories / category / 分类 字段一律忽略。
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const posts = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
   schema: z
     .object({
       title: z.string().optional(),

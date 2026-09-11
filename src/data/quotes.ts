@@ -1,5 +1,5 @@
 // quotes.ts — 随机一言数据集（诗词 / 哲理 / 动漫 / 励志）
-// 用法：import { quotes } from "@/data/quotes"
+// 用法：import { quotes } from "../../data/quotes"
 
 export interface Quote {
   text: string;

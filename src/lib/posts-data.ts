@@ -1,7 +1,7 @@
 // posts-data.ts — 文章数据统一入口（各页面 / 侧栏共用，仅服务端）
 // 用法：import { loadBlogData, renderPost, postBreadcrumbs } from "../../lib/posts-data"
 // 数据结构：{ meta, posts, entries, categoryTree, tags }，见 BlogData；模块级缓存。
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
 import {
   buildCategoryTrail,
   buildCategoryTree,
@@ -78,13 +78,13 @@ async function buildData(): Promise<BlogData> {
   const posts: PostItem[] = entries
     .map((e) => {
       const d = e.data as any;
-      const parts = e.slug.split('/');
+      const parts = e.id.split('/');
       // 分类 = 文件所在目录（content/posts 之内的路径）
       const category = parts.slice(0, -1).join('/');
       const url = `/${[postRoute, ...parts].join('/')}/`;
       const words = countWords(e.body || '');
       return {
-        slug: e.slug,
+        slug: e.id,
         title: d.title ?? '无标题',
         date: d.date ? formatDate(d.date) : '',
         description: typeof d.description === 'string' ? d.description : '',
@@ -122,7 +122,7 @@ export async function loadBlogData(): Promise<BlogData> {
 }
 
 export async function renderPost(entry: PostEntry) {
-  return entry.render();
+  return render(entry);
 }
 
 export function postBreadcrumbs(

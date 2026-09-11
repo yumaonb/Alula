@@ -1,5 +1,5 @@
 // sponsor.ts — 赞助页面配置
-// 用法：import { sponsorLink, sponsorList, supportActions } from "@/data/sponsor"
+// 用法：import { sponsorLink, sponsorList, supportActions } from "../../data/sponsor"
 
 export interface SponsorLink {
   name: string;

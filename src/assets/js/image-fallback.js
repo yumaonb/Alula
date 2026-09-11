@@ -1,6 +1,6 @@
 // image-fallback.js — 图片加载失败降级：正文图替换为占位块、封面图隐藏
 // 用法：由 BaseLayout 引入：import "../assets/js/image-fallback.js"
-// 扫尾：图片可能在监听器挂上前已失败，初始化 / window.load / swup 切页时都重扫一次
+// 扫尾：图片可能在监听器挂上前已出结果，初始化 / swup 切页时都重扫一次
 (() => {
   if (window.__alula_image_fallback_bound) return;
   window.__alula_image_fallback_bound = true;
@@ -39,9 +39,10 @@
   }
 
   /**
-   * 单个图片的状态处理：
-   *   - 封面类：失败时隐藏（兜底 error 事件错过的场景）；
-   *   - 正文图片：加载成功 → 加 .img-loaded 移除占位底；失败 → 替换为占位块。
+   * 处理此刻已有加载结果的图片（缓存命中 / 已失败）：
+   *   - 封面类：失败时隐藏；
+   *   - 正文图片：成功 → 加 .img-loaded 移除占位底；失败 → 替换为占位块。
+   * 仍在加载中的图片不在此处理，由下面的捕获监听接管；因此本函数幂等，可重复调用。
    */
   function initImg(img) {
     if (img.closest(".post-cover, .post-card-cover")) {
@@ -49,26 +50,31 @@
       return;
     }
     if (!img.closest(".markdown-body")) return;
+    if (!img.complete) return;
 
-    if (img.complete) {
-      if (img.naturalWidth === 0) replaceWithPlaceholder(img);
-      else img.classList.add("img-loaded");
-      return;
-    }
-    img.addEventListener("load", () => img.classList.add("img-loaded"));
+    if (img.naturalWidth === 0) replaceWithPlaceholder(img);
+    else img.classList.add("img-loaded");
   }
 
-  /** 扫描当前页面所有图片（初始化 / window.load / swup 切页后调用） */
+  /** 扫描当前页面所有图片（初始化 / swup 切页后调用） */
   function scan() {
     document.querySelectorAll("img").forEach(initImg);
   }
 
-  scan();
-  window.addEventListener("load", scan);
-  // swup 切页后产生的新 DOM 同样被覆盖
-  document.addEventListener("swup:contentReplaced", scan);
+  // 加载成功：在捕获阶段监听 document 即可覆盖全部图片（load 不冒泡，但会经过捕获链），
+  // 于是无需逐图绑定，swup 反复切页也不会累积监听器
+  document.addEventListener(
+    "load",
+    (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLImageElement)) return;
+      if (target.closest(".markdown-body")) target.classList.add("img-loaded");
+    },
+    true,
+  );
 
-  window.addEventListener(
+  // 加载失败
+  document.addEventListener(
     "error",
     (e) => {
       const target = e.target;
@@ -87,4 +93,8 @@
     },
     true,
   );
+
+  scan();
+  // swup 切页后插入的新 DOM：补扫其中已出结果的图片（进行中的由上面的监听接管）
+  document.addEventListener("swup:content:replace", scan);
 })();

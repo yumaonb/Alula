@@ -20,14 +20,11 @@ const hasH2 = headings.some(h => h.depth === 2);
 const hasH3 = headings.some(h => h.depth === 3);
 
 let tocItems: Heading[] = [];
-let childDepth = 0;
 
 if (hasH1 && hasH2) {
   tocItems = headings.filter(h => h.depth <= 2);
-  childDepth = 2;
 } else if (hasH2 && hasH3) {
   tocItems = headings.filter(h => h.depth >= 2 && h.depth <= 3);
-  childDepth = 3;
 } else if (hasH1) {
   tocItems = headings.filter(h => h.depth === 1);
 } else if (hasH2) {

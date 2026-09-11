@@ -1,5 +1,5 @@
 // github.ts — GitHub 配置
-// 用法：import { githubUsername, cacheTTL } from "@/data/github"
+// 用法：import { githubUsername, cacheTTL } from "../../data/github"
 
 export const githubUsername = 'yumaonb';
 

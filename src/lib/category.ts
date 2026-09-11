@@ -36,6 +36,7 @@ export interface CategoryTrailItem {
 
 /** 文章列表项 */
 export interface PostItem {
+  /** 文章标识 = 集合条目 id（相对 content/posts 的无扩展名路径），同时用作路由参数 */
   slug: string;
   title: string;
   /** 已格式化的日期 YYYY-MM-DD（无日期时为空串） */

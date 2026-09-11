@@ -1,0 +1,9 @@
+# .prettierignore — 不参与格式化的路径
+node_modules/
+dist/
+.astro/
+pnpm-lock.yaml
+
+# 文章正文与站点静态资源按原样维护，格式化会重排表格和代码块
+src/content/
+public/

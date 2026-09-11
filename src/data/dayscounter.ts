@@ -1,5 +1,5 @@
 // dayscounter.ts — 数据统计卡片配置
-// 用法：import { daysCounterConfig } from "@/data/dayscounter"
+// 用法：import { daysCounterConfig } from "../../data/dayscounter"
 
 export interface DaysCounterConfig {
   /** 统计卡片标签（如"入坑全栈"） */

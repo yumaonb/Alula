@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # 编辑器配置文件夹
 .cursor/
+
+# AI 协作说明
+AGENTS.md
