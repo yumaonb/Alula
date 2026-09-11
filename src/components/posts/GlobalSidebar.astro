@@ -26,7 +26,10 @@ const tagUrl = (name: string) => `/${postRoute}/tag/${encodeURIComponent(name)}/
 // 收集分类树中全部分类路径，从 URL 解析出能匹配到分类的最长前缀
 const allCatPaths = new Set<string>();
 const collect = (nodes: CategoryTreeNode[]) => {
-  for (const n of nodes) { allCatPaths.add(n.path); collect(n.children); }
+  for (const n of nodes) {
+    allCatPaths.add(n.path);
+    collect(n.children);
+  }
 };
 collect(categoryTree);
 
@@ -36,21 +39,24 @@ const catSegments = rpIdx >= 0 ? segments.slice(rpIdx + 1) : segments;
 let activeCategory = '';
 for (let i = catSegments.length; i > 0; i--) {
   const candidate = decodeURIComponent(catSegments.slice(0, i).join('/'));
-  if (allCatPaths.has(candidate)) { activeCategory = candidate; break; }
+  if (allCatPaths.has(candidate)) {
+    activeCategory = candidate;
+    break;
+  }
 }
 ---
 
 <aside class="global-sidebar posts-sidebar">
-  <div class="sidebar-top"><slot name="top" /></div>
+  <div class="sidebar-top">
+    <slot name="top" />
+  </div>
   <AuthorCard />
 
   <div class="sidebar-filter">
     {categoryTree.length > 0 && (
       <PostCategoryTree tree={categoryTree} categoryUrl={catUrl} activeCategory={activeCategory} />
     )}
-    {tags.length > 0 && (
-      <PostTagCloud tags={tags} tagUrl={tagUrl} activeTag={activeTag} />
-    )}
+    {tags.length > 0 && <PostTagCloud tags={tags} tagUrl={tagUrl} activeTag={activeTag} />}
   </div>
 </aside>
 

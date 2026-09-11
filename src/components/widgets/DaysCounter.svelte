@@ -57,7 +57,10 @@
       <span class="stat-value">{days}天</span>
     {:else}
       <span class="stat-value">
-        <span class="skeleton" style="display:inline-block;width:60px;height:1em;vertical-align:middle"></span>
+        <span
+          class="skeleton"
+          style="display:inline-block;width:60px;height:1em;vertical-align:middle"
+        ></span>
       </span>
     {/if}
   </div>
@@ -67,7 +70,10 @@
       <span class="stat-value">{yearsLabel()}</span>
     {:else}
       <span class="stat-value">
-        <span class="skeleton" style="display:inline-block;width:48px;height:1em;vertical-align:middle"></span>
+        <span
+          class="skeleton"
+          style="display:inline-block;width:48px;height:1em;vertical-align:middle"
+        ></span>
       </span>
     {/if}
   </div>
@@ -77,7 +83,10 @@
       <span class="stat-value">{projectsCount}个</span>
     {:else}
       <span class="stat-value">
-        <span class="skeleton" style="display:inline-block;width:36px;height:1em;vertical-align:middle"></span>
+        <span
+          class="skeleton"
+          style="display:inline-block;width:36px;height:1em;vertical-align:middle"
+        ></span>
       </span>
     {/if}
   </div>

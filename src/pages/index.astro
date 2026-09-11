@@ -9,12 +9,20 @@ import { Image } from 'astro:assets';
 import avatarImg from '../assets/images/avatar.png';
 import { nickname, motto, intro, socialLinks } from '../data/profile';
 ---
+
 <BaseLayout title="首页">
   <div class="content-wrapper">
     <div class="left-col">
       <div class="avatar-section">
         <div class="avatar-ring">
-          <Image src={avatarImg} alt="头像" class="avatar-img" width={120} height={120} loading="eager" />
+          <Image
+            src={avatarImg}
+            alt="头像"
+            class="avatar-img"
+            width={120}
+            height={120}
+            loading="eager"
+          />
         </div>
         <div class="avatar-text">
           <h1 class="nickname section-title">{nickname}</h1>
@@ -23,7 +31,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
       </div>
 
       <div class="intro-card glass">
-        <div class="intro-about" set:html={intro}></div>
+        <div class="intro-about" set:html={intro} />
       </div>
 
       <div class="social-row">
@@ -49,8 +57,6 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
       </div>
     </div>
   </div>
-
-
 </BaseLayout>
 
 <style>

@@ -12,7 +12,9 @@ function loadCache(key: string) {
     const { data, ts } = JSON.parse(raw);
     if (Date.now() - ts > cacheTTL) return null;
     return data;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 function saveCache(key: string, data: unknown) {
@@ -26,7 +28,7 @@ export async function fetchRepos() {
   if (cached) return cached;
 
   const res = await fetch(
-    `https://api.github.com/users/${githubUsername}/repos?per_page=100&sort=updated`
+    `https://api.github.com/users/${githubUsername}/repos?per_page=100&sort=updated`,
   );
   if (!res.ok) throw new Error(`GitHub API 请求失败 (${res.status})`);
 

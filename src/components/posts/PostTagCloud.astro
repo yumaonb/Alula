@@ -20,11 +20,8 @@ const { tags, tagUrl, activeTag = '' } = Astro.props;
     标签
   </h2>
   <div class="tag-panel-body">
-    {tags.map(tag => (
-      <a
-        href={tagUrl(tag.name)}
-        class:list={['chip', { 'chip--active': tag.name === activeTag }]}
-      >
+    {tags.map((tag) => (
+      <a href={tagUrl(tag.name)} class:list={['chip', { 'chip--active': tag.name === activeTag }]}>
         {tag.name}
       </a>
     ))}
@@ -76,7 +73,10 @@ const { tags, tagUrl, activeTag = '' } = Astro.props;
     font-size: 0.74rem;
     text-decoration: none;
     cursor: pointer;
-    transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      color 0.2s ease,
+      background 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .chip:hover {

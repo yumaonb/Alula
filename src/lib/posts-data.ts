@@ -65,7 +65,9 @@ function countWords(body: string): number {
     .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
   const cjk = (cleaned.match(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]/g) || []).length;
-  const latin = (cleaned.replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]/g, ' ').match(/[A-Za-z0-9]+/g) || []).length;
+  const latin = (
+    cleaned.replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]/g, ' ').match(/[A-Za-z0-9]+/g) || []
+  ).length;
   return cjk + latin;
 }
 

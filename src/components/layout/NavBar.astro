@@ -1,8 +1,8 @@
 ---
 // NavBar.astro — 导航栏（桌面链接 + 移动端汉堡菜单）
 // 用法：<NavBar />（BaseLayout 引入）
-import { Icon } from "astro-icon/components";
-import { site } from "../../data/site";
+import { Icon } from 'astro-icon/components';
+import { site } from '../../data/site';
 ---
 
 <nav class="navbar glass">
@@ -13,12 +13,24 @@ import { site } from "../../data/site";
     </a>
 
     <ul class="nav-links">
-      <li><a href="/">首页</a></li>
-      <li><a href="/about/">关于</a></li>
-      <li><a href="/projects/">项目</a></li>
-      <li><a href="/posts/">文章</a></li>
-      <li><a href="/friends/">友链</a></li>
-      <li><a href="/sponsor/">赞助</a></li>
+      <li>
+        <a href="/">首页</a>
+      </li>
+      <li>
+        <a href="/about/">关于</a>
+      </li>
+      <li>
+        <a href="/projects/">项目</a>
+      </li>
+      <li>
+        <a href="/posts/">文章</a>
+      </li>
+      <li>
+        <a href="/friends/">友链</a>
+      </li>
+      <li>
+        <a href="/sponsor/">赞助</a>
+      </li>
     </ul>
 
     <button
@@ -27,8 +39,12 @@ import { site } from "../../data/site";
       aria-expanded="false"
       aria-controls="mobile-dropdown"
     >
-      <span class="icon-bars"><Icon name="la:bars" /></span>
-      <span class="icon-close"><Icon name="la:times" /></span>
+      <span class="icon-bars">
+        <Icon name="la:bars" />
+      </span>
+      <span class="icon-close">
+        <Icon name="la:times" />
+      </span>
     </button>
   </div>
 
@@ -112,7 +128,9 @@ import { site } from "../../data/site";
   }
 
   if (mq.matches) loadHamburger();
-  mq.addEventListener('change', (e) => { if (e.matches) loadHamburger(); });
+  mq.addEventListener('change', (e) => {
+    if (e.matches) loadHamburger();
+  });
 </script>
 
 <style>
@@ -179,7 +197,6 @@ import { site } from "../../data/site";
     opacity: 0;
     transition: opacity 0.3s;
     border-radius: inherit;
-
   }
 
   .nav-links a:hover,
@@ -212,7 +229,9 @@ import { site } from "../../data/site";
     align-items: center;
     justify-content: center;
     position: absolute;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
     color: rgba(255, 255, 255, 0.85);
   }
 
@@ -242,7 +261,8 @@ import { site } from "../../data/site";
     max-height: 0;
     overflow: hidden;
     border-top: 1px solid transparent;
-    transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transition:
+      max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
       border-color 0.25s ease;
   }
 
@@ -253,7 +273,9 @@ import { site } from "../../data/site";
 
   /* 切页收起：与 page-exit 同速（0.2s），丝滑且不与页面动画打架 */
   .mobile-dropdown.is-closing-nav {
-    transition: max-height 0.2s ease, border-color 0.15s ease;
+    transition:
+      max-height 0.2s ease,
+      border-color 0.15s ease;
   }
 
   .mobile-overlay.is-closing-nav {
@@ -262,7 +284,9 @@ import { site } from "../../data/site";
 
   .hamburger-btn.is-closing-nav .icon-bars,
   .hamburger-btn.is-closing-nav .icon-close {
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
   }
 
   /* 内容替换兜底：菜单仍未关闭时直接跳过过渡 */
@@ -309,12 +333,24 @@ import { site } from "../../data/site";
     animation: mobile-item-in 0.3s ease both;
   }
 
-  .mobile-dropdown.is-open .mobile-item:nth-child(1) { animation-delay: 0.04s; }
-  .mobile-dropdown.is-open .mobile-item:nth-child(2) { animation-delay: 0.08s; }
-  .mobile-dropdown.is-open .mobile-item:nth-child(3) { animation-delay: 0.12s; }
-  .mobile-dropdown.is-open .mobile-item:nth-child(4) { animation-delay: 0.16s; }
-  .mobile-dropdown.is-open .mobile-item:nth-child(5) { animation-delay: 0.20s; }
-  .mobile-dropdown.is-open .mobile-item:nth-child(6) { animation-delay: 0.24s; }
+  .mobile-dropdown.is-open .mobile-item:nth-child(1) {
+    animation-delay: 0.04s;
+  }
+  .mobile-dropdown.is-open .mobile-item:nth-child(2) {
+    animation-delay: 0.08s;
+  }
+  .mobile-dropdown.is-open .mobile-item:nth-child(3) {
+    animation-delay: 0.12s;
+  }
+  .mobile-dropdown.is-open .mobile-item:nth-child(4) {
+    animation-delay: 0.16s;
+  }
+  .mobile-dropdown.is-open .mobile-item:nth-child(5) {
+    animation-delay: 0.2s;
+  }
+  .mobile-dropdown.is-open .mobile-item:nth-child(6) {
+    animation-delay: 0.24s;
+  }
 
   @keyframes mobile-item-in {
     from {
@@ -352,7 +388,6 @@ import { site } from "../../data/site";
     background: rgba(255, 255, 255, 0.1);
     opacity: 0;
     transition: opacity 0.15s ease;
-
   }
 
   .mobile-link:hover,
@@ -398,7 +433,9 @@ import { site } from "../../data/site";
     height: 14px;
     color: rgba(255, 255, 255, 0.6);
     flex-shrink: 0;
-    transition: filter 0.15s, transform 0.15s;
+    transition:
+      filter 0.15s,
+      transform 0.15s;
   }
 
   .mobile-link:hover .mobile-link-arrow {

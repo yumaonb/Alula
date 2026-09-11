@@ -22,12 +22,14 @@
 
 ## 命令
 
-| 命令 | 说明 |
-| --- | --- |
-| `pnpm install` | 安装依赖 |
-| `pnpm dev` | 启动本地开发服务器 |
-| `pnpm build` | 构建生产版本到 `./dist/` |
-| `pnpm preview` | 本地预览构建结果 |
+| 命令           | 说明                               |
+| -------------- | ---------------------------------- |
+| `pnpm install` | 安装依赖                           |
+| `pnpm dev`     | 启动本地开发服务器                 |
+| `pnpm build`   | 构建生产版本到 `./dist/`           |
+| `pnpm preview` | 本地预览构建结果                   |
+| `pnpm check`   | 运行 astro check（类型与模板诊断） |
+| `pnpm format`  | 用 Prettier 全量格式化             |
 
 ## 项目结构
 

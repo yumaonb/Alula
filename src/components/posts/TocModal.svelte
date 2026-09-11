@@ -56,7 +56,10 @@
   }
 
   function onModalClick(e) {
-    if (e.target?.closest?.('[data-toc-close]')) { close(); return; }
+    if (e.target?.closest?.('[data-toc-close]')) {
+      close();
+      return;
+    }
     if (e.target?.closest?.('.toc-link')) close();
   }
 
@@ -73,11 +76,13 @@
     widgets?.addEventListener('click', onWidgetsClick);
 
     // 复用 NavBar 的共享 matchMedia 监听器
-    function onEnterDesktop() { if (isOpen) close(); }
+    function onEnterDesktop() {
+      if (isOpen) close();
+    }
     if (typeof window.__onEnterDesktop === 'function') {
       window.__onEnterDesktop(onEnterDesktop);
     } else {
-      window.matchMedia('(min-width: 769px)').addEventListener('change', e => {
+      window.matchMedia('(min-width: 769px)').addEventListener('change', (e) => {
         if (e.matches) onEnterDesktop();
       });
     }
@@ -111,14 +116,23 @@
   <div class="toc-modal-panel">
     <div class="toc-modal-header">
       <span class="toc-modal-title">
-        <svg class="toc-modal-title-icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
-          <path d="M4 5v6h6V5zm2 2h2v2H6zm6 0v2h15V7zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2z"/>
+        <svg
+          class="toc-modal-title-icon"
+          viewBox="0 0 32 32"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M4 5v6h6V5zm2 2h2v2H6zm6 0v2h15V7zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2z"
+          />
         </svg>
         文章目录
       </span>
       <button class="toc-modal-close" data-toc-close aria-label="关闭目录" onclick={close}>
         <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
-          <path d="M17.4 16l4.9-4.9a.7.7 0 0 0-1-1L16.4 15l-4.9-4.9a.7.7 0 0 0-1 1l4.9 4.9-4.9 4.9a.7.7 0 0 0 1 1l4.9-4.9 4.9 4.9a.7.7 0 0 0 1-1z"/>
+          <path
+            d="M17.4 16l4.9-4.9a.7.7 0 0 0-1-1L16.4 15l-4.9-4.9a.7.7 0 0 0-1 1l4.9 4.9-4.9 4.9a.7.7 0 0 0 1 1l4.9-4.9 4.9 4.9a.7.7 0 0 0 1-1z"
+          />
         </svg>
       </button>
     </div>
@@ -150,7 +164,9 @@
     transition: opacity 0.25s ease;
   }
 
-  .toc-modal.open .toc-modal-mask { opacity: 1; }
+  .toc-modal.open .toc-modal-mask {
+    opacity: 1;
+  }
 
   .toc-modal-panel {
     position: absolute;
@@ -164,12 +180,16 @@
     background: transparent;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 1px 0 0 rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.37),
+      inset 1px 0 0 rgba(255, 255, 255, 0.08);
     transform: translateX(100%);
     transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .toc-modal.open .toc-modal-panel { transform: translateX(0); }
+  .toc-modal.open .toc-modal-panel {
+    transform: translateX(0);
+  }
 
   .toc-modal-header {
     display: flex;
@@ -199,7 +219,9 @@
   }
 
   @media (max-width: 768px) {
-    .toc-modal-header { min-height: 56px; }
+    .toc-modal-header {
+      min-height: 56px;
+    }
   }
 
   .toc-modal-close {
@@ -213,7 +235,9 @@
     background: transparent;
     color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
-    transition: color 0.15s ease, background 0.15s ease;
+    transition:
+      color 0.15s ease,
+      background 0.15s ease;
   }
 
   .toc-modal-close :global(svg) {

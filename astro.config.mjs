@@ -1,16 +1,16 @@
 // @ts-check
 // astro.config.mjs — 站点构建配置（Astro 集成 / 压缩 / 构建后清理注释）
-import { defineConfig } from "astro/config";
-import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-import svelte from "@astrojs/svelte";
-import icon from "astro-icon";
-import swup from "@swup/astro";
-import rehypeSlug from "rehype-slug";
-import pagefind from "astro-pagefind";
-import htmlMinifier from "astro-html-minifier-next";
-import compress from "@playform/compress";
+import { defineConfig } from 'astro/config';
+import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import svelte from '@astrojs/svelte';
+import icon from 'astro-icon';
+import swup from '@swup/astro';
+import rehypeSlug from 'rehype-slug';
+import pagefind from 'astro-pagefind';
+import htmlMinifier from 'astro-html-minifier-next';
+import compress from '@playform/compress';
 
 /**
  * 收集构建输出目录下所有 .html 文件。
@@ -24,7 +24,7 @@ function collectHtmlFiles(dir) {
     const stat = statSync(full);
     if (stat.isDirectory()) {
       files.push(...collectHtmlFiles(full));
-    } else if (entry.toLowerCase().endsWith(".html")) {
+    } else if (entry.toLowerCase().endsWith('.html')) {
       files.push(full);
     }
   }
@@ -38,10 +38,10 @@ function collectHtmlFiles(dir) {
  */
 function isHydrationComment(inner) {
   return (
-    inner === "" ||
-    inner === "[" ||
-    inner === "]" ||
-    inner === "astro:end" ||
+    inner === '' ||
+    inner === '[' ||
+    inner === ']' ||
+    inner === 'astro:end' ||
     /^\[-?\d+$/.test(inner)
   );
 }
@@ -54,7 +54,7 @@ function isHydrationComment(inner) {
  */
 function commentReplacer(match, inner) {
   if (inner === undefined) return match; // script/style 原样保留
-  return isHydrationComment(inner) ? match : "";
+  return isHydrationComment(inner) ? match : '';
 }
 
 /**
@@ -66,7 +66,7 @@ function commentReplacer(match, inner) {
 function stripNonHydrationComments(html) {
   return html.replace(
     /<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--([\s\S]*?)-->/g,
-    commentReplacer
+    commentReplacer,
   );
 }
 
@@ -76,13 +76,13 @@ function stripNonHydrationComments(html) {
  */
 function stripSafeComments() {
   return {
-    name: "strip-safe-comments",
+    name: 'strip-safe-comments',
     hooks: {
-      "astro:build:done": async ({ dir: outDir }) => {
+      'astro:build:done': async ({ dir: outDir }) => {
         const root = fileURLToPath(outDir);
         let removed = 0;
         for (const file of collectHtmlFiles(root)) {
-          const before = readFileSync(file, "utf8");
+          const before = readFileSync(file, 'utf8');
           const after = stripNonHydrationComments(before);
           if (after !== before) {
             writeFileSync(file, after);
@@ -112,7 +112,7 @@ export default defineConfig({
     // Pagefind 全文搜索：构建后自动索引 dist/，开发服务器也会把 /pagefind/* 指向 dist/（需先构建一次）
     pagefind(),
     swup({
-      containers: ["#swup"],
+      containers: ['#swup'],
       cache: true,
       preload: {
         hover: true,
@@ -152,8 +152,6 @@ export default defineConfig({
     }),
   ],
   markdown: {
-    rehypePlugins: [
-      rehypeSlug,
-    ],
+    rehypePlugins: [rehypeSlug],
   },
 });

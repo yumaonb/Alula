@@ -1,19 +1,19 @@
 ---
 // BaseLayout.astro — 全站基础布局（背景 / 导航 / 页脚 / 侧边按钮 / 灯箱等）
 // 用法：<BaseLayout title="页面标题" description="...">...</BaseLayout>
-import { Image } from "astro:assets";
-import bgImageRaw from "../assets/images/background.jpg";
-import "../assets/css/global.css";
-import "../assets/css/skeleton.css";
-import "../assets/css/image-fallback.css";
-import NavBar from "../components/layout/NavBar.astro";
-import Footer from "../components/layout/Footer.astro";
-import SideWidgets from "../components/layout/SideWidgets.astro";
-import TocModal from "../components/posts/TocModal.svelte";
-import PostsFilterModal from "../components/posts/PostsFilterModal.svelte";
-import CustomScrollbar from "../components/layout/CustomScrollbar.astro";
-import { Icon } from "astro-icon/components";
-import { site } from "../data/site";
+import { Image } from 'astro:assets';
+import bgImageRaw from '../assets/images/background.jpg';
+import '../assets/css/global.css';
+import '../assets/css/skeleton.css';
+import '../assets/css/image-fallback.css';
+import NavBar from '../components/layout/NavBar.astro';
+import Footer from '../components/layout/Footer.astro';
+import SideWidgets from '../components/layout/SideWidgets.astro';
+import TocModal from '../components/posts/TocModal.svelte';
+import PostsFilterModal from '../components/posts/PostsFilterModal.svelte';
+import CustomScrollbar from '../components/layout/CustomScrollbar.astro';
+import { Icon } from 'astro-icon/components';
+import { site } from '../data/site';
 
 interface Props {
   title?: string;
@@ -21,11 +21,7 @@ interface Props {
   bodyClass?: string;
 }
 
-const {
-  title,
-  description = site.description,
-  bodyClass = "",
-} = Astro.props;
+const { title, description = site.description, bodyClass = '' } = Astro.props;
 
 const pageTitle = title ? `${title} - ${site.name}` : site.name;
 const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRaw.height}) { img.bg-layer { object-fit: fill; } }`;
@@ -40,11 +36,10 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
     <meta name="color-scheme" content={site.colorScheme} />
     <link rel="icon" type="image/png" href="/images/logo.png" />
     <title>{pageTitle}</title>
-    <style set:html={bgAspectStyle} />
+    <style set:html={bgAspectStyle}></style>
     <slot name="head" />
   </head>
   <body class={bodyClass}>
-
     <Image
       src={bgImageRaw}
       alt=""

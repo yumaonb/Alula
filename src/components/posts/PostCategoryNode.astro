@@ -17,24 +17,37 @@ const { node, depth, activeCategory = '', linkMode = false, categoryUrl } = Astr
 
 const hasChildren = node.children.length > 0;
 const isActive = node.path === activeCategory;
-const isOpen = hasChildren
-  && (activeCategory === node.path || activeCategory.startsWith(node.path + '/'));
+const isOpen =
+  hasChildren && (activeCategory === node.path || activeCategory.startsWith(node.path + '/'));
 const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
 ---
 
 <li class:list={['cat-node', { 'cat-node--open': isOpen }]}>
   <div class="cat-row" style={`--depth:${depth}`}>
     {linkMode ? (
-      <a href={url} class:list={['cat-item', { 'cat-item--active': isActive }]} data-category={node.path}>
+      <a
+        href={url}
+        class:list={['cat-item', { 'cat-item--active': isActive }]}
+        data-category={node.path}
+      >
         <span class="cat-name">{node.name}</span>
       </a>
     ) : (
-      <button type="button" class:list={['cat-item', { 'cat-item--active': isActive }]} data-category={node.path}>
+      <button
+        type="button"
+        class:list={['cat-item', { 'cat-item--active': isActive }]}
+        data-category={node.path}
+      >
         <span class="cat-name">{node.name}</span>
       </button>
     )}
     {hasChildren && (
-      <button type="button" class="cat-toggle" aria-label={isOpen ? '收起' : '展开'} aria-expanded={isOpen ? 'true' : 'false'}>
+      <button
+        type="button"
+        class="cat-toggle"
+        aria-label={isOpen ? '收起' : '展开'}
+        aria-expanded={isOpen ? 'true' : 'false'}
+      >
         <Icon name="la:angle-right" class="cat-toggle-icon" />
       </button>
     )}
@@ -132,7 +145,11 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .cat-children { transition: none; }
-    .cat-toggle-icon { transition: none; }
+    .cat-children {
+      transition: none;
+    }
+    .cat-toggle-icon {
+      transition: none;
+    }
   }
 </style>

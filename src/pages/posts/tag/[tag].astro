@@ -22,10 +22,16 @@ const posts = data.posts.filter((post) => post.tags.includes(tag));
   <div class="category-page page-container">
     <div class="category-header">
       <h1 class="category-title section-title">
-        #{tag}<span class="title-count-sep"> — </span><span class="posts-count">共 {posts.length} 篇文章</span>
+        #{tag}
+        <span class="title-count-sep"> — </span>
+        <span class="posts-count">共 {posts.length} 篇文章</span>
       </h1>
       <div class="category-header-search">
-        <PostSearch placeholder={`在「${tag}」标签中搜索…`} filterUrls={posts.map((p) => p.url)} client:load />
+        <PostSearch
+          placeholder={`在「${tag}」标签中搜索…`}
+          filterUrls={posts.map((p) => p.url)}
+          client:load
+        />
       </div>
     </div>
 

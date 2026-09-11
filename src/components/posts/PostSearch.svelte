@@ -58,7 +58,11 @@
   async function doSearch() {
     const s = ++seq;
     const q = kw.trim();
-    if (!q) { results = []; isOpen = false; return; }
+    if (!q) {
+      results = [];
+      isOpen = false;
+      return;
+    }
 
     isOpen = true;
     isLoading = true;
@@ -67,16 +71,16 @@
     try {
       const pf = await loadPagefind();
       const res = await pf.search(q);
-      const loaded = await Promise.all(res.results.map(r => r.data()));
+      const loaded = await Promise.all(res.results.map((r) => r.data()));
       if (s !== seq) return;
 
       let filtered = loaded;
       if (categoryPath) {
         const prefix = categoryPath.startsWith('/') ? categoryPath : '/' + categoryPath;
-        filtered = filtered.filter(it => it.url.startsWith(prefix));
+        filtered = filtered.filter((it) => it.url.startsWith(prefix));
       } else if (filterUrls.length > 0) {
         const allowed = new Set(filterUrls);
-        filtered = filtered.filter(it => allowed.has(it.url));
+        filtered = filtered.filter((it) => allowed.has(it.url));
       }
 
       results = filtered;
@@ -126,8 +130,10 @@
   }
 
   function getTitle(result) {
-    return result.meta?.title ||
-      decodeURIComponent(result.url.replace(/\/$/, '').split('/').pop() || result.url);
+    return (
+      result.meta?.title ||
+      decodeURIComponent(result.url.replace(/\/$/, '').split('/').pop() || result.url)
+    );
   }
 
   onMount(() => {
@@ -147,7 +153,10 @@
       bind:this={inputEl}
       bind:value={kw}
       oninput={onInput}
-      onfocus={() => { loadPagefind().catch(()=>{}); if (kw.trim()) isOpen = true; }}
+      onfocus={() => {
+        loadPagefind().catch(() => {});
+        if (kw.trim()) isOpen = true;
+      }}
       onkeydown={onKeydown}
       type="search"
       class="post-search-input"
@@ -157,8 +166,15 @@
     />
     {#if kw.length > 0}
       <button type="button" class="post-search-clear" aria-label="清空搜索" onclick={clearSearch}>
-        <svg class="post-search-clear-icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
-          <path d="M17.4 16l4.9-4.9a.7.7 0 0 0-1-1L16.4 15l-4.9-4.9a.7.7 0 0 0-1 1l4.9 4.9-4.9 4.9a.7.7 0 0 0 1 1l4.9-4.9 4.9 4.9a.7.7 0 0 0 1-1z"/>
+        <svg
+          class="post-search-clear-icon"
+          viewBox="0 0 32 32"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M17.4 16l4.9-4.9a.7.7 0 0 0-1-1L16.4 15l-4.9-4.9a.7.7 0 0 0-1 1l4.9 4.9-4.9 4.9a.7.7 0 0 0 1 1l4.9-4.9 4.9 4.9a.7.7 0 0 0 1-1z"
+          />
         </svg>
       </button>
     {/if}
@@ -210,7 +226,9 @@
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.1),
       0 4px 16px rgba(0, 0, 0, 0.2);
-    transition: box-shadow 0.25s ease, background 0.25s ease;
+    transition:
+      box-shadow 0.25s ease,
+      background 0.25s ease;
   }
 
   .post-search:focus-within {
@@ -260,7 +278,9 @@
     background: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
-    transition: color 0.2s ease, background 0.2s ease;
+    transition:
+      color 0.2s ease,
+      background 0.2s ease;
   }
 
   .post-search-clear:hover {
@@ -289,7 +309,9 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border-radius: var(--radius);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.37),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
 
   .post-search-dropdown::-webkit-scrollbar {

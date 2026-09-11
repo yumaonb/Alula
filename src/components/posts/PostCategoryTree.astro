@@ -22,7 +22,7 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
 
   <div class="cat-panel-body" id="category-tree">
     <ul class="cat-root-list">
-      {tree.map(node => (
+      {tree.map((node) => (
         <PostCategoryNode
           node={node}
           depth={0}
@@ -37,10 +37,10 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
 
 <script is:inline>
   // 点击右侧展开按钮切换子分类，不影响分类名链接的导航
-  (function() {
+  (function () {
     if (window.__postCatTreeBound) return;
     window.__postCatTreeBound = true;
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
       var btn = e.target.closest ? e.target.closest('button.cat-toggle') : null;
       if (!btn || !document.contains(btn)) return;
       var node = btn.closest('.cat-node');
@@ -48,8 +48,10 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
       e.preventDefault();
       e.stopPropagation();
       node.classList.toggle('cat-node--open');
-      btn.setAttribute('aria-expanded',
-        node.classList.contains('cat-node--open') ? 'true' : 'false');
+      btn.setAttribute(
+        'aria-expanded',
+        node.classList.contains('cat-node--open') ? 'true' : 'false',
+      );
     });
   })();
 </script>

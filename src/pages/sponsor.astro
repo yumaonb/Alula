@@ -7,7 +7,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
 <BaseLayout title="赞助">
   <div class="sponsor-page page-container">
-
     <header class="sponsor-header">
       <h1 class="header-title section-title">赞助支持</h1>
       <p class="header-desc section-desc">如果我的内容对你有帮助，欢迎请我喝杯咖啡</p>
@@ -41,7 +40,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
         <span class="other-line"></span>
       </div>
       <div class="action-grid">
-        {supportActions.map((a) => (
+        {supportActions.map((a) =>
           a.href ? (
             <a href={a.href} class="grid-card glass" target={a.target} rel="noopener">
               <Icon name={a.icon} class="grid-icon" />
@@ -58,11 +57,10 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
                 <span class="grid-desc">{a.desc}</span>
               </div>
             </div>
-          )
-        ))}
+          ),
+        )}
       </div>
     </section>
-
   </div>
 </BaseLayout>
 
@@ -141,7 +139,9 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   .hero-arrow {
     flex-shrink: 0;
     color: rgba(255, 255, 255, 0.2);
-    transition: transform 0.3s ease, color 0.3s ease;
+    transition:
+      transform 0.3s ease,
+      color 0.3s ease;
   }
 
   .hero-arrow :global(svg) {

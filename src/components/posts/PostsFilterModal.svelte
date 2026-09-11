@@ -37,7 +37,10 @@
   }
 
   function onMaskClick(e) {
-    if (e.target?.closest?.('[data-pfilter-close]')) { close(); return; }
+    if (e.target?.closest?.('[data-pfilter-close]')) {
+      close();
+      return;
+    }
     if (e.target?.closest?.('.cat-item') || e.target?.closest?.('.chip')) close();
   }
 
@@ -52,14 +55,18 @@
     if (fab) fab.addEventListener('click', open);
 
     // swup 切页时关闭抽屉（组件在 BaseLayout 中，不会被销毁，无需移除 modalEl）
-    function onVisitStart() { close(); }
+    function onVisitStart() {
+      close();
+    }
     document.addEventListener('swup:visit:start', onVisitStart);
 
-    function onEnterDesktop() { if (isOpen) close(); }
+    function onEnterDesktop() {
+      if (isOpen) close();
+    }
     if (typeof window.__onEnterDesktop === 'function') {
       window.__onEnterDesktop(onEnterDesktop);
     } else {
-      window.matchMedia('(min-width: 769px)').addEventListener('change', e => {
+      window.matchMedia('(min-width: 769px)').addEventListener('change', (e) => {
         if (e.matches) onEnterDesktop();
       });
     }
@@ -122,7 +129,9 @@
     transition: opacity 0.25s ease;
   }
 
-  .pfilter-modal.open .pfilter-modal-mask { opacity: 1; }
+  .pfilter-modal.open .pfilter-modal-mask {
+    opacity: 1;
+  }
 
   .pfilter-modal-panel {
     position: absolute;
@@ -135,12 +144,16 @@
     border-radius: var(--radius) 0 0 var(--radius);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37), inset 1px 0 0 rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.37),
+      inset 1px 0 0 rgba(255, 255, 255, 0.08);
     transform: translateX(100%);
     transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .pfilter-modal.open .pfilter-modal-panel { transform: translateX(0); }
+  .pfilter-modal.open .pfilter-modal-panel {
+    transform: translateX(0);
+  }
 
   .pfilter-modal-header {
     display: flex;
@@ -152,7 +165,9 @@
   }
 
   @media (max-width: 768px) {
-    .pfilter-modal-header { min-height: 56px; }
+    .pfilter-modal-header {
+      min-height: 56px;
+    }
   }
 
   .pfilter-modal-title {
@@ -183,7 +198,9 @@
     background: transparent;
     color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
-    transition: color 0.15s ease, background 0.15s ease;
+    transition:
+      color 0.15s ease,
+      background 0.15s ease;
   }
 
   .pfilter-modal-close :global(svg) {

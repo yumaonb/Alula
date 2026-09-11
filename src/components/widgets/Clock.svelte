@@ -38,8 +38,12 @@
 
   const EASE_DURATION = 4000;
   let easeStart = 0;
-  let easeFromH = 0, easeFromM = 0, easeFromS = 0;
-  let easeToH = 0, easeToM = 0, easeToS = 0;
+  let easeFromH = 0,
+    easeFromM = 0,
+    easeFromS = 0;
+  let easeToH = 0,
+    easeToM = 0,
+    easeToS = 0;
   let easing = false;
 
   function easeOut(t) {
@@ -70,14 +74,14 @@
 
   function tick() {
     now = new Date();
-    const h = String(now.getHours()).padStart(2, "0");
-    const m = String(now.getMinutes()).padStart(2, "0");
-    const s = String(now.getSeconds()).padStart(2, "0");
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
     time = `${h}:${m}:${s}`;
 
     const y = now.getFullYear();
-    const mo = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
+    const mo = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
     date = `${y}/${mo}/${d}`;
 
     if (ready && !easing) {
@@ -151,20 +155,80 @@
 
 <div class="clock-body">
   <svg class="clock-icon" width="100" height="100" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="10.8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.3" />
-    <line x1="12" y1="2.4" x2="12" y2="3.8" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
-    <line x1="21.6" y1="12" x2="20.2" y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
-    <line x1="12" y1="21.6" x2="12" y2="20.2" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
-    <line x1="2.4" y1="12" x2="3.8" y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="0.5" stroke-linecap="round" />
-    <line x1="12" y1="12.8" x2="12" y2="7.2"
-      stroke="rgba(255,255,255,1)" stroke-width="2" stroke-linecap="round"
-      style="transform: rotate({hDeg}deg); transform-origin: 12px 12px;" />
-    <line x1="12" y1="13.0" x2="12" y2="4.0"
-      stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round"
-      style="transform: rotate({mDeg}deg); transform-origin: 12px 12px;" />
-    <line x1="12" y1="13.3" x2="12" y2="3.5"
-      stroke="#ff4d4f" stroke-width="0.5" stroke-linecap="round"
-      style="transform: rotate({sDeg}deg); transform-origin: 12px 12px;" />
+    <circle
+      cx="12"
+      cy="12"
+      r="10.8"
+      fill="none"
+      stroke="rgba(255,255,255,0.15)"
+      stroke-width="0.3"
+    />
+    <line
+      x1="12"
+      y1="2.4"
+      x2="12"
+      y2="3.8"
+      stroke="rgba(255,255,255,0.55)"
+      stroke-width="0.5"
+      stroke-linecap="round"
+    />
+    <line
+      x1="21.6"
+      y1="12"
+      x2="20.2"
+      y2="12"
+      stroke="rgba(255,255,255,0.55)"
+      stroke-width="0.5"
+      stroke-linecap="round"
+    />
+    <line
+      x1="12"
+      y1="21.6"
+      x2="12"
+      y2="20.2"
+      stroke="rgba(255,255,255,0.55)"
+      stroke-width="0.5"
+      stroke-linecap="round"
+    />
+    <line
+      x1="2.4"
+      y1="12"
+      x2="3.8"
+      y2="12"
+      stroke="rgba(255,255,255,0.55)"
+      stroke-width="0.5"
+      stroke-linecap="round"
+    />
+    <line
+      x1="12"
+      y1="12.8"
+      x2="12"
+      y2="7.2"
+      stroke="rgba(255,255,255,1)"
+      stroke-width="2"
+      stroke-linecap="round"
+      style="transform: rotate({hDeg}deg); transform-origin: 12px 12px;"
+    />
+    <line
+      x1="12"
+      y1="13.0"
+      x2="12"
+      y2="4.0"
+      stroke="rgba(255,255,255,0.7)"
+      stroke-width="1.2"
+      stroke-linecap="round"
+      style="transform: rotate({mDeg}deg); transform-origin: 12px 12px;"
+    />
+    <line
+      x1="12"
+      y1="13.3"
+      x2="12"
+      y2="3.5"
+      stroke="#ff4d4f"
+      stroke-width="0.5"
+      stroke-linecap="round"
+      style="transform: rotate({sDeg}deg); transform-origin: 12px 12px;"
+    />
     <circle cx="12" cy="12" r="0.7" fill="#ff4d4f" />
   </svg>
 
@@ -173,7 +237,10 @@
       <span class="clock-time" aria-live="polite">{time}</span>
       <span class="clock-date">{date}</span>
     {:else}
-      <div class="skeleton" style="width:150px;font-size:2rem;line-height:1.2;margin-bottom:4px"></div>
+      <div
+        class="skeleton"
+        style="width:150px;font-size:2rem;line-height:1.2;margin-bottom:4px"
+      ></div>
       <div class="skeleton" style="width:90px;font-size:1.05rem"></div>
     {/if}
   </div>
@@ -218,6 +285,8 @@
     letter-spacing: 0.02em;
   }
   @media (min-width: 1024px) {
-    .clock-time { font-size: 2.2rem; }
+    .clock-time {
+      font-size: 2.2rem;
+    }
   }
 </style>

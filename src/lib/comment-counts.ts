@@ -58,7 +58,10 @@ export async function loadCommentCounts(): Promise<Record<string, number> | null
   }
 }
 
-export function commentCountFor(counts: Record<string, number> | null, url: string): number | undefined {
+export function commentCountFor(
+  counts: Record<string, number> | null,
+  url: string,
+): number | undefined {
   if (!counts) return undefined;
   const key = normalizePath(url);
   return counts[key] ?? 0;

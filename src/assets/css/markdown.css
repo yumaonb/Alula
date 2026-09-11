@@ -24,12 +24,25 @@
   position: relative;
 }
 
-.markdown-body h1 { font-size: 1.8rem; }
-.markdown-body h2 { font-size: 1.45rem; }
-.markdown-body h3 { font-size: 1.25rem; }
-.markdown-body h4 { font-size: 1.1rem; }
-.markdown-body h5 { font-size: 1rem; }
-.markdown-body h6 { font-size: 0.95rem; color: rgba(255, 255, 255, 0.65); }
+.markdown-body h1 {
+  font-size: 1.8rem;
+}
+.markdown-body h2 {
+  font-size: 1.45rem;
+}
+.markdown-body h3 {
+  font-size: 1.25rem;
+}
+.markdown-body h4 {
+  font-size: 1.1rem;
+}
+.markdown-body h5 {
+  font-size: 1rem;
+}
+.markdown-body h6 {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.65);
+}
 
 /* ---- 段落 ---- */
 .markdown-body p {
@@ -55,8 +68,13 @@
 }
 
 /* ---- 粗体 & 斜体 ---- */
-.markdown-body strong { color: #fff; font-weight: 700; }
-.markdown-body em { font-style: italic; }
+.markdown-body strong {
+  color: #fff;
+  font-weight: 700;
+}
+.markdown-body em {
+  font-style: italic;
+}
 
 /* ---- 行内代码 ---- */
 .markdown-body code {
@@ -114,8 +132,12 @@
   padding-left: 2em;
 }
 
-.markdown-body ul { list-style: disc; }
-.markdown-body ol { list-style: decimal; }
+.markdown-body ul {
+  list-style: disc;
+}
+.markdown-body ol {
+  list-style: decimal;
+}
 
 .markdown-body li {
   margin: 0.4em 0;
@@ -128,12 +150,12 @@
 }
 
 /* ---- 任务列表 ---- */
-.markdown-body ul:has(> li > input[type="checkbox"]) {
+.markdown-body ul:has(> li > input[type='checkbox']) {
   list-style: none;
   padding-left: 0.5em;
 }
 
-.markdown-body li > input[type="checkbox"] {
+.markdown-body li > input[type='checkbox'] {
   margin-right: 8px;
   accent-color: rgba(255, 255, 255, 0.6);
 }
@@ -206,9 +228,15 @@
     line-height: 1.75;
   }
 
-  .markdown-body h1 { font-size: 1.5rem; }
-  .markdown-body h2 { font-size: 1.3rem; }
-  .markdown-body h3 { font-size: 1.15rem; }
+  .markdown-body h1 {
+    font-size: 1.5rem;
+  }
+  .markdown-body h2 {
+    font-size: 1.3rem;
+  }
+  .markdown-body h3 {
+    font-size: 1.15rem;
+  }
 
   .markdown-body pre {
     padding: 0.8em 1em;

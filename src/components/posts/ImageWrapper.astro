@@ -1,7 +1,7 @@
 ---
 // ImageWrapper.astro — 图片包装：本地图片走 astro:assets 压缩，外链原样渲染
 // 用法：<ImageWrapper src={...} basePath={...} alt={...} sizes={...} widths={...} />
-import path from "node:path";
+import path from 'node:path';
 
 interface Props {
   src: string;
@@ -15,45 +15,45 @@ interface Props {
   widths?: number[];
 }
 
-import { Image } from "astro:assets";
-import type { ImageMetadata } from "astro";
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 
-const { src, alt = "", basePath = "/", style, sizes, widths } = Astro.props;
+const { src, alt = '', basePath = '/', style, sizes, widths } = Astro.props;
 const className = Astro.props.class;
 
 // 判断是否为本地图片（非 URL、非 data URI）
 const isLocal = !(
-  src.startsWith("/") ||
-  src.startsWith("http") ||
-  src.startsWith("https") ||
-  src.startsWith("data:")
+  src.startsWith('/') ||
+  src.startsWith('http') ||
+  src.startsWith('https') ||
+  src.startsWith('data:')
 );
 
 let img: ImageMetadata | undefined;
 
 if (isLocal) {
   // glob 导入 src/ 下所有图片文件
-  const files = import.meta.glob<ImageMetadata>("../../**/*.{png,jpg,jpeg,gif,webp,svg}", {
-    import: "default",
+  const files = import.meta.glob<ImageMetadata>('../../**/*.{png,jpg,jpeg,gif,webp,svg}', {
+    import: 'default',
   });
 
   // 构造完整路径：从 src/ 目录开始
-  const normalizedPath = path
-    .normalize(path.join("../../", basePath, src))
-    .replace(/\\/g, "/");
+  const normalizedPath = path.normalize(path.join('../../', basePath, src)).replace(/\\/g, '/');
 
   const file = files[normalizedPath];
   if (file) {
     img = await file();
   } else {
-    console.error(
-      `\n[ERROR] Image file not found: ${normalizedPath.replace("../../", "src/")}`,
-    );
+    console.error(`\n[ERROR] Image file not found: ${normalizedPath.replace('../../', 'src/')}`);
   }
 }
 
-const imageClass = className || "w-full h-full object-cover";
+const imageClass = className || 'w-full h-full object-cover';
 ---
 
-{isLocal && img && <Image src={img} alt={alt} class={imageClass} style={style} sizes={sizes} widths={widths} />}
-{!isLocal && <img src={src} alt={alt} class={imageClass} loading="lazy" decoding="async" style={style} />}
+{isLocal && img && (
+  <Image src={img} alt={alt} class={imageClass} style={style} sizes={sizes} widths={widths} />
+)}
+{!isLocal && (
+  <img src={src} alt={alt} class={imageClass} loading="lazy" decoding="async" style={style} />
+)}

@@ -15,22 +15,22 @@ interface Props {
 
 const { headings } = Astro.props;
 
-const hasH1 = headings.some(h => h.depth === 1);
-const hasH2 = headings.some(h => h.depth === 2);
-const hasH3 = headings.some(h => h.depth === 3);
+const hasH1 = headings.some((h) => h.depth === 1);
+const hasH2 = headings.some((h) => h.depth === 2);
+const hasH3 = headings.some((h) => h.depth === 3);
 
 let tocItems: Heading[] = [];
 
 if (hasH1 && hasH2) {
-  tocItems = headings.filter(h => h.depth <= 2);
+  tocItems = headings.filter((h) => h.depth <= 2);
 } else if (hasH2 && hasH3) {
-  tocItems = headings.filter(h => h.depth >= 2 && h.depth <= 3);
+  tocItems = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
 } else if (hasH1) {
-  tocItems = headings.filter(h => h.depth === 1);
+  tocItems = headings.filter((h) => h.depth === 1);
 } else if (hasH2) {
-  tocItems = headings.filter(h => h.depth === 2);
+  tocItems = headings.filter((h) => h.depth === 2);
 } else if (hasH3) {
-  tocItems = headings.filter(h => h.depth === 3);
+  tocItems = headings.filter((h) => h.depth === 3);
 }
 ---
 
@@ -94,9 +94,16 @@ if (hasH1 && hasH2) {
     padding-left: 6px;
   }
 
-  .toc-track::-webkit-scrollbar { width: 2px; }
-  .toc-track::-webkit-scrollbar-track { background: transparent; }
-  .toc-track::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 2px; }
+  .toc-track::-webkit-scrollbar {
+    width: 2px;
+  }
+  .toc-track::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .toc-track::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
 
   .toc-active-bar {
     position: absolute;
@@ -132,7 +139,9 @@ if (hasH1 && hasH2) {
     text-decoration: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: color 0.15s, background 0.15s;
+    transition:
+      color 0.15s,
+      background 0.15s;
     white-space: nowrap;
   }
 

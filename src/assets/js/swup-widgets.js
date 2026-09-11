@@ -64,7 +64,10 @@ function initSideWidgets(container) {
   function release() {
     busy = false;
     scrolling = false;
-    if (settleTimer) { clearTimeout(settleTimer); settleTimer = 0; }
+    if (settleTimer) {
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+    }
     container.classList.remove('navigating');
     render(); // 立即按当前滚动位置刷新显隐，避免兜底放行后按钮状态滞后
   }
@@ -126,7 +129,10 @@ function initSideWidgets(container) {
     probe();
     busy = true;
     scrolling = false;
-    if (settleTimer) { clearTimeout(settleTimer); settleTimer = 0; }
+    if (settleTimer) {
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+    }
     // 兜底：若 250ms 内平滑滚动尚未开始（切到短页/滚动直接重置等），按当前位置放行，
     // 避免无滚动事件可等时永久挂起；一旦 scroll:start 到来会取消本定时器。
     settleTimer = setTimeout(() => {
@@ -140,7 +146,10 @@ function initSideWidgets(container) {
   document.addEventListener('swup:visit:start', () => {
     busy = true;
     scrolling = false;
-    if (settleTimer) { clearTimeout(settleTimer); settleTimer = 0; }
+    if (settleTimer) {
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+    }
     container.classList.add('navigating');
     available.forEach((btn) => btn.classList.remove('visible'));
   });
@@ -150,7 +159,10 @@ function initSideWidgets(container) {
   document.addEventListener('swup:scroll:start', () => {
     if (!busy) return;
     scrolling = true;
-    if (settleTimer) { clearTimeout(settleTimer); settleTimer = 0; } // 已有滚动动画，取消兜底
+    if (settleTimer) {
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+    } // 已有滚动动画，取消兜底
   });
 
   document.addEventListener('swup:scroll:end', () => {

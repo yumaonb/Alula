@@ -1,6 +1,6 @@
 /* global.css — 全局样式（基础重置 / 布局 / 悬浮按钮 / swup 过渡） */
-@import "./variables.css";
-@import "./utilities.css";
+@import './variables.css';
+@import './utilities.css';
 
 *,
 *::before,
@@ -43,7 +43,13 @@ a {
 }
 
 /* 全站链接 hover 效果：文字周围出现柔和光晕，类似按钮 */
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.project-card):not(.action-card):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(.cat-item):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(.post-card-desc) {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.project-card):not(
+    .action-card
+  ):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(
+    .cat-item
+  ):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(
+    .post-card-category
+  ):not(.post-card-tag):not(.post-card-desc) {
   display: inline-flex;
   align-items: center;
   border-radius: 6px;
@@ -52,7 +58,13 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.projec
   overflow: hidden;
 }
 
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(.cat-item):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(.post-card-desc)::before {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(
+    .hero-card
+  ):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(.cat-item):not(
+    .post-card-title-link
+  ):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(
+    .post-card-desc
+  )::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -61,10 +73,15 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: inherit;
-
 }
 
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.cat-item):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(.post-card-desc):hover::before {
+a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(
+    .hero-card
+  ):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.cat-item):not(
+    .post-card-title-link
+  ):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(
+    .post-card-desc
+  ):hover::before {
   opacity: 1;
 }
 
@@ -137,8 +154,12 @@ ol {
   visibility: hidden;
   pointer-events: none;
   /* visibility 延迟到滑出动画播完再生效 */
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.2s,
-              color 0.15s ease, background 0.15s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s linear 0.2s,
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .back-to-widget.visible {
@@ -146,8 +167,12 @@ ol {
   transform: translateX(0);
   visibility: visible;
   pointer-events: auto;
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0s,
-              color 0.15s ease, background 0.15s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s linear 0s,
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 /* 当前页面不适用的按钮移除占位，只在 swup 切页时重估 */
@@ -240,4 +265,3 @@ html {
     animation: none;
   }
 }
-

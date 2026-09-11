@@ -1,10 +1,10 @@
 // lightbox-core.js — 正文图片 / 详情页封面 灯箱实现（基于 photoswipe）
 // 用法：import { openLightbox } from "../../assets/js/lightbox-core.js"
 //       由 lightbox.js 在首次点击时动态 import，连同样式一起懒加载
-import PhotoSwipeLightbox from "photoswipe/lightbox";
-import PhotoSwipe from "photoswipe";
-import "photoswipe/style.css";
-import "../css/lightbox.css";
+import PhotoSwipeLightbox from 'photoswipe/lightbox';
+import PhotoSwipe from 'photoswipe';
+import 'photoswipe/style.css';
+import '../css/lightbox.css';
 
 // 复用同一个 Lightbox 实例（不会重复绑定任何 DOM，仅暴露 loadAndOpen 动态打开）
 const lightbox = new PhotoSwipeLightbox({
@@ -12,10 +12,10 @@ const lightbox = new PhotoSwipeLightbox({
   bgOpacity: 0.92,
   loop: false,
   // 按钮提示文案：鼠标悬停 tooltip 与读屏器 aria-label 一并覆盖为中文
-  closeTitle: "关闭 (Esc)",
-  zoomTitle: "缩放",
-  arrowPrevTitle: "上一张",
-  arrowNextTitle: "下一张",
+  closeTitle: '关闭 (Esc)',
+  zoomTitle: '缩放',
+  arrowPrevTitle: '上一张',
+  arrowNextTitle: '下一张',
 });
 
 /**
@@ -24,18 +24,18 @@ const lightbox = new PhotoSwipeLightbox({
  * 每项带 element（用于从缩略图放大的动画）与宽高（photoswipe 布局必需）。
  */
 function buildDataSource() {
-  const coverImg = document.querySelector(".post-cover img");
+  const coverImg = document.querySelector('.post-cover img');
   const imgs = coverImg ? [coverImg] : [];
-  imgs.push(...document.querySelectorAll(".markdown-body img"));
+  imgs.push(...document.querySelectorAll('.markdown-body img'));
 
   return imgs.map((img) => {
-    const w = parseInt(img.getAttribute("width"), 10);
-    const h = parseInt(img.getAttribute("height"), 10);
+    const w = parseInt(img.getAttribute('width'), 10);
+    const h = parseInt(img.getAttribute('height'), 10);
 
     const item = {
       element: img,
       src: img.currentSrc || img.src,
-      alt: img.getAttribute("alt") || "",
+      alt: img.getAttribute('alt') || '',
     };
 
     if (w && h) {
@@ -67,7 +67,7 @@ function openLightbox(img, clickEvent) {
 }
 
 // swup 切页时关闭灯箱，避免覆盖层残留
-document.addEventListener("swup:content:replace", () => {
+document.addEventListener('swup:content:replace', () => {
   if (lightbox.pswp) lightbox.pswp.close();
 });
 

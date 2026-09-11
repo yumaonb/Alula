@@ -12,7 +12,14 @@ const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, wid
 <div class="author-card glass">
   <div class="author-main">
     <div class="avatar-ring author-avatar-ring">
-      <img src={avatar.src} alt={nickname} class="avatar-img" width="56" height="56" loading="eager" />
+      <img
+        src={avatar.src}
+        alt={nickname}
+        class="avatar-img"
+        width="56"
+        height="56"
+        loading="eager"
+      />
     </div>
     <div class="author-text">
       <span class="author-name">{nickname}</span>
@@ -20,7 +27,7 @@ const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, wid
     </div>
   </div>
   <div class="author-socials">
-    {socialLinks.map(s => (
+    {socialLinks.map((s) => (
       <a href={s.url} target="_blank" rel="noopener" aria-label={s.label} class="author-social">
         <Icon name={s.icon} class="social-icon" />
       </a>
@@ -81,7 +88,9 @@ const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, wid
     height: 30px;
     border-radius: 8px;
     color: rgba(255, 255, 255, 0.5);
-    transition: color 0.2s ease, background 0.2s ease;
+    transition:
+      color 0.2s ease,
+      background 0.2s ease;
   }
 
   .author-social:hover {

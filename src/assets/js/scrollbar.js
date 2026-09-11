@@ -1,6 +1,6 @@
 // scrollbar.js — 自定义悬浮滚动条（鼠标拖动 / 点击轨道 / hover 定位）
 // 用法：由 CustomScrollbar.astro 引入：import "../../assets/js/scrollbar.js"
-(function() {
+(function () {
   var container = document.getElementById('custom-scrollbar');
   var track = document.getElementById('scrollbar-track');
   var thumb = document.getElementById('scrollbar-thumb');
@@ -23,7 +23,7 @@
 
   function scheduleHide() {
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(function() {
+    hideTimer = setTimeout(function () {
       if (!isDragging) container.classList.remove('visible');
     }, HIDE_DELAY);
   }
@@ -37,7 +37,10 @@
     var scrollTop = window.scrollY;
     var docHeight = document.documentElement.scrollHeight - window.innerHeight;
     var trackHeight = track.clientHeight;
-    var thumbHeight = Math.max(30, (window.innerHeight / document.documentElement.scrollHeight) * trackHeight);
+    var thumbHeight = Math.max(
+      30,
+      (window.innerHeight / document.documentElement.scrollHeight) * trackHeight,
+    );
     var thumbTop = (scrollTop / docHeight) * (trackHeight - thumbHeight);
 
     thumb.style.height = thumbHeight + 'px';
@@ -77,29 +80,29 @@
 
   // 用不可见的悬停触发区替代全局 mousemove 监听
   if (hoverZone) {
-    hoverZone.addEventListener('mouseenter', function() {
+    hoverZone.addEventListener('mouseenter', function () {
       if (!isDragging && hasScroll()) {
         clearTimeout(hideTimer);
         showScrollbar();
       }
     });
-    hoverZone.addEventListener('mouseleave', function() {
+    hoverZone.addEventListener('mouseleave', function () {
       if (!isDragging) scheduleHide();
     });
   }
 
-  container.addEventListener('mouseenter', function() {
+  container.addEventListener('mouseenter', function () {
     if (!isDragging) {
       clearTimeout(hideTimer);
       showScrollbar();
     }
   });
 
-  container.addEventListener('mouseleave', function() {
+  container.addEventListener('mouseleave', function () {
     if (!isDragging) scheduleHide();
   });
 
-  track.addEventListener('click', function(e) {
+  track.addEventListener('click', function (e) {
     if (e.target === thumb) return;
     var rect = track.getBoundingClientRect();
     var clickY = e.clientY - rect.top;
@@ -116,7 +119,7 @@
   window.addEventListener('scroll', updateScrollbar, { passive: true });
   window.addEventListener('resize', updateScrollbar, { passive: true });
 
-  document.addEventListener('swup:content:replace', function() {
+  document.addEventListener('swup:content:replace', function () {
     requestAnimationFrame(updateScrollbar);
   });
 

@@ -1,6 +1,6 @@
 // toc.js — 文章目录：活动高亮、指示竖线移动动画、点击平滑滚动、目录自身滚动隔离
 // 用法：由 TableOfContents.astro 引入：import "../../assets/js/toc.js"
-(function() {
+(function () {
   if (window.__tocInit) return;
   window.__tocInit = true;
 
@@ -58,19 +58,21 @@
 
       if (newTop > oldTop) {
         bar.style.top = oldTop + 'px';
-        bar.style.height = (newTop + newH - oldTop) + 'px';
+        bar.style.height = newTop + newH - oldTop + 'px';
       } else {
         bar.style.top = newTop + 'px';
-        bar.style.height = (oldTop + oldH - newTop) + 'px';
+        bar.style.height = oldTop + oldH - newTop + 'px';
       }
       bar.style.opacity = '1';
 
-      requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
           bar.style.transition = 'top 0.12s ease-out, height 0.12s ease-out';
           bar.style.top = newTop + 'px';
           bar.style.height = newH + 'px';
-          setTimeout(function() { bar._animating = false; }, 130);
+          setTimeout(function () {
+            bar._animating = false;
+          }, 130);
         });
       });
     } else if (!animating) {
@@ -81,7 +83,7 @@
     }
   }
 
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     var link = e.target.closest('.toc-link');
     if (!link) return;
     e.preventDefault();
@@ -93,7 +95,9 @@
     if (!el) return;
     isClickMode = true;
     smoothScrollTo(el);
-    setTimeout(function() { isClickMode = false; }, 800);
+    setTimeout(function () {
+      isClickMode = false;
+    }, 800);
   });
 
   var lastActiveSlug = null;
@@ -107,7 +111,7 @@
     var sy = window.scrollY;
     var bestSlug = null;
 
-    items.forEach(function(item) {
+    items.forEach(function (item) {
       var slug = item.getAttribute('data-target');
       if (!slug) return;
       var h = document.getElementById(slug);
@@ -121,7 +125,7 @@
 
     if (bestSlug !== lastActiveSlug) {
       lastActiveSlug = bestSlug;
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         item.classList.toggle('active', item.getAttribute('data-target') === bestSlug);
       });
     }
@@ -155,44 +159,60 @@
   }
 
   var raf = false;
-  window.addEventListener('scroll', function() {
-    if (!raf) {
-      requestAnimationFrame(function() {
-        updateToc();
-        raf = false;
-      });
-      raf = true;
-    }
-  }, { passive: true });
+  window.addEventListener(
+    'scroll',
+    function () {
+      if (!raf) {
+        requestAnimationFrame(function () {
+          updateToc();
+          raf = false;
+        });
+        raf = true;
+      }
+    },
+    { passive: true },
+  );
 
   document.addEventListener('DOMContentLoaded', updateToc);
-  document.addEventListener('swup:content:replace', function() {
+  document.addEventListener('swup:content:replace', function () {
     lastActiveSlug = null;
     requestAnimationFrame(updateToc);
   });
   updateToc();
 
-  document.addEventListener('scroll', function(e) {
-    var track = document.getElementById('toc-list');
-    if (!track || e.target !== track) return;
-    isTrackScrolling = true;
-    positionBar(false);
-    setTimeout(function() { isTrackScrolling = false; }, 50);
-  }, true);
+  document.addEventListener(
+    'scroll',
+    function (e) {
+      var track = document.getElementById('toc-list');
+      if (!track || e.target !== track) return;
+      isTrackScrolling = true;
+      positionBar(false);
+      setTimeout(function () {
+        isTrackScrolling = false;
+      }, 50);
+    },
+    true,
+  );
 
-  document.addEventListener('wheel', function(e) {
-    var track = document.getElementById('toc-list');
-    if (!track || !track.contains(e.target)) return;
+  document.addEventListener(
+    'wheel',
+    function (e) {
+      var track = document.getElementById('toc-list');
+      if (!track || !track.contains(e.target)) return;
 
-    e.preventDefault();
+      e.preventDefault();
 
-    track.scrollTop += e.deltaY;
-    isTrackScrolling = true;
-    positionBar(false);
-    setTimeout(function() { isTrackScrolling = false; }, 50);
-  }, { passive: false });
+      track.scrollTop += e.deltaY;
+      isTrackScrolling = true;
+      positionBar(false);
+      setTimeout(function () {
+        isTrackScrolling = false;
+      }, 50);
+    },
+    { passive: false },
+  );
 
-  window.__tocSnap = function() {
+  window.__tocSnap = function () {
     snapBarNext = true;
     updateToc();
   };

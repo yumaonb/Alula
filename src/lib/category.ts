@@ -79,10 +79,7 @@ export function postMatchesCategory(post: PostItem, target: string): boolean {
   return !!post.category && (post.category === target || post.category.startsWith(target + '/'));
 }
 
-export function buildCategoryUrl(
-  categoryPath: string[],
-  routePrefix: string = postRoute,
-): string {
+export function buildCategoryUrl(categoryPath: string[], routePrefix: string = postRoute): string {
   return '/' + [routePrefix, ...categoryPath].join('/') + '/';
 }
 

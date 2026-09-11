@@ -19,7 +19,10 @@ const data = await loadBlogData();
 
 export async function getStaticPaths() {
   const d = await loadBlogData();
-  const routes: { params: { slug: string }; props: { type: 'post' | 'category'; slug?: string; category?: string } }[] = [];
+  const routes: {
+    params: { slug: string };
+    props: { type: 'post' | 'category'; slug?: string; category?: string };
+  }[] = [];
   const seen = new Set<string>();
 
   // 文章路由：posts 集合的每个条目
@@ -66,7 +69,8 @@ if (type === 'post') {
 
     const idx = data.posts.findIndex((p) => p.slug === slug);
     if (idx > 0) prevPost = { title: data.posts[idx - 1].title, url: data.posts[idx - 1].url };
-    if (idx >= 0 && idx < data.posts.length - 1) nextPost = { title: data.posts[idx + 1].title, url: data.posts[idx + 1].url };
+    if (idx >= 0 && idx < data.posts.length - 1)
+      nextPost = { title: data.posts[idx + 1].title, url: data.posts[idx + 1].url };
   }
 }
 
@@ -89,7 +93,9 @@ if (type === 'category') {
     <div class="category-page page-container">
       <div class="category-header">
         <h1 class="category-title section-title">
-          {catName}<span class="title-count-sep"> — </span><span class="posts-count">共 {catPosts.length} 篇文章</span>
+          {catName}
+          <span class="title-count-sep"> — </span>
+          <span class="posts-count">共 {catPosts.length} 篇文章</span>
         </h1>
         <div class="category-header-search">
           <PostSearch
@@ -122,7 +128,11 @@ if (type === 'category') {
               </div>
             ))}
           </div>
-          {catPosts.length === 0 && <div class="posts-empty glass"><p>该分类下暂无文章</p></div>}
+          {catPosts.length === 0 && (
+            <div class="posts-empty glass">
+              <p>该分类下暂无文章</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -140,7 +150,11 @@ if (type === 'category') {
   >
     <header class="post-header">
       <h1 class="post-title">
-        {post.pinned && <span class="post-title-pin"><Icon name="la:thumbtack" class="pin-icon" /></span>}
+        {post.pinned && (
+          <span class="post-title-pin">
+            <Icon name="la:thumbtack" class="pin-icon" />
+          </span>
+        )}
         {post.title}
       </h1>
       <div class="post-meta">
@@ -153,7 +167,9 @@ if (type === 'category') {
         {post.category && (
           <span class="post-meta-item">
             <Icon name="la:layer-group" class="meta-icon" />
-            <a href={buildCategoryUrl(post.category.split('/'), postRoute)} class="post-meta-link">{post.categoryTrail[post.categoryTrail.length - 1].name}</a>
+            <a href={buildCategoryUrl(post.category.split('/'), postRoute)} class="post-meta-link">
+              {post.categoryTrail[post.categoryTrail.length - 1].name}
+            </a>
           </span>
         )}
         {post.tags.length > 0 && (
@@ -161,7 +177,9 @@ if (type === 'category') {
             <Icon name="la:tag" class="meta-icon" />
             {post.tags.map((tag, i) => (
               <span>
-                <a href={`/${postRoute}/tag/${encodeURIComponent(tag)}/`} class="post-meta-link">{tag}</a>
+                <a href={`/${postRoute}/tag/${encodeURIComponent(tag)}/`} class="post-meta-link">
+                  {tag}
+                </a>
                 {i < post.tags.length - 1 && <span class="meta-sep">/</span>}
               </span>
             ))}
@@ -170,8 +188,18 @@ if (type === 'category') {
       </div>
       {post.image && (
         <div class="post-cover">
-          <span class="cover-ph-icon" aria-hidden="true"><Icon name="mdi:image-outline" /></span>
-          <ImageWrapper src={post.image} basePath={post.basePath} alt={post.title} class="w-full" style="width: 100%; height: auto; display: block;" sizes="(max-width: 768px) 100vw, 920px" widths={[1280, 1920]} />
+          <span class="cover-ph-icon" aria-hidden="true">
+            <Icon name="mdi:image-outline" />
+          </span>
+          <ImageWrapper
+            src={post.image}
+            basePath={post.basePath}
+            alt={post.title}
+            class="w-full"
+            style="width: 100%; height: auto; display: block;"
+            sizes="(max-width: 768px) 100vw, 920px"
+            widths={[1280, 1920]}
+          />
         </div>
       )}
     </header>
@@ -198,21 +226,78 @@ if (type === 'category') {
   }
 
   /* ---- 文章详情页样式 ---- */
-  .post-header { margin-bottom: 24px; }
-  .post-title { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.3; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px; }
-  .post-title-pin { display: inline-flex; flex-shrink: 0; }
-  .post-title-pin .pin-icon { width: 22px; height: 22px; }
-  .post-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
-  .post-meta-item { display: inline-flex; align-items: center; gap: 5px; font-size: 0.85rem; color: rgba(255, 255, 255, 0.5); }
-  .meta-icon { width: 15px; height: 15px; opacity: 0.6; flex-shrink: 0; position: relative; top: -1px; }
-  .post-meta-link { color: rgba(255, 255, 255, 0.65); text-decoration: none; transition: color 0.2s; }
-  .post-meta-link::before { display: none; }
-  .post-meta-link:hover { color: #fff; }
-  .meta-sep { margin: 0 2px; color: rgba(255, 255, 255, 0.3); }
-  .post-cover { margin-top: 20px; border-radius: 8px; overflow: hidden; }
-  .post-cover img { width: 100%; height: auto; display: block; }
+  .post-header {
+    margin-bottom: 24px;
+  }
+  .post-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.3;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .post-title-pin {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .post-title-pin .pin-icon {
+    width: 22px;
+    height: 22px;
+  }
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .post-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+  .meta-icon {
+    width: 15px;
+    height: 15px;
+    opacity: 0.6;
+    flex-shrink: 0;
+    position: relative;
+    top: -1px;
+  }
+  .post-meta-link {
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .post-meta-link::before {
+    display: none;
+  }
+  .post-meta-link:hover {
+    color: #fff;
+  }
+  .meta-sep {
+    margin: 0 2px;
+    color: rgba(255, 255, 255, 0.3);
+  }
+  .post-cover {
+    margin-top: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .post-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
 
   @media (max-width: 768px) {
-    .post-title { font-size: 1.5rem; }
+    .post-title {
+      font-size: 1.5rem;
+    }
   }
 </style>
