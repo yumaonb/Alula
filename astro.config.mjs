@@ -1,9 +1,10 @@
 // @ts-check
-// astro.config.mjs — 站点构建配置（Astro 集成 / 压缩 / 构建后清理注释）
+// astro.config.mjs — 站点构建配置（Astro 集成 / 压缩 / 构建后清理注释 / 背景预设）
 import { defineConfig } from 'astro/config';
-import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { background } from './src/data/background';
 import svelte from '@astrojs/svelte';
 import icon from 'astro-icon';
 import swup from '@swup/astro';
@@ -104,6 +105,44 @@ function countRemoved(before, after) {
   return beforeComments.length - afterComments.length;
 }
 
+/**
+ * 背景预设插件：把 src/data/background.ts 里的文件名在构建期翻译成字面量 import。
+ *
+ * 为什么需要它：用户要求「只填一个文件名」就能换背景方案，而字符串变量在构建期
+ * 无法当模块路径用（import.meta.glob 会把每个预设都编进产物，无论是否被选中）。
+ * 这里读一次设置，生成一个虚拟模块，模块体里是真正的字面量 import——Vite 只会把
+ * 被选中的那一个文件编进产物，未选中的预设零成本，dev 与 build 行为一致。
+ *
+ * 注意：设置文件在配置阶段被读取，改了它要重启 dev server 才生效（build 不受影响）。
+ */
+function backgroundPreset() {
+  const folder = background.type === 'image' ? 'images' : 'css';
+  const relative = `src/assets/backgrounds/${folder}/${background.path}`;
+  if (!existsSync(fileURLToPath(new URL(`./${relative}`, import.meta.url)))) {
+    throw new Error(
+      `[background] 找不到背景预设 "${background.path}"，请核对 src/assets/backgrounds/${folder}/ 下的文件名`,
+    );
+  }
+  // 交给 Vite 的模块 id 用根路径写法，由 Vite 按项目根解析
+  const specifier = `/${relative}`;
+
+  return {
+    name: 'background-preset',
+    /** @param {string} id @returns {string | null} */
+    resolveId(id) {
+      return id === 'virtual:background' ? '\0virtual:background' : null;
+    },
+    /** @param {string} id @returns {string | null} */
+    load(id) {
+      if (id !== '\0virtual:background') return null;
+      // css 方案：副作用导入，样式随模块进入产物；图片方案：默认导出交给 astro:assets 优化
+      return background.type === 'image'
+        ? `import src from ${JSON.stringify(specifier)};\nexport default src;\n`
+        : `import ${JSON.stringify(specifier)};\nexport default null;\n`;
+    },
+  };
+}
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [
@@ -153,5 +192,8 @@ export default defineConfig({
   ],
   markdown: {
     rehypePlugins: [rehypeSlug],
+  },
+  vite: {
+    plugins: [backgroundPreset()],
   },
 });

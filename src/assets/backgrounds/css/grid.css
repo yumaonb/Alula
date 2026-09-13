@@ -1,0 +1,83 @@
+/* grid.css — 背景方案：细网格（默认）
+ * 用法：src/data/background.ts 的 path 填 "grid.css"
+ *
+ * 纯几何高频图案：24px 细网格 + 120px 主网格与交点亮点。毛玻璃的 backdrop-filter
+ * 只能抹掉高频细节，背景本身没有细节时看不出模糊，这片线网就是被抹的对象。
+ * 无图片请求、无脚本、无动画与定时器，画一次即静态常驻，滚动与 swup 切页都不重绘。
+ */
+
+/* 底色层次：中心冷光提亮 + 四角压暗收视线，避免纯线网显得单薄 */
+.bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: scale(1.05);
+  background:
+    radial-gradient(54% 46% at 50% 24%, rgba(96, 128, 216, 0.1) 0%, rgba(96, 128, 216, 0) 100%),
+    radial-gradient(40% 34% at 12% 88%, rgba(46, 58, 104, 0.5) 0%, rgba(46, 58, 104, 0) 100%),
+    radial-gradient(38% 32% at 88% 12%, rgba(92, 55, 106, 0.4) 0%, rgba(92, 55, 106, 0) 100%),
+    radial-gradient(130% 110% at 50% 45%, rgba(0, 0, 0, 0) 46%, rgba(0, 0, 0, 0.46) 100%),
+    #12121a;
+}
+
+/* 线网：细网格打底，主网格与交点亮点分层叠加。
+ * 渐隐端写 rgba(255, 255, 255, 0) 而不是 transparent：后者是透明黑，
+ * 在非预乘插值的旧浏览器里会把过渡区间往黑色带一点。
+ * 交点亮点用 circle at 0 0，相邻磁贴的四分之一角正好拼成完整的点。 */
+.bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.028) 1px, rgba(255, 255, 255, 0) 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.028) 1px, rgba(255, 255, 255, 0) 1px),
+    linear-gradient(to right, rgba(190, 210, 255, 0.062) 1px, rgba(190, 210, 255, 0) 1px),
+    linear-gradient(to bottom, rgba(190, 210, 255, 0.062) 1px, rgba(190, 210, 255, 0) 1px),
+    radial-gradient(
+      circle at 0 0,
+      rgba(214, 228, 255, 0.16) 1.2px,
+      rgba(214, 228, 255, 0) 1.5px
+    );
+  background-size:
+    24px 24px,
+    24px 24px,
+    120px 120px,
+    120px 120px,
+    120px 120px;
+  -webkit-mask-image: radial-gradient(ellipse 84% 74% at 50% 36%, #000 10%, transparent 78%);
+  mask-image: radial-gradient(ellipse 84% 74% at 50% 36%, #000 10%, transparent 78%);
+}
+
+@media (max-width: 768px) {
+  /* 手机屏幕窄，同间距下线网占画面比例更高，放大间距并降一档亮度 */
+  .bg::after {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.024) 1px, rgba(255, 255, 255, 0) 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.024) 1px, rgba(255, 255, 255, 0) 1px),
+      linear-gradient(to right, rgba(190, 210, 255, 0.05) 1px, rgba(190, 210, 255, 0) 1px),
+      linear-gradient(to bottom, rgba(190, 210, 255, 0.05) 1px, rgba(190, 210, 255, 0) 1px),
+      radial-gradient(
+        circle at 0 0,
+        rgba(214, 228, 255, 0.13) 1.1px,
+        rgba(214, 228, 255, 0) 1.4px
+      );
+    background-size:
+      32px 32px,
+      32px 32px,
+      128px 128px,
+      128px 128px,
+      128px 128px;
+  }
+}
+
+/* 窄高的手机竖屏下色斑会被拉成竖条，重排一次更耐看 */
+@media (max-aspect-ratio: 3 / 4) {
+  .bg::before {
+    background:
+      radial-gradient(56% 32% at 50% 20%, rgba(96, 128, 216, 0.1) 0%, rgba(96, 128, 216, 0) 100%),
+      radial-gradient(48% 30% at 18% 84%, rgba(46, 58, 104, 0.5) 0%, rgba(46, 58, 104, 0) 100%),
+      radial-gradient(44% 28% at 84% 14%, rgba(92, 55, 106, 0.4) 0%, rgba(92, 55, 106, 0) 100%),
+      radial-gradient(130% 110% at 50% 45%, rgba(0, 0, 0, 0) 46%, rgba(0, 0, 0, 0.46) 100%),
+      #12121a;
+  }
+}

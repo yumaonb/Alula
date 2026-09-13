@@ -99,7 +99,38 @@ ol {
   overflow-x: clip;
 }
 
-/* 背景 */
+/* 全站背景容器：方案（css/图片）与具体绘制由 src/assets/backgrounds/ 下的预设负责，
+ * 容器自身的定位、层叠与兜底色在这里，改方案不用动它。
+ * 图片方案由 Background.astro 写入 --bg-image 等变量；css 方案只用到 ::before / ::after。 */
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* 与 html 兜底色一致，避免过度滚动回弹时出现色带 */
+  background-color: #12121a;
+  overflow: hidden;
+  /* 配合固定定位，避免移动端地址栏收放时按视口高度重新布局抖动 */
+  height: 100lvh;
+}
+
+/* 图片方案：用背景图铺满容器；--bg-scrim 为可选的压暗层，默认 0 即不压暗 */
+.bg--image {
+  background-image: var(--bg-image);
+  background-size: var(--bg-fit, cover);
+  background-position: var(--bg-position, center);
+  background-repeat: no-repeat;
+}
+
+.bg--image::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, var(--bg-scrim, 0));
+}
+
+/* 旧背景图（已被 src/assets/backgrounds/ 的方案系统取代，此处保留备用）
+ * 回退方式见 src/components/layout/Background.astro 的文件头说明 */
 .bg-layer {
   position: fixed;
   inset: 0;

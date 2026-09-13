@@ -44,12 +44,18 @@ for (let i = catSegments.length; i > 0; i--) {
     break;
   }
 }
+// 顶部插槽（面包屑）只有文章页会传。列表页没传时必须连容器一起不渲染：
+// 空的 .sidebar-top 仍占 min-height（22px），叠加父容器 gap（16px）会在个人卡片上方露出空白。
+// :empty 兜不住——模板里的换行缩进算文本节点。
+const hasTopSlot = Astro.slots.has('top');
 ---
 
 <aside class="global-sidebar posts-sidebar">
-  <div class="sidebar-top">
-    <slot name="top" />
-  </div>
+  {hasTopSlot && (
+    <div class="sidebar-top">
+      <slot name="top" />
+    </div>
+  )}
   <AuthorCard />
 
   <div class="sidebar-filter">
@@ -73,7 +79,7 @@ for (let i = catSegments.length; i > 0; i--) {
     z-index: 10;
   }
 
-  /* 面包屑行：不换行，放不下时向右延伸到文章区上方；空时不占位 */
+  /* 面包屑行：不换行，放不下时向右延伸到文章区上方。是否渲染由 hasTopSlot 决定 */
   .sidebar-top {
     display: flex;
     align-items: center;
@@ -82,6 +88,7 @@ for (let i = catSegments.length; i > 0; i--) {
     min-height: 22px;
   }
 
+  /* 兜底：插槽传了但内容渲染为空时也不占位（注意 :empty 匹配不到只含空白的元素） */
   .sidebar-top:empty {
     display: none;
   }

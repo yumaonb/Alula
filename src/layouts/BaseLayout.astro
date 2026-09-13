@@ -1,12 +1,16 @@
 ---
 // BaseLayout.astro — 全站基础布局（背景 / 导航 / 页脚 / 侧边按钮 / 灯箱等）
 // 用法：<BaseLayout title="页面标题" description="...">...</BaseLayout>
-import { Image } from 'astro:assets';
-import bgImageRaw from '../assets/images/background.jpg';
+// 背景由 <Background /> 渲染，换方案改 src/data/background.ts 一处即可；
+// 回退到旧的整张背景图：取消下面两行 import 与 <body> 里 <Image class="bg-layer"> 的注释，
+// 同时删掉 <Background /> 与 Background 的 import。
+// import { Image } from 'astro:assets';
+// import bgImageRaw from '../assets/backgrounds/images/background.jpg';
 import '../assets/css/global.css';
 import '../assets/css/skeleton.css';
 import '../assets/css/image-fallback.css';
 import NavBar from '../components/layout/NavBar.astro';
+import Background from '../components/layout/Background.astro';
 import Footer from '../components/layout/Footer.astro';
 import SideWidgets from '../components/layout/SideWidgets.astro';
 import TocModal from '../components/posts/TocModal.svelte';
@@ -24,7 +28,7 @@ interface Props {
 const { title, description = site.description, bodyClass = '' } = Astro.props;
 
 const pageTitle = title ? `${title} - ${site.name}` : site.name;
-const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRaw.height}) { img.bg-layer { object-fit: fill; } }`;
+// const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRaw.height}) { img.bg-layer { object-fit: fill; } }`;
 ---
 
 <!doctype html>
@@ -36,18 +40,21 @@ const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRa
     <meta name="color-scheme" content={site.colorScheme} />
     <link rel="icon" type="image/png" href="/images/logo.png" />
     <title>{pageTitle}</title>
-    <style set:html={bgAspectStyle}></style>
+    <!-- 旧背景图的宽高比兜底，随背景图一起保留 -->
+    <!-- <style set:html={bgAspectStyle}></style> -->
     <slot name="head" />
   </head>
   <body class={bodyClass}>
-    <Image
+    <!-- <Image
       src={bgImageRaw}
       alt=""
       class="bg-layer"
       loading="eager"
       decoding="async"
       aria-hidden="true"
-    />
+    /> -->
+    <!-- 全站背景：方案由 src/data/background.ts 决定，绘制样式见 src/assets/backgrounds/ -->
+    <Background />
     <div class="page">
       <NavBar />
       <main class="hero transition-main" id="swup">

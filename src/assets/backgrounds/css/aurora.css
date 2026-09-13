@@ -1,0 +1,85 @@
+/* aurora.css — 背景方案：分层极光渐变（2025 版背景，保留备用）
+ * 用法：src/data/background.ts 的 path 填 "aurora.css"
+ *
+ * 5 团低饱和深色斑 + 两层微冷光 + 四角压暗。色斑各通道不高于 0x6a，
+ * 叠上压暗后整片背景保持暗调，玻璃卡片上的白色文字对比度不下降。
+ * 无图片请求、无脚本、无动画与定时器，三层各绘制一次即静态常驻，
+ * 因此滚动与 swup 切页都不会产生背景重绘，毛玻璃采样到的始终是稳定像素。
+ *
+ * 注意：本方案是低频渐变，没有高频细节可被 backdrop-filter 抹掉，
+ * 所以毛玻璃的模糊感不如 grid.css 明显——这也是它被换下的原因。
+ */
+
+/* 略放大一圈，避免渐变边缘在缩放后露出接缝 */
+.bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: scale(1.05);
+  /* 5 团低亮度色斑：靠后的画在上层，整体按固定顺序画一次 */
+  background:
+    radial-gradient(46% 42% at 16% 82%, rgba(46, 58, 104, 0.8) 0%, rgba(46, 58, 104, 0) 100%),
+    radial-gradient(42% 40% at 84% 16%, rgba(92, 55, 106, 0.68) 0%, rgba(92, 55, 106, 0) 100%),
+    radial-gradient(34% 30% at 74% 66%, rgba(34, 84, 92, 0.5) 0%, rgba(34, 84, 92, 0) 100%),
+    radial-gradient(30% 26% at 8% 12%, rgba(74, 52, 112, 0.46) 0%, rgba(74, 52, 112, 0) 100%),
+    radial-gradient(58% 50% at 46% 48%, rgba(38, 42, 76, 0.42) 0%, rgba(38, 42, 76, 0) 100%),
+    /* 两层几乎不可见的冷光，给暗部提一点层次 */
+    radial-gradient(70% 60% at 30% 8%, rgba(255, 255, 255, 0.024) 0%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(80% 70% at 92% 92%, rgba(255, 255, 255, 0.016) 0%, rgba(255, 255, 255, 0) 100%),
+    /* 四角压暗：把视线收拢到中间，同时压住顶部导航与底部页脚的对比 */
+    radial-gradient(130% 110% at 50% 45%, rgba(0, 0, 0, 0) 46%, rgba(0, 0, 0, 0.46) 100%),
+    #12121a;
+}
+
+/* 细网格：1px 亮线，先描边后填充，透明像素也能被超采样抹掉
+ * 渐隐端写 rgba(255, 255, 255, 0) 而不是 transparent：后者是透明黑，
+ * 在非预乘插值的旧浏览器里会把过渡区间往黑色带一点 */
+.bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.044) 1px, rgba(255, 255, 255, 0) 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.036) 1px, rgba(255, 255, 255, 0) 1px),
+    radial-gradient(
+      circle at 24px 24px,
+      rgba(255, 255, 255, 0.13) 1px,
+      rgba(255, 255, 255, 0) 1.2px
+    );
+  background-size:
+    48px 48px,
+    48px 48px,
+    96px 96px;
+  -webkit-mask-image: radial-gradient(ellipse 82% 72% at 50% 38%, #000 12%, transparent 76%);
+  mask-image: radial-gradient(ellipse 82% 72% at 50% 38%, #000 12%, transparent 76%);
+}
+
+@media (max-width: 768px) {
+  .bg::after {
+    /* 手机上线更细更淡，避免和小字号正文抢注意力 */
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.036) 1px, rgba(255, 255, 255, 0) 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, rgba(255, 255, 255, 0) 1px),
+      radial-gradient(
+        circle at 22px 22px,
+        rgba(255, 255, 255, 0.1) 1px,
+        rgba(255, 255, 255, 0) 1.2px
+      );
+    background-size:
+      44px 44px,
+      44px 44px,
+      88px 88px;
+  }
+}
+
+/* 窄高的手机竖屏下色斑会被拉成竖条，重排一次更耐看 */
+@media (max-aspect-ratio: 3 / 4) {
+  .bg::before {
+    background:
+      radial-gradient(52% 34% at 20% 78%, rgba(46, 58, 104, 0.8) 0%, rgba(46, 58, 104, 0) 100%),
+      radial-gradient(48% 30% at 82% 18%, rgba(92, 55, 106, 0.68) 0%, rgba(92, 55, 106, 0) 100%),
+      radial-gradient(40% 24% at 70% 62%, rgba(34, 84, 92, 0.5) 0%, rgba(34, 84, 92, 0) 100%),
+      radial-gradient(130% 110% at 50% 45%, rgba(0, 0, 0, 0) 46%, rgba(0, 0, 0, 0.46) 100%),
+      #12121a;
+  }
+}
