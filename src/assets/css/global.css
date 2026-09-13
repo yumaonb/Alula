@@ -114,11 +114,16 @@ ol {
   height: 100lvh;
 }
 
-/* 图片方案：用背景图铺满容器；--bg-scrim 为可选的压暗层，默认 0 即不压暗 */
+/* 图片方案：高度永远铺满视口；宽度取「容器宽」与「按高度缩放后的图宽」中的较大者——
+ * 视口比图片更宽时横向拉伸填满，更窄时把超出的左右居中裁掉。
+ * --bg-ratio 是图片自身宽高比，由 Background.astro 写入，换图片不用改这里。
+ * --bg-scrim 为可选的压暗层，默认 0 即不压暗。 */
 .bg--image {
   background-image: var(--bg-image);
-  background-size: var(--bg-fit, cover);
-  background-position: var(--bg-position, center);
+  /* 兜底：万一环境不支持下面的 max()，退回 cover，仍能铺满视口 */
+  background-size: cover;
+  background-size: max(100%, calc(100lvh * var(--bg-ratio, 1.5))) 100%;
+  background-position: center;
   background-repeat: no-repeat;
 }
 

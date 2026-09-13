@@ -18,11 +18,14 @@ const optimized = background.type === 'image' && preset
   ? await getImage({ src: preset, width: 1920, format: 'webp' })
   : null;
 
+// 铺图固定为「高度撑满 + 宽度取大者」，不接受配置，因此只需要把图片宽高比交给 CSS：
+// global.css 用 max(100%, 100lvh * ratio) 决定横向是拉伸填满还是裁剪，换图片自动跟着变。
+// 宽高比取自 preset（ImageMetadata 带宽高）；getImage 的返回值只有 src/srcSet/attributes。
+const ratio = preset ? preset.width / preset.height : 0;
 const vars = optimized
   ? [
       `--bg-image: url('${optimized.src}')`,
-      `--bg-fit: ${background.image.fit}`,
-      `--bg-position: ${background.image.position}`,
+      `--bg-ratio: ${ratio}`,
       `--bg-scrim: ${background.scrim}`,
     ].join('; ')
   : '';

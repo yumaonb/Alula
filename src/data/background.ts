@@ -10,23 +10,15 @@ export interface BackgroundConfig {
   type: 'css' | 'image';
   /** 只填文件名（不含目录），type 决定去哪个文件夹找；写错会在构建期直接报错 */
   path: string;
-  /** 图片方案专用，css 方案忽略 */
-  image: {
-    /** 铺满方式 */
-    fit: 'cover' | 'contain';
-    /** 对齐位置，取值同 CSS background-position */
-    position: string;
-  };
   /** 压暗强度 0~1，0 为不压暗；图片偏亮、玻璃卡片上的文字对比度不够时调大 */
   scrim: number;
 }
 
+// 图片方案固定按「高度撑满，宽度取大者」铺图，铺法不接受配置：
+// 高度永远铺满视口；宽度看图片按高度缩放后够不够，不够就横向拉伸填满，够就把超出部分裁掉。
+// 宽高比由 Background.astro 从图片自身读出来交给 CSS，换图片不用改这里。
 export const background: BackgroundConfig = {
-  type: 'css',
-  path: 'grid.css',
-  image: {
-    fit: 'cover',
-    position: 'center',
-  },
+  type: 'image',
+  path: 'background.jpg',
   scrim: 0,
 };
