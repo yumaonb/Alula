@@ -1,7 +1,7 @@
 # Alula
 
 ![Node.js >= 18](https://img.shields.io/badge/node.js->=18-339933?logo=node.js&logoColor=white)
-![pnpm >= 9](https://img.shields.io/badge/pnpm->=9-F69220?logo=pnpm&logoColor=white)
+![pnpm >= 11](https://img.shields.io/badge/pnpm->=11-F69220?logo=pnpm&logoColor=white)
 
 > 以羽之轻，驭速之行
 
@@ -30,6 +30,9 @@
 | `pnpm preview` | 本地预览构建结果                   |
 | `pnpm check`   | 运行 astro check（类型与模板诊断） |
 | `pnpm format`  | 用 Prettier 全量格式化             |
+
+> pnpm 11 起，除认证与源（`.npmrc`）以外的配置一律写在 `pnpm-workspace.yaml`；
+> 根 `package.json` 的 `"pnpm"` 字段不再被读取。允许执行安装脚本的依赖在 `allowBuilds` 里声明。
 
 ## 项目结构
 
