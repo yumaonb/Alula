@@ -18,7 +18,7 @@ export interface BackgroundConfig {
 // 高度永远铺满视口；宽度看图片按高度缩放后够不够，不够就横向拉伸填满，够就把超出部分裁掉。
 // 宽高比由 Background.astro 从图片自身读出来交给 CSS，换图片不用改这里。
 export const background: BackgroundConfig = {
-  type: 'image',
-  path: 'background.jpg',
+  type: 'css',
+  path: 'ocean.css',
   scrim: 0,
 };

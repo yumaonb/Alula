@@ -107,8 +107,8 @@ ol {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  /* 与 html 兜底色一致，避免过度滚动回弹时出现色带 */
-  background-color: #12121a;
+  /* 与 html 兜底色一致，避免过度滚动回弹时出现色带（跟随 ocean.css 的深蓝底） */
+  background-color: #0a1424;
   overflow: hidden;
   /* 配合固定定位，避免移动端地址栏收放时按视口高度重新布局抖动 */
   height: 100lvh;
@@ -270,9 +270,9 @@ html.is-animating:not(.is-rendering) .transition-main {
   animation: none;
 }
 
-/* 根元素兜底深色：防止过度滚动回弹等极端情况露出白色画布 */
+/* 根元素兜底深色：防止过度滚动回弹等极端情况露出白色画布（跟随 ocean.css 的深蓝底） */
 html {
-  background-color: #12121a;
+  background-color: #0a1424;
 }
 
 @keyframes page-exit {
