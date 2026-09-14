@@ -1,0 +1,128 @@
+/* wave-dots.css — 背景方案：遮罩波浪点阵
+ * 用法：src/data/background.ts 的 path 填 "wave-dots.css"（默认方案仍是 ocean.css）
+ *
+ * 复刻 SegmentFault《原来CSS的 background 还可以这么玩》「使用 mask」一节的组合：
+ *   1) radial-gradient 按 10px 周期画一圈圆点（5px 半径，相邻相切）；
+ *   2) 线性渐变当遮罩，不透明处显点、透明处只剩底色 —— 点阵被裁成几条斜向起伏的波浪带。
+ * 原示例是浅色页面，只有 background + mask 两行；这里补上深蓝底色与四角压暗，
+ * 否则玻璃卡片上的白字对比度会掉下来（与 ocean.css 同一段取舍）。
+ *
+ * 与 ocean.css 的唯一差别是多了点阵这一层高频细节：
+ * backdrop-filter 的 blur() 有东西可抹了，玻璃卡片的磨砂感比纯渐变明显，
+ * 代价是背景多了一层规则图案（近看能看出点）。
+ *
+ * 无图片请求、无脚本、无动画与定时器，两层各绘制一次即静态常驻，
+ * 滚动与 swup 切页都不触发背景重绘，backdrop-filter 采样到的是稳定像素。
+ *
+ * 底色在下面声明成 --bg-base，global.css 的 html 读它（根元素画布色），
+ * 换预设只改 src/data/background.ts，不用再同步 global.css。
+ */
+
+/* 兜底色令牌 */
+:root {
+  --bg-base: #08111e;
+}
+
+/* 底层：深蓝渐变。沿用 ocean.css 的色斑与压暗，alpha 略降给上面的点阵留亮度余量。
+ * 渐隐端写 rgba(..., 0) 而不是 transparent：后者是透明黑，
+ * 在非预乘插值的旧浏览器里会把过渡区间往黑色带一点。 */
+.bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* 略放大一圈，避免渐变边缘在缩放后露出接缝 */
+  transform: scale(1.05);
+  background:
+    /* 左下深海蓝：主色斑，画面的重量所在 */
+    radial-gradient(62% 54% at 16% 88%, rgba(28, 72, 156, 0.66) 0%, rgba(28, 72, 156, 0) 100%),
+    /* 右上蓝紫：与主色斑对角呼应，明度更高，负责右上角提亮 */
+    radial-gradient(48% 42% at 84% 14%, rgba(98, 122, 222, 0.4) 0%, rgba(98, 122, 222, 0) 100%),
+    /* 中央靛蓝：托住中间，避免上下两块色斑之间发空 */
+    radial-gradient(54% 42% at 50% 50%, rgba(52, 84, 178, 0.28) 0%, rgba(52, 84, 178, 0) 100%),
+    /* 四角压暗：比 ocean 稍重，压住点阵带外沿的毛边 */
+    radial-gradient(134% 112% at 50% 44%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.58) 100%),
+    #08111e;
+}
+
+/* 上层：10px 周期的圆点阵 + 波浪遮罩。
+ * 点色没用示例里的 #00caf5（192° 青）：本仓库配色统一在 214°~228° 的蓝—蓝紫区间，
+ * 纯青的圆点会从整片背景里跳出来。这里换成 205° 的浅蓝，想要示例原色把它改回 #00caf5 即可。
+ * 圆点边缘从 4.5px 淡到 5px（相邻相切），留一点抗锯齿，避免硬边在缩放屏上起摩尔纹。 */
+.bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle,
+    rgba(122, 190, 240, 0.42) 4.5px,
+    rgba(122, 190, 240, 0) 5px
+  );
+  background-size: 10px 10px;
+  /* 两层遮罩按 add 叠加：斜向条纹带出「波浪」，中心椭圆让它别铺满整屏。
+   * 渐隐端用 rgba(0, 0, 0, 0) 而不是 transparent，理由同上面的底色注释。 */
+  -webkit-mask-image:
+    linear-gradient(
+      112deg,
+      rgba(0, 0, 0, 0) 20%,
+      #000 31%,
+      rgba(0, 0, 0, 0) 42%,
+      #000 53%,
+      rgba(0, 0, 0, 0) 64%
+    ),
+    radial-gradient(118% 62% at 50% 34%, #000 0%, rgba(0, 0, 0, 0) 72%);
+  mask-image:
+    linear-gradient(
+      112deg,
+      rgba(0, 0, 0, 0) 20%,
+      #000 31%,
+      rgba(0, 0, 0, 0) 42%,
+      #000 53%,
+      rgba(0, 0, 0, 0) 64%
+    ),
+    radial-gradient(118% 62% at 50% 34%, #000 0%, rgba(0, 0, 0, 0) 72%);
+}
+
+@media (max-width: 768px) {
+  .bg::after {
+    /* 手机上圆点更淡，避免和小字号正文抢注意力 */
+    background-image: radial-gradient(
+      circle,
+      rgba(122, 190, 240, 0.32) 4.5px,
+      rgba(122, 190, 240, 0) 5px
+    );
+  }
+}
+
+/* 窄高的手机竖屏下色斑与斜向条纹都会被拉长，重排一次更耐看 */
+@media (max-aspect-ratio: 3 / 4) {
+  .bg::before {
+    background:
+      radial-gradient(58% 34% at 18% 84%, rgba(28, 72, 156, 0.66) 0%, rgba(28, 72, 156, 0) 100%),
+      radial-gradient(50% 30% at 84% 30%, rgba(98, 122, 222, 0.4) 0%, rgba(98, 122, 222, 0) 100%),
+      radial-gradient(134% 112% at 50% 44%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.58) 100%), #08111e;
+  }
+
+  /* 竖屏下把条纹角度放平一点，两条带落到画面中段 */
+  .bg::after {
+    -webkit-mask-image:
+      linear-gradient(
+        148deg,
+        rgba(0, 0, 0, 0) 24%,
+        #000 34%,
+        rgba(0, 0, 0, 0) 44%,
+        #000 54%,
+        rgba(0, 0, 0, 0) 64%
+      ),
+      radial-gradient(130% 46% at 50% 38%, #000 0%, rgba(0, 0, 0, 0) 76%);
+    mask-image:
+      linear-gradient(
+        148deg,
+        rgba(0, 0, 0, 0) 24%,
+        #000 34%,
+        rgba(0, 0, 0, 0) 44%,
+        #000 54%,
+        rgba(0, 0, 0, 0) 64%
+      ),
+      radial-gradient(130% 46% at 50% 38%, #000 0%, rgba(0, 0, 0, 0) 76%);
+  }
+}

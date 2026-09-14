@@ -100,15 +100,13 @@ ol {
 }
 
 /* 全站背景容器：方案（css/图片）与具体绘制由 src/assets/backgrounds/ 下的预设负责，
- * 容器自身的定位、层叠与兜底色在这里，改方案不用动它。
+ * 容器自身的定位与层叠在这里，改方案不用动它。
  * 图片方案由 Background.astro 写入 --bg-image 等变量；css 方案只用到 ::before / ::after。 */
 .bg {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  /* 与 html 兜底色一致，避免过度滚动回弹时出现色带（跟随 ocean.css 的深蓝底） */
-  background-color: #0a1424;
   overflow: hidden;
   /* 配合固定定位，避免移动端地址栏收放时按视口高度重新布局抖动 */
   height: 100lvh;
@@ -270,9 +268,11 @@ html.is-animating:not(.is-rendering) .transition-main {
   animation: none;
 }
 
-/* 根元素兜底深色：防止过度滚动回弹等极端情况露出白色画布（跟随 ocean.css 的深蓝底） */
+/* 根元素画布色，这行不能删：过度滚动回弹、背景未渲染时露出的底就是它。
+ * 取预设自带的 --bg-base（换预设只改 src/data/background.ts）；
+ * 图片方案不打包任何 CSS 预设，没人声明它，就用浏览器默认白底，不做额外处理。 */
 html {
-  background-color: #0a1424;
+  background-color: var(--bg-base, #fff);
 }
 
 @keyframes page-exit {

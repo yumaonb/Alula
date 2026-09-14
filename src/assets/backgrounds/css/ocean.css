@@ -1,4 +1,4 @@
-/* ocean.css — 背景方案：深蓝夜海（默认）
+/* ocean.css — 背景方案：深蓝夜海
  * 用法：src/data/background.ts 的 path 填 "ocean.css"
  *
  * 纯渐变方案：只有一个低频层，4 团大而柔的径向色斑铺在深底上，
@@ -15,7 +15,15 @@
  *
  * 无图片请求、无脚本、无动画与定时器，各层绘制一次即静态常驻，
  * 滚动与 swup 切页都不触发背景重绘，backdrop-filter 采样到的始终是稳定像素。
+ *
+ * 底色在下面声明成 --bg-base，global.css 的 html 读它（根元素画布色），
+ * 换预设只改 src/data/background.ts，不用再同步 global.css。
  */
+
+/* 兜底色令牌 */
+:root {
+  --bg-base: #0a1424;
+}
 
 /* 低频层：底色 + 色斑 + 压暗。
  * 渐隐端写 rgba(..., 0) 而不是 transparent：后者是透明黑，
@@ -47,7 +55,6 @@
       radial-gradient(56% 34% at 50% 20%, rgba(96, 156, 232, 0.16) 0%, rgba(96, 156, 232, 0) 100%),
       radial-gradient(58% 34% at 18% 84%, rgba(28, 72, 156, 0.72) 0%, rgba(28, 72, 156, 0) 100%),
       radial-gradient(50% 30% at 84% 34%, rgba(98, 122, 222, 0.44) 0%, rgba(98, 122, 222, 0) 100%),
-      radial-gradient(134% 112% at 50% 44%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.52) 100%),
-      #0a1424;
+      radial-gradient(134% 112% at 50% 44%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.52) 100%), #0a1424;
   }
 }

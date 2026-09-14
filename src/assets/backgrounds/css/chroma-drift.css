@@ -1,0 +1,110 @@
+/* chroma-drift.css — 背景方案：彩色流光
+ * 用法：src/data/background.ts 的 path 填 "chroma-drift.css"
+ *
+ * 复刻 SegmentFault《原来CSS的 background 还可以这么玩》「动态背景」一节：
+ * 多个不同类型的渐变叠在一起混合，再对每层用 hue-rotate 循环色相，
+ * 得到原文所说的「杂乱无序的眩光效果」。
+ *
+ * 与原文做法的差异（都是为了适配本站的深色毛玻璃）：
+ * - 原文在浅底上叠加，用 multiply 会越叠越暗；本站是深底，改用 screen
+ *   （深底上 screen 即提亮叠加），彩色才不会糊成一片黑。
+ * - 色斑一律用大半径径向渐变 + blur() 柔化，不留任何可辨认的边界，
+ *   避免出现点阵、条纹、网格那类图案形状。
+ * - 每层 alpha 压在 0.3~0.5，白字在玻璃卡片上的对比度不下降。
+ * - 两层用不同周期（28s / 38s）和相反方向，色相错开后才有原文那种「杂乱」感；
+ *   若两层同速同向，整片背景会像一块整体变色，反而呆板。
+ *
+ * 【代价，务必知情】本方案与 ocean.css「静态常驻」的取舍相反：
+ * 背景色相一直在变，玻璃卡片的 backdrop-filter 每帧都要重新采样，
+ * 滚动时的合成开销高于静态背景。不喜欢动效或在意开销就删掉两条 animation；
+ * 浏览器开启「减少动态效果」时，下面的 prefers-reduced-motion 会自动停掉动画，
+ * 但保留下面的彩色静态画面。
+ *
+ * 若把本方案切成默认，底色已由下面的 --bg-base 自带（本方案的色斑全是半透明叠加，
+ * 底下这层底色就是它的画布），global.css 不用改。
+ *
+ * 【兜底色】本方案的 ::before / ::after 全是半透明色斑，没有不透明底色，
+ * 所以这里声明的 --bg-base 是真正在起作用的：global.css 的 html 读它作根元素画布色，
+ * 半透明处透出来的就是它。
+ */
+
+/* 兜底色令牌：色斑叠在这层之上，semi-transparent 的部分透出来就是它 */
+:root {
+  --bg-base: #05070c;
+}
+
+/* 第一层：五团彩色大色斑，模糊后彼此渗透成一片弥散的彩雾。
+ * blur 与 hue-rotate 写在同一条 filter 里：keyframes 两端都要写全，
+ * 否则浏览器会把缺失的函数按默认值插值，模糊会在动画中途被抹掉。
+ * inset 取负值外扩一圈，blur 采样到边界外时才不会在四周留出硬边。 */
+.bg::before {
+  content: '';
+  position: absolute;
+  inset: -8%;
+  background:
+    radial-gradient(42% 38% at 16% 24%, rgba(255, 62, 158, 0.5) 0%, rgba(255, 62, 158, 0) 66%),
+    radial-gradient(40% 36% at 82% 16%, rgba(62, 186, 255, 0.46) 0%, rgba(62, 186, 255, 0) 66%),
+    radial-gradient(48% 42% at 90% 74%, rgba(150, 92, 255, 0.44) 0%, rgba(150, 92, 255, 0) 68%),
+    radial-gradient(44% 38% at 22% 84%, rgba(58, 240, 196, 0.4) 0%, rgba(58, 240, 196, 0) 68%),
+    radial-gradient(38% 34% at 50% 52%, rgba(255, 168, 66, 0.3) 0%, rgba(255, 168, 66, 0) 70%);
+  filter: blur(56px);
+  animation: bg-chroma-a 28s linear infinite;
+}
+
+/* 第二层：另一组位置与色相的色斑，screen 叠上去提亮混合处的颜色，
+ * 周期更长、方向相反，两层错开后色彩才持续流动而不整齐划一。 */
+.bg::after {
+  content: '';
+  position: absolute;
+  inset: -8%;
+  background:
+    radial-gradient(46% 40% at 68% 34%, rgba(255, 92, 128, 0.4) 0%, rgba(255, 92, 128, 0) 68%),
+    radial-gradient(42% 36% at 32% 62%, rgba(96, 140, 255, 0.4) 0%, rgba(96, 140, 255, 0) 68%),
+    radial-gradient(40% 34% at 12% 46%, rgba(64, 255, 224, 0.32) 0%, rgba(64, 255, 224, 0) 70%);
+  filter: blur(72px);
+  mix-blend-mode: screen;
+  animation: bg-chroma-b 38s linear infinite reverse;
+}
+
+@keyframes bg-chroma-a {
+  from {
+    filter: blur(56px) hue-rotate(0deg);
+  }
+  to {
+    filter: blur(56px) hue-rotate(360deg);
+  }
+}
+
+@keyframes bg-chroma-b {
+  from {
+    filter: blur(72px) hue-rotate(0deg);
+  }
+  to {
+    filter: blur(72px) hue-rotate(360deg);
+  }
+}
+
+/* 尊重系统的「减少动态效果」：停掉动画，静态彩色画面保留 */
+@media (prefers-reduced-motion: reduce) {
+  .bg::before,
+  .bg::after {
+    animation: none;
+  }
+}
+
+/* 窄高的手机竖屏下色斑会被拉成竖条，重排一次更耐看 */
+@media (max-aspect-ratio: 3 / 4) {
+  .bg::before {
+    background:
+      radial-gradient(56% 30% at 50% 18%, rgba(62, 186, 255, 0.44) 0%, rgba(62, 186, 255, 0) 70%),
+      radial-gradient(58% 32% at 20% 50%, rgba(255, 62, 158, 0.46) 0%, rgba(255, 62, 158, 0) 70%),
+      radial-gradient(54% 30% at 82% 78%, rgba(150, 92, 255, 0.42) 0%, rgba(150, 92, 255, 0) 70%),
+      radial-gradient(50% 26% at 34% 92%, rgba(58, 240, 196, 0.34) 0%, rgba(58, 240, 196, 0) 70%);
+  }
+
+  .bg::after {
+    background:
+      radial-gradient(52% 28% at 74% 40%, rgba(255, 92, 128, 0.34) 0%, rgba(255, 92, 128, 0) 70%),
+      radial-gradient(48% 26% at 30% 66%, rgba(96, 140, 255, 0.34) 0%, rgba(96, 140, 255, 0) 70%);
+  }
+}

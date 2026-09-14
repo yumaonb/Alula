@@ -19,6 +19,6 @@ export interface BackgroundConfig {
 // 宽高比由 Background.astro 从图片自身读出来交给 CSS，换图片不用改这里。
 export const background: BackgroundConfig = {
   type: 'css',
-  path: 'ocean.css',
+  path: 'honeycomb.css',
   scrim: 0,
 };

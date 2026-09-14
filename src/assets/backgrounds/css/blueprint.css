@@ -1,0 +1,106 @@
+/* blueprint.css — 背景方案：蓝图网格
+ * 用法：src/data/background.ts 的 path 填 "blueprint.css"
+ *
+ * 双层正交网格铺在一整块深蓝底上：100px 主网格（2px 线）+ 20px 细网格（1px 线）。
+ * 两档周期成整数倍（100 = 5 × 20），叠在一起不会互相拍频出摩尔纹；
+ * 线只走横竖，不用斜向条纹——斜向 1px 条纹在屏幕上会和大面积线网干涉出摩尔纹。
+ *
+ * 底色 #041b41 与参考线色 #0d2755 / #0b224a 同一色相（约 218°），符合本站「色相统一
+ * 在一个区间」的配色经验。主网格线的明度相对参考色提亮了一档：参考线色与底色明度差
+ * 太小，原样铺满整屏几乎看不出网格。想退回参考色，把 ::after 的 rgba 换成
+ * #0d2755 / #0b224a 两个不透明色即可。
+ *
+ * 【毛玻璃收益】20px 细网格是高频细节，backdrop-filter 的 blur() 正好抹它，
+ * 玻璃卡片因此重新有「磨砂感」——这正是 ocean.css 去掉点阵后丢掉的效果。
+ *
+ * 无图片请求、无脚本、无动画与定时器，两层各绘制一次即静态常驻，
+ * 滚动与 swup 切页都不触发背景重绘，毛玻璃采样到的始终是稳定像素。
+ *
+ * 底色在下面声明成 --bg-base，global.css 的 html 读它（根元素画布色），
+ * 换预设只改 src/data/background.ts，不用再同步 global.css。
+ */
+
+/* 兜底色令牌 */
+:root {
+  --bg-base: #041b41;
+}
+
+/* 低频层：底色 + 色斑 + 四角压暗。
+ * 渐隐端写 rgba(..., 0) 而不是 transparent：后者是透明黑，
+ * 在非预乘插值的旧浏览器里会把过渡区间往黑色带一点。 */
+.bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* 略放大一圈，避免渐变边缘在缩放后露出接缝 */
+  transform: scale(1.05);
+  background:
+    /* 中上方冷光：给标题与导航区提亮，否则整屏网格会显得平 */
+    radial-gradient(58% 44% at 50% 16%, rgba(56, 112, 208, 0.18) 0%, rgba(56, 112, 208, 0) 100%),
+    /* 左下深蓝：主色斑，画面的重量所在 */
+    radial-gradient(60% 52% at 14% 90%, rgba(22, 62, 140, 0.6) 0%, rgba(22, 62, 140, 0) 100%),
+    /* 右下提亮：与主色斑对角呼应，避免右下发空 */
+    radial-gradient(46% 38% at 88% 84%, rgba(38, 88, 178, 0.34) 0%, rgba(38, 88, 178, 0) 100%),
+    /* 四角压暗：收拢视线，压住顶部导航与底部页脚的对比 */
+    radial-gradient(132% 110% at 50% 44%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.5) 100%),
+    #041b41;
+}
+
+/* 高频层：网格线。主网格画在下、细网格画在上，两者同色相不同明度。
+ * 线端收在同一位移（硬边，不插值），颜色仍写 rgba(..., 0) 而非 transparent。
+ * 负位移让 2px / 1px 的线压在像素上，不跨半像素糊成两像素灰边。
+ * 径向 mask 让网格向四周淡出：中间是完整线网，边缘留给干净的深蓝，不与页脚对比度抢戏。 */
+.bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(20, 54, 114, 0.72) 2px, rgba(20, 54, 114, 0) 2px),
+    linear-gradient(to bottom, rgba(20, 54, 114, 0.72) 2px, rgba(20, 54, 114, 0) 2px),
+    linear-gradient(to right, rgba(13, 39, 85, 0.6) 1px, rgba(13, 39, 85, 0) 1px),
+    linear-gradient(to bottom, rgba(13, 39, 85, 0.6) 1px, rgba(13, 39, 85, 0) 1px);
+  background-size:
+    100px 100px,
+    100px 100px,
+    20px 20px,
+    20px 20px;
+  background-position:
+    -2px -2px,
+    -2px -2px,
+    -1px -1px,
+    -1px -1px;
+  -webkit-mask-image: radial-gradient(ellipse 86% 76% at 50% 36%, #000 12%, transparent 80%);
+  mask-image: radial-gradient(ellipse 86% 76% at 50% 36%, #000 12%, transparent 80%);
+}
+
+/* 手机屏窄，同间距下线网占画面比例过高，周期放大一档并降一档亮度（20 -> 26、100 -> 130，仍是整数倍） */
+@media (max-width: 768px) {
+  .bg::after {
+    background-image:
+      linear-gradient(to right, rgba(20, 54, 114, 0.6) 2px, rgba(20, 54, 114, 0) 2px),
+      linear-gradient(to bottom, rgba(20, 54, 114, 0.6) 2px, rgba(20, 54, 114, 0) 2px),
+      linear-gradient(to right, rgba(13, 39, 85, 0.5) 1px, rgba(13, 39, 85, 0) 1px),
+      linear-gradient(to bottom, rgba(13, 39, 85, 0.5) 1px, rgba(13, 39, 85, 0) 1px);
+    background-size:
+      130px 130px,
+      130px 130px,
+      26px 26px,
+      26px 26px;
+    background-position:
+      -2px -2px,
+      -2px -2px,
+      -1px -1px,
+      -1px -1px;
+  }
+}
+
+/* 窄高的手机竖屏下色斑会被拉成竖条，重排一次更耐看 */
+@media (max-aspect-ratio: 3 / 4) {
+  .bg::before {
+    background:
+      radial-gradient(56% 32% at 50% 16%, rgba(56, 112, 208, 0.18) 0%, rgba(56, 112, 208, 0) 100%),
+      radial-gradient(58% 34% at 18% 86%, rgba(22, 62, 140, 0.6) 0%, rgba(22, 62, 140, 0) 100%),
+      radial-gradient(48% 28% at 84% 42%, rgba(38, 88, 178, 0.34) 0%, rgba(38, 88, 178, 0) 100%),
+      radial-gradient(132% 110% at 50% 44%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.5) 100%), #041b41;
+  }
+}
