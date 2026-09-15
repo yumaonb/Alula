@@ -13,8 +13,14 @@ declare module 'virtual:background' {
 interface Window {
   /** breakpoint.js 提供的共享断点监听器（供 is:inline 脚本使用） */
   __onEnterDesktop?: (fn: () => void) => () => void;
-  /** TableOfContents 内部状态标记 */
+  /** toc.js 的幂等守卫 */
   __tocInit?: boolean;
-  /** TableOfContents 提供的目录竖线瞬移方法（供 TocModal 调用） */
+  /** toc.js 提供的目录竖线瞬移方法（供 TocModal 调用） */
   __tocSnap?: () => void;
+  /** PostCategoryTree.astro 内联脚本的幂等守卫 */
+  __postCatTreeBound?: boolean;
+  /** lightbox.js 的幂等守卫 */
+  __alula_lightbox_bound?: boolean;
+  /** image-fallback.js 的幂等守卫 */
+  __alula_image_fallback_bound?: boolean;
 }

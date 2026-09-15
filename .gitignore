@@ -22,7 +22,6 @@ pnpm-debug.log*
 
 # AI 协作
 AGENTS.md
-.cursor/
 .dsh/
 .dsh-code-index/
 .dshwolf/

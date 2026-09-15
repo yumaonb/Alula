@@ -1,15 +1,13 @@
 /* wave-dots.css — 背景方案：遮罩波浪点阵
- * 用法：src/data/background.ts 的 path 填 "wave-dots.css"（默认方案仍是 ocean.css）
+ * 用法：src/data/background.ts 的 path 填 "wave-dots.css"
  *
- * 复刻 SegmentFault《原来CSS的 background 还可以这么玩》「使用 mask」一节的组合：
+ * 两层叠加：
  *   1) radial-gradient 按 10px 周期画一圈圆点（5px 半径，相邻相切）；
  *   2) 线性渐变当遮罩，不透明处显点、透明处只剩底色 —— 点阵被裁成几条斜向起伏的波浪带。
- * 原示例是浅色页面，只有 background + mask 两行；这里补上深蓝底色与四角压暗，
- * 否则玻璃卡片上的白字对比度会掉下来（与 ocean.css 同一段取舍）。
+ * 点阵之外补上深蓝底色与四角压暗，否则玻璃卡片上的白字对比度会掉下来。
  *
- * 与 ocean.css 的唯一差别是多了点阵这一层高频细节：
- * backdrop-filter 的 blur() 有东西可抹了，玻璃卡片的磨砂感比纯渐变明显，
- * 代价是背景多了一层规则图案（近看能看出点）。
+ * 点阵这层高频细节让 backdrop-filter 的 blur() 有东西可抹，
+ * 玻璃卡片的磨砂感比纯渐变明显；代价是背景多了一层规则图案（近看能看出点）。
  *
  * 无图片请求、无脚本、无动画与定时器，两层各绘制一次即静态常驻，
  * 滚动与 swup 切页都不触发背景重绘，backdrop-filter 采样到的是稳定像素。
