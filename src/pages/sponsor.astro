@@ -12,7 +12,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       <p class="header-desc section-desc">如果我的内容对你有帮助，欢迎请我喝杯咖啡</p>
     </header>
 
-    <a href={sponsorLink.href} class="hero-card glass" target="_blank" rel="noopener">
+    <a href={sponsorLink.href} class="hero-card glass hoverable" target="_blank" rel="noopener">
       <div class="hero-card-inner">
         <div class="hero-text">
           <span class="hero-label">推荐支持</span>
@@ -25,7 +25,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       </div>
     </a>
 
-    <a href={sponsorList.href} class="action-card glass" target={sponsorList.target} rel="noopener">
+    <a href={sponsorList.href} class="action-card glass hoverable" target={sponsorList.target} rel="noopener">
       <Icon name={sponsorList.icon} class="action-icon" />
       <div class="action-body">
         <span class="action-title">{sponsorList.title}</span>
@@ -42,7 +42,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       <div class="action-grid">
         {supportActions.map((a) =>
           a.href ? (
-            <a href={a.href} class="grid-card glass" target={a.target} rel="noopener">
+            <a href={a.href} class="grid-card glass hoverable" target={a.target} rel="noopener">
               <Icon name={a.icon} class="grid-icon" />
               <div class="grid-body">
                 <span class="grid-title">{a.title}</span>
@@ -94,11 +94,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     border-radius: 14px;
     position: relative;
     overflow: hidden;
-    transition: filter 0.25s ease;
-  }
-
-  .hero-card:hover {
-    filter: brightness(1.15);
   }
 
   .hero-card-inner {
@@ -150,7 +145,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   }
 
   .hero-card:hover .hero-arrow {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--hover-ink);
   }
 
   /* ---- 其他支持方式 ---- */
@@ -207,11 +202,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     text-decoration: none;
     color: inherit;
     cursor: pointer;
-    transition: filter 0.25s ease;
-  }
-
-  .grid-card:hover {
-    filter: brightness(1.15);
   }
 
   .grid-icon {
@@ -228,7 +218,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   }
 
   .grid-card:hover .grid-icon {
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--hover-ink);
   }
 
   .grid-body {
@@ -259,11 +249,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     text-decoration: none;
     color: inherit;
     cursor: pointer;
-    transition: filter 0.25s ease;
-  }
-
-  .action-card:hover {
-    filter: brightness(1.15);
   }
 
   .action-icon {
@@ -275,7 +260,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   }
 
   .action-card:hover .action-icon {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--hover-ink);
   }
 
   .action-icon :global(svg) {

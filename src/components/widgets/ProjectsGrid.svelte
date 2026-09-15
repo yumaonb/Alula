@@ -154,7 +154,7 @@
     <!-- 卡片 -->
   {:else}
     {#each repos as repo (repo.name)}
-      <a href={repo.html_url} class="project-card glass" target="_blank" rel="noopener noreferrer">
+      <a href={repo.html_url} class="project-card glass hoverable" target="_blank" rel="noopener noreferrer">
         <div class="card-header">
           <div class="card-header-left">
             <h2 class="card-name">{repo.name}</h2>
@@ -214,11 +214,7 @@
     transition: opacity 0.2s ease;
   }
 
-  .project-card:hover {
-    opacity: 0.85;
-  }
-
-  .card-header {
+    .card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;

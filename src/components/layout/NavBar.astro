@@ -14,22 +14,22 @@ import { site } from '../../data/site';
 
     <ul class="nav-links">
       <li>
-        <a href="/">首页</a>
+        <a class="hoverable" href="/">首页</a>
       </li>
       <li>
-        <a href="/about/">关于</a>
+        <a class="hoverable" href="/about/">关于</a>
       </li>
       <li>
-        <a href="/projects/">项目</a>
+        <a class="hoverable" href="/projects/">项目</a>
       </li>
       <li>
-        <a href="/posts/">文章</a>
+        <a class="hoverable" href="/posts/">文章</a>
       </li>
       <li>
-        <a href="/friends/">友链</a>
+        <a class="hoverable" href="/friends/">友链</a>
       </li>
       <li>
-        <a href="/sponsor/">赞助</a>
+        <a class="hoverable" href="/sponsor/">赞助</a>
       </li>
     </ul>
 
@@ -52,7 +52,7 @@ import { site } from '../../data/site';
     <div class="mobile-dropdown-inner">
       <ul class="mobile-menu">
         <li class="mobile-item">
-          <a href="/" class="mobile-link" tabindex="-1">
+          <a href="/" class="mobile-link hoverable" tabindex="-1">
             <span class="mobile-link-left">
               <Icon name="la:home" class="mobile-link-icon" />
               <span class="mobile-link-text">首页</span>
@@ -61,7 +61,7 @@ import { site } from '../../data/site';
           </a>
         </li>
         <li class="mobile-item">
-          <a href="/about/" class="mobile-link" tabindex="-1">
+          <a href="/about/" class="mobile-link hoverable" tabindex="-1">
             <span class="mobile-link-left">
               <Icon name="la:user" class="mobile-link-icon" />
               <span class="mobile-link-text">关于</span>
@@ -70,7 +70,7 @@ import { site } from '../../data/site';
           </a>
         </li>
         <li class="mobile-item">
-          <a href="/projects/" class="mobile-link" tabindex="-1">
+          <a href="/projects/" class="mobile-link hoverable" tabindex="-1">
             <span class="mobile-link-left">
               <Icon name="la:folder-open" class="mobile-link-icon" />
               <span class="mobile-link-text">项目</span>
@@ -79,7 +79,7 @@ import { site } from '../../data/site';
           </a>
         </li>
         <li class="mobile-item">
-          <a href="/posts/" class="mobile-link" tabindex="-1">
+          <a href="/posts/" class="mobile-link hoverable" tabindex="-1">
             <span class="mobile-link-left">
               <Icon name="la:pen-fancy" class="mobile-link-icon" />
               <span class="mobile-link-text">文章</span>
@@ -88,7 +88,7 @@ import { site } from '../../data/site';
           </a>
         </li>
         <li class="mobile-item">
-          <a href="/friends/" class="mobile-link" tabindex="-1">
+          <a href="/friends/" class="mobile-link hoverable" tabindex="-1">
             <span class="mobile-link-left">
               <Icon name="la:link" class="mobile-link-icon" />
               <span class="mobile-link-text">友链</span>
@@ -97,7 +97,7 @@ import { site } from '../../data/site';
           </a>
         </li>
         <li class="mobile-item">
-          <a href="/sponsor/" class="mobile-link" tabindex="-1">
+          <a href="/sponsor/" class="mobile-link hoverable" tabindex="-1">
             <span class="mobile-link-left">
               <Icon name="la:hand-holding-heart" class="mobile-link-icon" />
               <span class="mobile-link-text">赞助</span>
@@ -187,26 +187,6 @@ import { site } from '../../data/site';
     color: rgba(255, 255, 255, 0.75);
     border-radius: var(--radius);
     overflow: hidden;
-  }
-
-  .nav-links a::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.1);
-    opacity: 0;
-    transition: opacity 0.3s;
-    border-radius: inherit;
-  }
-
-  .nav-links a:hover,
-  .nav-links a:focus-visible {
-    color: #fff;
-  }
-
-  .nav-links a:hover::before,
-  .nav-links a:focus-visible::before {
-    opacity: 1;
   }
 
   /* 汉堡按钮（桌面隐藏） */
@@ -381,30 +361,6 @@ import { site } from '../../data/site';
     overflow: hidden;
   }
 
-  .mobile-link::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.1);
-    opacity: 0;
-    transition: opacity 0.15s ease;
-  }
-
-  .mobile-link:hover,
-  .mobile-link:focus-visible {
-    color: #fff;
-  }
-
-  .mobile-link:hover::before,
-  .mobile-link:focus-visible::before {
-    opacity: 1;
-  }
-
-  .mobile-link:active::before {
-    background: rgba(255, 255, 255, 0.18);
-    opacity: 1;
-  }
-
   .mobile-link-left {
     display: flex;
     align-items: center;
@@ -416,16 +372,7 @@ import { site } from '../../data/site';
     height: 17px;
     color: rgba(255, 255, 255, 0.6);
     flex-shrink: 0;
-    transition: filter 0.15s;
-  }
-
-  .mobile-link:hover .mobile-link-icon {
-    filter: brightness(1.67);
-  }
-
-  .mobile-link-text {
-    font-size: 0.88rem;
-    letter-spacing: 0.02em;
+    transition: color 0.15s;
   }
 
   .mobile-link-arrow {
@@ -434,12 +381,21 @@ import { site } from '../../data/site';
     color: rgba(255, 255, 255, 0.6);
     flex-shrink: 0;
     transition:
-      filter 0.15s,
+      color 0.15s,
       transform 0.15s;
   }
 
+  .mobile-link-text {
+    font-size: 0.88rem;
+    letter-spacing: 0.02em;
+  }
+
+  .mobile-link:hover .mobile-link-icon,
   .mobile-link:hover .mobile-link-arrow {
-    filter: brightness(1.67);
+    color: var(--hover-ink);
+  }
+
+  .mobile-link:hover .mobile-link-arrow {
     transform: translateX(2px);
   }
 

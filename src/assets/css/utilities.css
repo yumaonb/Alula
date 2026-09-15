@@ -65,7 +65,46 @@
   border-radius: var(--radius);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.37),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    inset 0 0 0 1px var(--ring);
+}
+
+/* ---- 悬浮反馈 ----
+ * 全站唯一的悬停样式：按钮、卡片、链接、标签、导航项都挂 .hoverable，
+ * 不再各自写 :hover。浓淡只改 variables.css 里的 --hover-* 三个值。
+ *
+ * 类名故意重复写两遍：Astro 把组件样式编译成 .xxx[data-astro-cid-yyy]，同样是
+ * (0,2,0) 且排在全局样式之后，只写一次会被组件的静止态颜色盖掉（悬停看着像没反应）；
+ * 重复一个类名提到 (0,3,0) 才能稳定压过组件样式。改这段前先读这条注释。 */
+.hoverable.hoverable {
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+}
+
+/* 已选中的元素（chip / psd-item / cat-item 的 --active 态）不被悬停盖回未选中观感 */
+.hoverable.hoverable:hover,
+.hoverable.hoverable:focus-visible {
+  --ring: var(--hover-line);
+  color: var(--hover-ink);
+  background: var(--hover-bg);
+  border-color: var(--hover-line);
+}
+
+.hoverable.hoverable.chip--active,
+.hoverable.hoverable.psd-item--active,
+.hoverable.hoverable.cat-item--active {
+  color: var(--hover-ink);
+  background: var(--active-bg);
+  border-color: var(--hover-line);
+}
+
+/* 卡片本身是容器、点击目标在内层时，整卡跟着亮 */
+.hoverable.hoverable:has(:hover) {
+  --ring: var(--hover-line);
+  background: var(--hover-bg);
+  border-color: var(--hover-line);
 }
 
 /* ---- 高玻璃容器 ----
@@ -121,13 +160,8 @@
   -webkit-backdrop-filter: blur(var(--blur));
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.37),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    inset 0 0 0 1px var(--ring);
   position: relative;
-  transition: filter 0.3s ease;
-}
-
-.glass-btn:hover {
-  filter: brightness(1.2);
 }
 
 /* 小号圆形按钮 */

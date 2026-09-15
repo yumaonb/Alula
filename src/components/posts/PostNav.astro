@@ -19,7 +19,7 @@ const { prev = null, next = null } = Astro.props;
 {(prev || next) && (
   <nav class="post-nav" aria-label="文章导航">
     {prev ? (
-      <a href={prev.url} class="post-nav-item post-nav-prev glass" rel="prev">
+      <a href={prev.url} class="post-nav-item post-nav-prev glass hoverable" rel="prev">
         <span class="post-nav-label">
           <Icon name="la:arrow-left" class="post-nav-icon" />
           上一篇
@@ -36,7 +36,7 @@ const { prev = null, next = null } = Astro.props;
       </span>
     )}
     {next ? (
-      <a href={next.url} class="post-nav-item post-nav-next glass" rel="next">
+      <a href={next.url} class="post-nav-item post-nav-next glass hoverable" rel="next">
         <span class="post-nav-label">
           下一篇
           <Icon name="la:arrow-right" class="post-nav-icon" />
@@ -81,12 +81,7 @@ const { prev = null, next = null } = Astro.props;
     display: none;
   }
 
-  a.post-nav-item:hover {
-    filter: brightness(1.15);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-  }
-
-  .post-nav-next {
+    .post-nav-next {
     text-align: right;
     align-items: flex-end;
   }
@@ -127,11 +122,7 @@ const { prev = null, next = null } = Astro.props;
     transition: color 0.2s;
   }
 
-  a.post-nav-item:hover .post-nav-title {
-    color: #fff;
-  }
-
-  @media (max-width: 768px) {
+    @media (max-width: 768px) {
     .post-nav {
       grid-template-columns: 1fr;
       gap: 12px;

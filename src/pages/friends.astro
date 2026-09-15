@@ -13,7 +13,7 @@ import { friends } from '../data/friends';
 
     <div class="friends-grid">
       {friends.map((f) => (
-        <a href={f.url} class="friend-card glass" target="_blank" rel="noopener">
+        <a href={f.url} class="friend-card glass hoverable" target="_blank" rel="noopener">
           <div class="friend-avatar avatar-ring" style="--avatar-size:52px;">
             <img src={f.avatar} alt={f.name} class="avatar-img" loading="lazy" />
           </div>

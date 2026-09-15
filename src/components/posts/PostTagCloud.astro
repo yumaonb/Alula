@@ -21,7 +21,7 @@ const { tags, tagUrl, activeTag = '' } = Astro.props;
   </h2>
   <div class="tag-panel-body">
     {tags.map((tag) => (
-      <a href={tagUrl(tag.name)} class:list={['chip', { 'chip--active': tag.name === activeTag }]}>
+      <a href={tagUrl(tag.name)} class:list={['chip', 'hoverable', { 'chip--active': tag.name === activeTag }]}>
         {tag.name}
       </a>
     ))}
@@ -67,27 +67,17 @@ const { tags, tagUrl, activeTag = '' } = Astro.props;
     border: none;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.06);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 1px var(--ring);
     color: rgba(255, 255, 255, 0.55);
     font: inherit;
     font-size: 0.74rem;
     text-decoration: none;
     cursor: pointer;
-    transition:
-      color 0.2s ease,
-      background 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-
-  .chip:hover {
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   }
 
   .chip--active {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.16);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+    color: var(--hover-ink);
+    background: var(--active-bg);
+    box-shadow: inset 0 0 0 1px var(--hover-line);
   }
 </style>

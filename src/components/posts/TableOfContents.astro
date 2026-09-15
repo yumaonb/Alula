@@ -48,7 +48,7 @@ if (hasH1 && hasH2) {
             class:list={['toc-item', { 'toc-sub': heading.depth > tocItems[0].depth }]}
             data-target={heading.slug}
           >
-            <a class="toc-link" data-target={heading.slug}>
+            <a class="toc-link hoverable" data-target={heading.slug}>
               {heading.text.replace(/\s*#$/, '')}
             </a>
           </li>
@@ -145,22 +145,13 @@ if (hasH1 && hasH2) {
     white-space: nowrap;
   }
 
-  .toc-link:hover {
-    color: rgba(255, 255, 255, 0.75);
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .toc-sub .toc-link {
+    .toc-sub .toc-link {
     padding-left: 24px;
     font-size: 0.76rem;
     color: rgba(255, 255, 255, 0.45);
   }
 
-  .toc-sub .toc-link:hover {
-    color: rgba(255, 255, 255, 0.65);
-  }
-
-  .toc-item.active .toc-link {
+    .toc-item.active .toc-link {
     color: rgba(255, 255, 255, 0.95);
     font-weight: 500;
   }

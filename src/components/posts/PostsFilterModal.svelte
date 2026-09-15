@@ -97,7 +97,7 @@
         <Icon icon="la:tags" class="pfilter-modal-title-icon" />
         分类与标签
       </span>
-      <button class="pfilter-modal-close" data-pfilter-close aria-label="关闭筛选" onclick={close}>
+      <button class="pfilter-modal-close hoverable" data-pfilter-close aria-label="关闭筛选" onclick={close}>
         <Icon icon="la:times" />
       </button>
     </div>
@@ -198,9 +198,6 @@
     background: transparent;
     color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
-    transition:
-      color 0.15s ease,
-      background 0.15s ease;
   }
 
   .pfilter-modal-close :global(svg) {
@@ -208,12 +205,7 @@
     height: 16px;
   }
 
-  .pfilter-modal-close:hover {
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .pfilter-modal-body {
+    .pfilter-modal-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;

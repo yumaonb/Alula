@@ -107,18 +107,16 @@
   text-align: left;
   cursor: pointer;
   position: relative;
-  transition: color 0.15s ease;
   text-decoration: none;
 }
 
 .cat-item:hover {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--hover-ink);
 }
 
 /* 活跃分类 */
-.cat-item--active,
-.cat-item--active:hover {
-  color: #fff;
+.cat-item--active {
+  color: var(--hover-ink);
 }
 
 .cat-name {

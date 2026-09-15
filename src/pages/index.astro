@@ -36,7 +36,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 
       <div class="social-row">
         {socialLinks.map((link) => (
-          <a href={link.url} class="glass-btn" title={link.label} target="_blank" rel="noopener">
+          <a href={link.url} class="glass-btn hoverable" title={link.label} target="_blank" rel="noopener">
             <Icon name={link.icon} class="btn-icon" />
           </a>
         ))}

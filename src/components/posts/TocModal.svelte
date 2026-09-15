@@ -128,7 +128,7 @@
         </svg>
         文章目录
       </span>
-      <button class="toc-modal-close" data-toc-close aria-label="关闭目录" onclick={close}>
+      <button class="toc-modal-close hoverable" data-toc-close aria-label="关闭目录" onclick={close}>
         <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
           <path
             d="M17.4 16l4.9-4.9a.7.7 0 0 0-1-1L16.4 15l-4.9-4.9a.7.7 0 0 0-1 1l4.9 4.9-4.9 4.9a.7.7 0 0 0 1 1l4.9-4.9 4.9 4.9a.7.7 0 0 0 1-1z"
@@ -235,9 +235,6 @@
     background: transparent;
     color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
-    transition:
-      color 0.15s ease,
-      background 0.15s ease;
   }
 
   .toc-modal-close :global(svg) {
@@ -245,12 +242,7 @@
     height: 16px;
   }
 
-  .toc-modal-close:hover {
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .toc-modal-body {
+    .toc-modal-body {
     flex: 1;
     display: flex;
     min-height: 0;

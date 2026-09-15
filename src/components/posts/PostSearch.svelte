@@ -165,7 +165,7 @@
       spellcheck="false"
     />
     {#if kw.length > 0}
-      <button type="button" class="post-search-clear" aria-label="清空搜索" onclick={clearSearch}>
+      <button type="button" class="post-search-clear hoverable" aria-label="清空搜索" onclick={clearSearch}>
         <svg
           class="post-search-clear-icon"
           viewBox="0 0 32 32"
@@ -193,7 +193,7 @@
         {#each results as result, i}
           <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
           <a
-            class="psd-item"
+            class="psd-item hoverable"
             class:psd-item--active={i === activeIndex}
             href={result.url}
             data-index={i}
@@ -278,14 +278,6 @@
     background: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
-    transition:
-      color 0.2s ease,
-      background 0.2s ease;
-  }
-
-  .post-search-clear:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.2);
   }
 
   .post-search-clear-icon {
@@ -338,13 +330,9 @@
     transition: background 0.15s ease;
   }
 
-  :global(.psd-item:hover),
   :global(.psd-item--active) {
-    background: rgba(255, 255, 255, 0.12);
-  }
-
-  :global(.psd-item--active) {
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+    background: var(--hover-bg);
+    box-shadow: inset 0 0 0 1px var(--hover-line);
   }
 
   :global(.psd-item-title) {

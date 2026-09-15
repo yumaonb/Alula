@@ -45,7 +45,7 @@ const hasCategory = trail.length > 0;
 const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
 ---
 
-<article class:list={['post-card glass', { 'has-cover': hasCover }]}>
+<article class:list={['post-card glass hoverable', { 'has-cover': hasCover }]}>
   <!-- 封面（右侧，固定 4:3） -->
   {hasCover && (
     <a href={url} class="post-card-cover" aria-label={`阅读：${title}`}>
@@ -139,7 +139,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
           {tags.map((tag) => (
             <a
               href={`/posts/tag/${encodeURIComponent(tag)}/`}
-              class="post-card-tag"
+              class="post-card-tag hoverable"
               title={`标签：${tag}`}
             >
               {tag}
@@ -253,11 +253,11 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
   }
 
   /* 悬停时标题变纯白 */
-  .post-card-title:hover,
   .post-card-title-link:hover {
-    color: #fff;
+    color: var(--hover-ink);
   }
 
+  /* 悬停时标题变纯白 */
   /* ---- 元信息行：日期 / 分类 / 评论数（图标与详情页一致） ---- */
   /* 底部行：元信息居左、标签居右；margin-top:auto 让该行贴住卡片底部
      （有封面时正好与右侧 4:3 封面的底部对齐） */
@@ -335,7 +335,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
   }
 
   .post-card-category:hover {
-    color: #fff;
+    color: var(--hover-ink);
   }
 
   .post-card-desc {
@@ -356,10 +356,6 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
 
   .post-card-desc::before {
     display: none;
-  }
-
-  .post-card-desc:hover {
-    color: rgba(255, 255, 255, 0.55);
   }
 
   /* 底部元信息一行放不下时渐进让位：先隐藏字数 → 再评论 → 再分类，日期始终保留 */
@@ -423,11 +419,6 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     transition:
       color 0.2s ease,
       background 0.2s ease;
-  }
-
-  .post-card-tag:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.12);
   }
 
   /* 卡片过窄时隐藏标签 */

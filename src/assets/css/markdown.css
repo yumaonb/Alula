@@ -63,8 +63,8 @@
 }
 
 .markdown-body a:hover {
-  color: #fff;
-  text-decoration-color: rgba(255, 255, 255, 0.6);
+  color: var(--hover-ink);
+  text-decoration-color: var(--hover-line);
 }
 
 /* ---- 粗体 & 斜体 ---- */

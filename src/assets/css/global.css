@@ -68,8 +68,8 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+  background: var(--hover-bg);
+  box-shadow: 0 0 0 1px var(--hover-line);
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: inherit;
@@ -176,7 +176,7 @@ ol {
   height: 44px;
   margin-top: 8px;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ring);
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(var(--blur));
@@ -223,9 +223,9 @@ ol {
 }
 
 .back-to-widget:hover {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--hover-ink);
+  background: var(--hover-bg);
+  border-color: var(--hover-line);
 }
 
 .back-to-widget-icon {

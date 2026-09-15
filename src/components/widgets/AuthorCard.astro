@@ -28,7 +28,7 @@ const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, wid
   </div>
   <div class="author-socials">
     {socialLinks.map((s) => (
-      <a href={s.url} target="_blank" rel="noopener" aria-label={s.label} class="author-social">
+      <a href={s.url} target="_blank" rel="noopener" aria-label={s.label} class="author-social hoverable">
         <Icon name={s.icon} class="social-icon" />
       </a>
     ))}
@@ -93,12 +93,7 @@ const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, wid
       background 0.2s ease;
   }
 
-  .author-social:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .social-icon {
+    .social-icon {
     width: 16px;
     height: 16px;
   }
