@@ -1,8 +1,11 @@
-/* variables.css — 设计令牌（圆角 / 过渡时长） */
+/* variables.css — 设计令牌（圆角 / 模糊 / 过渡时长） */
 
 :root {
   /* 圆角大小 */
   --radius: 10px;
+
+  /* 毛玻璃模糊半径 */
+  --blur: 8px;
 
   /* 过渡动画时长 */
   --transition-base: 0.3s ease;

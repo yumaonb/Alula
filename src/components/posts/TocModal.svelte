@@ -178,8 +178,8 @@
     flex-direction: column;
     border-radius: var(--radius) 0 0 var(--radius);
     background: transparent;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
     box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.37),
       inset 1px 0 0 rgba(255, 255, 255, 0.08);

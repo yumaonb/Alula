@@ -59,8 +59,8 @@
 /* ---- 玻璃卡片 ---- */
 .glass {
   background: transparent;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
   border: none;
   border-radius: var(--radius);
   box-shadow:
@@ -97,8 +97,8 @@
     margin-bottom: -100vh; /* 抵消自身高度，不占布局空间 */
     z-index: -1;
     pointer-events: none;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
   }
 }
 
@@ -117,8 +117,8 @@
   font: inherit;
   text-decoration: none;
   background: transparent;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.37),
     inset 0 0 0 1px rgba(255, 255, 255, 0.08);
