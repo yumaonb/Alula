@@ -39,6 +39,8 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
     <meta name="description" content={description} />
     <meta name="color-scheme" content={site.colorScheme} />
     <link rel="icon" type="image/png" href="/images/logo.png" />
+    <!-- RSS 自动发现：阅读器与浏览器靠这条找到 /posts/rss.xml -->
+    <link rel="alternate" type="application/rss+xml" title={site.name} href="/posts/rss.xml" />
     <title>{pageTitle}</title>
     <!-- 旧背景图的宽高比兜底，随背景图一起保留 -->
     <!-- <style set:html={bgAspectStyle}></style> -->

@@ -15,6 +15,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/rss": "^4.0.19",
     "@astrojs/svelte": "7.2.5",
     "@iconify-json/la": "^1.2.1",
     "@iconify-json/mdi": "^1.2.3",
