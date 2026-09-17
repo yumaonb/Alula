@@ -23,5 +23,5 @@ export const socialLinks: SocialLink[] = [
   { icon: 'simple-icons:bilibili', label: 'Bilibili', url: 'https://b23.tv/XFTBHN3' },
   { icon: 'simple-icons:kuaishou', label: '快手', url: 'https://v.kuaishou.com/JwRUGjtp' },
   { icon: 'simple-icons:tiktok', label: '抖音', url: 'https://v.douyin.com/UrbqZZXQBzc/' },
-  { icon: 'la:qq', label: 'QQ', url: 'https://qm.qq.com/q/UhGbjbysQW' },
+  { icon: 'la:rss', label: 'rss', url: '/posts/rss.xml' },
 ];
