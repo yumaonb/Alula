@@ -1,7 +1,6 @@
 <!-- PostSearch.svelte — 文章全文搜索（基于 Pagefind） -->
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import Icon from '@iconify/svelte';
 
   let { placeholder = '搜索文章…', categoryPath = '', filterUrls = [] } = $props();
 
@@ -148,7 +147,13 @@
 
 <div class="post-search-wrap">
   <div class="post-search">
-    <Icon icon="la:search" class="post-search-icon" aria-hidden="true" />
+    <span class="post-search-icon" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="currentColor">
+        <path
+          d="M30.9 29.1l-7.5-7.5a1.3 1.3 0 0 0-1-.4h-.6a12 12 0 1 0-1.4 1.4v.6a1.3 1.3 0 0 0 .4 1l7.5 7.5a1.4 1.4 0 0 0 2 0l.6-.6a1.4 1.4 0 0 0 0-2zM13 21a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"
+        ></path>
+      </svg>
+    </span>
     <input
       bind:this={inputEl}
       bind:value={kw}
@@ -238,12 +243,21 @@
       0 4px 16px rgba(0, 0, 0, 0.2);
   }
 
-  :global(.post-search-icon) {
-    width: 15px;
-    height: 15px;
+  /* 图标随 HTML 输出（不再等待水合后异步注入），首屏即可见 */
+  .post-search-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
     color: rgba(255, 255, 255, 0.45);
     flex-shrink: 0;
-    transform: rotate(-90deg);
+  }
+
+  .post-search-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .post-search-input {
