@@ -7,6 +7,7 @@ import {
   buildCategoryTree,
   formatDate,
   postRoute,
+  visiblePosts,
   type BreadcrumbItem,
   type CategoryMeta,
   type CategoryTreeNode,
@@ -50,10 +51,11 @@ export type PostEntry = CollectionEntry<'posts'>;
 
 export interface BlogData {
   meta: Record<string, CategoryMeta>; // 分类元数据：目录路径 → 配置
-  posts: PostItem[]; // 全部文章：置顶优先、日期倒序
+  posts: PostItem[]; // 可列出的文章（隐藏文章已排除）：置顶优先、日期倒序
+  allPosts: PostItem[]; // 全部文章（含隐藏）：仅供文章页生成路由与取用，不要直接列表渲染
   entries: PostEntry[]; // 全量条目，供文章详情页渲染
-  categoryTree: CategoryTreeNode[]; // 侧栏分类树
-  tags: { name: string; count: number }[]; // 侧栏标签计数：数量倒序
+  categoryTree: CategoryTreeNode[]; // 侧栏分类树（只统计可列出的文章）
+  tags: { name: string; count: number }[]; // 侧栏标签计数（只统计可列出的文章）：数量倒序
 }
 
 let cache: Promise<BlogData> | null = null;
@@ -77,7 +79,7 @@ async function buildData(): Promise<BlogData> {
   // 构建期拉取一次 giscus 评论数；失败为 null（所有卡片隐藏评论数）
   const commentCounts = await loadCommentCounts();
 
-  const posts: PostItem[] = entries
+  const allPosts: PostItem[] = entries
     .map((e) => {
       const d = e.data as any;
       const parts = e.id.split('/');
@@ -93,6 +95,7 @@ async function buildData(): Promise<BlogData> {
         image: typeof d.image === 'string' ? d.image : '',
         tags: Array.isArray(d.tags) ? d.tags : [],
         pinned: d.pinned === true,
+        hidden: d.hidden === true,
         category,
         categoryTrail: category ? buildCategoryTrail(category, meta) : [],
         commentCount: commentCountFor(commentCounts, url),
@@ -107,6 +110,9 @@ async function buildData(): Promise<BlogData> {
       return t(b.date) - t(a.date);
     });
 
+  // 列表口径：隐藏文章只保留「能生成页面」，其余派生数据（分类树 / 标签云 / 上下篇）都不带它
+  const posts = visiblePosts(allPosts);
+
   const categoryTree = buildCategoryTree(posts, meta);
 
   const tagCounts = new Map<string, number>();
@@ -115,7 +121,7 @@ async function buildData(): Promise<BlogData> {
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh'));
 
-  return { meta, posts, entries, categoryTree, tags };
+  return { meta, posts, allPosts, entries, categoryTree, tags };
 }
 
 export async function loadBlogData(): Promise<BlogData> {

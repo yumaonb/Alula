@@ -46,6 +46,8 @@ export interface PostItem {
   image: string;
   tags: string[];
   pinned: boolean;
+  /** 隐藏文章：不进列表/分类/标签/订阅源/搜索，也不出现在别处的上下篇里，只能靠直链访问 */
+  hidden: boolean;
   /** 所属分类 = 文章目录路径（content/posts 之内），如 "devnotes/css"；文章直接在根目录则为空串 */
   category: string;
   /** 完整分类链（每级分类名 + 对应分类页 URL；无分类时为空数组） */
@@ -77,6 +79,11 @@ export function formatDate(value: string | Date): string {
 
 export function postMatchesCategory(post: PostItem, target: string): boolean {
   return !!post.category && (post.category === target || post.category.startsWith(target + '/'));
+}
+
+/** 可见文章：隐藏文章不进列表、分类页、标签页、订阅源、上下篇，只能靠直链访问 */
+export function visiblePosts(posts: PostItem[]): PostItem[] {
+  return posts.filter((post) => !post.hidden);
 }
 
 export function buildCategoryUrl(categoryPath: string[], routePrefix: string = postRoute): string {

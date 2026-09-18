@@ -23,9 +23,11 @@ interface Props {
   title?: string;
   description?: string;
   bodyClass?: string;
+  /** 隐藏文章：给页面加 noindex，别让搜索引擎把直链页收录出去 */
+  noindex?: boolean;
 }
 
-const { title, description = site.description, bodyClass = '' } = Astro.props;
+const { title, description = site.description, bodyClass = '', noindex = false } = Astro.props;
 
 const pageTitle = title ? `${title} - ${site.name}` : site.name;
 // const bgAspectStyle = `@media (min-aspect-ratio: ${bgImageRaw.width}/${bgImageRaw.height}) { img.bg-layer { object-fit: fill; } }`;
@@ -38,6 +40,7 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="color-scheme" content={site.colorScheme} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="icon" type="image/png" href="/images/logo.png" />
     <!-- RSS 自动发现：阅读器与浏览器靠这条找到 /posts/rss.xml -->
     <link rel="alternate" type="application/rss+xml" title={site.name} href="/posts/rss.xml" />

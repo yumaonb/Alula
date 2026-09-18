@@ -25,8 +25,8 @@ export async function getStaticPaths() {
   }[] = [];
   const seen = new Set<string>();
 
-  // 文章路由：posts 集合的每个条目
-  for (const p of d.posts) {
+  // 文章路由：posts 集合的每个条目（含隐藏文章——隐藏只是不进列表，直链仍要能打开）
+  for (const p of d.allPosts) {
     seen.add(p.slug);
     routes.push({ params: { slug: p.slug }, props: { type: 'post', slug: p.slug } });
   }
@@ -39,7 +39,8 @@ export async function getStaticPaths() {
   };
 
   for (const key of Object.keys(d.meta)) addCategory(key);
-  for (const p of d.posts) {
+  // 用 allPosts：隐藏文章的面包屑会指向自己所属的分类页，那条路由必须存在
+  for (const p of d.allPosts) {
     const parts = p.category.split('/').filter(Boolean);
     for (let i = 1; i <= parts.length; i++) addCategory(parts.slice(0, i).join('/'));
   }
@@ -50,7 +51,7 @@ export async function getStaticPaths() {
 const { type } = Astro.props;
 
 // ---- 文章页数据 ----
-let post = undefined as (typeof data.posts)[number] | undefined;
+let post = undefined as (typeof data.allPosts)[number] | undefined;
 let entry = undefined as (typeof data.entries)[number] | undefined;
 let PostContent: any = undefined;
 let headings: { depth: number; slug: string; text: string }[] = [];
@@ -59,7 +60,7 @@ let nextPost: { title: string; url: string } | null = null;
 
 if (type === 'post') {
   const slug = Astro.props.slug as string;
-  post = data.posts.find((p) => p.slug === slug);
+  post = data.allPosts.find((p) => p.slug === slug);
   entry = data.entries.find((e) => e.id === slug);
 
   if (post && entry) {
@@ -67,6 +68,7 @@ if (type === 'post') {
     PostContent = rendered.Content;
     headings = rendered.headings.filter((h) => h.depth >= 1 && h.depth <= 3);
 
+    // 上下篇只在可列出的文章里找：隐藏文章既不出现也不参与（它自己页面没有导航）
     const idx = data.posts.findIndex((p) => p.slug === slug);
     if (idx > 0) prevPost = { title: data.posts[idx - 1].title, url: data.posts[idx - 1].url };
     if (idx >= 0 && idx < data.posts.length - 1)
@@ -147,6 +149,7 @@ if (type === 'category') {
     breadcrumbs={postBreadcrumbs(post, data.meta)}
     categoryTree={data.categoryTree}
     sidebarTags={data.tags}
+    hidden={post.hidden}
   >
     <header class="post-header">
       <h1 class="post-title">

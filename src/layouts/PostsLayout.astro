@@ -20,13 +20,25 @@ interface Props {
   breadcrumbs: BreadcrumbItem[];
   categoryTree: CategoryTreeNode[];
   sidebarTags: { name: string; count: number }[];
+  /** 隐藏文章：正文不进站内搜索索引，页面加 noindex（直链访问仍然正常） */
+  hidden?: boolean;
 }
 
-const { title, description, headings, breadcrumbs, categoryTree, sidebarTags } = Astro.props;
+const {
+  title,
+  description,
+  headings,
+  breadcrumbs,
+  categoryTree,
+  sidebarTags,
+  hidden = false,
+} = Astro.props;
 const hasToc = headings && headings.length > 0;
+// 不输出 data-pagefind-body：Pagefind 只索引带该属性的页面，隐藏文章因此整个页面不进索引
+const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} noindex={hidden}>
   <div class="posts-with-sidebar">
     <div class="posts-sidebar-wrap">
       <GlobalSidebar tree={categoryTree} tags={sidebarTags}>
@@ -39,7 +51,7 @@ const hasToc = headings && headings.length > 0;
           <div class="posts-breadcrumb">
             <Breadcrumb items={breadcrumbs} />
           </div>
-          <article class="post-content glass glass-tall" data-pagefind-body>
+          <article class="post-content glass glass-tall" {...pagefindAttrs}>
             <div class="post-content-inner">
               <slot />
             </div>

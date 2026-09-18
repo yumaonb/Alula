@@ -13,12 +13,14 @@ const posts = defineCollection({
       image: z.string().optional(),
       tags: z.array(z.string()).optional(),
       pinned: z.boolean().optional(),
+      hidden: z.boolean().optional(),
     })
     .passthrough()
     .transform((fm) => {
       if (fm.title == null) fm.title = '无标题';
       if (fm.tags == null) fm.tags = [];
       if (fm.pinned == null) fm.pinned = false;
+      if (fm.hidden == null) fm.hidden = false;
       return fm;
     }),
 });
