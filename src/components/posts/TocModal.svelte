@@ -102,7 +102,6 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   bind:this={modalEl}
   class="toc-modal"
@@ -110,7 +109,9 @@
   role="dialog"
   aria-modal="true"
   aria-label="文章目录"
+  tabindex="-1"
   onclick={onModalClick}
+  onkeydown={onKeydown}
 >
   <div class="toc-modal-mask" data-toc-close></div>
   <div class="toc-modal-panel">
