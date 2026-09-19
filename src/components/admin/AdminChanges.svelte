@@ -99,8 +99,11 @@
           <p class="admin-dock-result" class:is-error={!result.ok}>
             {#if result.ok}
               已提交 {result.count} 个文件 ·
-              <a class="admin-link" href={result.url} target="_blank" rel="noopener noreferrer"
-                >查看提交</a
+              <a
+                class="link-plain"
+                href={result.url}
+                target="_blank"
+                rel="noopener noreferrer">查看提交</a
               >
             {:else}
               {result.text}

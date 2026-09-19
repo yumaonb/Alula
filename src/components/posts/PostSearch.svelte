@@ -198,7 +198,7 @@
         {#each results as result, i}
           <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
           <a
-            class="psd-item hoverable"
+            class="psd-item hoverable link-plain"
             class:psd-item--active={i === activeIndex}
             href={result.url}
             data-index={i}

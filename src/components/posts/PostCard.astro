@@ -48,7 +48,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
 <article class:list={['post-card glass hoverable', { 'has-cover': hasCover }]}>
   <!-- 封面（右侧，固定 4:3） -->
   {hasCover && (
-    <a href={url} class="post-card-cover" aria-label={`阅读：${title}`}>
+    <a href={url} class="post-card-cover link-plain" aria-label={`阅读：${title}`}>
       <span class="cover-ph-icon">
         <Icon name="mdi:image-outline" />
       </span>
@@ -75,14 +75,14 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
         </span>
       )}
       <h3 class="post-card-title">
-        <a href={url} class="post-card-title-link">
+        <a href={url} class="post-card-title-link link-plain">
           {title}
         </a>
       </h3>
     </div>
 
     {description && (
-      <a href={url} class="post-card-desc" aria-label={`阅读：${title}`}>
+      <a href={url} class="post-card-desc link-plain" aria-label={`阅读：${title}`}>
         {description}
       </a>
     )}
@@ -108,7 +108,11 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
                         /
                       </span>
                     )}
-                    <a href={item.url} class="post-card-category" title={`分类：${item.name}`}>
+                    <a
+                      href={item.url}
+                      class="post-card-category link-plain"
+                      title={`分类：${item.name}`}
+                    >
                       {item.name}
                     </a>
                   </span>
@@ -139,7 +143,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
           {tags.map((tag) => (
             <a
               href={`/posts/tag/${encodeURIComponent(tag)}/`}
-              class="post-card-tag hoverable"
+              class="post-card-tag hoverable link-plain"
               title={`标签：${tag}`}
             >
               {tag}
@@ -237,19 +241,11 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
   }
 
   .post-card-title-link {
-    display: inline;
-    padding: 0;
-    border-radius: 0;
-    position: static;
-    overflow: visible;
+    /* pointer-events:auto：抵消卡片正文的 pointer-events:none，链接单独可点击 */
     pointer-events: auto;
     color: inherit;
     text-decoration: none;
     transition: color 0.06s ease;
-  }
-
-  .post-card-title-link::before {
-    display: none;
   }
 
   /* 悬停时标题变纯白 */
@@ -318,20 +314,11 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
   }
 
   .post-card-category {
-    /* 抵消全局链接样式 + 卡片正文 pointer-events:none，链接单独可点击 */
-    display: inline;
-    padding: 0;
-    border-radius: 0;
-    position: static;
-    overflow: visible;
+    /* pointer-events:auto：抵消卡片正文的 pointer-events:none，链接单独可点击 */
     pointer-events: auto;
     color: rgba(255, 255, 255, 0.65);
     text-decoration: none;
     transition: color 0.2s;
-  }
-
-  .post-card-category::before {
-    display: none;
   }
 
   .post-card-category:hover {
@@ -352,10 +339,6 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     /* 可点击，但无悬停效果 */
     pointer-events: auto;
     text-decoration: none;
-  }
-
-  .post-card-desc::before {
-    display: none;
   }
 
   /* 底部元信息一行放不下时渐进让位：先隐藏字数 → 再评论 → 再分类，日期始终保留 */
@@ -446,10 +429,6 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     background-color: rgba(255, 255, 255, 0.06);
     text-decoration: none;
     color: inherit;
-  }
-
-  .post-card-cover::before {
-    display: none;
   }
 
   :global(.post-card-cover img) {

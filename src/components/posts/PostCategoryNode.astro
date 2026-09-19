@@ -27,7 +27,7 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
     {linkMode ? (
       <a
         href={url}
-        class:list={['cat-item', { 'cat-item--active': isActive }]}
+        class:list={['cat-item', 'link-plain', { 'cat-item--active': isActive }]}
         data-category={node.path}
       >
         <span class="cat-name">{node.name}</span>

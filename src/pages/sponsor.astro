@@ -12,7 +12,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       <p class="header-desc section-desc">如果我的内容对你有帮助，欢迎请我喝杯咖啡</p>
     </header>
 
-    <a href={sponsorLink.href} class="hero-card glass hoverable" target="_blank" rel="noopener">
+    <a href={sponsorLink.href} class="hero-card glass hoverable link-plain" target="_blank" rel="noopener">
       <div class="hero-card-inner">
         <div class="hero-text">
           <span class="hero-label">推荐支持</span>
@@ -25,7 +25,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       </div>
     </a>
 
-    <a href={sponsorList.href} class="action-card glass hoverable" target={sponsorList.target} rel="noopener">
+    <a href={sponsorList.href} class="action-card glass hoverable link-plain" target={sponsorList.target} rel="noopener">
       <Icon name={sponsorList.icon} class="action-icon" />
       <div class="action-body">
         <span class="action-title">{sponsorList.title}</span>
@@ -42,7 +42,12 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       <div class="action-grid">
         {supportActions.map((a) =>
           a.href ? (
-            <a href={a.href} class="grid-card glass hoverable" target={a.target} rel="noopener">
+            <a
+              href={a.href}
+              class="grid-card glass hoverable link-plain"
+              target={a.target}
+              rel="noopener"
+            >
               <Icon name={a.icon} class="grid-icon" />
               <div class="grid-body">
                 <span class="grid-title">{a.title}</span>

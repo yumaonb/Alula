@@ -21,7 +21,10 @@ const { tags, tagUrl, activeTag = '' } = Astro.props;
   </h2>
   <div class="tag-panel-body">
     {tags.map((tag) => (
-      <a href={tagUrl(tag.name)} class:list={['chip', 'hoverable', { 'chip--active': tag.name === activeTag }]}>
+      <a
+        href={tagUrl(tag.name)}
+        class:list={['chip', 'hoverable', 'link-plain', { 'chip--active': tag.name === activeTag }]}
+      >
         {tag.name}
       </a>
     ))}

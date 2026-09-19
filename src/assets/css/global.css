@@ -42,14 +42,11 @@ a {
   text-decoration: none;
 }
 
-/* 全站链接 hover 效果：文字周围出现柔和光晕 */
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.project-card):not(
-    .action-card
-  ):not(.hero-card):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(
-    .cat-item
-  ):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(
-    .post-card-category
-  ):not(.post-card-tag):not(.post-card-desc):not(.admin-link) {
+/* 全站链接光晕：正文里那种「纯文字链接」的悬停效果（文字周围一圈柔和光晕）。
+ * 按钮、卡片、导航项、标签这类自带样式的链接，在标记里挂 .link-plain 即可退出，
+ * 不用再到这个选择器里追加 :not(.xxx)——加一个类，下面三条规则同时生效。
+ * .link-plain 只是个标记类，本身不产生样式。 */
+a:not(.link-plain) {
   display: inline-flex;
   align-items: center;
   border-radius: 6px;
@@ -58,13 +55,7 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.projec
   overflow: hidden;
 }
 
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(
-    .hero-card
-  ):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.psd-item):not(.cat-item):not(
-    .post-card-title-link
-  ):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(
-    .post-card-desc
-  ):not(.admin-link)::before {
+a:not(.link-plain)::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -75,13 +66,7 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action
   border-radius: inherit;
 }
 
-a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action-card):not(
-    .hero-card
-  ):not(.grid-card):not(.post-nav-item):not(.toc-link):not(.cat-item):not(
-    .post-card-title-link
-  ):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(
-    .post-card-desc
-  ):not(.admin-link):hover::before {
+a:not(.link-plain):hover::before {
   opacity: 1;
 }
 

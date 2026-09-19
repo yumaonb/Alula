@@ -22,7 +22,7 @@ const { items } = Astro.props;
       <span class="breadcrumb-item">
         {index > 0 && <span class="breadcrumb-sep">/</span>}
         {item.href ? (
-          <a href={item.href} class="breadcrumb-link hoverable">
+          <a href={item.href} class="breadcrumb-link hoverable link-plain">
             {item.icon && <Icon name={item.icon} class="breadcrumb-icon" />}
             {item.label}
           </a>
@@ -81,11 +81,7 @@ const { items } = Astro.props;
       background 0.2s;
   }
 
-  .breadcrumb-link::before {
-    display: none;
-  }
-
-    .breadcrumb-current {
+  .breadcrumb-current {
     display: inline-flex;
     align-items: center;
     gap: 4px;
