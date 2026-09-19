@@ -49,7 +49,7 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.projec
     .cat-item
   ):not(.post-card-title-link):not(.post-card-enter):not(.post-card-cover):not(
     .post-card-category
-  ):not(.post-card-tag):not(.post-card-desc) {
+  ):not(.post-card-tag):not(.post-card-desc):not(.admin-link) {
   display: inline-flex;
   align-items: center;
   border-radius: 6px;
@@ -64,7 +64,7 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action
     .post-card-title-link
   ):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(
     .post-card-desc
-  )::before {
+  ):not(.admin-link)::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -81,7 +81,7 @@ a:not(.glass-btn):not(.nav-logo):not(.nav-links a):not(.mobile-link):not(.action
     .post-card-title-link
   ):not(.post-card-enter):not(.post-card-cover):not(.post-card-category):not(.post-card-tag):not(
     .post-card-desc
-  ):hover::before {
+  ):not(.admin-link):hover::before {
   opacity: 1;
 }
 

@@ -1,0 +1,71 @@
+---
+// AdminLayout.astro — 后台独立外壳（自带文档骨架，不用 BaseLayout）
+// 用法：<AdminLayout title="仪表盘">...</AdminLayout>
+//
+// 关键结构：连接面板（AdminToken）与待提交面板（AdminChanges）放在 main#swup 之外，
+// 所以 swup 切页只替换 #swup 里的内容，这两块不会消失——连接状态与暂存队列得以跨页保留。
+import '../assets/css/global.css';
+import '../assets/css/admin.css';
+import Background from '../components/layout/Background.astro';
+import CustomScrollbar from '../components/layout/CustomScrollbar.astro';
+import AdminToken from '../components/admin/AdminToken.astro';
+import AdminNav from '../components/admin/AdminNav.astro';
+import AdminChanges from '../components/admin/AdminChanges.svelte';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+}
+
+const { title = '后台' } = Astro.props;
+---
+
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content={site.colorScheme} />
+    <!-- 后台是给自己用的工具页，不让搜索引擎收录 -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/png" href="/images/logo.png" />
+    <title>{title} - 后台 - {site.name}</title>
+  </head>
+  <body class="admin-body">
+    <Background />
+    <div class="admin-shell" id="admin-shell">
+      <header class="admin-topbar glass">
+        <a class="admin-brand admin-link" href="/admin/">
+          <span class="admin-brand-name">后台</span>
+          <span class="admin-brand-site">{site.name}</span>
+        </a>
+        <div class="admin-topbar-right">
+          <span class="admin-conn-text" id="admin-conn-text">
+            未连接 GitHub
+          </span>
+          <AdminToken />
+        </div>
+      </header>
+
+      <div class="admin-workspace">
+        <AdminNav />
+        <main class="admin-main transition-main" id="swup">
+          <slot />
+        </main>
+      </div>
+    </div>
+
+    <!-- 待提交面板：外壳层常驻岛，不在 #swup 内，只水合一次 -->
+    <AdminChanges client:idle />
+    <CustomScrollbar />
+    <div class="admin-toast" id="admin-toast" role="status" aria-live="polite"></div>
+
+    <script>
+      // shell-guard.js：跨外壳（站点页 ↔ 后台页）时强制整页加载，避免 swup 换错内容
+      import '../assets/js/shell-guard.js';
+      // shell.ts：连接表单与外壳状态；pages.ts：按 data-admin-page 绑定当前页面
+      import '../assets/js/admin/shell';
+      import '../assets/js/admin/pages';
+    </script>
+  </body>
+</html>

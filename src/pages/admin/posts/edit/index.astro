@@ -1,0 +1,79 @@
+---
+// index.astro — 后台文章编辑器（左侧选文件，右侧改内容，改动进待提交队列）
+// 用法：路由 /admin/posts/edit/?path=分类/文件名.md
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { Icon } from 'astro-icon/components';
+---
+
+<AdminLayout title="编辑文章">
+  <div data-admin-page="editor">
+    <div class="admin-card">
+      <h1 class="admin-page-title">编辑文章</h1>
+      <p class="admin-page-desc">
+        保存只进暂存队列，右下角攒够一批再一次性提交。Ctrl/Cmd + S 也可以暂存。
+      </p>
+    </div>
+
+    <div class="admin-gate">
+      <Icon name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        展开右上角「连接」，填入仓库与访问令牌。
+      </p>
+    </div>
+
+    <div class="admin-editor admin-needs-conn">
+      <div class="admin-editor-files">
+        <div class="admin-card">
+          <h2 class="admin-card-title">
+            <Icon name="mdi:folder-outline" class="admin-card-title-icon" />
+            文件
+          </h2>
+          <input
+            class="admin-input"
+            id="admin-file-filter"
+            type="search"
+            placeholder="筛选路径"
+            autocomplete="off"
+          />
+          <ul class="admin-file-list" id="admin-file-list">
+            <li class="admin-empty">连接后显示文件列表</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="admin-editor-main">
+        <div class="admin-card">
+          <div class="admin-editor-bar">
+            <span class="admin-editor-path" id="admin-editor-path">
+              未选择文件
+            </span>
+            <span class="admin-chip" id="admin-editor-state">
+              未暂存
+            </span>
+            <span class="admin-status" id="admin-editor-lines"></span>
+          </div>
+
+          <textarea
+            class="admin-editor-text"
+            id="admin-editor-text"
+            spellcheck="false"
+            placeholder="从左侧选一个文件，或回到文章管理新建一个路径"
+          ></textarea>
+
+          <div class="admin-dock-actions admin-editor-actions">
+            <button class="admin-btn admin-btn--danger hoverable" id="admin-editor-delete">
+              <Icon name="mdi:delete-outline" class="admin-btn-icon" />
+              暂存删除
+            </button>
+            <button class="admin-btn admin-btn--primary hoverable" id="admin-editor-save">
+              <Icon name="mdi:content-save-outline" class="admin-btn-icon" />
+              暂存改动
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

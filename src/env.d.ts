@@ -23,4 +23,8 @@ interface Window {
   __alula_lightbox_bound?: boolean;
   /** image-fallback.js 的幂等守卫 */
   __alula_image_fallback_bound?: boolean;
+  /** shell.ts 的幂等守卫 */
+  __adminShellInit?: boolean;
+  /** shell-guard.js 的幂等守卫 */
+  __alula_shell_guard?: boolean;
 }

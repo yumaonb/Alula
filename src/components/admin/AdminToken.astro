@@ -1,0 +1,95 @@
+---
+// AdminToken.astro — 后台连接面板（密钥输入 + 连接/断开）
+// 用法：由 AdminLayout 放在 main#swup 之外，切页时不会消失
+//
+// 密钥只进内存，不写任何浏览器存储；表单按登录表单标记（username + current-password），
+// 交给浏览器密码管理器保存，本站自己不落盘。
+import { Icon } from 'astro-icon/components';
+---
+
+<div class="admin-conn-wrap">
+  <button
+    class="admin-conn-toggle hoverable"
+    id="admin-conn-toggle"
+    type="button"
+    aria-expanded="false"
+    aria-controls="admin-conn-panel"
+  >
+    <Icon name="mdi:shield-key-outline" class="admin-conn-icon" />
+    <span>连接</span>
+  </button>
+
+  <div class="admin-conn-panel glass" id="admin-conn-panel">
+    <form id="admin-conn-form" autocomplete="on">
+      <p class="admin-conn-note">
+        令牌只存在这个页面的内存里，刷新即清空。浏览器密码管理器会按登录表单提示保存。
+      </p>
+
+      <label class="admin-field">
+        <span class="admin-field-label">仓库所有者</span>
+        <input
+          class="admin-input"
+          id="admin-owner"
+          name="username"
+          type="text"
+          autocomplete="username"
+          placeholder="yumaonb"
+          required
+        />
+      </label>
+
+      <label class="admin-field">
+        <span class="admin-field-label">仓库名</span>
+        <input
+          class="admin-input"
+          id="admin-repo"
+          name="repo"
+          type="text"
+          autocomplete="off"
+          placeholder="Alula"
+          required
+        />
+      </label>
+
+      <label class="admin-field">
+        <span class="admin-field-label">分支</span>
+        <input
+          class="admin-input"
+          id="admin-branch"
+          name="branch"
+          type="text"
+          autocomplete="off"
+          placeholder="main"
+          value="main"
+        />
+      </label>
+
+      <label class="admin-field">
+        <span class="admin-field-label">访问令牌</span>
+        <input
+          class="admin-input"
+          id="admin-token"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="github_pat_..."
+          required
+        />
+      </label>
+
+      <p class="admin-conn-hint">
+        需要 Contents 读写权限的细粒度令牌。若仓库开了分支保护，直接推 main 会被拒。
+      </p>
+
+      <div class="admin-conn-actions">
+        <button class="admin-btn admin-btn--ghost hoverable" id="admin-disconnect" type="button">
+          <Icon name="mdi:logout" class="admin-btn-icon" />
+          断开
+        </button>
+        <button class="admin-btn admin-btn--primary" id="admin-conn-submit" type="submit">
+          连接
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

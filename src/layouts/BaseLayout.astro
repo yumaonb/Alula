@@ -88,5 +88,9 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
       // lightbox.js：正文图片灯箱触发器（灯箱本体懒加载，首次点击才加载）
       import '../assets/js/lightbox.js';
     </script>
+    <script>
+      // shell-guard.js：跨外壳（站点页 ↔ 后台页）时强制整页加载，避免 swup 换错内容
+      import '../assets/js/shell-guard.js';
+    </script>
   </body>
 </html>

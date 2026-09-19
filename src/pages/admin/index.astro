@@ -1,0 +1,76 @@
+---
+// index.astro — 后台仪表盘
+// 用法：路由 /admin/
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { Icon } from 'astro-icon/components';
+---
+
+<AdminLayout title="仪表盘">
+  <div data-admin-page="dashboard">
+    <div class="admin-card">
+      <h1 class="admin-page-title">仪表盘</h1>
+      <p class="admin-page-desc">连接仓库后即可在这里查看分支状态、文章数量，并进入编辑。</p>
+    </div>
+
+    <div class="admin-gate">
+      <Icon name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        展开右上角「连接」，填入仓库与访问令牌。
+      </p>
+    </div>
+
+    <div class="admin-needs-conn">
+      <div class="admin-card">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:source-branch" class="admin-card-title-icon" />
+          仓库状态
+        </h2>
+        <div class="admin-stats">
+          <div class="admin-stat">
+            <span class="admin-stat-label">仓库</span>
+            <span class="admin-stat-value" id="admin-dash-repo">
+              —
+            </span>
+          </div>
+          <div class="admin-stat">
+            <span class="admin-stat-label">分支</span>
+            <span class="admin-stat-value" id="admin-dash-branch">
+              —
+            </span>
+          </div>
+          <div class="admin-stat">
+            <span class="admin-stat-label">当前提交</span>
+            <span class="admin-stat-value" id="admin-dash-head">
+              —
+            </span>
+          </div>
+          <div class="admin-stat">
+            <span class="admin-stat-label">文章文件</span>
+            <span class="admin-stat-value" id="admin-dash-count">
+              —
+            </span>
+          </div>
+          <div class="admin-stat">
+            <span class="admin-stat-label">待提交</span>
+            <span class="admin-stat-value" id="admin-dash-staged">
+              0
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:information-outline" class="admin-card-title-icon" />
+          怎么用
+        </h2>
+        <p class="admin-page-desc">
+          在文章管理里挑一个文件编辑，改动会先进入右下角的「待提交」队列；
+          攒够一批后一次性打包成一个提交推上去，避免每个文件触发一次构建。
+        </p>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
