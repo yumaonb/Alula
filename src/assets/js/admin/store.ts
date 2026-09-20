@@ -34,6 +34,13 @@ export interface AdminState {
   config: AdminConfig;
   connected: boolean;
   viewer: AdminViewer | null;
+  /**
+   * 已知的分支头提交 sha。连接时取一次、提交成功后再更新一次，
+   * 不做实时轮询——别人在你连接期间推了新提交，这里就是旧的，提交时由 GitHub 判冲突。
+   */
+  head: string | null;
+  /** 分支头提交在 GitHub 上的页面地址，弹窗里点「最新提交」跳过去 */
+  headUrl: string | null;
   /** 待提交队列，按暂存先后排列 */
   changes: StagedChange[];
   /** 正在推送提交；期间拒绝新的暂存，避免提交快照与队列不一致 */
@@ -48,6 +55,8 @@ let state: AdminState = {
   config: emptyConfig(),
   connected: false,
   viewer: null,
+  head: null,
+  headUrl: null,
   changes: [],
   committing: false,
 };
@@ -66,7 +75,20 @@ function connect(config: AdminConfig, viewer: AdminViewer | null): void {
 
 /** 断开连接；连暂存队列一起清掉，避免换了仓库还把上一个仓库的改动提交上去 */
 function disconnect(): void {
-  setState({ config: emptyConfig(), connected: false, viewer: null, changes: [] });
+  setState({
+    config: emptyConfig(),
+    connected: false,
+    viewer: null,
+    head: null,
+    headUrl: null,
+    changes: [],
+  });
+}
+
+/** 更新已知的分支头；连接后取一次，提交成功后再更新成新提交 */
+function setHead(sha: string | null, url: string | null = null): void {
+  if (state.head === sha && state.headUrl === url) return;
+  setState({ head: sha, headUrl: url });
 }
 
 function changeOf(path: string): StagedChange | null {
@@ -124,6 +146,7 @@ export const adminStore = {
   },
   connect,
   disconnect,
+  setHead,
   changeOf,
   stage,
   unstage,

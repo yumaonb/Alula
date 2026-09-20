@@ -6,6 +6,7 @@
 // 所以 swup 切页只替换 #swup 里的内容，这两块不会消失——连接状态与暂存队列得以跨页保留。
 import '../assets/css/global.css';
 import '../assets/css/admin.css';
+import { Icon } from 'astro-icon/components';
 import Background from '../components/layout/Background.astro';
 import CustomScrollbar from '../components/layout/CustomScrollbar.astro';
 import AdminToken from '../components/admin/AdminToken.astro';
@@ -34,26 +35,54 @@ const { title = '后台' } = Astro.props;
   <body class="admin-body">
     <Background />
     <div class="admin-shell" id="admin-shell">
-      <header class="admin-topbar glass">
-        <a class="admin-brand link-plain" href="/admin/">
-          <span class="admin-brand-name">后台</span>
-          <span class="admin-brand-site">{site.name}</span>
-        </a>
-        <div class="admin-topbar-right">
-          <span class="admin-conn-text" id="admin-conn-text">
-            未连接 GitHub
-          </span>
-          <AdminToken />
-        </div>
-      </header>
+      <!--
+        桌面端侧栏是外壳的左侧一列，从视口最顶一直顶到底、贴死左边缘（不留白），
+        所以它和「顶栏 + 正文」是并列关系，不能塞进 .admin-content 里。
+        窄屏下 .admin-nav 变成 position: fixed 的抽屉，脱离这个流。
+      -->
+      <AdminNav />
 
-      <div class="admin-workspace">
-        <AdminNav />
+      <div class="admin-content">
+        <header class="admin-topbar glass">
+          <!-- 手机端侧栏从左侧滑出，汉堡跟着放左边（放右边不符合常规） -->
+          <button
+            class="admin-drawer-toggle"
+            id="admin-drawer-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="admin-nav"
+          >
+            <Icon name="mdi:menu" class="admin-drawer-icon" />
+          </button>
+          <!-- 顶栏显示「当前页面名」；站点名在侧栏顶部（AdminNav）。
+               顶栏在 #swup 之外不会被 swup 替换，所以切页时由 syncPageTitle() 更新文字。 -->
+          <span class="admin-brand" id="admin-topbar-title">
+            {title}
+          </span>
+          <div class="admin-topbar-right">
+            <AdminToken part="trigger" />
+          </div>
+        </header>
+
         <main class="admin-main transition-main" id="swup">
           <slot />
         </main>
       </div>
+
+      <!--
+        手机端抽屉的遮罩：侧栏在窄屏变成从左侧滑出的 off-canvas 面板，
+        点它或按 Esc 收回。宽屏下始终 display: none。
+      -->
+      <button class="admin-drawer-backdrop" data-drawer-close aria-label="收起侧栏"></button>
     </div>
+
+    <!--
+      连接弹窗挂在外壳之外（body 直属）：.admin-topbar 带 .glass 的 backdrop-filter，
+      它会给后代 position: fixed 造新的包含块，弹窗就只能相对顶栏那条窄条居中。
+      放在这里才是真正相对视口居中。触发按钮与弹窗是同一个组件的两部分，
+      靠 part 属性分开渲染，避免重复的 id。
+    -->
+    <AdminToken part="modal" />
 
     <!-- 待提交面板：外壳层常驻岛，不在 #swup 内，只水合一次 -->
     <AdminChanges client:idle />

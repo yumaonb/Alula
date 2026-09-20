@@ -6,11 +6,22 @@
   min-height: 100vh;
 }
 
+/* 外壳：宽屏是「左栏 + 内容」的横向两列，左栏自己顶满高度、贴死左边缘。
+ * --admin-topbar-h 让顶栏和侧栏顶部那格用同一个高度，两者底边才齐平。 */
 .admin-shell {
+  --admin-topbar-h: 62px;
   position: relative;
   display: flex;
-  flex-direction: column;
+  align-items: stretch;
   min-height: 100vh;
+}
+
+/* 顶栏与正文这一列：右边距留给内容，左侧不留（侧栏紧贴） */
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
   padding: 0 24px 32px;
   gap: 20px;
 }
@@ -23,11 +34,21 @@
   z-index: 60;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
+  /* height 而不是 min-height：侧栏顶格的 1px 下边框是算在 62px 里的（border-box），
+   * 顶栏若用 min-height 就会按内容再撑高一点点，两条线便对不齐。 */
+  height: var(--admin-topbar-h);
   margin: 0 -24px;
   padding: 12px 24px;
   border-radius: 0;
+}
+
+/* 顶栏左侧显示当前页面名；吃掉中间空档，把右侧按钮推到最右 */
+.admin-brand {
+  margin-right: auto;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #fff;
 }
 
 .admin-brand {
@@ -36,15 +57,17 @@
   gap: 10px;
 }
 
-.admin-brand-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #fff;
+/* 演示卡片：首页那两张入口卡，内部排版跟普通卡片一致 */
+.admin-demo-card {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
 }
 
-.admin-brand-site {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.45);
+.admin-demo-card .admin-toolbar {
+  margin-top: auto;
+  padding-top: 12px;
+  margin-bottom: 0;
 }
 
 .admin-topbar-right {
@@ -53,33 +76,16 @@
   gap: 12px;
 }
 
-.admin-conn-text {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
-  max-width: 320px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* ---- 连接弹窗 ---- */
 
-/* ---- 连接面板 ---- */
-
-.admin-conn-wrap {
+.admin-conn {
   position: relative;
 }
 
+/* 连接按钮：直接复用 .admin-btn 那套（跟弹窗里的「断开」完全一致），
+ * 这里只补它在顶栏里需要的尺寸微调。 */
 .admin-conn-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid var(--ring);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.8);
-  font: inherit;
-  font-size: 0.82rem;
-  cursor: pointer;
+  padding: 8px 16px;
 }
 
 .admin-conn-icon {
@@ -88,36 +94,186 @@
   opacity: 0.7;
 }
 
-.admin-conn-panel {
+/* ---- 连接弹窗 ----
+ * 弹窗在 .admin-shell 之外（见 AdminLayout），所以这里的 fixed 是相对视口定位。
+ * 别把它挪回 .admin-topbar 里：那个元素带 .glass（backdrop-filter），会给后代
+ * fixed 元素造新的包含块，弹窗就变成相对顶栏那条窄条居中了。 */
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.admin-modal.is-open {
+  display: flex;
+}
+
+.admin-modal-backdrop {
   position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  z-index: 80;
-  width: min(340px, calc(100vw - 48px));
-  padding: 16px;
+  inset: 0;
+  padding: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+
+.admin-modal-box {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  padding: 20px;
   border-radius: var(--radius);
+}
+
+.admin-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* 弹窗按连接状态换内容：未连接给表单，已连接给仓库状态 */
+/* 弹窗按连接状态换内容：未连接只给表单，已连接只给仓库状态。
+ * 用 #admin-conn-panel 自身作作用域，而不是 `.admin-shell` —— 弹窗挂在外壳之外
+ * （见上文相对视口居中的说明），写成外壳后代选择器会一条都匹配不上，
+ * 结果表单和状态会同时显示。shell.ts 会在弹窗上同步 .is-connected。 */
+#admin-conn-panel.is-connected .admin-conn-form,
+#admin-conn-panel.is-connected .admin-modal-title--form,
+#admin-conn-panel:not(.is-connected) .admin-repo-status,
+#admin-conn-panel:not(.is-connected) .admin-modal-title--status {
   display: none;
 }
 
-.admin-conn-panel.is-open {
-  display: block;
-}
-
-.admin-conn-note,
 .admin-conn-hint {
+  margin-top: 6px;
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.45);
   line-height: 1.5;
 }
 
-.admin-conn-hint {
-  margin-top: 2px;
+/* 图标按钮（弹窗的 ×、顶栏汉堡、抽屉关闭）：不要按钮框，只让图标亮起来。
+ * 动效对齐首页汉堡（.hamburger-btn .icon-bars/.icon-close）：0.3s 的
+ * opacity + transform，悬停时图标转一下，按下时给一个明确的回弹。 */
+.admin-modal-close,
+.admin-drawer-toggle,
+.admin-nav-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 17px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+/* 图标本体不做任何位移或旋转，悬停只把颜色提亮（由下面的 :hover 规则给出）。
+ * 这里显式声明 transition 只覆盖 color：万一将来有人给 <use> 加了别的
+ * transform，也不会在这儿被悄悄带上动画。 */
+.admin-modal-close use,
+.admin-drawer-toggle use,
+.admin-nav-close use {
+  transition: color 0.15s ease;
+}
+
+.admin-modal-close:hover,
+.admin-modal-close:focus-visible,
+.admin-drawer-toggle:hover,
+.admin-drawer-toggle:focus-visible,
+.admin-nav-close:hover,
+.admin-nav-close:focus-visible {
+  color: #fff;
+  background: transparent;
+  box-shadow: none;
 }
 
 .admin-conn-actions {
   display: flex;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 16px;
+}
+
+/* 按钮横着撑满，弹窗里两个状态都只有一颗按钮，铺满更整齐 */
+.admin-conn-actions .admin-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* 仓库状态默认一行两个（跟桌面端一致），窄到放不下才落成一列 */
+.admin-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-status-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.admin-status-item dt {
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.admin-status-item dd {
+  font-size: 0.86rem;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+
+/* 「最新提交编号」占满一整行：短 sha 旁挂一个可点链接，点开去 GitHub 看这次提交 */
+.admin-status-item--wide {
+  grid-column: 1 / -1;
+}
+
+/* 提交编号做成链接：等宽字体 + 下划线，看得出来能点 */
+.admin-status-link {
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+}
+
+.admin-status-link:hover,
+.admin-status-link:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+/* 速率限制：剩余次数放大突出，总量压低当注释 */
+.admin-rate-value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-rate-total {
+  margin-left: 4px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---- 表单 ---- */
@@ -153,20 +309,38 @@
 
 /* ---- 按钮 ---- */
 
+/* 弹窗按钮：走全站 .glass-btn 的观感（透明底 + 模糊 + 内描边 + 大圆角），
+ * 只是拉成长条以适配弹窗宽度，而不是 .glass-btn 的 46px 正圆。 */
 .admin-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 7px 16px;
-  border: 1px solid var(--ring);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.37),
+    inset 0 0 0 1px var(--ring);
   color: #fff;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   cursor: pointer;
   white-space: nowrap;
+  transition:
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.admin-btn:hover:not(:disabled),
+.admin-btn:focus-visible {
+  background: var(--hover-bg, rgba(255, 255, 255, 0.06));
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.37),
+    inset 0 0 0 1px var(--hover-line);
 }
 
 .admin-btn:disabled {
@@ -174,13 +348,25 @@
   cursor: not-allowed;
 }
 
+/* 主按钮（连接）：底色换成主题蓝，同样保留内描边 */
 .admin-btn--primary {
   background: rgba(76, 141, 255, 0.9);
-  border-color: rgba(76, 141, 255, 0.9);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.37),
+    inset 0 0 0 1px rgba(76, 141, 255, 0.9);
 }
 
+.admin-btn--primary:hover:not(:disabled),
+.admin-btn--primary:focus-visible {
+  background: rgba(96, 156, 255, 0.95);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.37),
+    inset 0 0 0 1px rgba(96, 156, 255, 0.95);
+}
+
+/* 次要按钮（断开）：跟主按钮同形，只是不填色 */
 .admin-btn--ghost {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .admin-btn--danger {
@@ -195,59 +381,133 @@
 
 /* ---- 工作区 ---- */
 
-.admin-workspace {
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  flex: 1;
-}
-
+/* 桌面端侧栏：外壳的左侧一列，从顶到底顶满、贴死左边缘不留白。
+ * 观感参考首页手机端下拉菜单（NavBar 的 .mobile-menu/.mobile-link）：
+ * 同样的顶部分隔线、同样的 0.78 白字、同样的 0.6 图标、同样的行高与左内边距。
+ * 本体直角（只有里面的每一项是圆角按钮），所以不复用 .glass（它带 10px 圆角）。 */
 .admin-nav {
-  position: sticky;
-  top: 84px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  width: 170px;
+  gap: 0;
+  width: 200px;
   flex-shrink: 0;
+  align-self: stretch;
+  /* 顶部不留内边距：顶部那格要从 0 开始，才能和顶栏同高、底边齐平 */
+  padding: 0 0 14px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  box-shadow: inset -1px 0 0 var(--ring);
+}
+
+/* 侧栏顶部：站点名那一格。高度对齐 --admin-topbar-h，底边与顶栏齐平。
+ * 宽屏也显示（原先只在抽屉里显示），窄屏由下面的媒体查询调整内边距。 */
+.admin-nav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  height: var(--admin-topbar-h);
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-nav-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* 关闭按钮只有抽屉里需要（宽屏侧栏常驻，没有可关的） */
+.admin-nav-close {
+  display: none;
 }
 
 .admin-nav-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  /* 侧栏本体顶部不留白（为了头部与顶栏齐平），间距挪到这里 */
+  padding-top: 10px;
 }
 
+/* 导航项：颜色参考首页手机端下拉菜单（.mobile-link）——0.78 白字、0.6 图标，
+ * 但条目本身是圆角按钮（不是通栏直角），跟站内其它可点块一致。 */
 .admin-nav-link {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 9px 12px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  font-size: 0.86rem;
-  color: rgba(255, 255, 255, 0.62);
+  gap: 14px;
+  margin: 2px 8px;
+  padding: 0 16px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
 }
 
-.admin-nav-link.is-active {
+/* 悬停：底色比选中浅一档，文字提亮。不用 .hoverable——它的选择器是
+ * .hoverable.hoverable:hover（(0,3,0)），会盖掉 .is-active 的 (0,2,0)，
+ * 于是「鼠标停在刚点的项上」时显示的是悬停浅底，看着像选中没生效。 */
+.admin-nav-link:hover,
+.admin-nav-link:focus-visible {
+  color: var(--hover-ink);
+  background: var(--hover-bg);
+}
+
+/* 选中态放在悬停之后：两者特异性相同（都是 (0,2,0)），靠顺序让选中压过悬停，
+ * 这样点击后鼠标还停在按钮上时，看到的直接是选中深底——一步到位，不会先浅后深。 */
+.admin-nav-link.is-active,
+.admin-nav-link.is-active:hover,
+.admin-nav-link.is-active:focus-visible {
   color: var(--hover-ink);
   background: var(--active-bg);
-  border-color: var(--hover-line);
 }
 
 .admin-nav-icon {
-  width: 16px;
-  height: 16px;
-  opacity: 0.7;
+  width: 17px;
+  height: 17px;
+  color: rgba(255, 255, 255, 0.6);
   flex-shrink: 0;
+  transition: color 0.15s;
 }
 
+/* 图标与文字只做颜色过渡，不做位移：悬停时整条一起提亮。
+ * 位移在侧栏这种「图标固定宽度 + 文字左对齐」的行里只有 2px，
+ * 实际看不出来，反而让 hover 显得拖沓，所以不做。 */
+.admin-nav-text {
+  transition: color 0.15s;
+}
+
+.admin-nav-link:hover .admin-nav-icon,
+.admin-nav-link:focus-visible .admin-nav-icon,
+.admin-nav-link.is-active .admin-nav-icon {
+  color: currentColor;
+}
+
+/* 「回到站点」和上面的分区不是一类：一条分隔线拉距离，
+ * 本身不做成按钮，悬停只把字提亮（跟 .admin-nav-link 的悬停一致）。 */
 .admin-nav-back {
   margin-top: auto;
-  color: rgba(255, 255, 255, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.admin-nav-back:hover,
+.admin-nav-back:focus-visible {
+  color: #fff;
+  background: transparent;
+}
+
+/* 返回首页的图标要和文字一样提亮：.admin-nav-icon 的默认色是 0.6 白，
+ * 单独定死会压过父级的 currentColor，所以这里显式让它跟随父级。 */
+.admin-nav-back:hover .admin-nav-icon,
+.admin-nav-back:focus-visible .admin-nav-icon {
+  color: currentColor;
 }
 
 .admin-main {
@@ -264,9 +524,8 @@
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(var(--blur));
   -webkit-backdrop-filter: blur(var(--blur));
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.37),
-    inset 0 0 0 1px var(--ring);
+  /* 只留 1px 描边，不加外投影：暗色底上那圈黑影会糊成一团，反而显脏 */
+  box-shadow: inset 0 0 0 1px var(--ring);
 }
 
 .admin-page-title {
@@ -539,10 +798,23 @@
   background: rgba(140, 30, 30, 0.95);
 }
 
-/* ---- 手机端 ---- */
+/* ---- 手机端 ----
+ * 侧栏从「顶部横排」改成从右侧滑出的 off-canvas 抽屉：
+ * 横排会把两条导航挤成一行小字、还挡住正文，抽屉则保持和宽屏一致的竖排样式，
+ * 也顺带让 .admin-modal 能稳稳地相对视口居中。 */
+
+/* 手机端才隐藏这些：宽屏下侧栏常驻，没有可开合的抽屉。
+ * 注意 .admin-nav-head 不在此列——它在宽屏要显示站点名（手机端也显示）。 */
+.admin-drawer-toggle,
+.admin-drawer-backdrop {
+  display: none;
+}
 
 @media (max-width: 768px) {
-  .admin-shell {
+  /* 内边距统一由 .admin-content 承担（和桌面端一致）。
+   * 这里不能再给 .admin-shell 加 padding，否则顶栏的 margin 负值只抵消掉
+   * .admin-content 的那份，外壳这份会把顶栏玻璃背景从两侧顶进来、撑不满。 */
+  .admin-content {
     padding: 0 14px 24px;
   }
 
@@ -551,31 +823,105 @@
     padding: 10px 14px;
   }
 
-  .admin-conn-text {
-    display: none;
+  /* 手机端才需要汉堡：宽屏由上面那条规则隐藏，这里必须显式放出来 */
+  .admin-drawer-toggle {
+    display: inline-flex;
   }
 
-  .admin-workspace {
-    flex-direction: column;
-    gap: 16px;
+  /* 按钮文字保持完整，不做截断/隐藏 */
+  .admin-conn-toggle {
+    padding: 7px 10px;
+    white-space: nowrap;
   }
 
+  .admin-drawer-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* 抽屉：从左侧滑出，本体是直角抽屉（圆角只加在里面每一项上），
+   * 缓动与全站手机端菜单一致。底色透明 + 模糊，不加白色薄层。 */
   .admin-nav {
-    position: static;
-    width: 100%;
-    flex-direction: row;
-    gap: 8px;
-    overflow-x: auto;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 140;
+    width: min(250px, 76vw);
+    /* 顶部不留内边距：标题那格要从 y=0 起算，62px 的下边框才和顶栏底线重合 */
+    padding: 0 12px 12px;
+    flex-direction: column;
+    overflow-y: auto;
+    border-radius: 0;
+    background: transparent;
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
+    box-shadow:
+      12px 0 32px rgba(0, 0, 0, 0.45),
+      inset -1px 0 0 var(--ring);
+    transform: translate(-100%);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .admin-nav.is-open {
+    transform: translate(0);
+  }
+
+  /* 抽屉收起时不参与交互，避免滑出屏幕后仍能 Tab 到里面的链接 */
+  .admin-nav:not(.is-open) {
+    visibility: hidden;
+    transition:
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0.4s;
+  }
+
+  /* 抽屉里才需要关闭按钮（宽屏侧栏常驻，没什么可关的） */
+  .admin-nav-close {
+    display: inline-flex;
   }
 
   .admin-nav-list {
-    flex-direction: row;
-    gap: 8px;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  .admin-nav-back {
-    margin-top: 0;
-    margin-left: auto;
+  /* 抽屉里的导航项沿用桌面端那套（已在上面按 NavBar 手机菜单调好），
+   * 这里不再覆盖——两边观感统一，也就不会出现「抽屉一个样、宽屏另一个样」。 */
+
+  /* 遮罩只在抽屉打开时铺出来 */
+  .admin-drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    padding: 0;
+    border: none;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.28s ease,
+      visibility 0.28s ease;
+  }
+
+  .admin-drawer-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .admin-modal {
+    padding: 14px;
+  }
+
+  /* 仓库状态默认还是一行两个（跟桌面端一致），真的放不下才落成一列。
+   * 用 auto-fit + minmax 而不是写死列数：窄到每个格子不足 130px 时自动掉成单列。 */
+  .admin-status-grid {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+
+  /* 窄屏：侧栏脱离文档流变成抽屉，内容列自己占满 */
+  .admin-content {
+    padding: 0 14px 24px;
   }
 
   .admin-editor {

@@ -39,6 +39,37 @@ function headers(token?: string): Record<string, string> {
   };
 }
 
+/**
+ * 速率限制快照。GitHub 每个响应都带 x-ratelimit-* 头，
+ * 所以随便一次请求就能顺手把当前额度记下来，不必额外调 /rate_limit。
+ */
+export interface RateLimit {
+  /** 本窗口剩余可用次数 */
+  remaining: number;
+  /** 本窗口总次数（PAT 通常 5000/小时） */
+  limit: number;
+  /** 窗口重置时间 */
+  resetAt: Date;
+}
+
+/** 最近一次请求的速率限制；还没发过请求时为 null */
+let lastRateLimit: RateLimit | null = null;
+
+/** 读取最近一次请求带回来的速率限制 */
+export function getRateLimit(): RateLimit | null {
+  return lastRateLimit;
+}
+
+/** 从响应头解析速率限制；缺头（某些代理/缓存）时保持原值 */
+function captureRateLimit(res: Response): void {
+  const remaining = Number(res.headers.get('x-ratelimit-remaining'));
+  const limit = Number(res.headers.get('x-ratelimit-limit'));
+  const reset = Number(res.headers.get('x-ratelimit-reset'));
+  if (!Number.isFinite(remaining) || !Number.isFinite(limit) || !Number.isFinite(reset)) return;
+  // reset 是秒级 UNIX 时间戳
+  lastRateLimit = { remaining, limit, resetAt: new Date(reset * 1000) };
+}
+
 async function gh<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, token } = options;
   const res = await fetch(`${API}${path}`, {
@@ -46,6 +77,9 @@ async function gh<T>(path: string, options: RequestOptions = {}): Promise<T> {
     headers: headers(token),
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+
+  // 成功失败都要记，失败响应（如 403 限流）同样带这些头
+  captureRateLimit(res);
 
   if (!res.ok) {
     let detail = '';
@@ -89,6 +123,31 @@ export interface RepoInfo {
   defaultBranch: string;
   private: boolean;
   htmlUrl: string;
+}
+
+export interface RepoInput {
+  owner: string;
+  repo: string;
+}
+
+/**
+ * 解析仓库输入，兼容手写与直接粘链接：
+ *   yumaonb/Alula · https://github.com/yumaonb/Alula · git@github.com:yumaonb/Alula.git
+ *   github.com/yumaonb/Alula/tree/main · https://github.com/yumaonb/Alula/
+ * 只取前两段，所以带 /tree/xxx 之类的尾巴也不影响；只写一个词（缺所有者）返回 null。
+ */
+export function parseRepoInput(value: string): RepoInput | null {
+  const text = value
+    .trim()
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '') // 去掉 https://
+    .replace(/^[^/@\s]+@[^/:\s]+:/, '') // 去掉 git@github.com:
+    .replace(/^(www\.)?github\.com\//i, '') // 去掉 github.com/
+    .replace(/\.git$/i, '') // 去掉 .git 后缀
+    .replace(/^\/+|\/+$/g, ''); // 去掉首尾斜杠
+
+  const [owner, repo] = text.split('/').filter(Boolean);
+  if (!owner || !repo) return null;
+  return { owner, repo };
 }
 
 export interface ViewerInfo {

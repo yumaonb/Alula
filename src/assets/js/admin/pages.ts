@@ -2,14 +2,8 @@
 // 用法：由 AdminLayout 引入：import "../../assets/js/admin/pages"
 // 模块只在首次加载求值一次；swup 换掉 #swup 里的内容后由 boot() 重新绑定当前页面。
 
-import {
-  GitHubError,
-  getBranchHead,
-  getFileTextOrNull,
-  listPostFiles,
-  type TreeEntry,
-} from './github';
-import { toast } from './shell';
+import { GitHubError, getFileTextOrNull, listPostFiles, type TreeEntry } from './github';
+import { renderRateLimit, setNavActive, toast } from './shell';
 import { adminStore } from './store';
 
 const POSTS_PREFIX = 'src/content/posts/';
@@ -36,6 +30,17 @@ function pageName(): string {
   return document.querySelector('[data-admin-page]')?.getAttribute('data-admin-page') ?? '';
 }
 
+/**
+ * 顶栏在 #swup 之外，swup 换页不会替换它，所以标题得自己更新。
+ * 文案取自当前页面根元素上的 data-admin-title。
+ */
+function syncPageTitle(): void {
+  const root = document.querySelector('[data-admin-page]');
+  const title = root?.getAttribute('data-admin-title') ?? '';
+  const target = byId('admin-topbar-title');
+  if (target && title) target.textContent = title;
+}
+
 /** 连上之后跑一次；断开再连会重跑 */
 function whenConnected(run: () => Promise<void>): Cleanup {
   let loaded = false;
@@ -46,18 +51,13 @@ function whenConnected(run: () => Promise<void>): Cleanup {
     }
     if (loaded) return;
     loaded = true;
-    void run().catch((err: unknown) => {
-      loaded = false;
-      toast(formatError(err), 'error');
-    });
-  });
-}
-
-/** 让页面上的暂存计数跟着队列走 */
-function bindStagedCount(): Cleanup {
-  const target = byId('admin-dash-staged');
-  return adminStore.subscribe((state) => {
-    if (target) target.textContent = String(state.changes.length);
+    void run()
+      .catch((err: unknown) => {
+        loaded = false;
+        toast(formatError(err), 'error');
+      })
+      // 成功失败都刷新：失败（如限流）时这次请求同样消耗/反映了额度
+      .finally(renderRateLimit);
   });
 }
 
@@ -68,29 +68,15 @@ function setText(id: string, value: string): void {
 
 // ---- 仪表盘 ----
 
+/** 仪表盘只剩静态说明与入口，没有需要绑定的状态 */
 function initDashboard(): Cleanup {
-  const cleanups: Cleanup[] = [bindStagedCount()];
-  cleanups.push(
-    whenConnected(async () => {
-      const { config } = adminStore.state;
-      const [head, files] = await Promise.all([
-        getBranchHead(config.branch),
-        listPostFiles(config.branch),
-      ]);
-
-      setText('admin-dash-repo', `${config.owner}/${config.repo}`);
-      setText('admin-dash-branch', config.branch);
-      setText('admin-dash-head', head ? head.sha.slice(0, 7) : '分支不存在');
-      setText('admin-dash-count', String(files.length));
-    }),
-  );
-  return () => cleanups.forEach((fn) => fn());
+  return () => {};
 }
 
 // ---- 文章列表 ----
 
 function initPostsList(): Cleanup {
-  const cleanups: Cleanup[] = [bindStagedCount()];
+  const cleanups: Cleanup[] = [];
   const list = byId<HTMLUListElement>('admin-posts-list');
   const filter = byId<HTMLInputElement>('admin-posts-filter');
   const newPath = byId<HTMLInputElement>('admin-new-path');
@@ -165,7 +151,7 @@ function initPostsList(): Cleanup {
 // ---- 文章编辑 ----
 
 function initEditor(): Cleanup {
-  const cleanups: Cleanup[] = [bindStagedCount()];
+  const cleanups: Cleanup[] = [];
   const textarea = byId<HTMLTextAreaElement>('admin-editor-text');
   const saveBtn = byId<HTMLButtonElement>('admin-editor-save');
   const deleteBtn = byId<HTMLButtonElement>('admin-editor-delete');
@@ -322,14 +308,23 @@ let activeCleanup: Cleanup | null = null;
 /** 侧栏在 #swup 之外，切页时不会重渲染，高亮得自己跟上 */
 function syncNavActive(): void {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
+
+  // 取「匹配得最长」的那一项：/admin/posts/edit 既落了 /admin 的前缀、
+  // 也落了 /admin/posts 的前缀，只按「能匹配就点亮」会让两项一起亮。
+  let best: HTMLAnchorElement | null = null;
+  let bestLen = -1;
   for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-nav-path]')) {
     const target = (link.dataset.navPath ?? '').replace(/\/+$/, '') || '/';
-    // 编辑页 /admin/posts/edit 也算在「文章管理 /admin/posts」下
-    const active = target === path || (target !== '/' && path.startsWith(`${target}/`));
-    link.classList.toggle('is-active', active);
-    if (active) link.setAttribute('aria-current', 'page');
-    else link.removeAttribute('aria-current');
+    const hit = target === path || (target !== '/' && path.startsWith(`${target}/`));
+    if (hit && target.length > bestLen) {
+      best = link;
+      bestLen = target.length;
+    }
   }
+
+  // 一项都没匹配上（例如将来加了没登记进侧栏的页面）就全部清掉，
+  // 别让上一页的高亮留在那儿
+  setNavActive(best);
 }
 
 function boot(): void {
@@ -337,6 +332,7 @@ function boot(): void {
   activeCleanup = null;
 
   syncNavActive();
+  syncPageTitle();
 
   const name = pageName();
   if (name === 'dashboard') activeCleanup = initDashboard();

@@ -1,10 +1,14 @@
 ---
 // AdminNav.astro — 后台侧边分区导航
 // 用法：由 AdminLayout 渲染一次，位于 main#swup 之外
+//
+// 宽屏是常驻左侧栏；窄屏由 admin.css 变成从左侧滑出的 off-canvas 抽屉，
+// 开合由 layout 里的 #admin-drawer-toggle 控制（见 admin/shell.ts）。
 import { Icon } from 'astro-icon/components';
+import { site } from '../../data/site';
 
 const items = [
-  { href: '/admin/', label: '仪表盘', icon: 'mdi:view-dashboard-outline' },
+  { href: '/admin/', label: '首页', icon: 'mdi:view-dashboard-outline' },
   { href: '/admin/posts/', label: '文章管理', icon: 'mdi:file-document-edit-outline' },
 ];
 
@@ -12,28 +16,31 @@ const current = Astro.url.pathname.replace(/\/+$/, '') || '/admin';
 const isActive = (href: string) => href.replace(/\/+$/, '') === current;
 ---
 
-<aside class="admin-nav">
+<aside class="admin-nav" id="admin-nav">
+  <!-- 顶栏那格的高度和 .admin-topbar 一致（--admin-topbar-h），两者底边才齐平 -->
+  <div class="admin-nav-head">
+    <span class="admin-nav-title">{site.name}后台</span>
+    <button class="admin-nav-close" data-drawer-close type="button" aria-label="收起侧栏">
+      <Icon name="mdi:close" />
+    </button>
+  </div>
+
   <nav class="admin-nav-list" aria-label="后台分区">
     {items.map((item) => (
       <a
-        class:list={[
-          'admin-nav-link',
-          'link-plain',
-          'hoverable',
-          isActive(item.href) && 'is-active',
-        ]}
+        class:list={['admin-nav-link', 'link-plain', isActive(item.href) && 'is-active']}
         href={item.href}
         data-nav-path={item.href}
       >
         <Icon name={item.icon} class="admin-nav-icon" />
-        <span>{item.label}</span>
+        <span class="admin-nav-text">{item.label}</span>
       </a>
     ))}
   </nav>
 
   <!-- data-no-swup：站点页与后台页的外壳不同，交给浏览器整页加载，别让 swup 把内容塞进错误的外壳 -->
-  <a class="admin-nav-link admin-nav-back hoverable link-plain" href="/" data-no-swup>
+  <a class="admin-nav-link admin-nav-back link-plain" href="/" data-no-swup>
     <Icon name="mdi:arrow-left" class="admin-nav-icon" />
-    <span>回到站点</span>
+    <span class="admin-nav-text">返回首页</span>
   </a>
 </aside>

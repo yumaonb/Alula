@@ -29,6 +29,8 @@
       const text = message.trim() || `更新站点内容（${paths.length} 个文件）`;
       const info = await commitStaged(text, changes);
       adminStore.settle(paths);
+      // 分支头已经移到这个新提交上，弹窗里的「最新提交编号」跟着更新，不必再请求一次
+      adminStore.setHead(info.commitSha, info.commitUrl);
       message = '';
       open = false;
       result = { ok: true, url: info.commitUrl, count: info.count };
@@ -99,11 +101,8 @@
           <p class="admin-dock-result" class:is-error={!result.ok}>
             {#if result.ok}
               已提交 {result.count} 个文件 ·
-              <a
-                class="link-plain"
-                href={result.url}
-                target="_blank"
-                rel="noopener noreferrer">查看提交</a
+              <a class="link-plain" href={result.url} target="_blank" rel="noopener noreferrer"
+                >查看提交</a
               >
             {:else}
               {result.text}

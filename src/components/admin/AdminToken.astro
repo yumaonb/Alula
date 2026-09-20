@@ -1,95 +1,153 @@
 ---
-// AdminToken.astro — 后台连接面板（密钥输入 + 连接/断开）
-// 用法：由 AdminLayout 放在 main#swup 之外，切页时不会消失
+// AdminToken.astro — 后台连接弹窗（未连接填仓库与令牌，已连接看仓库状态）
+// 用法：由 AdminLayout 渲染两次——顶栏里 part="trigger"，外壳外 part="modal"
+//
+// 拆成两部分是因为弹窗不能待在 .admin-topbar 里面：顶栏带 .glass 的 backdrop-filter，
+// 而 backdrop-filter / transform / filter 会给后代 position: fixed 造新的包含块，
+// 弹窗就变成相对顶栏那条窄条居中。触发按钮留在顶栏，弹窗挂到外壳外，各自只渲染一次。
 //
 // 密钥只进内存，不写任何浏览器存储；表单按登录表单标记（username + current-password），
 // 交给浏览器密码管理器保存，本站自己不落盘。
+// 正因为依赖密码管理器，表单只留「仓库 + 令牌」两栏：字段一多，部分浏览器就不提示保存了。
+// 仓库一栏同时接受 owner/repo 与完整仓库链接，由 shell.ts 用 parseRepoInput 拆开。
 import { Icon } from 'astro-icon/components';
+import { githubRepo, githubUsername } from '../../data/github';
+
+interface Props {
+  /** trigger 只渲染顶栏按钮，modal 只渲染弹窗本体 */
+  part: 'trigger' | 'modal';
+}
+
+const { part } = Astro.props;
 ---
 
-<div class="admin-conn-wrap">
-  <button
-    class="admin-conn-toggle hoverable"
-    id="admin-conn-toggle"
-    type="button"
-    aria-expanded="false"
-    aria-controls="admin-conn-panel"
-  >
-    <Icon name="mdi:shield-key-outline" class="admin-conn-icon" />
-    <span>连接</span>
-  </button>
+{part === 'trigger' ? (
+  <div class="admin-conn">
+    <button
+      class="admin-btn admin-btn--ghost admin-conn-toggle"
+      id="admin-conn-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="admin-conn-panel"
+    >
+      <Icon name="mdi:shield-key-outline" class="admin-conn-icon" />
+      <span id="admin-conn-label">未连接</span>
+    </button>
+  </div>
+) : (
+  <div class="admin-modal" id="admin-conn-panel">
+    <button class="admin-modal-backdrop" type="button" data-conn-close aria-label="关闭" />
 
-  <div class="admin-conn-panel glass" id="admin-conn-panel">
-    <form id="admin-conn-form" autocomplete="on">
-      <p class="admin-conn-note">
-        令牌只存在这个页面的内存里，刷新即清空。浏览器密码管理器会按登录表单提示保存。
-      </p>
-
-      <label class="admin-field">
-        <span class="admin-field-label">仓库所有者</span>
-        <input
-          class="admin-input"
-          id="admin-owner"
-          name="username"
-          type="text"
-          autocomplete="username"
-          placeholder="yumaonb"
-          required
-        />
-      </label>
-
-      <label class="admin-field">
-        <span class="admin-field-label">仓库名</span>
-        <input
-          class="admin-input"
-          id="admin-repo"
-          name="repo"
-          type="text"
-          autocomplete="off"
-          placeholder="Alula"
-          required
-        />
-      </label>
-
-      <label class="admin-field">
-        <span class="admin-field-label">分支</span>
-        <input
-          class="admin-input"
-          id="admin-branch"
-          name="branch"
-          type="text"
-          autocomplete="off"
-          placeholder="main"
-          value="main"
-        />
-      </label>
-
-      <label class="admin-field">
-        <span class="admin-field-label">访问令牌</span>
-        <input
-          class="admin-input"
-          id="admin-token"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          placeholder="github_pat_..."
-          required
-        />
-      </label>
-
-      <p class="admin-conn-hint">
-        需要 Contents 读写权限的细粒度令牌。若仓库开了分支保护，直接推 main 会被拒。
-      </p>
-
-      <div class="admin-conn-actions">
-        <button class="admin-btn admin-btn--ghost hoverable" id="admin-disconnect" type="button">
-          <Icon name="mdi:logout" class="admin-btn-icon" />
-          断开
-        </button>
-        <button class="admin-btn admin-btn--primary" id="admin-conn-submit" type="submit">
-          连接
+    <div
+      class="admin-modal-box glass"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-conn-title"
+    >
+      <div class="admin-modal-head">
+        <!-- 标题随状态切换：两个都渲染，由 admin.css 按 .is-connected 只留一个 -->
+        <h2 class="admin-modal-title admin-modal-title--form" id="admin-conn-title">
+          连接 GitHub
+        </h2>
+        <h2 class="admin-modal-title admin-modal-title--status">仓库状态</h2>
+        <button class="admin-modal-close" type="button" data-conn-close aria-label="关闭">
+          <Icon name="mdi:close" />
         </button>
       </div>
-    </form>
+
+      <form class="admin-conn-form" id="admin-conn-form" autocomplete="on">
+        <label class="admin-field">
+          <span class="admin-field-label">仓库</span>
+          <input
+            class="admin-input"
+            id="admin-repo-input"
+            name="username"
+            type="text"
+            autocomplete="username"
+            placeholder="yumaonb/Alula"
+            value={`${githubUsername}/${githubRepo}`}
+            required
+          />
+        </label>
+        <p class="admin-conn-hint">直接粘仓库链接也行，会自动取其中的所有者与仓库名。</p>
+
+        <label class="admin-field">
+          <span class="admin-field-label">访问令牌</span>
+          <input
+            class="admin-input"
+            id="admin-token"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="github_pat_..."
+            required
+          />
+        </label>
+        <p class="admin-conn-hint">
+          需要 Contents
+          读写权限的细粒度令牌。令牌只存在当前页面内存里，刷新即清空。分支按仓库默认分支走。
+        </p>
+
+        <div class="admin-conn-actions">
+          <button class="admin-btn admin-btn--ghost hoverable" id="admin-conn-submit" type="submit">
+            连接
+          </button>
+        </div>
+      </form>
+
+      <div class="admin-repo-status">
+        <dl class="admin-status-grid">
+          <div class="admin-status-item">
+            <dt>仓库</dt>
+            <dd id="admin-status-repo">—</dd>
+          </div>
+          <div class="admin-status-item">
+            <dt>分支</dt>
+            <dd id="admin-status-branch">—</dd>
+          </div>
+          <div class="admin-status-item">
+            <dt>最新提交编号</dt>
+            <dd>
+              <a
+                class="admin-status-link link-plain"
+                id="admin-status-head-link"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                hidden
+              >
+                —
+              </a>
+              <span id="admin-status-head">—</span>
+            </dd>
+          </div>
+          <div class="admin-status-item">
+            <dt>待提交</dt>
+            <dd id="admin-status-staged">0</dd>
+          </div>
+          <div class="admin-status-item">
+            <dt>GitHub API 剩余次数</dt>
+            <dd>
+              <span class="admin-rate-value" id="admin-rate-value">
+                —
+              </span>
+              <span class="admin-rate-total" id="admin-rate-total">
+                ／ —
+              </span>
+            </dd>
+          </div>
+          <div class="admin-status-item">
+            <dt>GitHub API 重置时间</dt>
+            <dd id="admin-rate-reset">—</dd>
+          </div>
+        </dl>
+
+        <div class="admin-conn-actions">
+          <button class="admin-btn admin-btn--ghost hoverable" id="admin-disconnect" type="button">
+            断开
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+)}

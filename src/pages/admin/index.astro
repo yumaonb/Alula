@@ -1,76 +1,56 @@
 ---
-// index.astro — 后台仪表盘
+// index.astro — 后台首页
 // 用法：路由 /admin/
+//
+// 这一页只是个演示性质的落地页：真正的连接状态在右上角的弹窗里、
+// 待提交在右下角的队列面板里，所以这里不放「未连接」提示，也不放统计。
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { Icon } from 'astro-icon/components';
+import { site } from '../../data/site';
+
+const cards = [
+  {
+    icon: 'mdi:file-document-edit-outline',
+    title: '文章管理',
+    desc: '读仓库里的 src/content/posts/，目录结构就是分类。',
+    href: '/admin/posts/',
+    action: '去管理文章',
+  },
+  {
+    icon: 'mdi:source-branch',
+    title: '一次性提交',
+    desc: '改动先进右下角的队列，攒够一批再合成一次提交推上去。',
+    href: '/admin/posts/edit/',
+    action: '去编辑',
+  },
+];
 ---
 
-<AdminLayout title="仪表盘">
-  <div data-admin-page="dashboard">
+<AdminLayout title="首页">
+  <div data-admin-page="dashboard" data-admin-title="首页">
     <div class="admin-card">
-      <h1 class="admin-page-title">仪表盘</h1>
-      <p class="admin-page-desc">连接仓库后即可在这里查看分支状态、文章数量，并进入编辑。</p>
-    </div>
-
-    <div class="admin-gate">
-      <Icon name="mdi:lock-outline" class="admin-gate-icon" />
-      <p>
-        还没有连接 GitHub。
-        <br />
-        展开右上角「连接」，填入仓库与访问令牌。
+      <h1 class="admin-page-title">{site.name}后台</h1>
+      <p class="admin-page-desc">
+        右上角连仓库，右下角看攒下的改动。点右上角的按钮填仓库地址与访问令牌即可开始。
       </p>
     </div>
 
-    <div class="admin-needs-conn">
-      <div class="admin-card">
-        <h2 class="admin-card-title">
-          <Icon name="mdi:source-branch" class="admin-card-title-icon" />
-          仓库状态
-        </h2>
-        <div class="admin-stats">
-          <div class="admin-stat">
-            <span class="admin-stat-label">仓库</span>
-            <span class="admin-stat-value" id="admin-dash-repo">
-              —
-            </span>
-          </div>
-          <div class="admin-stat">
-            <span class="admin-stat-label">分支</span>
-            <span class="admin-stat-value" id="admin-dash-branch">
-              —
-            </span>
-          </div>
-          <div class="admin-stat">
-            <span class="admin-stat-label">当前提交</span>
-            <span class="admin-stat-value" id="admin-dash-head">
-              —
-            </span>
-          </div>
-          <div class="admin-stat">
-            <span class="admin-stat-label">文章文件</span>
-            <span class="admin-stat-value" id="admin-dash-count">
-              —
-            </span>
-          </div>
-          <div class="admin-stat">
-            <span class="admin-stat-label">待提交</span>
-            <span class="admin-stat-value" id="admin-dash-staged">
-              0
-            </span>
+    <div class="admin-stats">
+      {cards.map((card) => (
+        <div class="admin-card admin-demo-card">
+          <h2 class="admin-card-title">
+            <Icon name={card.icon} class="admin-card-title-icon" />
+            {card.title}
+          </h2>
+          <p class="admin-page-desc">{card.desc}</p>
+          <div class="admin-toolbar">
+            <a class="admin-btn link-plain" href={card.href}>
+              <Icon name="mdi:arrow-right" class="admin-btn-icon" />
+              {card.action}
+            </a>
           </div>
         </div>
-      </div>
-
-      <div class="admin-card">
-        <h2 class="admin-card-title">
-          <Icon name="mdi:information-outline" class="admin-card-title-icon" />
-          怎么用
-        </h2>
-        <p class="admin-page-desc">
-          在文章管理里挑一个文件编辑，改动会先进入右下角的「待提交」队列；
-          攒够一批后一次性打包成一个提交推上去，避免每个文件触发一次构建。
-        </p>
-      </div>
+      ))}
     </div>
   </div>
 </AdminLayout>

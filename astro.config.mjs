@@ -162,7 +162,17 @@ export default defineConfig({
         awaitAssets: true,
       },
       theme: false,
-      native: true,
+      // native: false —— 关掉浏览器原生 View Transition，用 swup 自己的 CSS 动画。
+      //
+      // 原因（已在 swup 产物里核对）：native 为 true 时 swup 会执行
+      //   this.options.native = this.options.native && !!document.startViewTransition
+      // 并用 document.startViewTransition() 把整次 renderPage 包起来。原生 VT 会把
+      // 整页快照挂到覆盖整个视口的 ::view-transition 顶层，动画期间（进场 0.35s）
+      // 指针事件全落在快照上、到不了真实 DOM——后台侧栏在 #swup 之外、视觉上根本没动，
+      // 却同样点不动，必须等动画播完或点第二次，这就是「切页时侧栏点不了」的根因。
+      // 关掉后走 global.css 里已有的 .transition-main + html.is-animating 那套淡入淡出，
+      // 观感一致，且不再吞掉点击。
+      native: false,
     }),
     // HTML 深度压缩（含内联 CSS/JS）；removeComments 保持 false 以保护 Svelte 水合锚点
     htmlMinifier({

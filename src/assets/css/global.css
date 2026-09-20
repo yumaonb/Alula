@@ -236,21 +236,20 @@ ol {
   }
 }
 
-/* ---- Swup 页面切换：离场用真实 DOM，进场用整页快照 ---- */
+/* ---- Swup 页面切换：离场 / 进场都作用在真实 DOM 上 ---- */
 
 /* 离场：旧页原位渐隐；:not(.is-rendering) 确保只在新内容替换前生效 */
 html.is-animating:not(.is-rendering) .transition-main {
   animation: page-exit 0.2s ease both;
 }
 
-/* 进场：新页整页快照原位渐显 */
-::view-transition-new(root) {
+/* 进场：新内容原位渐显。
+ * 以前这条是写在 ::view-transition-new(root) 上的，靠浏览器原生 View Transition；
+ * 但原生 VT 会用整页快照盖住视口、动画期间吞掉所有点击（后台侧栏因此点不动），
+ * 所以 astro.config.mjs 关掉了 native，改用下面这条对真实 DOM 的动画。
+ * is-rendering 由 swup 在新内容替换完成、开始播进场动画时加在 <html> 上。 */
+html.is-rendering .transition-main {
   animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* 旧页快照无需动画：截快照时旧内容已隐藏 */
-::view-transition-old(root) {
-  animation: none;
 }
 
 /* 根元素画布色，这行不能删：过度滚动回弹、背景未渲染时露出的底就是它。
@@ -280,9 +279,8 @@ html {
 
 /* 用户偏好减少动态效果时：全部跳过，新页面就绪后直接切换 */
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root),
-  html.is-animating:not(.is-rendering) .transition-main {
+  html.is-animating:not(.is-rendering) .transition-main,
+  html.is-rendering .transition-main {
     animation: none;
   }
 }
