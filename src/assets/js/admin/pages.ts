@@ -2,8 +2,14 @@
 // 用法：由 AdminLayout 引入：import "../../assets/js/admin/pages"
 // 模块只在首次加载求值一次；swup 换掉 #swup 里的内容后由 boot() 重新绑定当前页面。
 
-import { GitHubError, getFileTextOrNull, listPostFiles, type TreeEntry } from './github';
-import { renderRateLimit, setNavActive, toast } from './shell';
+import {
+  GitHubError,
+  getFileTextOrNull,
+  listCategoryMeta,
+  listPostFiles,
+  type TreeEntry,
+} from './github';
+import { renderRateLimit, setAccordion, setNavActive, toast } from './shell';
 import { adminStore } from './store';
 
 const POSTS_PREFIX = 'src/content/posts/';
@@ -141,6 +147,88 @@ function initPostsList(): Cleanup {
       files = await listPostFiles(adminStore.state.config.branch);
       files.sort((a, b) => a.path.localeCompare(b.path));
       setText('admin-posts-status', `共 ${files.length} 个 Markdown 文件`);
+      render();
+    }),
+  );
+
+  return () => cleanups.forEach((fn) => fn());
+}
+
+// ---- 分类管理 ----
+
+/**
+ * 分类树由「文章所在目录」推出来：每个分类至少得有一篇文章才存在。
+ * 只列出有 index.json 的目录会漏掉大量没配元数据的分类，所以这里以文章路径为准，
+ * index.json 存在与否只决定「有没有配显示名」。
+ */
+function initCategories(): Cleanup {
+  const cleanups: Cleanup[] = [];
+  const list = byId<HTMLUListElement>('admin-cats-list');
+  const filter = byId<HTMLInputElement>('admin-cats-filter');
+  let dirs: string[] = [];
+  let withMeta = new Set<string>();
+
+  function render(): void {
+    if (!list) return;
+    const query = filter?.value.trim().toLowerCase() ?? '';
+    const shown = query ? dirs.filter((d) => d.toLowerCase().includes(query)) : dirs;
+
+    list.textContent = '';
+    if (shown.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'admin-empty';
+      li.textContent = dirs.length === 0 ? '还没有任何分类' : '没有匹配的分类';
+      list.appendChild(li);
+      return;
+    }
+
+    for (const dir of shown) {
+      const li = document.createElement('li');
+      li.className = 'admin-file-row';
+
+      // 分类没有独立页面可编辑，点进编辑器看它的 index.json（不存在就是新建）
+      const link = document.createElement('a');
+      link.className = 'admin-file-link';
+      link.href = `/admin/posts/edit/?path=${encodeURIComponent(`${POSTS_PREFIX}${dir}/index.json`)}`;
+      link.textContent = dir;
+      li.appendChild(link);
+
+      if (!withMeta.has(dir)) {
+        const chip = document.createElement('span');
+        chip.className = 'admin-chip';
+        chip.textContent = '无 index.json';
+        li.appendChild(chip);
+      }
+
+      list.appendChild(li);
+    }
+  }
+
+  filter?.addEventListener('input', render);
+  cleanups.push(() => filter?.removeEventListener('input', render));
+
+  cleanups.push(
+    whenConnected(async () => {
+      setText('admin-cats-status', '读取中…');
+      const branch = adminStore.state.config.branch;
+      const [files, meta] = await Promise.all([listPostFiles(branch), listCategoryMeta(branch)]);
+
+      const set = new Set<string>();
+      for (const file of files) {
+        const rel = file.path.slice(POSTS_PREFIX.length);
+        const parts = rel.split('/');
+        // 末段是文件名，往上每一层目录都是一个分类
+        for (let i = 1; i < parts.length; i++) set.add(parts.slice(0, i).join('/'));
+      }
+      // 只有 index.json、目录下暂时没文章的，也算一个分类
+      for (const path of meta.keys()) set.add(path.slice(POSTS_PREFIX.length, -'/index.json'.length));
+
+      dirs = [...set].sort((a, b) => a.localeCompare(b));
+      withMeta = new Set(
+        [...meta.keys()].map((p) => p.slice(POSTS_PREFIX.length, -'/index.json'.length)),
+      );
+
+      setText('admin-cats-status', `共 ${dirs.length} 个分类`);
       render();
     }),
   );
@@ -305,17 +393,20 @@ function initEditor(): Cleanup {
 
 let activeCleanup: Cleanup | null = null;
 
-/** 侧栏在 #swup 之外，切页时不会重渲染，高亮得自己跟上 */
+/** 侧栏在 #swup 之外，切页时不会重渲染，高亮与展开态都得自己跟上 */
 function syncNavActive(): void {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
 
   // 取「匹配得最长」的那一项：/admin/posts/edit 既落了 /admin 的前缀、
   // 也落了 /admin/posts 的前缀，只按「能匹配就点亮」会让两项一起亮。
+  // 分区首页（/admin）例外：它是所有后台页的前缀，只按完全相等算，否则每页都亮。
+  // 这条判断与 AdminNav.astro 里的 isActive 是同一套，改一处要同步另一处。
   let best: HTMLAnchorElement | null = null;
   let bestLen = -1;
   for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-nav-path]')) {
     const target = (link.dataset.navPath ?? '').replace(/\/+$/, '') || '/';
-    const hit = target === path || (target !== '/' && path.startsWith(`${target}/`));
+    const hit =
+      target === path || (target !== '/admin' && path.startsWith(`${target}/`));
     if (hit && target.length > bestLen) {
       best = link;
       bestLen = target.length;
@@ -325,6 +416,15 @@ function syncNavActive(): void {
   // 一项都没匹配上（例如将来加了没登记进侧栏的页面）就全部清掉，
   // 别让上一页的高亮留在那儿
   setNavActive(best);
+
+  // 命中的那一项如果藏在收起的二级菜单里，就是「亮着但看不见」，
+  // 所以把它所在的父项展开。但只对「没被用户手动开合过」的组这么做：
+  // 用户特意收起过的组，一切页又被弹开，会显得不听话。
+  for (const group of document.querySelectorAll('[data-nav-accordion]')) {
+    if (!best || !group.contains(best)) continue;
+    if (group.hasAttribute('data-nav-user-touched')) continue;
+    setAccordion(group, true);
+  }
 }
 
 function boot(): void {
@@ -337,6 +437,7 @@ function boot(): void {
   const name = pageName();
   if (name === 'dashboard') activeCleanup = initDashboard();
   else if (name === 'posts') activeCleanup = initPostsList();
+  else if (name === 'categories') activeCleanup = initCategories();
   else if (name === 'editor') activeCleanup = initEditor();
 }
 

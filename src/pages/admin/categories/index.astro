@@ -1,0 +1,50 @@
+---
+// index.astro — 后台分类管理（列出仓库里的分类目录与 index.json）
+// 用法：路由 /admin/categories/
+//
+// 分类只由目录结构决定（见 .dsh/rules/50-content.md），所以这一页读的是
+// src/content/posts/ 下的目录与它们各自的 index.json，而不是任何配置。
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { Icon } from 'astro-icon/components';
+---
+
+<AdminLayout title="管理分类">
+  <div data-admin-page="categories" data-admin-title="管理分类">
+    <div class="admin-card">
+      <h1 class="admin-page-title">管理分类</h1>
+      <p class="admin-page-desc">
+        分类由目录结构决定：src/content/posts/ 下每建一层目录就是一个分类，显示名与描述写在该目录的
+        index.json 里。
+      </p>
+    </div>
+
+    <div class="admin-gate">
+      <Icon name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        展开右上角「连接」，填入仓库与访问令牌。
+      </p>
+    </div>
+
+    <div class="admin-card admin-needs-conn">
+      <h2 class="admin-card-title">
+        <Icon name="mdi:folder-outline" class="admin-card-title-icon" />
+        分类目录
+      </h2>
+      <div class="admin-toolbar">
+        <input
+          class="admin-input"
+          id="admin-cats-filter"
+          type="search"
+          placeholder="按路径筛选"
+          autocomplete="off"
+        />
+        <span class="admin-status" id="admin-cats-status">未连接</span>
+      </div>
+      <ul class="admin-file-list" id="admin-cats-list">
+        <li class="admin-empty">连接后显示分类列表</li>
+      </ul>
+    </div>
+  </div>
+</AdminLayout>

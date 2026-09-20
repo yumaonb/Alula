@@ -1,19 +1,64 @@
 ---
-// AdminNav.astro — 后台侧边分区导航
+// AdminNav.astro — 后台侧边分区导航（可折叠两级）
 // 用法：由 AdminLayout 渲染一次，位于 main#swup 之外
 //
 // 宽屏是常驻左侧栏；窄屏由 admin.css 变成从左侧滑出的 off-canvas 抽屉，
 // 开合由 layout 里的 #admin-drawer-toggle 控制（见 admin/shell.ts）。
+//
+// 只有「文章管理」这一项带子项，所以折叠逻辑不写死深度，只看 item.children 有没有内容。
+// 带子项的父项是按钮、点它只开合不跳转；图标只给第一级（父项与独立项），子项一律不带。
 import { Icon } from 'astro-icon/components';
 import { site } from '../../data/site';
 
-const items = [
+interface NavItem {
+  label: string;
+  /** 有 href 的渲染成链接；父项不写 href，渲染成只管开合的按钮 */
+  href?: string;
+  /** 第一级（父项与独立项）才带图标，子项不写 */
+  icon?: string;
+  children?: NavLink[];
+}
+
+/** 子项一定可点，所以 href 必填；否则渲染出来会是个没目标的死按钮 */
+interface NavLink extends NavItem {
+  href: string;
+}
+
+const items: NavItem[] = [
   { href: '/admin/', label: '首页', icon: 'mdi:view-dashboard-outline' },
-  { href: '/admin/posts/', label: '文章管理', icon: 'mdi:file-document-edit-outline' },
+  {
+    label: '文章管理',
+    icon: 'mdi:file-document-edit-outline',
+    children: [
+      { href: '/admin/posts/edit/', label: '发布文章' },
+      { href: '/admin/posts/', label: '管理文章' },
+      { href: '/admin/categories/', label: '管理分类' },
+    ],
+  },
 ];
 
 const current = Astro.url.pathname.replace(/\/+$/, '') || '/admin';
-const isActive = (href: string) => href.replace(/\/+$/, '') === current;
+
+/**
+ * 只让「匹配得最长」的那一项亮，避免一个地址点亮一串。
+ * /admin/posts/edit 既是 /admin 的子路径、也是 /admin/posts 的子路径，
+ * 单纯按前缀判断会让三项一起亮；取最长就只留 /admin/posts/edit。
+ * 分区首页（/admin）额外要求完全相等——它是所有后台页的共同前缀。
+ */
+const allHrefs = items.flatMap((item) =>
+  item.children?.length ? item.children.map((child) => child.href) : item.href ? [item.href] : [],
+);
+const activeHref = allHrefs
+  .filter((href) => {
+    const target = href.replace(/\/+$/, '');
+    if (target === current) return true;
+    if (target === '/admin') return false;
+    return current.startsWith(`${target}/`);
+  })
+  .sort((a, b) => b.length - a.length)[0];
+
+const isActive = (href: string) => href === activeHref;
+const isBranchActive = (item: NavItem) => (item.children ?? []).some((child) => isActive(child.href));
 ---
 
 <aside class="admin-nav" id="admin-nav">
@@ -26,16 +71,59 @@ const isActive = (href: string) => href.replace(/\/+$/, '') === current;
   </div>
 
   <nav class="admin-nav-list" aria-label="后台分区">
-    {items.map((item) => (
-      <a
-        class:list={['admin-nav-link', 'link-plain', isActive(item.href) && 'is-active']}
-        href={item.href}
-        data-nav-path={item.href}
-      >
-        <Icon name={item.icon} class="admin-nav-icon" />
-        <span class="admin-nav-text">{item.label}</span>
-      </a>
-    ))}
+    {
+      items.map((item) =>
+        item.children?.length ? (
+          <div
+            class:list={['admin-nav-group', { 'is-open': isBranchActive(item) }]}
+            data-nav-accordion
+          >
+            <button
+              class="admin-nav-link admin-nav-parent"
+              type="button"
+              data-nav-toggle
+              aria-expanded={isBranchActive(item) ? 'true' : 'false'}
+            >
+              {item.icon && <Icon name={item.icon} class="admin-nav-icon" />}
+              <span class="admin-nav-text">{item.label}</span>
+              <Icon name="la:angle-right" class="admin-nav-arrow" />
+            </button>
+            <div class="admin-nav-sub">
+              <div class="admin-nav-sub-clip">
+                {item.children.map((child) => (
+                  <a
+                    class:list={[
+                      'admin-nav-link',
+                      'admin-nav-child',
+                      'link-plain',
+                      isActive(child.href) && 'is-active',
+                    ]}
+                    href={child.href}
+                    data-nav-path={child.href}
+                  >
+                    {child.icon && <Icon name={child.icon} class="admin-nav-icon" />}
+                    <span class="admin-nav-text">{child.label}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <a
+            class:list={[
+              'admin-nav-link',
+              'link-plain',
+              item.href && isActive(item.href) && 'is-active',
+            ]}
+            href={item.href}
+            data-nav-path={item.href}
+          >
+            {item.icon && <Icon name={item.icon} class="admin-nav-icon" />}
+            <span class="admin-nav-text">{item.label}</span>
+          </a>
+        ),
+      )
+    }
   </nav>
 
   <!-- data-no-swup：站点页与后台页的外壳不同，交给浏览器整页加载，别让 swup 把内容塞进错误的外壳 -->

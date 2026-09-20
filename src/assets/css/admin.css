@@ -431,6 +431,8 @@
   gap: 4px;
   /* 侧栏本体顶部不留白（为了头部与顶栏齐平），间距挪到这里 */
   padding-top: 10px;
+  /* 侧栏整体是一列，父项与子项之间靠 .admin-nav-sub 撑开；这里不设 gap，
+   * 否则展开动画的每一帧里，父项与子项之间会多出一条 4px 的缝。 */
 }
 
 /* 导航项：颜色参考首页手机端下拉菜单（.mobile-link）——0.78 白字、0.6 图标，
@@ -473,6 +475,106 @@
   color: rgba(255, 255, 255, 0.6);
   flex-shrink: 0;
   transition: color 0.15s;
+}
+
+/* ---- 侧栏二级菜单 ----
+ * 结构：.admin-nav-group > [父项按钮 .admin-nav-parent] + [.admin-nav-sub > .admin-nav-sub-clip > 子项]
+ * 折叠用 grid-template-rows: 0fr → 1fr，和分类树（PostCategoryNode）同一套做法：
+ * 高度由内容自己量，不用写死 max-height，展开多少就撑多少。 */
+
+.admin-nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 父项是 <button>，而 .admin-nav-link 的基准样式是照着 <a> 写的：
+ * <a> 天然没有底/边框、会按 flex 撑满，<button> 则带着系统灰底、系统字体与居中文字。
+ * 所以这里把按钮复位回与「首页」那一项肉眼一致的状态，只额外把箭头推到最右。 */
+.admin-nav-parent {
+  width: auto;
+  background: transparent;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* 展开箭头推到最右，跟子项的图标位置分开，不抢视线 */
+.admin-nav-arrow {
+  width: 13px;
+  height: 13px;
+  margin-left: auto;
+  color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+  transition:
+    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.15s ease;
+}
+
+.admin-nav-group.is-open .admin-nav-arrow {
+  transform: rotate(90deg);
+}
+
+.admin-nav-group.is-open .admin-nav-parent {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* 子项被选中时父项跟着亮：只亮子项的话，父项看着仍像「没在用的分区」。
+ * 用 :has() 从子树反推，父项不必再单独带一个 is-active 类；底与文字色跟子项选中态一致，
+ * 鼠标还停在父项上时也保持选中底（不然会退回较浅的悬停底，像选中没生效）。 */
+.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent,
+.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent:hover,
+.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent:focus-visible {
+  color: var(--hover-ink);
+  background: var(--active-bg);
+}
+
+/* 展开容器：0fr 时整段高度为 0，子项被裁掉但仍留在 DOM 里（无障碍上可被读屏访问）。
+ * 缓动与时长跟文章列表的分类树（PostCategoryNode）取齐，两处展开手感一致。 */
+.admin-nav-sub {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-nav-group.is-open > .admin-nav-sub {
+  grid-template-rows: 1fr;
+}
+
+/* 真正被裁剪的那一层，overflow: hidden 必须落在它身上，挂在 .admin-nav-sub 上没有效果。
+ * 高度之外再叠一层透明度淡入：只做高度会看到子项「被压扁着挤出来」，
+ * 补上淡入后是「高度撑开的同时内容浮现」，和分类树一个观感。 */
+.admin-nav-sub-clip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  min-height: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.admin-nav-group.is-open > .admin-nav-sub > .admin-nav-sub-clip {
+  opacity: 1;
+}
+
+/* 子项比父项缩进一档，去掉图标后高度也略矮，读起来才是「挂在上面那一项下面」 */
+.admin-nav-child {
+  height: 40px;
+  padding-left: 47px;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+/* 悬停与选中的配色沿用 .admin-nav-link 那套（含「选中压过悬停」的顺序），这里不再重复定义。 */
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-nav-sub,
+  .admin-nav-sub-clip,
+  .admin-nav-arrow {
+    transition: none;
+  }
 }
 
 /* 图标与文字只做颜色过渡，不做位移：悬停时整条一起提亮。

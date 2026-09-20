@@ -220,8 +220,8 @@ export async function getBranchHead(branch: string): Promise<RefInfo | null> {
   }
 }
 
-/** 列出仓库里全部 Markdown 文章（走 tree API，一次请求拿完整清单） */
-export async function listPostFiles(branch: string): Promise<TreeEntry[]> {
+/** 取分支头提交的完整文件树（recursive）；被截断时报错，避免拿到半份清单当成全部 */
+async function listTree(branch: string): Promise<TreeEntry[]> {
   const { owner, repo } = adminStore.state.config;
   const head = await getBranchHead(branch);
   if (!head) throw new GitHubError(`分支 ${branch} 不存在`, 404);
@@ -233,10 +233,27 @@ export async function listPostFiles(branch: string): Promise<TreeEntry[]> {
     `/repos/${owner}/${repo}/git/trees/${commit.tree.sha}?recursive=1`,
   );
   if (tree.truncated) throw new GitHubError('仓库文件太多，tree 结果被截断', 422);
+  return tree.tree;
+}
 
-  return tree.tree.filter(
+/** 列出仓库里全部 Markdown 文章（走 tree API，一次请求拿完整清单） */
+export async function listPostFiles(branch: string): Promise<TreeEntry[]> {
+  const tree = await listTree(branch);
+  return tree.filter(
     (e) => e.type === 'blob' && e.path.startsWith('src/content/posts/') && e.path.endsWith('.md'),
   );
+}
+
+/** 分类目录路径 → 该目录的 index.json（没有就是 null，表示这个分类还没配元数据） */
+export async function listCategoryMeta(branch: string): Promise<Map<string, TreeEntry>> {
+  const tree = await listTree(branch);
+  const found = new Map<string, TreeEntry>();
+  for (const e of tree) {
+    if (e.type !== 'blob') continue;
+    if (!e.path.startsWith('src/content/posts/') || !e.path.endsWith('/index.json')) continue;
+    found.set(e.path, e);
+  }
+  return found;
 }
 
 /** 读单个文件内容；大文件走 blob API 兜底（contents API 对 >1MB 只回 encoding: none） */

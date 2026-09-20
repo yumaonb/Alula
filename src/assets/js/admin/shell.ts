@@ -180,6 +180,20 @@ function setDrawer(open: boolean): void {
   document.getElementById('admin-drawer-toggle')?.setAttribute('aria-expanded', String(open));
 }
 
+/**
+ * 侧栏二级菜单的开合：容器带 data-nav-accordion，父项按钮带 data-nav-toggle。
+ *
+ * byUser 区分「用户点的」和「切页时自动展开的」：用户手动收起过的组会被记上标记，
+ * 之后切页不再自动把它弹开——否则用户收起来、一切页又自己张开，像是不听话。
+ * 用 dataset 而不是 JS 变量存，是因为侧栏在 #swup 之外、切页不重建，
+ * 标记挂在 DOM 上天然能跨页保留。
+ */
+export function setAccordion(group: Element, open: boolean, byUser = false): void {
+  if (byUser) group.setAttribute('data-nav-user-touched', '');
+  group.classList.toggle('is-open', open);
+  group.querySelector('[data-nav-toggle]')?.setAttribute('aria-expanded', String(open));
+}
+
 /** 连接后取一次分支头；取不到就显示读取失败，不影响已经建立的连接 */
 async function refreshHead(): Promise<void> {
   try {
@@ -275,14 +289,26 @@ export function initShell(): void {
     el.addEventListener('click', () => setDrawer(false));
   }
 
+  // 父项按钮只开关自己的子菜单，不跳转；点击不冒泡到下面那圈链接监听。
+  // 侧栏在 #swup 之外、切页时整块不重渲染，所以这里只绑一次就够。
+  for (const toggle of document.querySelectorAll<HTMLButtonElement>('[data-nav-toggle]')) {
+    toggle.addEventListener('click', () => {
+      const group = toggle.closest('[data-nav-accordion]');
+      if (group) setAccordion(group, !group.classList.contains('is-open'), true);
+    });
+  }
+
   // 点了分区就跳走了，抽屉别留在屏幕上。
   // 同时立刻把高亮挪到被点的那一项：swup 换页要等新页面拿到手才触发 after-swap，
   // 那之前高亮还停在旧项上，看着像「点了没反应」。syncNavActive() 会在换页后
   // 按真实路径再校正一次，所以这里先乐观地点亮是安全的。
+  // 点了子项就顺手把父项展开：此时父项是收起的话，高亮会藏在一片 0 高度里看不见。
   for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-nav-path]')) {
     link.addEventListener('click', () => {
       setDrawer(false);
       setNavActive(link);
+      const group = link.closest('[data-nav-accordion]');
+      if (group) setAccordion(group, true);
     });
   }
 
