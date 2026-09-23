@@ -77,6 +77,7 @@ const isBranchActive = (item: NavItem) => (item.children ?? []).some((child) => 
           <div
             class:list={['admin-nav-group', { 'is-open': isBranchActive(item) }]}
             data-nav-accordion
+            data-nav-init
           >
             <button
               class="admin-nav-link admin-nav-parent"

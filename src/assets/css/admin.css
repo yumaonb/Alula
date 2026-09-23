@@ -435,38 +435,83 @@
    * 否则展开动画的每一帧里，父项与子项之间会多出一条 4px 的缝。 */
 }
 
-/* 导航项：颜色参考首页手机端下拉菜单（.mobile-link）——0.78 白字、0.6 图标，
- * 但条目本身是圆角按钮（不是通栏直角），跟站内其它可点块一致。 */
+/* 导航项：左右顶满侧栏内沿的直角行。
+ * 直角本身在满屏圆角里不突兀——之前突兀是因为左右各留了 8px 空档，
+ * 那条又短又直的边悬在中间，才显得是「一块没对齐的方块」。
+ * 顶满之后直角边直接落在侧栏边缘上，读起来是整栏的分隔，不再是孤立的方块。
+ *
+ * --nav-pad / --nav-indent 是这一行的水平档位：
+ * 未选中停在 --nav-pad，选中换成 --nav-indent（让开一点点），
+ * 整行内容（图标 + 文字）随之右移，从左侧那条竖线上「避开」。
+ * 竖线本身贴在 left:0，不参与布局，所以让位只是观感上的避让。 */
 .admin-nav-link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;
-  margin: 2px 8px;
-  padding: 0 16px;
-  height: 44px;
+  margin: 0;
+  padding: 0 16px 0 var(--nav-pad);
+  height: 42px;
   border: none;
-  border-radius: var(--radius);
+  /* 直角：和侧栏边缘对齐，不做圆角 */
+  border-radius: 0;
   font-size: 0.88rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--nav-ink);
+  /* 位移用 padding 而不是 transform：transform 会新建层叠上下文，
+   * 也会改变 ::before 的定位基准；改 padding 只动内容，整行宽度不变。 */
+  transition:
+    padding-left 0.24s cubic-bezier(0.32, 0.72, 0, 1),
+    background 0.16s ease,
+    color 0.16s ease;
 }
-
-/* 悬停：底色比选中浅一档，文字提亮。不用 .hoverable——它的选择器是
- * .hoverable.hoverable:hover（(0,3,0)），会盖掉 .is-active 的 (0,2,0)，
- * 于是「鼠标停在刚点的项上」时显示的是悬停浅底，看着像选中没生效。 */
+/* 当前项的左侧竖线：贯通整行（上下顶满），3px 粗，贴死侧栏左内沿。
+ * 顶满才有「这一栏从这里开始」的分隔感；居中的一小段只是装饰点。
+ * 用伪元素画而不是 border-left：border 会占进盒宽、和内边距打架，
+ * 伪元素绝对定位不参与布局，整行宽度不受影响。 */
+.admin-nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--nav-mark);
+  opacity: 0;
+  /* 纵向拉开而不是淡入：切换时像一次「拉出」的动作，比纯淡入更有指向性 */
+  transform: scaleY(0.5);
+  transition:
+    opacity 0.18s ease,
+    transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+/* 悬停：铺一档白，不换字重、不动位置（动位置会和选中的位移撞在一起） */
 .admin-nav-link:hover,
 .admin-nav-link:focus-visible {
-  color: var(--hover-ink);
-  background: var(--hover-bg);
+  color: var(--nav-ink-strong);
+  background: var(--nav-bg-hover);
 }
 
 /* 选中态放在悬停之后：两者特异性相同（都是 (0,2,0)），靠顺序让选中压过悬停，
- * 这样点击后鼠标还停在按钮上时，看到的直接是选中深底——一步到位，不会先浅后深。 */
+ * 这样鼠标停在刚点的项上时不会退回悬停观感。 */
 .admin-nav-link.is-active,
 .admin-nav-link.is-active:hover,
 .admin-nav-link.is-active:focus-visible {
   color: var(--hover-ink);
-  background: var(--active-bg);
+  /* 整行内容右移，让开左侧竖线 */
+  padding-left: var(--nav-indent);
+}
+
+.admin-nav-link.is-active::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+/* 首屏（还没量完高度）不播展开动画：一进后台就看到菜单自己滑一下很怪。
+ * data-nav-init 由 AdminNav 输出，shell.ts 量完第一遍高度就摘掉。 */
+[data-nav-init] .admin-nav-sub,
+[data-nav-init] .admin-nav-sub-clip {
+  transition: none;
 }
 
 .admin-nav-icon {
@@ -480,7 +525,11 @@
 /* ---- 侧栏二级菜单 ----
  * 结构：.admin-nav-group > [父项按钮 .admin-nav-parent] + [.admin-nav-sub > .admin-nav-sub-clip > 子项]
  * 折叠用 grid-template-rows: 0fr → 1fr，和分类树（PostCategoryNode）同一套做法：
- * 高度由内容自己量，不用写死 max-height，展开多少就撑多少。 */
+ * 高度由内容自己量，不用写死 max-height，展开多少就撑多少。
+ *
+ * 层级用「一条细轨道 + 略暗的字」两级就够，不再铺底色：
+ * 底色已经让给悬停当专用信号，再让子项铺一层，展开后整组就是一个大色块，
+ * 和父项分不开、也和悬停态撞车。 */
 
 .admin-nav-group {
   display: flex;
@@ -500,12 +549,13 @@
   cursor: pointer;
 }
 
-/* 展开箭头推到最右，跟子项的图标位置分开，不抢视线 */
+/* 展开箭头推到最右，跟文字拉开距离，不抢视线。
+ * 不用 chevron 而用 angle-right 转 90°：转的过程本身就是「展开」的动效。 */
 .admin-nav-arrow {
   width: 13px;
   height: 13px;
   margin-left: auto;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.4);
   flex-shrink: 0;
   transition:
     transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
@@ -514,65 +564,108 @@
 
 .admin-nav-group.is-open .admin-nav-arrow {
   transform: rotate(90deg);
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.admin-nav-group.is-open .admin-nav-parent {
-  color: rgba(255, 255, 255, 0.92);
+/* 父项提亮只由「身后有当前项」触发，与展开与否无关：
+ * 展开只是把内容摊开，不代表你在这一支里；真正该亮的是「你正待在下面某一页」。
+ * 所以收起状态下、只要组里有当前项，父项同样是亮的——用户收起菜单后
+ * 依然能看出自己在这个分区里。 */
+.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent {
+  color: var(--nav-ink-strong);
 }
 
-/* 子项被选中时父项跟着亮：只亮子项的话，父项看着仍像「没在用的分区」。
- * 用 :has() 从子树反推，父项不必再单独带一个 is-active 类；底与文字色跟子项选中态一致，
- * 鼠标还停在父项上时也保持选中底（不然会退回较浅的悬停底，像选中没生效）。 */
-.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent,
-.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent:hover,
-.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent:focus-visible {
-  color: var(--hover-ink);
-  background: var(--active-bg);
+/* 图标跟着一起提亮：.admin-nav-icon 的静态色是 0.6 白，不显式改的话
+ * 文字亮了图标还暗着，一整行看着像没点全。 */
+.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent .admin-nav-icon {
+  color: currentColor;
 }
 
-/* 展开容器：0fr 时整段高度为 0，子项被裁掉但仍留在 DOM 里（无障碍上可被读屏访问）。
- * 缓动与时长跟文章列表的分类树（PostCategoryNode）取齐，两处展开手感一致。 */
+/* 展开容器：让出/收回空间的那扇「窗」。
+ *
+ * 为什么不用 grid-template-rows: 0fr → 1fr：fr 会按比例压缩内层，
+ * 子项先被压短再长回原高，就是「被挤出来」的观感
+ * （实测子项高度会在 21px→36px 之间变化）。
+ * max-height 只改窗口大小，内层始终是天然高度，任何一帧都不压。
+ *
+ * 上限取 --sub-h，由 shell.ts 的 measureNavSub() 量出来的真实内容高度写入。
+ * 不写死数值：分组增删一项后写死的高度会让动画提前截断
+ * （加到第四项时最后一行滑不到位）。贴着实高，窗口的展开曲线
+ * 才和内容的滑动曲线同步——给得太大则窗口第一帧就撑满，两件事脱节。 */
 .admin-nav-sub {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.34s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .admin-nav-group.is-open > .admin-nav-sub {
-  grid-template-rows: 1fr;
+  max-height: var(--sub-h, 108px);
 }
 
-/* 真正被裁剪的那一层，overflow: hidden 必须落在它身上，挂在 .admin-nav-sub 上没有效果。
- * 高度之外再叠一层透明度淡入：只做高度会看到子项「被压扁着挤出来」，
- * 补上淡入后是「高度撑开的同时内容浮现」，和分类树一个观感。 */
+/* 内层：整组子项作为一个刚体，从父项底下滑出来。
+ * 它自身恒为内容天然高度，所以滑的过程中每一行都是完整高度，
+ * 不会互相挤压。收起时上移一整组高度、藏到窗口之上被裁掉；展开时归位。 */
 .admin-nav-sub-clip {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  overflow: hidden;
-  min-height: 0;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  transform: translateY(-100%);
+  transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .admin-nav-group.is-open > .admin-nav-sub > .admin-nav-sub-clip {
-  opacity: 1;
+  transform: translateY(0);
 }
 
-/* 子项比父项缩进一档，去掉图标后高度也略矮，读起来才是「挂在上面那一项下面」 */
+/* 这里不放「贯穿整组子项的缩进轨道」。
+ * 一级项的选中竖线是 3px、贴死 left:0 的实线；再在 12px 处加一条 1px 的
+ * 极暗线，就是两条位置不同、粗细不同的竖线并排，那条细线左右都无依托，
+ * 看着像一根飘着的发丝。层级交给字号（0.83rem）、亮度（--nav-ink-muted）
+ * 和缩进表达就够了；「当前在哪」由子项自己那条竖线说，和一级项同一套。 */
+
+/* 子项：与一级项同宽同高步进，把左内边距对到父项文字那一列。
+ * 父项文字列 = 左内边距 + 图标 17px + 间距 14px；
+ * 子项没有图标，所以要把这 31px 自己补上，才能让
+ * 「管理文章」的『管』字正压在「文章管理」的『文』字下方，视线不用横跳。
+ * 字比一级项略小略暗：不抢一级项的注意力，同时明确自己是下一层。
+ * 不挂图标：这一列是父项的从属项，再给图标会和一级项抢焦点。 */
 .admin-nav-child {
-  height: 40px;
-  padding-left: 47px;
-  font-size: 0.84rem;
-  color: rgba(255, 255, 255, 0.68);
+  height: 36px;
+  /* 31px = 图标 17 + 间距 14：补上父项有、子项没有的那两段 */
+  padding: 0 16px 0 calc(var(--nav-pad) + 31px);
+  font-size: 0.83rem;
+  font-weight: 400;
+  color: var(--nav-ink-muted);
+  background: transparent;
+  transition:
+    padding-left 0.24s cubic-bezier(0.32, 0.72, 0, 1),
+    background 0.16s ease,
+    color 0.16s ease;
 }
 
-/* 悬停与选中的配色沿用 .admin-nav-link 那套（含「选中压过悬停」的顺序），这里不再重复定义。 */
+/* 悬停：与一级项同样只给一档白底 */
+.admin-nav-child:hover,
+.admin-nav-child:focus-visible {
+  color: var(--nav-ink-strong);
+  background: var(--nav-bg-hover);
+}
+
+/* 当前子项：白字 + 左侧竖线（::before 与一级项共用同一套），同样不铺底，
+ * 所以鼠标移开后它仍然清楚地标着当前位置。位移量与一级项一致，
+ * 对齐关系不变（两边同时 +6px）。 */
+.admin-nav-child.is-active,
+.admin-nav-child.is-active:hover,
+.admin-nav-child.is-active:focus-visible {
+  color: var(--hover-ink);
+  padding-left: calc(var(--nav-indent) + 31px);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .admin-nav-sub,
   .admin-nav-sub-clip,
-  .admin-nav-arrow {
+  .admin-nav-arrow,
+  .admin-nav-link,
+  .admin-nav-child {
     transition: none;
   }
 }
@@ -591,14 +684,21 @@
 }
 
 /* 「回到站点」和上面的分区不是一类：一条分隔线拉距离，
- * 本身不做成按钮，悬停只把字提亮（跟 .admin-nav-link 的悬停一致）。 */
+ * 本身不做成按钮，悬停只把字提亮（跟 .admin-nav-link 的悬停一致）。
+ * 左内边距取 --nav-pad，和上面各项的文字列对齐；
+ * 分隔线通到侧栏两边内沿（导航项已无左右外边距，这里跟着归零）。 */
 .admin-nav-back {
   margin-top: auto;
+  margin-right: 0;
+  margin-left: 0;
+  padding-left: var(--nav-pad);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0;
   color: rgba(255, 255, 255, 0.45);
 }
 
+/* 悬停只提亮文字，也不给白底：它是「离开」而不是「进入」某一区，
+ * 给白底会和上面的导航项混淆。 */
 .admin-nav-back:hover,
 .admin-nav-back:focus-visible {
   color: #fff;

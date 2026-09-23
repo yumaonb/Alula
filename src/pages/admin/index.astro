@@ -29,25 +29,29 @@ const cards = [
 <AdminLayout title="首页">
   <div data-admin-page="dashboard" data-admin-title="首页">
     <div class="admin-card">
-      <h1 class="admin-page-title">{site.name}后台</h1>
-      <p class="admin-page-desc">
-        右上角连仓库，右下角看攒下的改动。点右上角的按钮填仓库地址与访问令牌即可开始。
-      </p>
+      <div class="admin-card-inner">
+        <h1 class="admin-page-title">{site.name}后台</h1>
+        <p class="admin-page-desc">
+          右上角连仓库，右下角看攒下的改动。点右上角的按钮填仓库地址与访问令牌即可开始。
+        </p>
+      </div>
     </div>
 
     <div class="admin-stats">
       {cards.map((card) => (
         <div class="admin-card admin-demo-card">
-          <h2 class="admin-card-title">
-            <Icon name={card.icon} class="admin-card-title-icon" />
-            {card.title}
-          </h2>
-          <p class="admin-page-desc">{card.desc}</p>
-          <div class="admin-toolbar">
-            <a class="admin-btn link-plain" href={card.href}>
-              <Icon name="mdi:arrow-right" class="admin-btn-icon" />
-              {card.action}
-            </a>
+          <div class="admin-card-inner">
+            <h2 class="admin-card-title">
+              <Icon name={card.icon} class="admin-card-title-icon" />
+              {card.title}
+            </h2>
+            <p class="admin-page-desc">{card.desc}</p>
+            <div class="admin-toolbar">
+              <a class="admin-btn link-plain" href={card.href}>
+                <Icon name="mdi:arrow-right" class="admin-btn-icon" />
+                {card.action}
+              </a>
+            </div>
           </div>
         </div>
       ))}

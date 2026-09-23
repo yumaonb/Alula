@@ -190,8 +190,36 @@ function setDrawer(open: boolean): void {
  */
 export function setAccordion(group: Element, open: boolean, byUser = false): void {
   if (byUser) group.setAttribute('data-nav-user-touched', '');
+  measureNavSub(group);
   group.classList.toggle('is-open', open);
   group.querySelector('[data-nav-toggle]')?.setAttribute('aria-expanded', String(open));
+}
+
+/**
+ * 把子菜单的真实高度写进 --sub-h，供 CSS 的 max-height 使用。
+ *
+ * 不写死高度是因为分组可增可减：写死 108px 的话，加到第四项时动画会在
+ * 108px 处截断，最后一项看起来没滑到位。这里量的是内层内容自身高度——
+ * 它恒等于内容高度、不受外层窗口压缩影响，所以随时量都准。
+ * 必须在切换 is-open 之前量；展开状态下量会拿到被 max-height 限制的旧值。
+ */
+export function measureNavSub(group: Element): void {
+  const clip = group.querySelector<HTMLElement>('.admin-nav-sub-clip');
+  if (!clip) return;
+  group
+    .querySelector<HTMLElement>('.admin-nav-sub')
+    ?.style.setProperty('--sub-h', `${clip.offsetHeight}px`);
+}
+
+/** 量一遍所有分组，并处理首屏不播动画：首次量完就摘掉 data-nav-init */
+export function initNavSubHeights(): void {
+  const groups = document.querySelectorAll('[data-nav-accordion]');
+  for (const group of groups) measureNavSub(group);
+  // 首屏那次展开（由 syncNavActive 触发）不该有滑动动画，
+  // 否则一进后台就看到菜单自己滑一下。摘掉标记后动画恢复正常。
+  requestAnimationFrame(() => {
+    for (const group of groups) group.removeAttribute('data-nav-init');
+  });
 }
 
 /** 连接后取一次分支头；取不到就显示读取失败，不影响已经建立的连接 */
@@ -288,6 +316,11 @@ export function initShell(): void {
   for (const el of document.querySelectorAll('[data-drawer-close]')) {
     el.addEventListener('click', () => setDrawer(false));
   }
+
+  // 首屏先把各组子菜单的实高量出来写进 --sub-h，再摘掉 data-nav-init 放开动画。
+  // 顺序很重要：必须在 syncNavActive()（pages.ts 的 boot）自动展开之前完成，
+  // 否则那一次展开会因为没量到高度而跳一下。
+  initNavSubHeights();
 
   // 父项按钮只开关自己的子菜单，不跳转；点击不冒泡到下面那圈链接监听。
   // 侧栏在 #swup 之外、切页时整块不重渲染，所以这里只绑一次就够。

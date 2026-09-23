@@ -11,11 +11,13 @@ import { Icon } from 'astro-icon/components';
 <AdminLayout title="管理分类">
   <div data-admin-page="categories" data-admin-title="管理分类">
     <div class="admin-card">
-      <h1 class="admin-page-title">管理分类</h1>
-      <p class="admin-page-desc">
-        分类由目录结构决定：src/content/posts/ 下每建一层目录就是一个分类，显示名与描述写在该目录的
-        index.json 里。
-      </p>
+      <div class="admin-card-inner">
+        <h1 class="admin-page-title">管理分类</h1>
+        <p class="admin-page-desc">
+          分类由目录结构决定：src/content/posts/ 下每建一层目录就是一个分类，显示名与描述写在该目录的
+          index.json 里。
+        </p>
+      </div>
     </div>
 
     <div class="admin-gate">
@@ -28,23 +30,25 @@ import { Icon } from 'astro-icon/components';
     </div>
 
     <div class="admin-card admin-needs-conn">
-      <h2 class="admin-card-title">
-        <Icon name="mdi:folder-outline" class="admin-card-title-icon" />
-        分类目录
-      </h2>
-      <div class="admin-toolbar">
-        <input
-          class="admin-input"
-          id="admin-cats-filter"
-          type="search"
-          placeholder="按路径筛选"
-          autocomplete="off"
-        />
-        <span class="admin-status" id="admin-cats-status">未连接</span>
+      <div class="admin-card-inner">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:folder-outline" class="admin-card-title-icon" />
+          分类目录
+        </h2>
+        <div class="admin-toolbar">
+          <input
+            class="admin-input"
+            id="admin-cats-filter"
+            type="search"
+            placeholder="按路径筛选"
+            autocomplete="off"
+          />
+          <span class="admin-status" id="admin-cats-status">未连接</span>
+        </div>
+        <ul class="admin-file-list" id="admin-cats-list">
+          <li class="admin-empty">连接后显示分类列表</li>
+        </ul>
       </div>
-      <ul class="admin-file-list" id="admin-cats-list">
-        <li class="admin-empty">连接后显示分类列表</li>
-      </ul>
     </div>
   </div>
 </AdminLayout>

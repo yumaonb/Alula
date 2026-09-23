@@ -8,8 +8,10 @@ import { Icon } from 'astro-icon/components';
 <AdminLayout title="文章管理">
   <div data-admin-page="posts" data-admin-title="文章管理">
     <div class="admin-card">
-      <h1 class="admin-page-title">文章管理</h1>
-      <p class="admin-page-desc">文件直接读自仓库的 src/content/posts/，目录结构就是分类。</p>
+      <div class="admin-card-inner">
+        <h1 class="admin-page-title">文章管理</h1>
+        <p class="admin-page-desc">文件直接读自仓库的 src/content/posts/，目录结构就是分类。</p>
+      </div>
     </div>
 
     <div class="admin-gate">
@@ -22,45 +24,49 @@ import { Icon } from 'astro-icon/components';
     </div>
 
     <div class="admin-card admin-needs-conn">
-      <h2 class="admin-card-title">
-        <Icon name="mdi:file-plus-outline" class="admin-card-title-icon" />
-        新建文章
-      </h2>
-      <div class="admin-toolbar">
-        <input
-          class="admin-input"
-          id="admin-new-path"
-          type="text"
-          placeholder="分类/文件名.md，例如 devnotes/notes/vite.md"
-          autocomplete="off"
-        />
-        <a class="admin-btn link-plain" id="admin-new-open" href="/admin/posts/edit/">
-          打开编辑
-        </a>
+      <div class="admin-card-inner">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:file-plus-outline" class="admin-card-title-icon" />
+          新建文章
+        </h2>
+        <div class="admin-toolbar">
+          <input
+            class="admin-input"
+            id="admin-new-path"
+            type="text"
+            placeholder="分类/文件名.md，例如 devnotes/notes/vite.md"
+            autocomplete="off"
+          />
+          <a class="admin-btn link-plain" id="admin-new-open" href="/admin/posts/edit/">
+            打开编辑
+          </a>
+        </div>
+        <p class="admin-status">路径不存在就是新建，保存后才会真正写进仓库。</p>
       </div>
-      <p class="admin-status">路径不存在就是新建，保存后才会真正写进仓库。</p>
     </div>
 
     <div class="admin-card admin-needs-conn">
-      <h2 class="admin-card-title">
-        <Icon name="mdi:file-document-edit-outline" class="admin-card-title-icon" />
-        全部文章
-      </h2>
-      <div class="admin-toolbar">
-        <input
-          class="admin-input"
-          id="admin-posts-filter"
-          type="search"
-          placeholder="按路径筛选"
-          autocomplete="off"
-        />
-        <span class="admin-status" id="admin-posts-status">
-          未连接
-        </span>
+      <div class="admin-card-inner">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:file-document-edit-outline" class="admin-card-title-icon" />
+          全部文章
+        </h2>
+        <div class="admin-toolbar">
+          <input
+            class="admin-input"
+            id="admin-posts-filter"
+            type="search"
+            placeholder="按路径筛选"
+            autocomplete="off"
+          />
+          <span class="admin-status" id="admin-posts-status">
+            未连接
+          </span>
+        </div>
+        <ul class="admin-file-list" id="admin-posts-list">
+          <li class="admin-empty">连接后显示文件列表</li>
+        </ul>
       </div>
-      <ul class="admin-file-list" id="admin-posts-list">
-        <li class="admin-empty">连接后显示文件列表</li>
-      </ul>
     </div>
   </div>
 </AdminLayout>
