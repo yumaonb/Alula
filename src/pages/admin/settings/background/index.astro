@@ -1,0 +1,99 @@
+---
+// index.astro — 网站设置 / 外观背景（对应 src/data/background.ts）
+// 用法：路由 /admin/settings/background/
+//
+// 注意：这份配置在构建的「配置阶段」就被 astro.config.mjs 读取，用来决定把哪个预设
+// 编进产物，所以改完必须重启 pnpm dev 才生效（pnpm build 每次是新进程，不受影响）。
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { Icon } from 'astro-icon/components';
+---
+
+<AdminLayout title="外观背景">
+  <div data-admin-page="settings-background" data-admin-title="外观背景">
+    <div class="admin-card">
+      <div class="admin-card-inner">
+        <h1 class="admin-page-title">外观背景</h1>
+        <p class="admin-page-desc">
+          对应 src/data/background.ts。改完要重启 pnpm dev 才生效——构建期就要知道选哪个预设。
+        </p>
+      </div>
+    </div>
+
+    <div class="admin-gate">
+      <Icon name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        展开右上角「连接」，填入仓库与访问令牌。
+      </p>
+    </div>
+
+    <div class="admin-card admin-needs-conn">
+      <div class="admin-card-inner">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:image-outline" class="admin-card-title-icon" />
+          背景来源
+        </h2>
+        <div class="admin-form-grid">
+          <label class="admin-field">
+            <span class="admin-field-label">类型</span>
+            <select class="admin-input" id="admin-bg-type">
+              <option value="css">CSS 绘制（assets/backgrounds/css/）</option>
+              <option value="image">图片（assets/backgrounds/images/）</option>
+            </select>
+          </label>
+          <label class="admin-field">
+            <span class="admin-field-label">文件名</span>
+            <input
+              class="admin-input"
+              id="admin-bg-path"
+              type="text"
+              placeholder="honeycomb.css"
+              autocomplete="off"
+            />
+          </label>
+        </div>
+        <p class="admin-hint">
+          只填文件名、不带目录，类型决定去哪个文件夹找；写错会在构建期直接报错而不是静默降级。
+        </p>
+      </div>
+    </div>
+
+    <div class="admin-card admin-needs-conn">
+      <div class="admin-card-inner">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:brightness-6" class="admin-card-title-icon" />
+          压暗强度
+        </h2>
+        <label class="admin-field">
+          <span class="admin-field-label">scrim（0 ~ 1）</span>
+          <input
+            class="admin-input"
+            id="admin-bg-scrim"
+            type="number"
+            min="0"
+            max="1"
+            step="0.05"
+            autocomplete="off"
+          />
+        </label>
+        <p class="admin-hint">
+          0 为不压暗。图片偏亮、玻璃卡片上的文字对比度不够时调大这个值。
+        </p>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-inner">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:information-outline" class="admin-card-title-icon" />
+          铺图规则
+        </h2>
+        <p class="admin-page-desc">
+          图片方案固定按「高度撑满、宽度取大者」铺图，铺法不接受配置；宽高比由 Background.astro
+          从图片自身读出交给 CSS，换图片不用改这里。
+        </p>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

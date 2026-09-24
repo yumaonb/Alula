@@ -5,7 +5,7 @@
 // 宽屏是常驻左侧栏；窄屏由 admin.css 变成从左侧滑出的 off-canvas 抽屉，
 // 开合由 layout 里的 #admin-drawer-toggle 控制（见 admin/shell.ts）。
 //
-// 只有「文章管理」这一项带子项，所以折叠逻辑不写死深度，只看 item.children 有没有内容。
+// 折叠逻辑不写死深度，只看 item.children 有没有内容。
 // 带子项的父项是按钮、点它只开合不跳转；图标只给第一级（父项与独立项），子项一律不带。
 import { Icon } from 'astro-icon/components';
 import { site } from '../../data/site';
@@ -33,6 +33,24 @@ const items: NavItem[] = [
       { href: '/admin/posts/edit/', label: '发布文章' },
       { href: '/admin/posts/', label: '管理文章' },
       { href: '/admin/categories/', label: '管理分类' },
+    ],
+  },
+  {
+    // 分类按「前端消费方」切，不按 src/data/ 的文件切：
+    // profile.ts 一份数据同时喂首页、关于、作者卡与转载组件，拆进两页会导致改昵称要跑两个地方。
+    // site.ts 与 github.ts 是全站级 / 后台自身配置，不跟随任何单个前端页面。
+    // friends / quotes / sponsor 各占一个站点页面且内容量都大，独立成项而不是塞进「页面」里。
+    label: '网站设置',
+    icon: 'mdi:cog-outline',
+    children: [
+      { href: '/admin/settings/site/', label: '站点信息' },
+      { href: '/admin/settings/profile/', label: '个人信息' },
+      { href: '/admin/settings/background/', label: '外观背景' },
+      { href: '/admin/settings/home/', label: '首页组件' },
+      { href: '/admin/settings/friends/', label: '友情链接' },
+      { href: '/admin/settings/quotes/', label: '随机一言' },
+      { href: '/admin/settings/sponsor/', label: '赞助页面' },
+      { href: '/admin/settings/integrations/', label: '技术与集成' },
     ],
   },
 ];

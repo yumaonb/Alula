@@ -1,0 +1,97 @@
+---
+// index.astro — 网站设置 / 技术与集成（对应 src/data/techstack.ts 与 src/data/github.ts）
+// 用法：路由 /admin/settings/integrations/
+//
+// techstack.ts 喂关于页的技术栈卡片；github.ts 是后台自身与评论区的接入参数，
+// 两者都不跟随任何单个站点页面，所以单独成页。
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { Icon } from 'astro-icon/components';
+---
+
+<AdminLayout title="技术与集成">
+  <div data-admin-page="settings-integrations" data-admin-title="技术与集成">
+    <div class="admin-card">
+      <div class="admin-card-inner">
+        <h1 class="admin-page-title">技术与集成</h1>
+        <p class="admin-page-desc">
+          对应 src/data/techstack.ts 与 src/data/github.ts。前者显示在关于页，后者是后台与评论区的接入参数。
+        </p>
+      </div>
+    </div>
+
+    <div class="admin-gate">
+      <Icon name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        展开右上角「连接」，填入仓库与访问令牌。
+      </p>
+    </div>
+
+    <div class="admin-card admin-needs-conn">
+      <div class="admin-card-inner">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:layers-outline" class="admin-card-title-icon" />
+          技术栈
+        </h2>
+        <p class="admin-page-desc">
+          每个分类一行，条目用逗号分隔。关于页按这里的顺序从上到下渲染。
+        </p>
+        <div class="admin-rows" id="admin-tech-rows">
+          <div class="admin-row">
+            <input class="admin-input" type="text" placeholder="分类，如 前端" />
+            <input class="admin-input" type="text" placeholder="条目，逗号分隔" />
+            <button class="admin-row-remove" type="button" aria-label="删除这条">
+              <Icon name="mdi:close" />
+            </button>
+          </div>
+        </div>
+        <div class="admin-toolbar">
+          <button class="admin-btn admin-btn--ghost" id="admin-tech-add" type="button">
+            <Icon name="mdi:plus" class="admin-btn-icon" />
+            添加一行
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-card admin-needs-conn">
+      <div class="admin-card-inner">
+        <h2 class="admin-card-title">
+          <Icon name="mdi:github" class="admin-card-title-icon" />
+          GitHub 集成
+        </h2>
+        <div class="admin-form-grid">
+          <label class="admin-field">
+            <span class="admin-field-label">用户名</span>
+            <input
+              class="admin-input"
+              id="admin-gh-username"
+              type="text"
+              autocomplete="off"
+            />
+          </label>
+          <label class="admin-field">
+            <span class="admin-field-label">giscus 仓库名</span>
+            <input class="admin-input" id="admin-gh-repo" type="text" autocomplete="off" />
+          </label>
+        </div>
+        <label class="admin-field">
+          <span class="admin-field-label">缓存时间（毫秒）</span>
+          <input
+            class="admin-input"
+            id="admin-gh-ttl"
+            type="number"
+            min="0"
+            step="1000"
+            autocomplete="off"
+          />
+        </label>
+        <p class="admin-hint">
+          仓库名必须与 Comments.astro 里的 giscus 配置一致，否则评论区会指向另一个仓库。
+          缓存时间默认为 3600000（1 小时）。
+        </p>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

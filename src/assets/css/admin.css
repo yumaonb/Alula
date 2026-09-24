@@ -307,6 +307,71 @@
   background: var(--hover-bg);
 }
 
+/* 多行输入（自我介绍、一言正文这类）：沿用 .admin-input 的观感，只放开高度与行距 */
+.admin-input--area {
+  min-height: 92px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* 字段两列排布：窄屏由下面的 media query 收回单列。
+ * 用 auto-fit 而不是固定列数，字段少时不会撑出空列。 */
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 14px;
+}
+
+/* 可增删的行列表（社交链接、友链、一言……）：每行是若干输入 + 一个删除按钮 */
+.admin-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--ring);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-row > .admin-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 行内删除按钮：不抢宽度也不抢视觉，hover 才转成危险色 */
+.admin-row-remove {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+}
+
+.admin-row-remove:hover {
+  color: #ff8f8f;
+  background: rgba(255, 90, 90, 0.12);
+}
+
+/* 配置卡里的补充说明：比 .admin-status 更轻，用于解释字段含义 */
+.admin-hint {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.38);
+}
+
 /* ---- 按钮 ---- */
 
 /* 弹窗按钮：走全站 .glass-btn 的观感（透明底 + 模糊 + 内描边 + 大圆角），

@@ -427,6 +427,56 @@ function syncNavActive(): void {
   }
 }
 
+// ---- 网站设置 ----
+
+/**
+ * 网站设置下的八页目前只有表单骨架，还没有读写逻辑：
+ * 它们要改的是 src/data/*.ts，而那是 TS 源码不是 JSON，写回去需要先把数据换成 JSON
+ * 再让 .ts 只做 import + 类型断言。在此之前故意不接 adminStore，避免改坏仓库里的源文件。
+ *
+ * 这里留一个共用的占位实现：只把计数类状态文案改成「待接入」，
+ * 不注册任何监听，返回空 cleanup 让 boot() 的契约保持一致。
+ */
+function initSettingsPlaceholder(cardIds: string[]): Cleanup {
+  for (const id of cardIds) {
+    const status = byId(id);
+    if (status) status.textContent = '待接入';
+  }
+  return () => {};
+}
+
+function initSettingsSite(): Cleanup {
+  return initSettingsPlaceholder([]);
+}
+
+function initSettingsProfile(): Cleanup {
+  return initSettingsPlaceholder([]);
+}
+
+function initSettingsBackground(): Cleanup {
+  return initSettingsPlaceholder([]);
+}
+
+function initSettingsHome(): Cleanup {
+  return initSettingsPlaceholder([]);
+}
+
+function initSettingsFriends(): Cleanup {
+  return initSettingsPlaceholder(['admin-friend-status']);
+}
+
+function initSettingsQuotes(): Cleanup {
+  return initSettingsPlaceholder(['admin-quotes-status']);
+}
+
+function initSettingsSponsor(): Cleanup {
+  return initSettingsPlaceholder(['admin-support-status']);
+}
+
+function initSettingsIntegrations(): Cleanup {
+  return initSettingsPlaceholder([]);
+}
+
 function boot(): void {
   activeCleanup?.();
   activeCleanup = null;
@@ -439,6 +489,14 @@ function boot(): void {
   else if (name === 'posts') activeCleanup = initPostsList();
   else if (name === 'categories') activeCleanup = initCategories();
   else if (name === 'editor') activeCleanup = initEditor();
+  else if (name === 'settings-site') activeCleanup = initSettingsSite();
+  else if (name === 'settings-profile') activeCleanup = initSettingsProfile();
+  else if (name === 'settings-background') activeCleanup = initSettingsBackground();
+  else if (name === 'settings-home') activeCleanup = initSettingsHome();
+  else if (name === 'settings-friends') activeCleanup = initSettingsFriends();
+  else if (name === 'settings-quotes') activeCleanup = initSettingsQuotes();
+  else if (name === 'settings-sponsor') activeCleanup = initSettingsSponsor();
+  else if (name === 'settings-integrations') activeCleanup = initSettingsIntegrations();
 }
 
 document.addEventListener('astro:after-swap', boot);
