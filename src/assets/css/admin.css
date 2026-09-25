@@ -247,13 +247,13 @@
   grid-column: 1 / -1;
 }
 
-/* 提交编号做成链接：等宽字体 + 下划线，看得出来能点 */
+/* 提交编号做成链接：等宽字体 + 下划线，看得出来能点；下划线与全站链接共用 --link-line */
 .admin-status-link {
   color: #fff;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   text-decoration: underline;
   text-underline-offset: 2px;
-  text-decoration-color: rgba(255, 255, 255, 0.35);
+  text-decoration-color: var(--link-line);
 }
 
 .admin-status-link:hover,

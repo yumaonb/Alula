@@ -50,30 +50,7 @@
 }
 
 /* ---- 链接 ----
- * 正文链接自成一档：下划线 + 变色，不吃 global.css 的全站光晕。
- * 这些 <a> 由 markdown 渲染，挂不上 .link-plain，所以就地抵消光晕的布局属性
- * （改了 global.css 那三条 a:not(.link-plain) 规则，这里要跟着一起看）。 */
-.markdown-body a {
-  display: inline;
-  padding: 0;
-  border-radius: 0;
-  overflow: visible;
-  position: static;
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: rgba(255, 255, 255, 0.3);
-  transition: color 0.2s;
-}
-
-.markdown-body a::before {
-  display: none;
-}
-
-.markdown-body a:hover {
-  color: var(--hover-ink);
-  text-decoration-color: var(--hover-line);
-}
+ * 正文链接直接沿用 global.css 的全站链接样式（下划线 + 悬停加深），这里不重复定义。 */
 
 /* ---- 粗体 & 斜体 ---- */
 .markdown-body strong {

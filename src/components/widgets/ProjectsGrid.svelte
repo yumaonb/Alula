@@ -228,7 +228,6 @@
     text-decoration: none;
     cursor: pointer;
     overflow: hidden;
-    transition: opacity 0.2s ease;
   }
 
     .card-header {

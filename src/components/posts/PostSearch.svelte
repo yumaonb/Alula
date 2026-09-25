@@ -341,7 +341,6 @@
     padding: 10px 12px;
     border-radius: 10px;
     text-decoration: none;
-    transition: background 0.15s ease;
   }
 
   :global(.psd-item--active) {

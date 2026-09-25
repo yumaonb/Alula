@@ -42,32 +42,25 @@ a {
   text-decoration: none;
 }
 
-/* 全站链接光晕：正文里那种「纯文字链接」的悬停效果（文字周围一圈柔和光晕）。
+/* 全站链接：正文里那种「纯文字链接」统一做成下划线——静止时文字与下划线各浅一档，
+ * 悬停/聚焦时文字加深、下划线跟着一起走，0.3s ease 过渡不直接跳变。
  * 按钮、卡片、导航项、标签这类自带样式的链接，在标记里挂 .link-plain 即可退出，
- * 不用再到这个选择器里追加 :not(.xxx)——加一个类，下面三条规则同时生效。
+ * 不用再到这个选择器里追加 :not(.xxx)——加一个类，下面两条规则同时生效。
  * .link-plain 只是个标记类，本身不产生样式。 */
 a:not(.link-plain) {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 6px;
-  padding: 1px 6px;
-  position: relative;
-  overflow: hidden;
+  color: var(--link-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--link-line);
+  transition:
+    color 0.3s ease,
+    text-decoration-color 0.3s ease;
 }
 
-a:not(.link-plain)::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--hover-bg);
-  box-shadow: 0 0 0 1px var(--hover-line);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: inherit;
-}
-
-a:not(.link-plain):hover::before {
-  opacity: 1;
+a:not(.link-plain):hover,
+a:not(.link-plain):focus-visible {
+  color: var(--hover-ink);
+  text-decoration-color: currentColor;
 }
 
 ul,

@@ -74,7 +74,12 @@
  *
  * 类名故意重复写两遍：Astro 把组件样式编译成 .xxx[data-astro-cid-yyy]，同样是
  * (0,2,0) 且排在全局样式之后，只写一次会被组件的静止态颜色盖掉（悬停看着像没反应）；
- * 重复一个类名提到 (0,3,0) 才能稳定压过组件样式。改这段前先读这条注释。 */
+ * 重复一个类名提到 (0,3,0) 才能稳定压过组件样式。改这段前先读这条注释。
+ *
+ * 挂 .hoverable 的元素同样不要自己写 `transition`：组件样式也是 (0,2,0) 且排在后面，
+ * 本地 transition 会悄悄盖掉上面那份全站悬停过渡，悬停时颜色/描边变成直接跳变。
+ * 确需过渡 transform 等额外属性，要么把共享的四个属性
+ * （background / box-shadow / border-color / color）一并写全，要么写到子元素上。 */
 .hoverable.hoverable {
   transition:
     background 0.25s ease,
