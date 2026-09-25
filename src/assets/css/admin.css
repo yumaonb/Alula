@@ -247,17 +247,22 @@
   grid-column: 1 / -1;
 }
 
-/* 提交编号做成链接：等宽字体 + 下划线，看得出来能点；下划线与全站链接共用 --link-line */
+/* 提交编号做成链接：等宽字体 + 常驻下划线，看得出来能点；悬停时下划线加粗一档 */
 .admin-status-link {
   color: #fff;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   text-decoration: underline;
+  text-decoration-thickness: 1px;
   text-underline-offset: 2px;
   text-decoration-color: var(--link-line);
+  transition:
+    text-decoration-color 0.3s ease,
+    text-decoration-thickness 0.3s ease;
 }
 
 .admin-status-link:hover,
 .admin-status-link:focus-visible {
+  text-decoration-thickness: 2px;
   text-decoration-color: currentColor;
 }
 

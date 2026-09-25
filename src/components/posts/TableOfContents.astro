@@ -48,7 +48,7 @@ if (hasH1 && hasH2) {
             class:list={['toc-item', { 'toc-sub': heading.depth > tocItems[0].depth }]}
             data-target={heading.slug}
           >
-            <a class="toc-link hoverable link-plain" data-target={heading.slug}>
+            <a class="toc-link link-plain" data-target={heading.slug}>
               {heading.text.replace(/\s*#$/, '')}
             </a>
           </li>
@@ -125,7 +125,6 @@ if (hasH1 && hasH2) {
 
   .toc-item {
     border-radius: 4px;
-    transition: background 0.15s;
   }
 
   .toc-link {
@@ -140,12 +139,26 @@ if (hasH1 && hasH2) {
     border-radius: 4px;
     cursor: pointer;
     white-space: nowrap;
+    transition: color 0.15s;
   }
 
     .toc-sub .toc-link {
     padding-left: 24px;
     font-size: 0.76rem;
     color: rgba(255, 255, 255, 0.45);
+  }
+
+  /* 悬停不走全站 .hoverable（那会加白底描边并提亮到纯白）：
+   * 只提亮文字、不要轮廓，亮度停在静止色与活动项（0.95）之间。
+   * 两条都排在 .active 规则之前，悬停在活动项上时仍保持 0.95。 */
+  .toc-link:hover,
+  .toc-link:focus-visible {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .toc-sub .toc-link:hover,
+  .toc-sub .toc-link:focus-visible {
+    color: rgba(255, 255, 255, 0.75);
   }
 
     .toc-item.active .toc-link {
