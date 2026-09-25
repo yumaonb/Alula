@@ -21,7 +21,7 @@ export function onEnterDesktop(fn) {
   };
 }
 
-// 暴露给 is:inline 脚本（如 TocModal）使用；它们无法走模块 import
+// 同时挂到 window：目录 / 筛选抽屉（布局层岛）从全局取共享监听器
 if (typeof window !== 'undefined') {
   window.__onEnterDesktop = onEnterDesktop;
 }

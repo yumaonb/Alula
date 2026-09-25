@@ -1,4 +1,5 @@
-<!-- Clock.svelte — 实时时钟（指针动画 + 时间/日期显示） -->
+<!-- Clock.svelte — 实时时钟（指针动画 + 时间/日期显示）
+     用法：<Clock client:load />（首页 / 关于页） -->
 <script>
   import { onMount, onDestroy } from 'svelte';
 

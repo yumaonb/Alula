@@ -1,4 +1,5 @@
-<!-- AdminChanges.svelte — 待提交改动面板（后台布局常驻岛，swup 切页不消失） -->
+<!-- AdminChanges.svelte — 待提交改动面板（后台布局常驻岛，swup 切页不消失）
+     用法：<AdminChanges client:idle />（AdminLayout 中，#swup 之外，只水合一次） -->
 <script>
   import { onMount } from 'svelte';
 

@@ -11,7 +11,7 @@ declare module 'virtual:background' {
 }
 
 interface Window {
-  /** breakpoint.js 提供的共享断点监听器（供 is:inline 脚本使用） */
+  /** breakpoint.js 提供的共享断点监听器（供目录 / 筛选抽屉使用） */
   __onEnterDesktop?: (fn: () => void) => () => void;
   /** toc.js 的幂等守卫 */
   __tocInit?: boolean;

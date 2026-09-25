@@ -93,9 +93,7 @@ const { title = '后台' } = Astro.props;
     <div class="admin-toast" id="admin-toast" role="status" aria-live="polite"></div>
 
     <script>
-      // shell-guard.js：跨外壳（站点页 ↔ 后台页）时强制整页加载，避免 swup 换错内容
       import '../assets/js/shell-guard.js';
-      // shell.ts：连接表单与外壳状态；pages.ts：按 data-admin-page 绑定当前页面
       import '../assets/js/admin/shell';
       import '../assets/js/admin/pages';
     </script>

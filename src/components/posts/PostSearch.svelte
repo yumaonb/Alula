@@ -1,4 +1,5 @@
-<!-- PostSearch.svelte — 文章全文搜索（基于 Pagefind） -->
+<!-- PostSearch.svelte — 文章全文搜索（基于 Pagefind）
+     用法：<PostSearch client:load />（文章列表页 / 标签页） -->
 <script>
   import { onMount, onDestroy } from 'svelte';
 

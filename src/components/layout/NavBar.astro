@@ -113,9 +113,9 @@ import { site } from '../../data/site';
 <div class="mobile-overlay" aria-hidden="true"></div>
 
 <script>
-  // 断点监听器全局只创建一份 matchMedia；供汉堡菜单与目录抽屉共享
-  import { onEnterDesktop } from '../../assets/js/breakpoint.js';
-  window.__onEnterDesktop = onEnterDesktop;
+  // 每页加载断点模块，保证 window.__onEnterDesktop 存在：
+  // 汉堡菜单脚本只在移动端加载，目录 / 筛选抽屉从全局取共享的断点监听器
+  import '../../assets/js/breakpoint.js';
 
   const mq = window.matchMedia('(max-width: 768px)');
   let loaded = false;
@@ -251,7 +251,7 @@ import { site } from '../../data/site';
     border-top-color: rgba(255, 255, 255, 0.12);
   }
 
-  /* 切页收起：与 page-exit 同速（0.2s），丝滑且不与页面动画打架 */
+  /* 切页收起：用 0.2s 快于常规 0.4s 的收起，内容替换后菜单不残留 */
   .mobile-dropdown.is-closing-nav {
     transition:
       max-height 0.2s ease,

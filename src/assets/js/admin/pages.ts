@@ -1,5 +1,5 @@
 // pages.ts — 后台页面控制器（仪表盘 / 文章列表 / 文章编辑）
-// 用法：由 AdminLayout 引入：import "../../assets/js/admin/pages"
+// 用法：由 AdminLayout 引入：import "../assets/js/admin/pages"
 // 模块只在首次加载求值一次；swup 换掉 #swup 里的内容后由 boot() 重新绑定当前页面。
 
 import {

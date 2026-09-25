@@ -1,6 +1,5 @@
 // lightbox-core.js — 正文图片 / 详情页封面 灯箱实现（基于 photoswipe）
-// 用法：import { openLightbox } from "../../assets/js/lightbox-core.js"
-//       由 lightbox.js 在首次点击时动态 import，连同样式一起懒加载
+// 用法：由 lightbox.js 在首次点击时动态 import('./lightbox-core.js')，连同样式一起懒加载
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import PhotoSwipe from 'photoswipe';
 import 'photoswipe/style.css';

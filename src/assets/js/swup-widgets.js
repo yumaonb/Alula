@@ -26,7 +26,7 @@ function initSideWidgets(container) {
 
   let busy = false; // swup 切页挂起：切页开始 → 页面回到顶部/滚动结束 期间为 true
   let scrolling = false; // swup 平滑滚动（scroll plugin）进行中
-  let settleTimer = 0; // 兜底定时器（见职责划分③）
+  let settleTimer = 0; // 兜底定时器：新内容就绪后平滑滚动若迟迟不开始，按当前位置放行
   let rafId = 0;
 
   function markUnavailable(key, flag) {
@@ -154,7 +154,7 @@ function initSideWidgets(container) {
     available.forEach((btn) => btn.classList.remove('visible'));
   });
 
-  // scroll plugin 的平滑滚动开始/结束（scrl）。以 scroll:end 为"落定"信号：
+  // swup 内置 scroll 插件的平滑滚动开始/结束。以 scroll:end 为"落定"信号：
   // 平滑回顶可能耗时数秒，只有它真正结束（或滚动事件到顶）才放行按钮。
   document.addEventListener('swup:scroll:start', () => {
     if (!busy) return;

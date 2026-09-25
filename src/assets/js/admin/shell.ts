@@ -1,5 +1,5 @@
 // shell.ts — 后台外壳运行时（连接弹窗 / 仓库状态 / 顶部提示）
-// 用法：由 AdminLayout 引入：import "../../assets/js/admin/shell"
+// 用法：由 AdminLayout 引入：import "../assets/js/admin/shell"
 //
 // 外壳在 #swup 容器之外，swup 切页不会碰它，所以连接状态与表单里填到一半的密钥
 // 都不会因为切页丢失。密钥只写进内存，不落任何浏览器存储。

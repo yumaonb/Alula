@@ -1,4 +1,5 @@
-<!-- ProjectsGrid.svelte — 项目展示卡片网格（GitHub 仓库） -->
+<!-- ProjectsGrid.svelte — 项目展示卡片网格（GitHub 仓库）
+     用法：<ProjectsGrid client:load />（项目页） -->
 <script>
   import { onMount } from 'svelte';
   import { fetchRepos } from '../../assets/js/github';

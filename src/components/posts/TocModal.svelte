@@ -1,4 +1,5 @@
 <!-- TocModal.svelte — 文章目录抽屉
+     用法：<TocModal client:idle />（BaseLayout 中，#swup 之外，只水合一次）
      入口：#toc-fab 按钮点击打开；打开时把 .toc-nav 从文章侧栏移入抽屉展示 -->
 <script>
   import { onMount } from 'svelte';

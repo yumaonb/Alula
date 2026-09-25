@@ -1,6 +1,6 @@
 // posts-data.ts — 文章数据统一入口（各页面 / 侧栏共用，仅服务端）
 // 用法：import { loadBlogData, renderPost, postBreadcrumbs } from "../../lib/posts-data"
-// 数据结构：{ meta, posts, entries, categoryTree, tags }，见 BlogData；模块级缓存。
+// 数据结构：{ meta, posts, allPosts, entries, categoryTree, tags }，见 BlogData；模块级缓存。
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import {
   buildCategoryTrail,

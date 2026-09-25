@@ -1,4 +1,4 @@
-/* aurora.css — 背景方案：分层极光渐变（2025 版背景，保留备用）
+/* aurora.css — 背景方案：分层极光渐变（保留备用）
  * 用法：src/data/background.ts 的 path 填 "aurora.css"
  *
  * 5 团低饱和深色斑 + 两层微冷光 + 四角压暗。色斑各通道不高于 0x6a，
@@ -7,7 +7,7 @@
  * 因此滚动与 swup 切页都不会产生背景重绘，毛玻璃采样到的始终是稳定像素。
  *
  * 注意：本方案是低频渐变，没有高频细节可被 backdrop-filter 抹掉，
- * 所以毛玻璃的模糊感不如 grid.css 明显——这也是它被换下的原因。
+ * 所以毛玻璃的模糊感不如 blueprint.css 这类带高频细节的预设明显。
  *
  * 底色在下面声明成 --bg-base，global.css 的 html 读它（根元素画布色），
  * 换预设只改 src/data/background.ts，不用再同步 global.css。

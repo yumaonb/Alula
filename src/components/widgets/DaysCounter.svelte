@@ -1,4 +1,5 @@
-<!-- DaysCounter.svelte — 数据统计卡片（入站天数 / 经验积累 / 项目数量） -->
+<!-- DaysCounter.svelte — 数据统计卡片（入站天数 / 经验积累 / 项目数量）
+     用法：<DaysCounter client:load />（首页 / 关于页） -->
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { fetchRepoCount } from '../../assets/js/github';

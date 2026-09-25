@@ -77,19 +77,15 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
     <PostsFilterModal client:idle />
     <CustomScrollbar />
     <script>
-      // swup-widgets.js：侧边按钮运行时控制器（模块脚本只执行一次，无需 is:inline）
       import '../assets/js/swup-widgets.js';
     </script>
     <script>
-      // image-fallback.js：封面图加载失败时隐藏破损图片、露出占位背景
       import '../assets/js/image-fallback.js';
     </script>
     <script>
-      // lightbox.js：正文图片灯箱触发器（灯箱本体懒加载，首次点击才加载）
       import '../assets/js/lightbox.js';
     </script>
     <script>
-      // shell-guard.js：跨外壳（站点页 ↔ 后台页）时强制整页加载，避免 swup 换错内容
       import '../assets/js/shell-guard.js';
     </script>
   </body>
