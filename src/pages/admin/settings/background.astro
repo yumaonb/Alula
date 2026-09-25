@@ -1,10 +1,10 @@
 ---
-// index.astro — 网站设置 / 外观背景（对应 src/data/background.ts）
+// background.astro — 网站设置 / 外观背景（对应 src/data/background.ts）
 // 用法：路由 /admin/settings/background/
 //
 // 注意：这份配置在构建的「配置阶段」就被 astro.config.mjs 读取，用来决定把哪个预设
 // 编进产物，所以改完必须重启 pnpm dev 才生效（pnpm build 每次是新进程，不受影响）。
-import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { Icon } from 'astro-icon/components';
 ---
 

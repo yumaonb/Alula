@@ -1,10 +1,10 @@
 ---
-// index.astro — 网站设置 / 个人信息（对应 src/data/profile.ts）
+// profile.astro — 网站设置 / 个人信息（对应 src/data/profile.ts）
 // 用法：路由 /admin/settings/profile/
 //
 // 这份数据同时喂首页（昵称/签名/自我介绍/社交图标）、关于页（昵称/签名）、
 // 作者卡与转载组件，所以合成一页而不是拆进「首页」「关于」两个前端页面里。
-import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { Icon } from 'astro-icon/components';
 ---
 

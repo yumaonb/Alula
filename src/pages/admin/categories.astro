@@ -1,10 +1,10 @@
 ---
-// index.astro — 后台分类管理（列出仓库里的分类目录与 index.json）
+// categories.astro — 后台分类管理（列出仓库里的分类目录与 index.json）
 // 用法：路由 /admin/categories/
 //
 // 分类只由目录结构决定（见 .dsh/rules/50-content.md），所以这一页读的是
 // src/content/posts/ 下的目录与它们各自的 index.json，而不是任何配置。
-import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { Icon } from 'astro-icon/components';
 ---
 
