@@ -398,7 +398,7 @@ function syncNavActive(): void {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
 
   // 取「匹配得最长」的那一项：/admin/posts/edit 既落了 /admin 的前缀、
-  // 也落了 /admin/posts 的前缀，只按「能匹配就点亮」会让两项一起亮。
+  // 又精确匹配自己那一项，只按「能匹配就点亮」会让两项一起亮。
   // 分区首页（/admin）例外：它是所有后台页的前缀，只按完全相等算，否则每页都亮。
   // 这条判断与 AdminNav.astro 里的 isActive 是同一套，改一处要同步另一处。
   let best: HTMLAnchorElement | null = null;

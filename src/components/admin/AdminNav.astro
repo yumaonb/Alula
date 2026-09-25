@@ -31,7 +31,7 @@ const items: NavItem[] = [
     icon: 'mdi:file-document-edit-outline',
     children: [
       { href: '/admin/posts/edit/', label: '发布文章' },
-      { href: '/admin/posts/', label: '管理文章' },
+      { href: '/admin/posts/list/', label: '管理文章' },
       { href: '/admin/categories/', label: '管理分类' },
     ],
   },
@@ -59,8 +59,8 @@ const current = Astro.url.pathname.replace(/\/+$/, '') || '/admin';
 
 /**
  * 只让「匹配得最长」的那一项亮，避免一个地址点亮一串。
- * /admin/posts/edit 既是 /admin 的子路径、也是 /admin/posts 的子路径，
- * 单纯按前缀判断会让三项一起亮；取最长就只留 /admin/posts/edit。
+ * /admin/posts/edit 是 /admin 的子路径、又精确匹配自己那一项，
+ * 单纯按前缀判断会让两项一起亮；取最长就只留 /admin/posts/edit。
  * 分区首页（/admin）额外要求完全相等——它是所有后台页的共同前缀。
  */
 const allHrefs = items.flatMap((item) =>
