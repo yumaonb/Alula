@@ -162,16 +162,24 @@ export default defineConfig({
         awaitAssets: true,
       },
       theme: false,
-      // native: false —— 关掉浏览器原生 View Transition，用 swup 自己的 CSS 动画。
+      // animationClass: false —— 关掉 swup 的「动画等待」：不找 [class*="transition-"] 元素，
+      // 新页面一到就替换内容。若保留默认选择器又不留 transition- 类，
+      // 每次切页都会打一条 "No elements found matching animationSelector" 警告。
+      animationClass: false,
+      // progress: true —— 官方 @swup/progress-plugin（@swup/astro 自带）：
+      // 页面顶部一条细进度条，切页快于 300ms 不出现，加载期间逐渐填充，
+      // 新页面渲染完（page:view）后走到 100% 并淡出。
+      // 默认是 3px 黑条，高度与颜色在 global.css 里覆盖。
+      progress: true,
+      // native: false —— 关掉浏览器原生 View Transition。
       //
       // 原因（已在 swup 产物里核对）：native 为 true 时 swup 会执行
       //   this.options.native = this.options.native && !!document.startViewTransition
       // 并用 document.startViewTransition() 把整次 renderPage 包起来。原生 VT 会把
-      // 整页快照挂到覆盖整个视口的 ::view-transition 顶层，动画期间（进场 0.35s）
+      // 整页快照挂到覆盖整个视口的 ::view-transition 顶层，动画期间
       // 指针事件全落在快照上、到不了真实 DOM——后台侧栏在 #swup 之外、视觉上根本没动，
       // 却同样点不动，必须等动画播完或点第二次，这就是「切页时侧栏点不了」的根因。
-      // 关掉后走 global.css 里已有的 .transition-main + html.is-animating 那套淡入淡出，
-      // 观感一致，且不再吞掉点击。
+      // 关掉后内容直接替换（animationClass: false），不再吞掉点击。
       native: false,
     }),
     // HTML 深度压缩（含内联 CSS/JS）；removeComments 保持 false 以保护 Svelte 水合锚点

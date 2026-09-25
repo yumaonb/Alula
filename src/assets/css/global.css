@@ -1,4 +1,4 @@
-/* global.css — 全局样式（基础重置 / 布局 / 悬浮按钮 / swup 过渡） */
+/* global.css — 全局样式（基础重置 / 布局 / 悬浮按钮 / swup 进度条） */
 @import './variables.css';
 @import './utilities.css';
 
@@ -236,20 +236,16 @@ ol {
   }
 }
 
-/* ---- Swup 页面切换：离场 / 进场都作用在真实 DOM 上 ---- */
-
-/* 离场：旧页原位渐隐；:not(.is-rendering) 确保只在新内容替换前生效 */
-html.is-animating:not(.is-rendering) .transition-main {
-  animation: page-exit 0.2s ease both;
-}
-
-/* 进场：新内容原位渐显。
- * 以前这条是写在 ::view-transition-new(root) 上的，靠浏览器原生 View Transition；
- * 但原生 VT 会用整页快照盖住视口、动画期间吞掉所有点击（后台侧栏因此点不动），
- * 所以 astro.config.mjs 关掉了 native，改用下面这条对真实 DOM 的动画。
- * is-rendering 由 swup 在新内容替换完成、开始播进场动画时加在 <html> 上。 */
-html.is-rendering .transition-main {
-  animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+/* ---- Swup 切页进度条 ----
+ * 元素由 @swup/progress-plugin 动态插进 body 顶部（astro.config.mjs 的 progress: true 启用），
+ * 没有静态标记。切页快于 300ms（缓存页）不出现；加载期间进度条逐渐增长，
+ * 新内容替换完（page:view）后走到 100% 再淡出。
+ * 内容本身直接替换、不做渐隐渐显，旧内容在加载期间也不需要先隐藏。
+ * 插件会在 head 开头注入一份默认样式（3px 黑条），这里裸类名与它同权重、
+ * 生效与否取决于源码顺序，用 body 提一档权重稳定压过。 */
+body .swup-progress-bar {
+  height: 2px;
+  background-color: #fff;
 }
 
 /* 根元素画布色，这行不能删：过度滚动回弹、背景未渲染时露出的底就是它。
@@ -257,30 +253,4 @@ html.is-rendering .transition-main {
  * 图片方案不打包任何 CSS 预设，没人声明它，就用浏览器默认白底，不做额外处理。 */
 html {
   background-color: var(--bg-base, #fff);
-}
-
-@keyframes page-exit {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes page-enter {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* 用户偏好减少动态效果时：全部跳过，新页面就绪后直接切换 */
-@media (prefers-reduced-motion: reduce) {
-  html.is-animating:not(.is-rendering) .transition-main,
-  html.is-rendering .transition-main {
-    animation: none;
-  }
 }
