@@ -9,51 +9,42 @@ import { Icon } from 'astro-icon/components';
 ---
 
 <AdminLayout title="首页组件">
-  <div data-admin-page="settings-home" data-admin-title="首页组件">
-    <div class="admin-card">
-      <div class="admin-card-inner">
-        <h1 class="admin-page-title">首页组件</h1>
-        <p class="admin-page-desc">
-          对应 src/data/dayscounter.ts。首页右栏的时钟不需要配置，随机一言挪到了「随机一言」页。
-        </p>
-      </div>
-    </div>
-
+  <div class="admin-page" data-admin-page="settings-home" data-admin-title="首页组件">
     <div class="admin-gate">
       <Icon name="mdi:lock-outline" class="admin-gate-icon" />
       <p>
         还没有连接 GitHub。
         <br />
-        展开右上角「连接」，填入仓库与访问令牌。
+        填好仓库与访问令牌后即可修改配置。
       </p>
+      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+        去连接
+      </button>
     </div>
 
-    <div class="admin-card admin-needs-conn">
-      <div class="admin-card-inner">
-        <h2 class="admin-card-title">
-          <Icon name="mdi:calendar-clock" class="admin-card-title-icon" />
-          统计卡片
-        </h2>
-        <div class="admin-form-grid">
-          <label class="admin-field">
-            <span class="admin-field-label">标签</span>
-            <input
-              class="admin-input"
-              id="admin-days-label"
-              type="text"
-              placeholder="入坑全栈"
-              autocomplete="off"
-            />
-          </label>
-          <label class="admin-field">
-            <span class="admin-field-label">起始日期</span>
-            <input class="admin-input" id="admin-days-start" type="date" autocomplete="off" />
-          </label>
-        </div>
-        <p class="admin-hint">
-          页面会按起始日期实时算出已过去的天数，不需要手动维护数字。这张卡片首页与关于页都会渲染。
-        </p>
+    <section class="admin-card admin-needs-conn">
+      <div class="admin-card-head">
+        <h2 class="admin-card-title">统计卡片</h2>
       </div>
-    </div>
+      <div class="admin-form-grid">
+        <label class="admin-field">
+          <span class="admin-field-label">标签</span>
+          <input
+            class="admin-input"
+            id="admin-days-label"
+            type="text"
+            placeholder="入坑全栈"
+            autocomplete="off"
+          />
+        </label>
+        <label class="admin-field">
+          <span class="admin-field-label">起始日期</span>
+          <input class="admin-input" id="admin-days-start" type="date" autocomplete="off" />
+        </label>
+      </div>
+      <p class="admin-hint">
+        页面会按起始日期实时算出已过去的天数，不需要手动维护数字。这张卡片首页与关于页都会渲染。
+      </p>
+    </section>
   </div>
 </AdminLayout>

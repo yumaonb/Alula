@@ -74,9 +74,17 @@ function setText(id: string, value: string): void {
 
 // ---- 仪表盘 ----
 
-/** 仪表盘只剩静态说明与入口，没有需要绑定的状态 */
+/** 首页「仓库状态」卡从 adminStore 取数；未连接 / 已连接的显隐由外壳的 .is-connected 类负责，这里只填值 */
 function initDashboard(): Cleanup {
-  return () => {};
+  function render(): void {
+    const { connected, config, head, changes } = adminStore.state;
+    if (!connected) return;
+    setText('admin-dash-repo', `${config.owner}/${config.repo}`);
+    setText('admin-dash-branch', config.branch);
+    setText('admin-dash-head', head ? head.slice(0, 7) : '—');
+    setText('admin-dash-staged', String(changes.length));
+  }
+  return adminStore.subscribe(render);
 }
 
 // ---- 文章列表 ----
@@ -107,8 +115,9 @@ function initPostsList(): Cleanup {
       const li = document.createElement('li');
       li.className = 'admin-file-row';
 
+      // link-plain 退出全站文字链接样式：这一行是整行悬停（底色 + 提亮），不画下划线
       const link = document.createElement('a');
-      link.className = 'admin-file-link';
+      link.className = 'admin-file-link link-plain';
       link.href = `/admin/posts/edit/?path=${encodeURIComponent(file.path)}`;
       link.textContent = file.path.slice(POSTS_PREFIX.length);
       li.appendChild(link);
@@ -188,7 +197,7 @@ function initCategories(): Cleanup {
 
       // 分类没有独立页面可编辑，点进编辑器看它的 index.json（不存在就是新建）
       const link = document.createElement('a');
-      link.className = 'admin-file-link';
+      link.className = 'admin-file-link link-plain';
       link.href = `/admin/posts/edit/?path=${encodeURIComponent(`${POSTS_PREFIX}${dir}/index.json`)}`;
       link.textContent = dir;
       li.appendChild(link);
@@ -483,6 +492,14 @@ function boot(): void {
 
   syncNavActive();
   syncPageTitle();
+
+  // 页面里的 data-conn-open 按钮（未连接遮罩与首页引导）：把点击转给顶栏的连接开关，
+  // 弹窗逻辑全在 shell.ts，这里只做转发。swup 换页后旧节点被丢弃，监听随之失效。
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-conn-open]')) {
+    btn.addEventListener('click', () => {
+      document.getElementById('admin-conn-toggle')?.click();
+    });
+  }
 
   const name = pageName();
   if (name === 'dashboard') activeCleanup = initDashboard();

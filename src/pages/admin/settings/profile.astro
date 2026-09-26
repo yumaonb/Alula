@@ -9,86 +9,71 @@ import { Icon } from 'astro-icon/components';
 ---
 
 <AdminLayout title="个人信息">
-  <div data-admin-page="settings-profile" data-admin-title="个人信息">
-    <div class="admin-card">
-      <div class="admin-card-inner">
-        <h1 class="admin-page-title">个人信息</h1>
-        <p class="admin-page-desc">
-          对应 src/data/profile.ts。昵称与签名同时出现在首页、关于页、作者卡与转载声明里，一处修改全站生效。
-        </p>
-      </div>
-    </div>
-
+  <div class="admin-page" data-admin-page="settings-profile" data-admin-title="个人信息">
     <div class="admin-gate">
       <Icon name="mdi:lock-outline" class="admin-gate-icon" />
       <p>
         还没有连接 GitHub。
         <br />
-        展开右上角「连接」，填入仓库与访问令牌。
+        填好仓库与访问令牌后即可修改配置。
       </p>
+      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+        去连接
+      </button>
     </div>
 
-    <div class="admin-card admin-needs-conn">
-      <div class="admin-card-inner">
-        <h2 class="admin-card-title">
-          <Icon name="mdi:account-outline" class="admin-card-title-icon" />
-          昵称与签名
-        </h2>
-        <div class="admin-form-grid">
-          <label class="admin-field">
-            <span class="admin-field-label">昵称</span>
-            <input class="admin-input" id="admin-profile-nickname" type="text" autocomplete="off" />
-          </label>
-          <label class="admin-field">
-            <span class="admin-field-label">签名 / 座右铭</span>
-            <input class="admin-input" id="admin-profile-motto" type="text" autocomplete="off" />
-          </label>
-        </div>
+    <section class="admin-card admin-needs-conn">
+      <div class="admin-card-head">
+        <h2 class="admin-card-title">昵称与签名</h2>
       </div>
-    </div>
-
-    <div class="admin-card admin-needs-conn">
-      <div class="admin-card-inner">
-        <h2 class="admin-card-title">
-          <Icon name="mdi:home-outline" class="admin-card-title-icon" />
-          首页自我介绍
-        </h2>
+      <div class="admin-form-grid">
         <label class="admin-field">
-          <span class="admin-field-label">正文</span>
-          <textarea class="admin-input admin-input--area" id="admin-profile-intro"></textarea>
+          <span class="admin-field-label">昵称</span>
+          <input class="admin-input" id="admin-profile-nickname" type="text" autocomplete="off" />
         </label>
-        <p class="admin-hint">
-          支持 HTML，换行要写成 &lt;br&gt;，链接直接写 &lt;a href="..."&gt;文字&lt;/a&gt;。
-        </p>
+        <label class="admin-field">
+          <span class="admin-field-label">签名 / 座右铭</span>
+          <input class="admin-input" id="admin-profile-motto" type="text" autocomplete="off" />
+        </label>
       </div>
-    </div>
+    </section>
 
-    <div class="admin-card admin-needs-conn">
-      <div class="admin-card-inner">
-        <h2 class="admin-card-title">
-          <Icon name="mdi:link-variant" class="admin-card-title-icon" />
-          社交链接
-        </h2>
-        <p class="admin-page-desc">
-          图标用 Iconify 名称（如 la:github / simple-icons:bilibili），一行一条，顺序就是首页的显示顺序。
-        </p>
-        <div class="admin-rows" id="admin-profile-social-rows">
-          <div class="admin-row">
-            <input class="admin-input" type="text" placeholder="图标，如 la:github" />
-            <input class="admin-input" type="text" placeholder="名称" />
-            <input class="admin-input" type="text" placeholder="链接" />
-            <button class="admin-row-remove" type="button" aria-label="删除这条">
-              <Icon name="mdi:close" />
-            </button>
-          </div>
-        </div>
-        <div class="admin-toolbar">
-          <button class="admin-btn admin-btn--ghost" id="admin-profile-social-add" type="button">
-            <Icon name="mdi:plus" class="admin-btn-icon" />
-            添加一条
+    <section class="admin-card admin-needs-conn">
+      <div class="admin-card-head">
+        <h2 class="admin-card-title">首页自我介绍</h2>
+      </div>
+      <label class="admin-field">
+        <span class="admin-field-label">正文</span>
+        <textarea class="admin-input admin-input--area" id="admin-profile-intro"></textarea>
+      </label>
+      <p class="admin-hint">
+        支持 HTML，换行要写成 &lt;br&gt;，链接直接写 &lt;a href="..."&gt;文字&lt;/a&gt;。
+      </p>
+    </section>
+
+    <section class="admin-card admin-needs-conn">
+      <div class="admin-card-head">
+        <h2 class="admin-card-title">社交链接</h2>
+      </div>
+      <p class="admin-card-desc">
+        图标用 Iconify 名称（如 la:github / simple-icons:bilibili），一行一条，顺序就是首页的显示顺序。
+      </p>
+      <div class="admin-rows" id="admin-profile-social-rows">
+        <div class="admin-row">
+          <input class="admin-input" type="text" placeholder="图标，如 la:github" />
+          <input class="admin-input" type="text" placeholder="名称" />
+          <input class="admin-input" type="text" placeholder="链接" />
+          <button class="admin-row-remove" type="button" aria-label="删除这条">
+            <Icon name="mdi:close" />
           </button>
         </div>
       </div>
-    </div>
+      <div class="admin-toolbar">
+        <button class="admin-btn admin-btn--dashed" id="admin-profile-social-add" type="button">
+          <Icon name="mdi:plus" class="admin-btn-icon" />
+          添加一条
+        </button>
+      </div>
+    </section>
   </div>
 </AdminLayout>

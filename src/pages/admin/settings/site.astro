@@ -9,89 +9,77 @@ import { Icon } from 'astro-icon/components';
 ---
 
 <AdminLayout title="站点信息">
-  <div data-admin-page="settings-site" data-admin-title="站点信息">
-    <div class="admin-card">
-      <div class="admin-card-inner">
-        <h1 class="admin-page-title">站点信息</h1>
-        <p class="admin-page-desc">
-          对应 src/data/site.ts。站名与描述出现在浏览器标题与 SEO 元信息里，改完需要重新构建才会生效。
-        </p>
-      </div>
-    </div>
-
+  <div class="admin-page" data-admin-page="settings-site" data-admin-title="站点信息">
     <div class="admin-gate">
       <Icon name="mdi:lock-outline" class="admin-gate-icon" />
       <p>
         还没有连接 GitHub。
         <br />
-        展开右上角「连接」，填入仓库与访问令牌。
+        填好仓库与访问令牌后即可修改配置。
       </p>
+      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+        去连接
+      </button>
     </div>
 
-    <div class="admin-card admin-needs-conn">
-      <div class="admin-card-inner">
-        <h2 class="admin-card-title">
-          <Icon name="mdi:web" class="admin-card-title-icon" />
-          基本信息
-        </h2>
-        <div class="admin-form-grid">
-          <label class="admin-field">
-            <span class="admin-field-label">站点名称</span>
-            <input class="admin-input" id="admin-site-name" type="text" autocomplete="off" />
-          </label>
-          <label class="admin-field">
-            <span class="admin-field-label">站点域名</span>
-            <input
-              class="admin-input"
-              id="admin-site-domain"
-              type="text"
-              placeholder="example.com"
-              autocomplete="off"
-            />
-          </label>
-          <label class="admin-field">
-            <span class="admin-field-label">语言</span>
-            <input
-              class="admin-input"
-              id="admin-site-lang"
-              type="text"
-              placeholder="zh-CN"
-              autocomplete="off"
-            />
-          </label>
-          <label class="admin-field">
-            <span class="admin-field-label">主题色</span>
-            <select class="admin-input" id="admin-site-scheme">
-              <option value="dark">深色 (dark)</option>
-              <option value="light">浅色 (light)</option>
-            </select>
-          </label>
-        </div>
+    <section class="admin-card admin-needs-conn">
+      <div class="admin-card-head">
+        <h2 class="admin-card-title">基本信息</h2>
+      </div>
+      <div class="admin-form-grid">
         <label class="admin-field">
-          <span class="admin-field-label">站点描述（SEO）</span>
-          <input class="admin-input" id="admin-site-desc" type="text" autocomplete="off" />
+          <span class="admin-field-label">站点名称</span>
+          <input class="admin-input" id="admin-site-name" type="text" autocomplete="off" />
+        </label>
+        <label class="admin-field">
+          <span class="admin-field-label">站点域名</span>
+          <input
+            class="admin-input"
+            id="admin-site-domain"
+            type="text"
+            placeholder="example.com"
+            autocomplete="off"
+          />
+        </label>
+        <label class="admin-field">
+          <span class="admin-field-label">语言</span>
+          <input
+            class="admin-input"
+            id="admin-site-lang"
+            type="text"
+            placeholder="zh-CN"
+            autocomplete="off"
+          />
+        </label>
+        <label class="admin-field">
+          <span class="admin-field-label">主题色</span>
+          <select class="admin-input" id="admin-site-scheme">
+            <option value="dark">深色 (dark)</option>
+            <option value="light">浅色 (light)</option>
+          </select>
         </label>
       </div>
-    </div>
+      <label class="admin-field">
+        <span class="admin-field-label">站点描述（SEO）</span>
+        <input class="admin-input" id="admin-site-desc" type="text" autocomplete="off" />
+      </label>
+    </section>
 
-    <div class="admin-card admin-needs-conn">
-      <div class="admin-card-inner">
-        <h2 class="admin-card-title">
-          <Icon name="mdi:page-layout-footer" class="admin-card-title-icon" />
-          页脚
-        </h2>
-        <label class="admin-field">
-          <span class="admin-field-label">版权文字</span>
-          <input class="admin-input" id="admin-site-copyright" type="text" autocomplete="off" />
-        </label>
-        <label class="admin-field">
-          <span class="admin-field-label">页脚备注</span>
-          <textarea class="admin-input admin-input--area" id="admin-site-footnote"></textarea>
-        </label>
-        <p class="admin-hint">
-          页脚备注支持 HTML，例如指向 Astro / Svelte 的链接就是靠 &lt;a&gt; 标签渲染的。
-        </p>
+    <section class="admin-card admin-needs-conn">
+      <div class="admin-card-head">
+        <h2 class="admin-card-title">页脚</h2>
       </div>
-    </div>
+      <label class="admin-field">
+        <span class="admin-field-label">版权文字</span>
+        <input class="admin-input" id="admin-site-copyright" type="text" autocomplete="off" />
+      </label>
+      <label class="admin-field">
+        <span class="admin-field-label">页脚备注</span>
+        <textarea class="admin-input admin-input--area" id="admin-site-footnote"></textarea>
+      </label>
+      <p class="admin-hint">
+        页脚备注支持 HTML，例如指向 Astro / Svelte 的链接就是靠 &lt;a&gt; 标签渲染的。
+      </p>
+    </section>
   </div>
 </AdminLayout>

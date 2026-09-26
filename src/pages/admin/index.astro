@@ -1,67 +1,114 @@
 ---
-// index.astro — 后台首页
+// index.astro — 后台首页（连接引导 + 仓库状态 + 快捷入口）
 // 用法：路由 /admin/
 //
-// 这一页只是个演示性质的落地页：真正的连接状态在右上角的弹窗里、
-// 待提交在右下角的队列面板里，所以这里不放「未连接」提示，也不放统计。
+// 「未连接 / 已连接」两套内容靠外壳的 .is-connected 类互斥（见 admin.css）：
+// 未连接给三步连接引导，已连接给仓库状态格。状态文字由 admin/pages.ts 的
+// initDashboard 从 adminStore 取数渲染。
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { Icon } from 'astro-icon/components';
-import { site } from '../../data/site';
 
-const cards = [
+const quickLinks = [
   {
-    icon: 'mdi:file-document-edit-outline',
-    title: '文章管理',
-    desc: '读仓库里的 src/content/posts/，目录结构就是分类。',
-    href: '/admin/posts/list/',
-    action: '去管理文章',
+    icon: 'mdi:file-edit-outline',
+    name: '发布文章',
+    desc: '左侧选文件，右侧改内容，Ctrl/Cmd + S 暂存',
+    href: '/admin/posts/edit/',
   },
   {
-    icon: 'mdi:source-branch',
-    title: '一次性提交',
-    desc: '改动先进右下角的队列，攒够一批再合成一次提交推上去。',
-    href: '/admin/posts/edit/',
-    action: '去编辑',
+    icon: 'mdi:file-document-outline',
+    name: '管理文章',
+    desc: '浏览与筛选仓库里的全部 Markdown 文件',
+    href: '/admin/posts/list/',
+  },
+  {
+    icon: 'mdi:folder-multiple-outline',
+    name: '管理分类',
+    desc: '目录结构即分类，编辑各目录的 index.json',
+    href: '/admin/categories/',
   },
   {
     icon: 'mdi:cog-outline',
-    title: '网站设置',
-    desc: '站点信息、个人信息、外观背景、首页组件、友情链接、随机一言、赞助页面、技术与集成。',
+    name: '网站设置',
+    desc: '站点信息、个人信息、外观背景等八组配置',
     href: '/admin/settings/site/',
-    action: '去设置',
   },
 ];
 ---
 
 <AdminLayout title="首页">
-  <div data-admin-page="dashboard" data-admin-title="首页">
-    <div class="admin-card">
-      <div class="admin-card-inner">
-        <h1 class="admin-page-title">{site.name}后台</h1>
-        <p class="admin-page-desc">
-          右上角连仓库，右下角看攒下的改动。点右上角的按钮填仓库地址与访问令牌即可开始。
-        </p>
+  <div class="admin-page" data-admin-page="dashboard" data-admin-title="首页">
+    <section class="admin-card">
+      <div class="admin-card-head">
+        <h2 class="admin-card-title">仓库状态</h2>
+        <span class="admin-card-extra">
+          <span class="admin-dash-off">未连接</span>
+          <span class="admin-dash-on">已连接</span>
+        </span>
       </div>
-    </div>
 
-    <div class="admin-stats">
-      {cards.map((card) => (
-        <div class="admin-card admin-demo-card">
-          <div class="admin-card-inner">
-            <h2 class="admin-card-title">
-              <Icon name={card.icon} class="admin-card-title-icon" />
-              {card.title}
-            </h2>
-            <p class="admin-page-desc">{card.desc}</p>
-            <div class="admin-toolbar">
-              <a class="admin-btn link-plain" href={card.href}>
-                <Icon name="mdi:arrow-right" class="admin-btn-icon" />
-                {card.action}
-              </a>
-            </div>
-          </div>
+      <div class="admin-dash-off">
+        <ol class="admin-steps">
+          <li class="admin-step">
+            <span class="admin-step-num">1</span>
+            <span>打开右上角「连接」，填入仓库地址（owner/repo，或直接粘仓库链接）</span>
+          </li>
+          <li class="admin-step">
+            <span class="admin-step-num">2</span>
+            <span>粘贴细粒度访问令牌（需 Contents 读写权限），令牌只留在当前页面内存里</span>
+          </li>
+          <li class="admin-step">
+            <span class="admin-step-num">3</span>
+            <span>连上后改动先进右下角队列，攒够一批再一次性提交</span>
+          </li>
+        </ol>
+        <div class="admin-card-actions">
+          <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+            打开连接面板
+          </button>
         </div>
-      ))}
-    </div>
+      </div>
+
+      <dl class="admin-stats admin-dash-on">
+        <div class="admin-stat">
+          <dt class="admin-stat-label">仓库</dt>
+          <dd class="admin-stat-value" id="admin-dash-repo">—</dd>
+        </div>
+        <div class="admin-stat">
+          <dt class="admin-stat-label">分支</dt>
+          <dd class="admin-stat-value" id="admin-dash-branch">—</dd>
+        </div>
+        <div class="admin-stat">
+          <dt class="admin-stat-label">最新提交</dt>
+          <dd class="admin-stat-value" id="admin-dash-head">—</dd>
+        </div>
+        <div class="admin-stat">
+          <dt class="admin-stat-label">待提交</dt>
+          <dd class="admin-stat-value" id="admin-dash-staged">0</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="admin-card">
+      <div class="admin-card-head">
+        <h2 class="admin-card-title">快捷入口</h2>
+      </div>
+      <ul class="admin-quick">
+        {
+          quickLinks.map((link) => (
+            <li>
+              <a class="admin-quick-item link-plain" href={link.href}>
+                <Icon name={link.icon} class="admin-quick-icon" />
+                <span class="admin-quick-text">
+                  <span class="admin-quick-name">{link.name}</span>
+                  <span class="admin-quick-desc">{link.desc}</span>
+                </span>
+                <Icon name="mdi:chevron-right" class="admin-quick-arrow" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
   </div>
 </AdminLayout>

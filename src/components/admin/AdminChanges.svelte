@@ -88,11 +88,8 @@
             bind:value={message}></textarea>
 
           <div class="admin-dock-actions">
-            <button
-              class="admin-btn admin-btn--ghost hoverable"
-              onclick={() => adminStore.discardAll()}>丢弃全部</button
-            >
-            <button class="admin-btn admin-btn--primary hoverable" disabled={busy} onclick={submit}>
+            <button class="admin-btn" onclick={() => adminStore.discardAll()}>丢弃全部</button>
+            <button class="admin-btn admin-btn--primary" disabled={busy} onclick={submit}>
               {busy ? '提交中…' : `一次提交 ${changes.length} 个文件`}
             </button>
           </div>
@@ -102,9 +99,7 @@
           <p class="admin-dock-result" class:is-error={!result.ok}>
             {#if result.ok}
               已提交 {result.count} 个文件 ·
-              <a class="link-plain" href={result.url} target="_blank" rel="noopener noreferrer"
-                >查看提交</a
-              >
+              <a href={result.url} target="_blank" rel="noopener noreferrer">查看提交</a>
             {:else}
               {result.text}
             {/if}
@@ -165,6 +160,7 @@
     color: #fff;
   }
 
+  /* 数量圆点：深底 + 白描边 + 白字，黑白灰里靠对比度而不是颜色提示 */
   .admin-dock-count {
     position: absolute;
     top: -2px;
@@ -173,10 +169,11 @@
     height: 18px;
     padding: 0 4px;
     border-radius: 9px;
-    background: #4c8dff;
+    background: rgba(18, 20, 26, 0.9);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
     color: #fff;
     font-size: 0.7rem;
-    line-height: 18px;
+    line-height: 16px;
     text-align: center;
   }
 
@@ -200,7 +197,11 @@
   }
 
   .admin-dock-num {
-    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.72rem;
+    font-weight: 600;
     color: #fff;
   }
 
@@ -230,6 +231,8 @@
     white-space: nowrap;
     direction: rtl; /* 路径太长时优先保留文件名 */
     text-align: left;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.74rem;
     color: rgba(255, 255, 255, 0.6);
   }
 
@@ -246,6 +249,7 @@
     line-height: 1;
   }
 
+  /* 与后台输入框同一套白色玻璃底 */
   .admin-dock-message {
     width: 100%;
     padding: 8px 10px;
@@ -256,6 +260,15 @@
     font: inherit;
     font-size: 0.82rem;
     resize: vertical;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  .admin-dock-message:focus-visible {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
   }
 
   .admin-dock-actions {
@@ -264,16 +277,18 @@
     justify-content: flex-end;
   }
 
+  .admin-dock-actions .admin-btn--primary {
+    flex: 1;
+  }
+
   .admin-dock-result {
     font-size: 0.78rem;
     color: rgba(255, 255, 255, 0.6);
   }
 
+  /* 失败结果不靠红字，用加粗白字提亮一档 */
   .admin-dock-result.is-error {
-    color: #ff9a9a;
-  }
-
-  .admin-dock-result a {
-    color: #8ab4ff;
+    color: #fff;
+    font-weight: 600;
   }
 </style>
