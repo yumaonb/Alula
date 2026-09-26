@@ -43,8 +43,7 @@ a {
 }
 
 /* 全站链接：正文里那种「纯文字链接」——静止时不画下划线（颜色透明），文字取 #fff
- * 比正文（0.88 白）亮一档作区分；悬停/聚焦时下划线 0.3s ease 淡入，不直接跳变；
- * 已访问过的链接整体淡一档，和未访问的区分开。
+ * 比正文（0.88 白）亮一档作区分；悬停/聚焦时下划线 0.3s ease 淡入，不直接跳变。
  * 按钮、卡片、导航项、标签这类自带样式的链接，在标记里挂 .link-plain 即可退出，
  * 不用再到这个选择器里追加 :not(.xxx)——加一个类，下面三条规则同时生效。
  * .link-plain 只是个标记类，本身不产生样式。 */
@@ -57,10 +56,6 @@ a:not(.link-plain) {
   transition:
     color 0.3s ease,
     text-decoration-color 0.3s ease;
-}
-
-a:not(.link-plain):visited {
-  color: var(--link-ink-visited);
 }
 
 a:not(.link-plain):hover,
