@@ -17,27 +17,27 @@ import { Icon } from 'astro-icon/components';
         <br />
         填好仓库与访问令牌后即可修改配置。
       </p>
-      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+      <button class="btn btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">背景来源</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">背景来源</h2>
       </div>
-      <div class="admin-form-grid">
-        <label class="admin-field">
-          <span class="admin-field-label">类型</span>
-          <select class="admin-input" id="admin-bg-type">
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">类型</span>
+          <select class="input" id="admin-bg-type">
             <option value="css">CSS 绘制（assets/backgrounds/css/）</option>
             <option value="image">图片（assets/backgrounds/images/）</option>
           </select>
         </label>
-        <label class="admin-field">
-          <span class="admin-field-label">文件名</span>
+        <label class="field">
+          <span class="field-label">文件名</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-bg-path"
             type="text"
             placeholder="honeycomb.css"
@@ -45,19 +45,19 @@ import { Icon } from 'astro-icon/components';
           />
         </label>
       </div>
-      <p class="admin-hint">
+      <p class="hint">
         只填文件名、不带目录，类型决定去哪个文件夹找；写错会在构建期直接报错而不是静默降级。
       </p>
     </section>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">压暗强度</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">压暗强度</h2>
       </div>
-      <label class="admin-field">
-        <span class="admin-field-label">scrim（0 ~ 1）</span>
+      <label class="field">
+        <span class="field-label">scrim（0 ~ 1）</span>
         <input
-          class="admin-input"
+          class="input"
           id="admin-bg-scrim"
           type="number"
           min="0"
@@ -66,14 +66,14 @@ import { Icon } from 'astro-icon/components';
           autocomplete="off"
         />
       </label>
-      <p class="admin-hint">0 为不压暗。图片偏亮、玻璃卡片上的文字对比度不够时调大这个值。</p>
+      <p class="hint">0 为不压暗。图片偏亮、玻璃卡片上的文字对比度不够时调大这个值。</p>
     </section>
 
-    <section class="admin-card">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">铺图规则</h2>
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">铺图规则</h2>
       </div>
-      <p class="admin-card-desc">
+      <p class="card-desc">
         图片方案固定按「高度撑满、宽度取大者」铺图，铺法不接受配置；宽高比由 Background.astro
         从图片自身读出交给 CSS，换图片不用改这里。
       </p>

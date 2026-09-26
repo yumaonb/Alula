@@ -17,67 +17,67 @@ import { Icon } from 'astro-icon/components';
         <br />
         填好仓库与访问令牌后即可修改配置。
       </p>
-      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+      <button class="btn btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">基本信息</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">基本信息</h2>
       </div>
-      <div class="admin-form-grid">
-        <label class="admin-field">
-          <span class="admin-field-label">站点名称</span>
-          <input class="admin-input" id="admin-site-name" type="text" autocomplete="off" />
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">站点名称</span>
+          <input class="input" id="admin-site-name" type="text" autocomplete="off" />
         </label>
-        <label class="admin-field">
-          <span class="admin-field-label">站点域名</span>
+        <label class="field">
+          <span class="field-label">站点域名</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-site-domain"
             type="text"
             placeholder="example.com"
             autocomplete="off"
           />
         </label>
-        <label class="admin-field">
-          <span class="admin-field-label">语言</span>
+        <label class="field">
+          <span class="field-label">语言</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-site-lang"
             type="text"
             placeholder="zh-CN"
             autocomplete="off"
           />
         </label>
-        <label class="admin-field">
-          <span class="admin-field-label">主题色</span>
-          <select class="admin-input" id="admin-site-scheme">
+        <label class="field">
+          <span class="field-label">主题色</span>
+          <select class="input" id="admin-site-scheme">
             <option value="dark">深色 (dark)</option>
             <option value="light">浅色 (light)</option>
           </select>
         </label>
       </div>
-      <label class="admin-field">
-        <span class="admin-field-label">站点描述（SEO）</span>
-        <input class="admin-input" id="admin-site-desc" type="text" autocomplete="off" />
+      <label class="field">
+        <span class="field-label">站点描述（SEO）</span>
+        <input class="input" id="admin-site-desc" type="text" autocomplete="off" />
       </label>
     </section>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">页脚</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">页脚</h2>
       </div>
-      <label class="admin-field">
-        <span class="admin-field-label">版权文字</span>
-        <input class="admin-input" id="admin-site-copyright" type="text" autocomplete="off" />
+      <label class="field">
+        <span class="field-label">版权文字</span>
+        <input class="input" id="admin-site-copyright" type="text" autocomplete="off" />
       </label>
-      <label class="admin-field">
-        <span class="admin-field-label">页脚备注</span>
-        <textarea class="admin-input admin-input--area" id="admin-site-footnote"></textarea>
+      <label class="field">
+        <span class="field-label">页脚备注</span>
+        <textarea class="input input--area" id="admin-site-footnote"></textarea>
       </label>
-      <p class="admin-hint">
+      <p class="hint">
         页脚备注支持 HTML，例如指向 Astro / Svelte 的链接就是靠 &lt;a&gt; 标签渲染的。
       </p>
     </section>

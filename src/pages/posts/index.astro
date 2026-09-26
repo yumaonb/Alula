@@ -1,4 +1,4 @@
-﻿---
+---
 // index.astro — 文章列表首页
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import GlobalSidebar from '../../components/posts/GlobalSidebar.astro';
@@ -13,7 +13,7 @@ const data = await loadBlogData();
 <BaseLayout title="文章列表">
   <div class="posts-page page-container">
     <div class="posts-header">
-      <h1 class="posts-title section-title">
+      <h1 class="posts-title">
         文章列表<span class="title-count-sep"> — </span>
         <span class="posts-count">共 {data.posts.length} 篇文章</span>
       </h1>

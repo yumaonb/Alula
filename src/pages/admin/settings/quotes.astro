@@ -17,48 +17,48 @@ import { Icon } from 'astro-icon/components';
         <br />
         填好仓库与访问令牌后即可修改配置。
       </p>
-      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+      <button class="btn btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">批量编辑</h2>
-        <span class="admin-card-extra" id="admin-quotes-status">共 0 条</span>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">批量编辑</h2>
+        <span class="card-extra" id="admin-quotes-status">共 0 条</span>
       </div>
-      <label class="admin-field">
-        <span class="admin-field-label">每行一条：正文 | 出处 | 作者</span>
+      <label class="field">
+        <span class="field-label">每行一条：正文 | 出处 | 作者</span>
         <textarea
-          class="admin-input admin-input--area"
+          class="input input--area"
           id="admin-quotes-bulk"
           rows="14"
           placeholder="人生若只如初见，何事秋风悲画扇。 | 木兰花·拟古决绝词柬友 | 纳兰性德"
         ></textarea>
       </label>
-      <p class="admin-hint">
+      <p class="hint">
         出处与作者可以省略（只写正文，或「正文 | 出处」）。竖线是分隔符，正文里不要出现竖线。
       </p>
     </section>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">逐条查看</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">逐条查看</h2>
       </div>
-      <p class="admin-card-desc">数据量大时逐条校验用，编辑仍以上面的文本域为准。每行一条，出处与作者可留空。</p>
-      <div class="admin-rows" id="admin-quote-rows">
-        <div class="admin-row">
-          <input class="admin-input" type="text" placeholder="正文" />
-          <input class="admin-input" type="text" placeholder="出处（可空）" />
-          <input class="admin-input" type="text" placeholder="作者（可空）" />
-          <button class="admin-row-remove" type="button" aria-label="删除这条">
+      <p class="card-desc">数据量大时逐条校验用，编辑仍以上面的文本域为准。每行一条，出处与作者可留空。</p>
+      <div class="rows" id="admin-quote-rows">
+        <div class="row">
+          <input class="input" type="text" placeholder="正文" />
+          <input class="input" type="text" placeholder="出处（可空）" />
+          <input class="input" type="text" placeholder="作者（可空）" />
+          <button class="row-remove" type="button" aria-label="删除这条">
             <Icon name="mdi:close" />
           </button>
         </div>
       </div>
-      <div class="admin-toolbar">
-        <button class="admin-btn admin-btn--dashed" id="admin-quote-add" type="button">
-          <Icon name="mdi:plus" class="admin-btn-icon" />
+      <div class="toolbar">
+        <button class="btn btn--dashed" id="admin-quote-add" type="button">
+          <Icon name="mdi:plus" class="btn-icon" />
           添加一条
         </button>
       </div>

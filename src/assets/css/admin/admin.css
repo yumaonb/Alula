@@ -1,6 +1,32 @@
-/* admin.css — 后台专属样式（顶栏 / 侧栏 / 卡片 / 表单 / 文件列表 / 编辑器）
- * 只由 src/layouts/AdminLayout.astro 引入，不进站点其他页面。
- * 令牌与工具类（--radius / --blur / .glass / .hoverable）来自 global.css。 */
+/* admin/admin.css — 后台专属布局（外壳 / 顶栏 / 侧栏 / 弹窗 / 编辑器）
+ * 整个 admin/ 目录只由 src/layouts/AdminLayout.astro 引入，不进站点其他页面；
+ * 不想要后台时把 admin/ 目录连同 AdminLayout / admin 路由与组件一起删掉即可，
+ * 前台不依赖这里任何东西。
+ * 元件样式（.card / .btn / .input / 文件列表 / 徽标）在同目录的 elements.css。 */
+
+/* ---- 后台专属令牌 ----
+ * 全站通用令牌在 variables.css；下面这些只服务后台侧栏与提交编号链接，
+ * 所以跟着后台走，不进全站文件。 */
+:root {
+  --link-line: rgba(255, 255, 255, 0.35); /* 「最新提交编号」的常驻下划线 */
+
+  /* ---- 后台侧栏 ----
+   * 导航不给每一项铺底：底色只在悬停时出现一档，用来指示「鼠标在这」；
+   * 「我在哪」交给左侧那条竖线（--nav-mark）去说。
+   * 两者分工明确，就不会出现「框和白条同时表达同一件事」的重复感。
+   * 这些值只服务后台（站点侧栏另有一套），所以不并进全站令牌。 */
+  --nav-bg-hover: rgba(255, 255, 255, 0.055); /* 悬停时的一档白 */
+  --nav-ink: rgba(255, 255, 255, 0.7); /* 一级项静止文字 */
+  --nav-ink-strong: rgba(255, 255, 255, 0.95); /* 悬停 / 展开 / 当前 */
+  --nav-ink-muted: rgba(255, 255, 255, 0.55); /* 二级项静止文字 */
+  --nav-mark: #fff; /* 当前项的左侧竖线 */
+
+  /* 导航行的水平档位：未选中停在 --nav-pad，选中换成 --nav-indent。
+   * 竖线贴在左内沿（left:0）、3px 宽，所以选中只需要让开一点点就有「避开」的观感；
+   * 差 6px 足够，再多整行会明显右跳一下。 */
+  --nav-pad: 22px;
+  --nav-indent: 28px;
+}
 
 .admin-body {
   min-height: 100vh;
@@ -78,8 +104,8 @@
   position: relative;
 }
 
-/* 连接按钮：顶栏里唯一的按钮，尺寸与观感由下方「按钮」区的
- * .admin-btn.admin-conn-toggle 锁定，这里不再单独定义。 */
+/* 连接按钮：顶栏里唯一的按钮，尺寸与观感由下方「顶栏连接按钮的尺寸锁定」
+ * 的 .btn.admin-conn-toggle 锁定，这里不再单独定义。 */
 
 .admin-conn-icon {
   width: 15px;
@@ -203,7 +229,7 @@
 }
 
 /* 按钮横着撑满，弹窗里两个状态都只有一颗按钮，铺满更整齐 */
-.admin-conn-actions .admin-btn {
+.admin-conn-actions .btn {
   flex: 1;
   justify-content: center;
 }
@@ -274,256 +300,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- 表单 ----
- * 输入框与站点侧一致走白色玻璃底（浅白半透明，不是黑凹槽）；
- * 聚焦时白描边提亮 + 外圈白色光晕，全后台唯一的「当前在这里」信号。 */
+/* ---- 顶栏连接按钮的尺寸锁定 ----
+ * 按钮本体是公共元件 .btn（见同目录 elements.css）。顶栏已定稿，这里用复合选择器
+ * 把顶栏那枚连接按钮的尺寸锁定在原有观感，不受 .btn 的紧凑尺寸影响。 */
 
-.admin-field {
-  display: block;
-  margin-top: 12px;
-}
-
-.admin-field-label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 0.76rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.admin-input {
-  width: 100%;
-  padding: 6px 10px;
-  border: 1px solid var(--ring);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  color: #fff;
-  font: inherit;
-  font-size: 0.8rem;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
-}
-
-.admin-input::placeholder {
-  color: rgba(255, 255, 255, 0.28);
-}
-
-.admin-input:focus-visible {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
-}
-
-/* 下拉框：去掉系统箭头换成统一的白描边箭头，深色底下的原生箭头太脏 */
-select.admin-input {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 30px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px;
-}
-
-select.admin-input option {
-  background: #17191f;
-  color: #fff;
-}
-
-/* 多行输入（自我介绍、一言正文这类）：沿用 .admin-input 的观感，只放开高度与行距 */
-.admin-input--area {
-  min-height: 88px;
-  line-height: 1.65;
-  resize: vertical;
-}
-
-/* 字段两列排布：窄屏由下面的 media query 收回单列。行距交给 grid gap */
-.admin-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 16px;
-}
-
-.admin-form-grid .admin-field {
-  margin-top: 0;
-}
-
-/* 可增删的行列表（社交链接、友链、一言……）：
- * 每行是一个「托盘」——外框圈住一排无边框输入，整行随 focus-within 提亮描边，
- * 单个输入聚焦时自己画圈。 */
-.admin-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.admin-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--ring);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  transition: border-color 0.15s ease;
-}
-
-.admin-row:focus-within {
-  border-color: rgba(255, 255, 255, 0.22);
-}
-
-.admin-row > .admin-input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  padding: 6px 8px;
-}
-
-.admin-row > .admin-input:focus-visible {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.07);
-}
-
-/* 行内删除按钮：不抢宽度也不抢视觉，hover 铺一档白底 */
-.admin-row-remove {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  color: rgba(255, 255, 255, 0.35);
-  cursor: pointer;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-
-.admin-row-remove svg {
-  width: 15px;
-  height: 15px;
-}
-
-.admin-row-remove:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-/* 配置卡里的补充说明：比 .admin-status 更轻，用于解释字段含义 */
-.admin-hint {
-  margin-top: 10px;
-  font-size: 0.74rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.38);
-}
-
-/* ---- 按钮 ----
- * 与前台 .glass-btn 同一套语言：透明底 + 模糊 + 内描边，中间不填色。
- * 主按钮不做色块，只把描边提亮一档、悬停时铺一档白底——
- * 黑白灰里靠「描边浓淡」分主次。 */
-.admin-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border: none;
-  border-radius: 7px;
-  background: transparent;
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.37),
-    inset 0 0 0 1px var(--ring);
-  color: #fff;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
-  line-height: 1.4;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    box-shadow 0.2s ease,
-    background 0.2s ease;
-}
-
-.admin-btn:hover:not(:disabled),
-.admin-btn:focus-visible {
-  background: var(--hover-bg);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.37),
-    inset 0 0 0 1px var(--hover-line);
-}
-
-.admin-btn:active:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.admin-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* 主按钮（暂存改动 / 一次提交）：描边比常亮一档，悬停白底再铺厚一点 */
-.admin-btn--primary {
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.37),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-}
-
-.admin-btn--primary:hover:not(:disabled),
-.admin-btn--primary:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.37),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.8);
-}
-
-/* 次要按钮（断开）：默认描边即可，保留类名与主按钮对仗 */
-.admin-btn--ghost {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-/* 虚线按钮：行列表的「添加一条」入口 */
-.admin-btn--dashed {
-  box-shadow: none;
-  border: 1px dashed rgba(255, 255, 255, 0.22);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.admin-btn--dashed:hover:not(:disabled),
-.admin-btn--dashed:focus-visible {
-  border-color: rgba(255, 255, 255, 0.45);
-  color: #fff;
-}
-
-.admin-btn--sm {
-  padding: 4px 10px;
-  font-size: 0.76rem;
-}
-
-.admin-btn--block {
-  width: 100%;
-}
-
-.admin-btn-icon {
-  width: 14px;
-  height: 14px;
-  opacity: 0.85;
-}
-
-/* 顶栏里的连接按钮保持它原有的玻璃观感：复合选择器抬权重，
- * 不受上面 .admin-btn 的紧凑尺寸影响（顶栏已定稿，这里只锁定现状） */
-.admin-btn.admin-conn-toggle {
+.btn.admin-conn-toggle {
   padding: 8px 16px;
   border-radius: var(--radius);
   color: #fff;
@@ -532,12 +313,20 @@ select.admin-input option {
     inset 0 0 0 1px var(--ring);
 }
 
-.admin-btn.admin-conn-toggle:hover:not(:disabled),
-.admin-btn.admin-conn-toggle:focus-visible {
+.btn.admin-conn-toggle:hover:not(:disabled),
+.btn.admin-conn-toggle:focus-visible {
   background: var(--hover-bg);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.37),
     inset 0 0 0 1px var(--hover-line);
+}
+
+/* 后台按钮的图标尺寸：跟着 .btn 的紧凑字号走。前台圆形按钮 .glass-btn 的
+ * 图标是 22px（在 index.astro 页面样式里，带 .glass-btn 作用域），两边互不干扰。 */
+.btn .btn-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.85;
 }
 
 /* ---- 工作区 ---- */
@@ -878,55 +667,8 @@ select.admin-input option {
   min-width: 0;
 }
 
-/* ---- 卡片 ----
- * 卡片只留 1px 描边，不加外投影：暗色底上那圈黑影会糊成一团，反而显脏。
- * 卡片与卡片之间的间距由 .admin-page 的 gap 承担，卡片自身不带 margin。 */
-
-.admin-card {
-  padding: 18px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  box-shadow: inset 0 0 0 1px var(--ring);
-}
-
-/* 卡头：标题在左，计数 / 状态在右——后台模板的通用卡头排法 */
-.admin-card-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 16px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.admin-card-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* 卡头里的补充说明：紧跟标题下方一行，不再单独占段落 */
-.admin-card-desc {
-  margin-top: 3px;
-  font-size: 0.76rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.admin-card-extra {
-  font-size: 0.74rem;
-  color: rgba(255, 255, 255, 0.45);
-  font-variant-numeric: tabular-nums;
-}
-
-.admin-card-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 14px;
-}
+/* 卡片与卡头是公共元件 .card / .card-head（见同目录 elements.css），
+ * 卡与卡之间的间距由 .admin-page 的 gap 承担。 */
 
 /* ---- 统计格 ----
  * 格子底色比卡片高（浅）一档，做出「垫一层白面板」的效果：卡里摆数据时先垫一层白底。 */
@@ -1094,7 +836,7 @@ select.admin-input option {
   line-height: 1.8;
 }
 
-.admin-gate .admin-btn {
+.admin-gate .btn {
   margin-top: 12px;
 }
 
@@ -1107,117 +849,7 @@ select.admin-input option {
   display: none;
 }
 
-/* ---- 文件列表 ---- */
-
-.admin-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.admin-toolbar .admin-input {
-  width: auto;
-  flex: 1;
-  min-width: 160px;
-}
-
-/* 工具条 / 输入框后面紧跟列表时用相邻选择器留距，自身都不带下边距 */
-.admin-toolbar + .admin-file-list,
-.admin-input + .admin-file-list,
-.admin-rows + .admin-toolbar {
-  margin-top: 10px;
-}
-
-.admin-status {
-  font-size: 0.74rem;
-  color: rgba(255, 255, 255, 0.45);
-  font-variant-numeric: tabular-nums;
-}
-
-.admin-file-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: 60vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  /* 悬停底向外扩一点，让可点区域比文字宽 */
-  margin: 0 -6px;
-  padding: 0 6px;
-}
-
-.admin-file-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* 路径用等宽字体：同一列的路径按字符对齐，长度一目了然 */
-.admin-file-link {
-  flex: 1;
-  min-width: 0;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.62);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.76rem;
-  text-align: left;
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease;
-}
-
-.admin-file-row:hover .admin-file-link {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
-.admin-file-row.is-active .admin-file-link {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-}
-
-/* 状态徽标：胶囊形，黑白灰里靠「填底浓淡 + 删除线」分状态 */
-.admin-chip {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.admin-chip.is-staged {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.admin-chip.is-dirty {
-  color: rgba(255, 255, 255, 0.85);
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--hover-line);
-}
-
-.admin-chip.is-delete {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.2);
-  text-decoration: line-through;
-}
-
-.admin-empty {
-  padding: 20px 10px;
-  text-align: center;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
-}
+/* 文件列表 / 工具条 / 徽标是公共元件（.file-list / .toolbar / .badge 等，见 elements.css） */
 
 /* ---- 编辑器 ---- */
 
@@ -1235,13 +867,13 @@ select.admin-input option {
 }
 
 /* 左栏卡片撑满整列，文件列表跟着右侧编辑器一起长高 */
-.admin-editor-files .admin-card {
+.admin-editor-files .card {
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
-.admin-editor-files .admin-file-list {
+.admin-editor-files .file-list {
   flex: 1;
   min-height: 120px;
   max-height: none;
@@ -1253,7 +885,7 @@ select.admin-input option {
   min-width: 0;
 }
 
-.admin-editor-main > .admin-card {
+.admin-editor-main > .card {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1483,31 +1115,12 @@ select.admin-input option {
     width: 100%;
   }
 
-  .admin-file-list {
+  /* 列表元件在后台窄屏收紧高度（元件自身的移动端规则见同目录 elements.css） */
+  .file-list {
     max-height: 240px;
   }
 
   .admin-page {
     gap: 12px;
-  }
-
-  .admin-card {
-    padding: 16px;
-  }
-
-  .admin-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-row {
-    flex-wrap: wrap;
-  }
-
-  .admin-row > .admin-input {
-    flex: 1 1 calc(50% - 4px);
-  }
-
-  .admin-row > .admin-row-remove {
-    margin-left: auto;
   }
 }

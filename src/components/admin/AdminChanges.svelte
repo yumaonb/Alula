@@ -67,7 +67,7 @@
           <ul class="admin-dock-list">
             {#each changes as change (change.path)}
               <li class="admin-dock-item">
-                <span class="admin-chip" class:is-delete={change.content === null}>
+                <span class="badge" class:is-delete={change.content === null}>
                   {statusOf(change)}
                 </span>
                 <span class="admin-dock-path" title={change.path}>{change.path}</span>
@@ -88,8 +88,8 @@
             bind:value={message}></textarea>
 
           <div class="admin-dock-actions">
-            <button class="admin-btn" onclick={() => adminStore.discardAll()}>丢弃全部</button>
-            <button class="admin-btn admin-btn--primary" disabled={busy} onclick={submit}>
+            <button class="btn" onclick={() => adminStore.discardAll()}>丢弃全部</button>
+            <button class="btn btn--primary" disabled={busy} onclick={submit}>
               {busy ? '提交中…' : `一次提交 ${changes.length} 个文件`}
             </button>
           </div>
@@ -277,7 +277,7 @@
     justify-content: flex-end;
   }
 
-  .admin-dock-actions .admin-btn--primary {
+  .admin-dock-actions .btn--primary {
     flex: 1;
   }
 

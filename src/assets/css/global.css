@@ -138,6 +138,13 @@ ol {
   position: relative;
 }
 
+/* 页面容器：前台页面内容的最外层包裹，横向居中 + 左右留白（移动端 16px） */
+.page-container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 56px;
+}
+
 /* ---- 侧边悬浮按钮列 ---- */
 .side-widgets {
   position: fixed;
@@ -219,6 +226,10 @@ ol {
 
 /* 移动端缩小悬浮按钮，减少对正文的遮挡 */
 @media (max-width: 768px) {
+  .page-container {
+    padding: 0 16px;
+  }
+
   .side-widgets {
     right: 8px;
   }

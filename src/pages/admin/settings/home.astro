@@ -17,32 +17,32 @@ import { Icon } from 'astro-icon/components';
         <br />
         填好仓库与访问令牌后即可修改配置。
       </p>
-      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+      <button class="btn btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">统计卡片</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">统计卡片</h2>
       </div>
-      <div class="admin-form-grid">
-        <label class="admin-field">
-          <span class="admin-field-label">标签</span>
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">标签</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-days-label"
             type="text"
             placeholder="入坑全栈"
             autocomplete="off"
           />
         </label>
-        <label class="admin-field">
-          <span class="admin-field-label">起始日期</span>
-          <input class="admin-input" id="admin-days-start" type="date" autocomplete="off" />
+        <label class="field">
+          <span class="field-label">起始日期</span>
+          <input class="input" id="admin-days-start" type="date" autocomplete="off" />
         </label>
       </div>
-      <p class="admin-hint">
+      <p class="hint">
         页面会按起始日期实时算出已过去的天数，不需要手动维护数字。这张卡片首页与关于页都会渲染。
       </p>
     </section>

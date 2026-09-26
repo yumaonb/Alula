@@ -57,6 +57,26 @@ const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, wid
     gap: 14px;
   }
 
+  /* 头像元件（白环 + 圆形裁切，尺寸由 --avatar-size 控制，默认 100px，
+   * 本页用 .author-avatar-ring 改成 56px） */
+  .avatar-ring {
+    --avatar-size: 100px;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    padding: 2px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+    flex-shrink: 0;
+  }
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
   .author-avatar-ring {
     --avatar-size: 56px;
   }

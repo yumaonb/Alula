@@ -7,8 +7,8 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
 <BaseLayout title="项目">
   <div class="projects-page page-container">
     <div class="page-header">
-      <h1 class="page-title section-title">我的项目</h1>
-      <p class="page-desc section-desc">这里是我的一些开源项目，欢迎Star或Fork</p>
+      <h1 class="page-title">我的项目</h1>
+      <p class="page-desc">这里是我的一些开源项目，欢迎Star或Fork</p>
     </div>
 
     <ProjectsGrid client:load />
@@ -27,8 +27,17 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
     margin-bottom: 40px;
   }
 
+  /* 页头标题 / 描述的内容排版（原全站公共类，按「元件才算公共」收回到本页） */
   .page-title {
+    font-size: 2rem;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     gap: 10px;
+  }
+
+  .page-desc {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.5);
   }
 
   /* ---- 手机端适配 ---- */

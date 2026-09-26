@@ -24,7 +24,7 @@ const { part } = Astro.props;
 {part === 'trigger' ? (
   <div class="admin-conn">
     <button
-      class="admin-btn admin-btn--ghost admin-conn-toggle"
+      class="btn btn--ghost admin-conn-toggle"
       id="admin-conn-toggle"
       type="button"
       aria-expanded="false"
@@ -56,10 +56,10 @@ const { part } = Astro.props;
       </div>
 
       <form class="admin-conn-form" id="admin-conn-form" autocomplete="on">
-        <label class="admin-field">
-          <span class="admin-field-label">仓库</span>
+        <label class="field">
+          <span class="field-label">仓库</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-repo-input"
             name="username"
             type="text"
@@ -71,10 +71,10 @@ const { part } = Astro.props;
         </label>
         <p class="admin-conn-hint">直接粘仓库链接也行，会自动取其中的所有者与仓库名。</p>
 
-        <label class="admin-field">
-          <span class="admin-field-label">访问令牌</span>
+        <label class="field">
+          <span class="field-label">访问令牌</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-token"
             name="password"
             type="password"
@@ -89,7 +89,7 @@ const { part } = Astro.props;
         </p>
 
         <div class="admin-conn-actions">
-          <button class="admin-btn" id="admin-conn-submit" type="submit">
+          <button class="btn" id="admin-conn-submit" type="submit">
             连接
           </button>
         </div>
@@ -143,7 +143,7 @@ const { part } = Astro.props;
         </dl>
 
         <div class="admin-conn-actions">
-          <button class="admin-btn" id="admin-disconnect" type="button">
+          <button class="btn" id="admin-disconnect" type="button">
             断开
           </button>
         </div>

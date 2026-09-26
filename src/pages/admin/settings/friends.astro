@@ -16,43 +16,43 @@ import { Icon } from 'astro-icon/components';
         <br />
         填好仓库与访问令牌后即可修改配置。
       </p>
-      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+      <button class="btn btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">友链列表</h2>
-        <span class="admin-card-extra" id="admin-friend-status">共 0 条</span>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">友链列表</h2>
+        <span class="card-extra" id="admin-friend-status">共 0 条</span>
       </div>
-      <div class="admin-rows" id="admin-friend-rows">
-        <div class="admin-row">
-          <input class="admin-input" type="text" placeholder="名称" />
-          <input class="admin-input" type="text" placeholder="头像地址" />
-          <input class="admin-input" type="text" placeholder="描述" />
-          <input class="admin-input" type="text" placeholder="链接" />
-          <button class="admin-row-remove" type="button" aria-label="删除这条">
+      <div class="rows" id="admin-friend-rows">
+        <div class="row">
+          <input class="input" type="text" placeholder="名称" />
+          <input class="input" type="text" placeholder="头像地址" />
+          <input class="input" type="text" placeholder="描述" />
+          <input class="input" type="text" placeholder="链接" />
+          <button class="row-remove" type="button" aria-label="删除这条">
             <Icon name="mdi:close" />
           </button>
         </div>
       </div>
-      <div class="admin-toolbar">
-        <button class="admin-btn admin-btn--dashed" id="admin-friend-add" type="button">
-          <Icon name="mdi:plus" class="admin-btn-icon" />
+      <div class="toolbar">
+        <button class="btn btn--dashed" id="admin-friend-add" type="button">
+          <Icon name="mdi:plus" class="btn-icon" />
           添加一条
         </button>
       </div>
-      <p class="admin-hint">
+      <p class="hint">
         头像与链接都写完整地址。头像用外链时建议选稳定的图床，站点换域名不会影响它。
       </p>
     </section>
 
-    <section class="admin-card">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">申请说明</h2>
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">申请说明</h2>
       </div>
-      <p class="admin-card-desc">
+      <p class="card-desc">
         页面上「申请友链」那段的文案目前写死在 src/pages/friends.astro 里，不在这份数据中。
         要改成可配置的话，需要先把它提成 data 字段。
       </p>

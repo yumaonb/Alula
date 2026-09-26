@@ -17,27 +17,27 @@ import { Icon } from 'astro-icon/components';
         <br />
         填好仓库与访问令牌后即可管理分类。
       </p>
-      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+      <button class="btn btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">分类目录</h2>
-        <span class="admin-card-extra" id="admin-cats-status">未连接</span>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">分类目录</h2>
+        <span class="card-extra" id="admin-cats-status">未连接</span>
       </div>
-      <div class="admin-toolbar">
+      <div class="toolbar">
         <input
-          class="admin-input"
+          class="input"
           id="admin-cats-filter"
           type="search"
           placeholder="按路径筛选…"
           autocomplete="off"
         />
       </div>
-      <ul class="admin-file-list" id="admin-cats-list">
-        <li class="admin-empty">连接后显示分类列表</li>
+      <ul class="file-list" id="admin-cats-list">
+        <li class="empty">连接后显示分类列表</li>
       </ul>
     </section>
   </div>

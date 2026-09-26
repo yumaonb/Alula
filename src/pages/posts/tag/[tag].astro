@@ -1,4 +1,4 @@
-﻿---
+---
 // [tag].astro — 标签文章列表页
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import GlobalSidebar from '../../../components/posts/GlobalSidebar.astro';
@@ -21,7 +21,7 @@ const posts = data.posts.filter((post) => post.tags.includes(tag));
 <BaseLayout title={`${tag} - 文章标签`}>
   <div class="category-page page-container">
     <div class="category-header">
-      <h1 class="category-title section-title">
+      <h1 class="category-title">
         #{tag}
         <span class="title-count-sep"> — </span>
         <span class="posts-count">共 {posts.length} 篇文章</span>

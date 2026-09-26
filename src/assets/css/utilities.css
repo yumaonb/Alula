@@ -1,60 +1,8 @@
-/* utilities.css — 工具类样式（头像 / 标题 / 玻璃卡片等） */
-
-/* ---- 头像 ---- */
-.avatar-ring {
-  --avatar-size: 100px;
-  width: var(--avatar-size);
-  height: var(--avatar-size);
-  border-radius: 50%;
-  padding: 2px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
-  flex-shrink: 0;
-}
-
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-/* ---- 页面容器 ---- */
-.page-container {
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 56px;
-}
-
-/* ---- 页面标题 ---- */
-.section-title {
-  font-size: 2rem;
-  color: #fff;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-/* ---- 页面描述 ---- */
-.section-desc {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* ---- 座右铭/副标题文字 ---- */
-.text-motto {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.25em;
-}
-
-@media (max-width: 768px) {
-  .section-title {
-    font-size: 1.5rem;
-  }
-
-  .page-container {
-    padding: 0 16px;
-  }
-}
+/* utilities.css — 工具类样式（元件级：玻璃卡片 / 悬停）
+ * 只放高频复用的元件；页面专属的元件（如首页的圆形按钮）写在页面 <style>；
+ * 页面内容排版（标题 / 描述 / 座右铭等）写在各自页面的 <style> 或页面组
+ * 共享文件（如 posts-listing.css）里；页面结构（外壳 / 主内容区 / 页面容器）
+ * 在 global.css。 */
 
 /* ---- 玻璃卡片 ---- */
 .glass {
@@ -146,84 +94,6 @@
   }
 }
 
-/* 玻璃圆形按钮 */
-.glass-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 46px;
-  height: 46px;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #fff;
-  font: inherit;
-  text-decoration: none;
-  background: transparent;
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.37),
-    inset 0 0 0 1px var(--ring);
-  position: relative;
-}
 
-/* 小号圆形按钮 */
-.glass-btn--sm {
-  width: 44px;
-  height: 44px;
-}
 
-/* 圆形按钮内图标 */
-.btn-icon {
-  width: 22px;
-  height: 22px;
-  fill: rgba(255, 255, 255, 0.8);
-}
 
-/* 弱化装饰图标 */
-.icon-muted {
-  color: rgba(255, 255, 255, 0.45);
-  flex-shrink: 0;
-}
-
-/* 数据卡片 */
-.stat-card {
-  flex: 1;
-  padding: 16px 8px;
-  text-align: center;
-  border-radius: var(--radius);
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 6px;
-  white-space: nowrap;
-}
-
-.stat-value {
-  display: block;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1.3;
-}
-
-.stat-value small {
-  font-size: 0.7rem;
-  font-weight: 400;
-  opacity: 0.7;
-}
-
-@media (max-width: 768px) {
-  .stat-card {
-    padding: 14px 4px;
-  }
-
-  .stat-value {
-    font-size: 1.15rem;
-  }
-}

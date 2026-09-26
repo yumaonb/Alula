@@ -20,9 +20,12 @@
   flex-wrap: wrap;
 }
 
+/* 列表/分类/文章页的页头标题（白字 + 阴影是页头观感的一部分，随字号一起放这） */
 .posts-title,
 .category-title {
   font-size: 1.6rem;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .posts-header-search,

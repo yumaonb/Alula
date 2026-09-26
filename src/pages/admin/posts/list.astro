@@ -14,46 +14,46 @@ import { Icon } from 'astro-icon/components';
         <br />
         填好仓库与访问令牌后即可读写文章。
       </p>
-      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+      <button class="btn btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">新建文章</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">新建文章</h2>
       </div>
-      <div class="admin-toolbar">
+      <div class="toolbar">
         <input
-          class="admin-input"
+          class="input"
           id="admin-new-path"
           type="text"
           placeholder="分类/文件名.md，例如 devnotes/notes/vite.md"
           autocomplete="off"
         />
-        <a class="admin-btn link-plain" id="admin-new-open" href="/admin/posts/edit/">
+        <a class="btn link-plain" id="admin-new-open" href="/admin/posts/edit/">
           打开编辑
         </a>
       </div>
-      <p class="admin-hint">路径不存在就是新建，保存后才会真正写进仓库。</p>
+      <p class="hint">路径不存在就是新建，保存后才会真正写进仓库。</p>
     </section>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">全部文章</h2>
-        <span class="admin-card-extra" id="admin-posts-status">未连接</span>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">全部文章</h2>
+        <span class="card-extra" id="admin-posts-status">未连接</span>
       </div>
-      <div class="admin-toolbar">
+      <div class="toolbar">
         <input
-          class="admin-input"
+          class="input"
           id="admin-posts-filter"
           type="search"
           placeholder="按路径筛选…"
           autocomplete="off"
         />
       </div>
-      <ul class="admin-file-list" id="admin-posts-list">
-        <li class="admin-empty">连接后显示文件列表</li>
+      <ul class="file-list" id="admin-posts-list">
+        <li class="empty">连接后显示文件列表</li>
       </ul>
     </section>
   </div>

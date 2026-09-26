@@ -17,56 +17,56 @@ import { Icon } from 'astro-icon/components';
         <br />
         填好仓库与访问令牌后即可修改配置。
       </p>
-      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+      <button class="btn btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">技术栈</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">技术栈</h2>
       </div>
-      <p class="admin-card-desc">每个分类一行，条目用逗号分隔。关于页按这里的顺序从上到下渲染。</p>
-      <div class="admin-rows" id="admin-tech-rows">
-        <div class="admin-row">
-          <input class="admin-input" type="text" placeholder="分类，如 前端" />
-          <input class="admin-input" type="text" placeholder="条目，逗号分隔" />
-          <button class="admin-row-remove" type="button" aria-label="删除这条">
+      <p class="card-desc">每个分类一行，条目用逗号分隔。关于页按这里的顺序从上到下渲染。</p>
+      <div class="rows" id="admin-tech-rows">
+        <div class="row">
+          <input class="input" type="text" placeholder="分类，如 前端" />
+          <input class="input" type="text" placeholder="条目，逗号分隔" />
+          <button class="row-remove" type="button" aria-label="删除这条">
             <Icon name="mdi:close" />
           </button>
         </div>
       </div>
-      <div class="admin-toolbar">
-        <button class="admin-btn admin-btn--dashed" id="admin-tech-add" type="button">
-          <Icon name="mdi:plus" class="admin-btn-icon" />
+      <div class="toolbar">
+        <button class="btn btn--dashed" id="admin-tech-add" type="button">
+          <Icon name="mdi:plus" class="btn-icon" />
           添加一行
         </button>
       </div>
     </section>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">GitHub 集成</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">GitHub 集成</h2>
       </div>
-      <div class="admin-form-grid">
-        <label class="admin-field">
-          <span class="admin-field-label">用户名</span>
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">用户名</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-gh-username"
             type="text"
             autocomplete="off"
           />
         </label>
-        <label class="admin-field">
-          <span class="admin-field-label">giscus 仓库名</span>
-          <input class="admin-input" id="admin-gh-repo" type="text" autocomplete="off" />
+        <label class="field">
+          <span class="field-label">giscus 仓库名</span>
+          <input class="input" id="admin-gh-repo" type="text" autocomplete="off" />
         </label>
       </div>
-      <label class="admin-field">
-        <span class="admin-field-label">缓存时间（毫秒）</span>
+      <label class="field">
+        <span class="field-label">缓存时间（毫秒）</span>
         <input
-          class="admin-input"
+          class="input"
           id="admin-gh-ttl"
           type="number"
           min="0"
@@ -74,7 +74,7 @@ import { Icon } from 'astro-icon/components';
           autocomplete="off"
         />
       </label>
-      <p class="admin-hint">
+      <p class="hint">
         仓库名必须与 Comments.astro 里的 giscus 配置一致，否则评论区会指向另一个仓库。
         缓存时间默认为 3600000（1 小时）。
       </p>

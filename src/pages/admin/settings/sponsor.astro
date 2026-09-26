@@ -16,25 +16,25 @@ import { Icon } from 'astro-icon/components';
         <br />
         填好仓库与访问令牌后即可修改配置。
       </p>
-      <button class="admin-btn admin-btn--primary" data-conn-open type="button">
+      <button class="btn btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">主赞助卡片</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">主赞助卡片</h2>
       </div>
-      <p class="admin-card-desc">页面顶部那张最大的卡片，点整块跳转。</p>
-      <div class="admin-form-grid">
-        <label class="admin-field">
-          <span class="admin-field-label">名称</span>
-          <input class="admin-input" id="admin-sponsor-name" type="text" autocomplete="off" />
+      <p class="card-desc">页面顶部那张最大的卡片，点整块跳转。</p>
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">名称</span>
+          <input class="input" id="admin-sponsor-name" type="text" autocomplete="off" />
         </label>
-        <label class="admin-field">
-          <span class="admin-field-label">图标</span>
+        <label class="field">
+          <span class="field-label">图标</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-sponsor-icon"
             type="text"
             placeholder="la:heart"
@@ -42,81 +42,81 @@ import { Icon } from 'astro-icon/components';
           />
         </label>
       </div>
-      <label class="admin-field">
-        <span class="admin-field-label">链接</span>
-        <input class="admin-input" id="admin-sponsor-href" type="text" autocomplete="off" />
+      <label class="field">
+        <span class="field-label">链接</span>
+        <input class="input" id="admin-sponsor-href" type="text" autocomplete="off" />
       </label>
-      <label class="admin-field">
-        <span class="admin-field-label">描述</span>
-        <input class="admin-input" id="admin-sponsor-desc" type="text" autocomplete="off" />
+      <label class="field">
+        <span class="field-label">描述</span>
+        <input class="input" id="admin-sponsor-desc" type="text" autocomplete="off" />
       </label>
     </section>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">赞助名单入口</h2>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">赞助名单入口</h2>
       </div>
-      <p class="admin-card-desc">主卡片下面那条横向入口，通常指向爱发电的赞助名单。</p>
-      <div class="admin-form-grid">
-        <label class="admin-field">
-          <span class="admin-field-label">图标</span>
+      <p class="card-desc">主卡片下面那条横向入口，通常指向爱发电的赞助名单。</p>
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">图标</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-sponsor-list-icon"
             type="text"
             placeholder="la:users"
             autocomplete="off"
           />
         </label>
-        <label class="admin-field">
-          <span class="admin-field-label">标题</span>
-          <input class="admin-input" id="admin-sponsor-list-title" type="text" autocomplete="off" />
+        <label class="field">
+          <span class="field-label">标题</span>
+          <input class="input" id="admin-sponsor-list-title" type="text" autocomplete="off" />
         </label>
       </div>
-      <div class="admin-form-grid">
-        <label class="admin-field">
-          <span class="admin-field-label">描述</span>
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">描述</span>
           <input
-            class="admin-input"
+            class="input"
             id="admin-sponsor-list-desc"
             type="text"
             autocomplete="off"
           />
         </label>
-        <label class="admin-field">
-          <span class="admin-field-label">打开方式</span>
-          <select class="admin-input" id="admin-sponsor-list-target">
+        <label class="field">
+          <span class="field-label">打开方式</span>
+          <select class="input" id="admin-sponsor-list-target">
             <option value="_blank">新窗口 (_blank)</option>
             <option value="_self">当前窗口 (_self)</option>
           </select>
         </label>
       </div>
-      <label class="admin-field">
-        <span class="admin-field-label">链接</span>
-        <input class="admin-input" id="admin-sponsor-list-href" type="text" autocomplete="off" />
+      <label class="field">
+        <span class="field-label">链接</span>
+        <input class="input" id="admin-sponsor-list-href" type="text" autocomplete="off" />
       </label>
     </section>
 
-    <section class="admin-card admin-needs-conn">
-      <div class="admin-card-head">
-        <h2 class="admin-card-title">其他支持方式</h2>
-        <span class="admin-card-extra" id="admin-support-status">共 0 条</span>
+    <section class="card admin-needs-conn">
+      <div class="card-head">
+        <h2 class="card-title">其他支持方式</h2>
+        <span class="card-extra" id="admin-support-status">共 0 条</span>
       </div>
-      <p class="admin-card-desc">底部网格卡片。链接留空时渲染成纯展示卡片，不再是可点链接。</p>
-      <div class="admin-rows" id="admin-support-rows">
-        <div class="admin-row">
-          <input class="admin-input" type="text" placeholder="图标" />
-          <input class="admin-input" type="text" placeholder="标题" />
-          <input class="admin-input" type="text" placeholder="描述" />
-          <input class="admin-input" type="text" placeholder="链接（可空）" />
-          <button class="admin-row-remove" type="button" aria-label="删除这条">
+      <p class="card-desc">底部网格卡片。链接留空时渲染成纯展示卡片，不再是可点链接。</p>
+      <div class="rows" id="admin-support-rows">
+        <div class="row">
+          <input class="input" type="text" placeholder="图标" />
+          <input class="input" type="text" placeholder="标题" />
+          <input class="input" type="text" placeholder="描述" />
+          <input class="input" type="text" placeholder="链接（可空）" />
+          <button class="row-remove" type="button" aria-label="删除这条">
             <Icon name="mdi:close" />
           </button>
         </div>
       </div>
-      <div class="admin-toolbar">
-        <button class="admin-btn admin-btn--dashed" id="admin-support-add" type="button">
-          <Icon name="mdi:plus" class="admin-btn-icon" />
+      <div class="toolbar">
+        <button class="btn btn--dashed" id="admin-support-add" type="button">
+          <Icon name="mdi:plus" class="btn-icon" />
           添加一条
         </button>
       </div>

@@ -105,7 +105,7 @@ function initPostsList(): Cleanup {
     list.textContent = '';
     if (shown.length === 0) {
       const li = document.createElement('li');
-      li.className = 'admin-empty';
+      li.className = 'empty';
       li.textContent = files.length === 0 ? '仓库里还没有文章' : '没有匹配的文件';
       list.appendChild(li);
       return;
@@ -113,11 +113,11 @@ function initPostsList(): Cleanup {
 
     for (const file of shown) {
       const li = document.createElement('li');
-      li.className = 'admin-file-row';
+      li.className = 'file-row';
 
       // link-plain 退出全站文字链接样式：这一行是整行悬停（底色 + 提亮），不画下划线
       const link = document.createElement('a');
-      link.className = 'admin-file-link link-plain';
+      link.className = 'file-link link-plain';
       link.href = `/admin/posts/edit/?path=${encodeURIComponent(file.path)}`;
       link.textContent = file.path.slice(POSTS_PREFIX.length);
       li.appendChild(link);
@@ -125,7 +125,7 @@ function initPostsList(): Cleanup {
       const staged = adminStore.changeOf(file.path);
       if (staged) {
         const chip = document.createElement('span');
-        chip.className = 'admin-chip is-staged';
+        chip.className = 'badge is-staged';
         chip.textContent = staged.content === null ? '待删除' : '已暂存';
         li.appendChild(chip);
       }
@@ -185,7 +185,7 @@ function initCategories(): Cleanup {
     list.textContent = '';
     if (shown.length === 0) {
       const li = document.createElement('li');
-      li.className = 'admin-empty';
+      li.className = 'empty';
       li.textContent = dirs.length === 0 ? '还没有任何分类' : '没有匹配的分类';
       list.appendChild(li);
       return;
@@ -193,18 +193,18 @@ function initCategories(): Cleanup {
 
     for (const dir of shown) {
       const li = document.createElement('li');
-      li.className = 'admin-file-row';
+      li.className = 'file-row';
 
       // 分类没有独立页面可编辑，点进编辑器看它的 index.json（不存在就是新建）
       const link = document.createElement('a');
-      link.className = 'admin-file-link link-plain';
+      link.className = 'file-link link-plain';
       link.href = `/admin/posts/edit/?path=${encodeURIComponent(`${POSTS_PREFIX}${dir}/index.json`)}`;
       link.textContent = dir;
       li.appendChild(link);
 
       if (!withMeta.has(dir)) {
         const chip = document.createElement('span');
-        chip.className = 'admin-chip';
+        chip.className = 'badge';
         chip.textContent = '无 index.json';
         li.appendChild(chip);
       }
@@ -266,12 +266,12 @@ function initEditor(): Cleanup {
     const staged = adminStore.changeOf(currentPath);
     if (staged) {
       chip.textContent = staged.content === null ? '待删除' : '已暂存';
-      chip.className = 'admin-chip is-staged';
+      chip.className = 'badge is-staged';
       return;
     }
     const dirty = textarea ? textarea.value !== (original ?? '') : false;
     chip.textContent = dirty ? '有未暂存修改' : '未暂存';
-    chip.className = dirty ? 'admin-chip is-dirty' : 'admin-chip';
+    chip.className = dirty ? 'badge is-dirty' : 'badge';
   }
 
   function refreshLines(): void {
@@ -287,7 +287,7 @@ function initEditor(): Cleanup {
     fileList.textContent = '';
     if (shown.length === 0) {
       const li = document.createElement('li');
-      li.className = 'admin-empty';
+      li.className = 'empty';
       li.textContent = files.length === 0 ? '仓库里还没有文章' : '没有匹配的文件';
       fileList.appendChild(li);
       return;
@@ -295,12 +295,12 @@ function initEditor(): Cleanup {
 
     for (const file of shown) {
       const li = document.createElement('li');
-      li.className = 'admin-file-row';
+      li.className = 'file-row';
       if (file.path === currentPath) li.classList.add('is-active');
 
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'admin-file-link';
+      button.className = 'file-link';
       button.textContent = file.path.slice(POSTS_PREFIX.length);
       button.addEventListener('click', () => void openFile(file.path));
       li.appendChild(button);
@@ -308,7 +308,7 @@ function initEditor(): Cleanup {
       const staged = adminStore.changeOf(file.path);
       if (staged) {
         const chip = document.createElement('span');
-        chip.className = 'admin-chip is-staged';
+        chip.className = 'badge is-staged';
         chip.textContent = staged.content === null ? '待删除' : '已暂存';
         li.appendChild(chip);
       }
