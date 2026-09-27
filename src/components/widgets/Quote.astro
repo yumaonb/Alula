@@ -11,12 +11,12 @@ import { quotes } from '../../data/quotes';
 
 <script is:inline define:vars={{ quotes }}>
   (function () {
-    var idx = Math.floor(Math.random() * quotes.length);
-    var q = quotes[idx];
-    var textEl = document.getElementById('quote-text');
-    var sourceEl = document.getElementById('quote-source');
+    const idx = Math.floor(Math.random() * quotes.length);
+    const q = quotes[idx];
+    const textEl = document.getElementById('quote-text');
+    const sourceEl = document.getElementById('quote-source');
     if (textEl) textEl.textContent = q.text;
-    var source = q.fromWho ? q.fromWho + '\u300C' + q.from + '\u300D' : q.from || '';
+    const source = q.fromWho ? q.fromWho + '\u300C' + q.from + '\u300D' : q.from || '';
     if (sourceEl) sourceEl.textContent = source;
   })();
 </script>

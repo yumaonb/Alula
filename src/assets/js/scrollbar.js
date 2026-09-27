@@ -1,17 +1,17 @@
 // scrollbar.js — 自定义悬浮滚动条（鼠标拖动 / 点击轨道 / hover 定位）
 // 用法：由 CustomScrollbar.astro 引入：import "../../assets/js/scrollbar.js"
 (function () {
-  var container = document.getElementById('custom-scrollbar');
-  var track = document.getElementById('scrollbar-track');
-  var thumb = document.getElementById('scrollbar-thumb');
-  var hoverZone = document.getElementById('scrollbar-hover-zone');
+  const container = document.getElementById('custom-scrollbar');
+  const track = document.getElementById('scrollbar-track');
+  const thumb = document.getElementById('scrollbar-thumb');
+  const hoverZone = document.getElementById('scrollbar-hover-zone');
   if (!container || !track || !thumb) return;
 
-  var isDragging = false;
-  var startY = 0;
-  var startScrollTop = 0;
-  var hideTimer = null;
-  var HIDE_DELAY = 1500;
+  let isDragging = false;
+  let startY = 0;
+  let startScrollTop = 0;
+  let hideTimer = null;
+  const HIDE_DELAY = 1500;
 
   function hasScroll() {
     return document.documentElement.scrollHeight > window.innerHeight + 2;
@@ -34,14 +34,14 @@
       return;
     }
 
-    var scrollTop = window.scrollY;
-    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    var trackHeight = track.clientHeight;
-    var thumbHeight = Math.max(
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const trackHeight = track.clientHeight;
+    const thumbHeight = Math.max(
       30,
       (window.innerHeight / document.documentElement.scrollHeight) * trackHeight,
     );
-    var thumbTop = (scrollTop / docHeight) * (trackHeight - thumbHeight);
+    const thumbTop = (scrollTop / docHeight) * (trackHeight - thumbHeight);
 
     thumb.style.height = thumbHeight + 'px';
     thumb.style.transform = 'translateY(' + thumbTop + 'px)';
@@ -62,11 +62,11 @@
 
   function onMouseMove(e) {
     if (!isDragging) return;
-    var deltaY = e.clientY - startY;
-    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    var trackHeight = track.clientHeight;
-    var thumbHeight = thumb.clientHeight;
-    var scrollDelta = (deltaY / (trackHeight - thumbHeight)) * docHeight;
+    const deltaY = e.clientY - startY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const trackHeight = track.clientHeight;
+    const thumbHeight = thumb.clientHeight;
+    const scrollDelta = (deltaY / (trackHeight - thumbHeight)) * docHeight;
     window.scrollTo(0, startScrollTop + scrollDelta);
   }
 
@@ -104,11 +104,11 @@
 
   track.addEventListener('click', function (e) {
     if (e.target === thumb) return;
-    var rect = track.getBoundingClientRect();
-    var clickY = e.clientY - rect.top;
-    var trackHeight = track.clientHeight;
-    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    var scrollTarget = (clickY / trackHeight) * docHeight;
+    const rect = track.getBoundingClientRect();
+    const clickY = e.clientY - rect.top;
+    const trackHeight = track.clientHeight;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollTarget = (clickY / trackHeight) * docHeight;
     window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
   });
 

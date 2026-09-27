@@ -41,9 +41,9 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
     if (window.__postCatTreeBound) return;
     window.__postCatTreeBound = true;
     document.addEventListener('click', function (e) {
-      var btn = e.target.closest ? e.target.closest('button.cat-toggle') : null;
+      const btn = e.target.closest ? e.target.closest('button.cat-toggle') : null;
       if (!btn || !document.contains(btn)) return;
-      var node = btn.closest('.cat-node');
+      const node = btn.closest('.cat-node');
       if (!node) return;
       e.preventDefault();
       e.stopPropagation();

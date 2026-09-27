@@ -4,36 +4,36 @@
   if (window.__tocInit) return;
   window.__tocInit = true;
 
-  var NAV_HEIGHT = 80;
-  var isClickMode = false;
-  var isTrackScrolling = false;
+  const NAV_HEIGHT = 80;
+  let isClickMode = false;
+  let isTrackScrolling = false;
 
   function getNavOffset() {
-    var nav = document.querySelector('.navbar');
+    const nav = document.querySelector('.navbar');
     return nav ? nav.offsetHeight + 12 : NAV_HEIGHT;
   }
 
   function smoothScrollTo(target) {
-    var top = target.getBoundingClientRect().top + window.scrollY - getNavOffset();
+    const top = target.getBoundingClientRect().top + window.scrollY - getNavOffset();
     if (Math.abs(top - window.scrollY) < 1) return;
     window.scrollTo({ top: top, behavior: 'smooth' });
   }
 
-  var snapBarNext = false;
+  let snapBarNext = false;
 
   function positionBar(useTransition) {
-    var bar = document.getElementById('toc-bar');
-    var activeEl = document.querySelector('.toc-item.active');
-    var trackEl = document.getElementById('toc-list');
+    const bar = document.getElementById('toc-bar');
+    const activeEl = document.querySelector('.toc-item.active');
+    const trackEl = document.getElementById('toc-list');
     if (!bar || !activeEl || !trackEl) return;
-    var linkEl = activeEl.querySelector('.toc-link');
+    const linkEl = activeEl.querySelector('.toc-link');
     if (!linkEl) return;
 
-    var newTop = linkEl.offsetTop;
-    var newH = linkEl.offsetHeight;
-    var oldTop = bar.style.top ? parseFloat(bar.style.top) : null;
-    var oldH = bar.style.height ? parseFloat(bar.style.height) : null;
-    var animating = bar._animating === true;
+    const newTop = linkEl.offsetTop;
+    const newH = linkEl.offsetHeight;
+    const oldTop = bar.style.top ? parseFloat(bar.style.top) : null;
+    const oldH = bar.style.height ? parseFloat(bar.style.height) : null;
+    const animating = bar._animating === true;
 
     if (oldTop === null || snapBarNext) {
       snapBarNext = false;
@@ -84,14 +84,14 @@
   }
 
   document.addEventListener('click', function (e) {
-    var link = e.target.closest('.toc-link');
+    const link = e.target.closest('.toc-link');
     if (!link) return;
     e.preventDefault();
-    var item = link.closest('.toc-item');
+    const item = link.closest('.toc-item');
     if (!item) return;
-    var id = item.getAttribute('data-target');
+    const id = item.getAttribute('data-target');
     if (!id) return;
-    var el = document.getElementById(id);
+    const el = document.getElementById(id);
     if (!el) return;
     isClickMode = true;
     smoothScrollTo(el);
@@ -100,21 +100,21 @@
     }, 800);
   });
 
-  var lastActiveSlug = null;
-  var lastScrolledSlug = null;
+  let lastActiveSlug = null;
+  let lastScrolledSlug = null;
 
   function updateToc() {
-    var items = document.querySelectorAll('.toc-item');
+    const items = document.querySelectorAll('.toc-item');
     if (items.length === 0) return;
 
-    var offset = getNavOffset();
-    var sy = window.scrollY;
-    var bestSlug = null;
+    const offset = getNavOffset();
+    const sy = window.scrollY;
+    let bestSlug = null;
 
     items.forEach(function (item) {
-      var slug = item.getAttribute('data-target');
+      const slug = item.getAttribute('data-target');
       if (!slug) return;
-      var h = document.getElementById(slug);
+      const h = document.getElementById(slug);
       if (!h) return;
       if (h.getBoundingClientRect().top + sy <= sy + offset + 4) {
         bestSlug = slug;
@@ -130,25 +130,25 @@
       });
     }
 
-    var bar = document.getElementById('toc-bar');
-    var activeEl = document.querySelector('.toc-item.active');
-    var trackEl = document.getElementById('toc-list');
+    const bar = document.getElementById('toc-bar');
+    const activeEl = document.querySelector('.toc-item.active');
+    const trackEl = document.getElementById('toc-list');
     if (!bar || !activeEl || !trackEl) return;
 
-    var linkEl = activeEl.querySelector('.toc-link');
+    const linkEl = activeEl.querySelector('.toc-link');
     if (!linkEl) return;
 
-    var trackH = trackEl.clientHeight;
-    var midY = trackH / 2;
-    var linkH = linkEl.offsetHeight;
-    var contentTop = linkEl.offsetTop;
-    var maxScroll = trackEl.scrollHeight - trackH;
+    const trackH = trackEl.clientHeight;
+    const midY = trackH / 2;
+    const linkH = linkEl.offsetHeight;
+    const contentTop = linkEl.offsetTop;
+    const maxScroll = trackEl.scrollHeight - trackH;
 
     if (!isClickMode && maxScroll > 0) {
-      var desiredScroll = contentTop - midY + linkH / 2;
+      let desiredScroll = contentTop - midY + linkH / 2;
       desiredScroll = Math.max(0, Math.min(desiredScroll, maxScroll));
-      var scrollDiff = Math.abs(desiredScroll - trackEl.scrollTop);
-      var shouldScroll = scrollDiff > 2 && bestSlug !== lastScrolledSlug;
+      const scrollDiff = Math.abs(desiredScroll - trackEl.scrollTop);
+      const shouldScroll = scrollDiff > 2 && bestSlug !== lastScrolledSlug;
       if (shouldScroll) {
         lastScrolledSlug = bestSlug;
         trackEl.scrollTo({ top: desiredScroll, behavior: 'smooth' });
@@ -158,7 +158,7 @@
     positionBar(isClickMode || maxScroll <= 0);
   }
 
-  var raf = false;
+  let raf = false;
   window.addEventListener(
     'scroll',
     function () {
@@ -183,7 +183,7 @@
   document.addEventListener(
     'scroll',
     function (e) {
-      var track = document.getElementById('toc-list');
+      const track = document.getElementById('toc-list');
       if (!track || e.target !== track) return;
       isTrackScrolling = true;
       positionBar(false);
@@ -197,7 +197,7 @@
   document.addEventListener(
     'wheel',
     function (e) {
-      var track = document.getElementById('toc-list');
+      const track = document.getElementById('toc-list');
       if (!track || !track.contains(e.target)) return;
 
       e.preventDefault();
