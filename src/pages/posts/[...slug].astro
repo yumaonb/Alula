@@ -12,8 +12,8 @@ import ImageWrapper from '../../components/posts/ImageWrapper.astro';
 import { Icon } from 'astro-icon/components';
 import { loadBlogData, renderPost, postBreadcrumbs } from '../../lib/posts-data';
 import { postRoute, buildCategoryUrl, postMatchesCategory } from '../../lib/category';
-import '../../assets/css/markdown.css';
-import '../../assets/css/posts-listing.css';
+import '../../assets/css/posts/markdown.css';
+import '../../assets/css/posts/posts-listing.css';
 
 const data = await loadBlogData();
 
