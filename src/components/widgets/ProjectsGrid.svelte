@@ -1,10 +1,10 @@
 <!-- ProjectsGrid.svelte — 项目展示卡片网格（GitHub 仓库）
      用法：<ProjectsGrid client:load />（项目页） -->
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
-  import { fetchRepos } from '../../assets/js/github';
+  import { fetchRepos, type RepoInfo } from '../../assets/js/github';
 
-  const langColors = {
+  const langColors: Record<string, string> = {
     // 前端框架
     TypeScript: '#3178c6',
     JavaScript: '#f1e05a',
@@ -82,11 +82,11 @@
     NASL: '#aaca00',
   };
 
-  let repos = $state([]);
+  let repos = $state<RepoInfo[]>([]);
   let loading = $state(true);
   let error = $state('');
 
-  function formatDate(iso) {
+  function formatDate(iso: string): string {
     if (!iso) return '';
     return new Date(iso).toLocaleDateString('zh-CN', {
       year: 'numeric',
@@ -95,13 +95,13 @@
     });
   }
 
-  async function load() {
+  async function load(): Promise<void> {
     loading = true;
     error = '';
     try {
       repos = await fetchRepos();
     } catch (e) {
-      error = e.message || '加载项目列表失败';
+      error = e instanceof Error ? e.message : '加载项目列表失败';
     } finally {
       loading = false;
     }
@@ -231,7 +231,7 @@
     overflow: hidden;
   }
 
-    .card-header {
+  .card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;

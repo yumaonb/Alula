@@ -1,30 +1,30 @@
 <!-- TocModal.svelte — 文章目录抽屉
      用法：<TocModal client:idle />（BaseLayout 中，#swup 之外，只水合一次）
      入口：#toc-fab 按钮点击打开；打开时把 .toc-nav 从文章侧栏移入抽屉展示 -->
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
 
   let isOpen = $state(false);
-  let lastFocus = null;
-  let hosted = null;
-  let hostHome = null;
-  let navHeader = null;
-  let modalEl;
-  let bodyEl;
+  let lastFocus: HTMLElement | null = null;
+  let hosted: Element | null = null;
+  let hostHome: Node | null = null;
+  let navHeader: Element | null = null;
+  let modalEl: HTMLDivElement | null = null;
+  let bodyEl: HTMLDivElement | null = null;
 
   /** 让入口按钮的 aria-expanded 跟随抽屉开关 */
-  function setFabExpanded(v) {
+  function setFabExpanded(v: boolean): void {
     const fab = document.getElementById('toc-fab');
     if (fab) fab.setAttribute('aria-expanded', v ? 'true' : 'false');
   }
 
-  function open() {
+  function open(): void {
     if (isOpen) return;
-    const nav = document.querySelector('.toc-nav');
+    const nav = document.querySelector<HTMLElement>('.toc-nav');
     if (!nav) return;
     isOpen = true;
     setFabExpanded(true);
-    lastFocus = document.activeElement;
+    lastFocus = document.activeElement as HTMLElement | null;
     hostHome = nav.parentNode;
     hosted = nav;
     navHeader = nav.querySelector('.toc-header');
@@ -37,7 +37,7 @@
     });
   }
 
-  function close() {
+  function close(): void {
     if (!isOpen) return;
     isOpen = false;
     setFabExpanded(false);
@@ -49,24 +49,27 @@
     hosted = null;
     hostHome = null;
     navHeader = null;
-    lastFocus?.focus?.();
+    lastFocus?.focus();
   }
 
-  function onKeydown(e) {
+  function onKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape' && isOpen) close();
   }
 
-  function onModalClick(e) {
-    if (e.target?.closest?.('[data-toc-close]')) {
+  function onModalClick(e: MouseEvent): void {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+    if (target.closest('[data-toc-close]')) {
       close();
       return;
     }
-    if (e.target?.closest?.('.toc-link')) close();
+    if (target.closest('.toc-link')) close();
   }
 
   /** 入口按钮在 SideWidgets 容器内，容器级事件委托即可（与挂载顺序无关） */
-  function onWidgetsClick(e) {
-    if (e.target?.closest?.('#toc-fab')) open();
+  function onWidgetsClick(e: MouseEvent): void {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('#toc-fab')) open();
   }
 
   onMount(() => {
@@ -77,7 +80,7 @@
     widgets?.addEventListener('click', onWidgetsClick);
 
     // 复用 NavBar 的共享 matchMedia 监听器
-    function onEnterDesktop() {
+    function onEnterDesktop(): void {
       if (isOpen) close();
     }
     if (typeof window.__onEnterDesktop === 'function') {
@@ -89,7 +92,7 @@
     }
 
     // swup 切页时抽屉必然要关（切走前先关闭）
-    function onVisitStart() {
+    function onVisitStart(): void {
       if (isOpen) close();
     }
     document.addEventListener('swup:visit:start', onVisitStart);
@@ -130,7 +133,12 @@
         </svg>
         文章目录
       </span>
-      <button class="toc-modal-close hoverable" data-toc-close aria-label="关闭目录" onclick={close}>
+      <button
+        class="toc-modal-close hoverable"
+        data-toc-close
+        aria-label="关闭目录"
+        onclick={close}
+      >
         <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
           <path
             d="M17.4 16l4.9-4.9a.7.7 0 0 0-1-1L16.4 15l-4.9-4.9a.7.7 0 0 0-1 1l4.9 4.9-4.9 4.9a.7.7 0 0 0 1 1l4.9-4.9 4.9 4.9a.7.7 0 0 0 1-1z"
@@ -244,7 +252,7 @@
     height: 16px;
   }
 
-    .toc-modal-body {
+  .toc-modal-body {
     flex: 1;
     display: flex;
     min-height: 0;

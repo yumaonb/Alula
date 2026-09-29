@@ -1,5 +1,5 @@
 /* lightbox.css — photoswipe 灯箱主题微调（仅覆盖 CSS 变量，灯箱本体用库）
- * 随 lightbox-core.js 懒加载，在库样式之后加载，覆盖生效。
+ * 随 lightbox-core.ts 懒加载，在库样式之后加载，覆盖生效。
  */
 
 .pswp {

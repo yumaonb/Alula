@@ -242,7 +242,7 @@ ol {
 }
 
 /* ---- Swup 切页进度条 ----
- * 元素由 @swup/progress-plugin 动态插进 body 顶部（astro.config.mjs 的 progress: true 启用），
+ * 元素由 @swup/progress-plugin 动态插进 body 顶部（astro.config.ts 的 progress: true 启用），
  * 没有静态标记。切页快于 300ms（缓存页）不出现；加载期间进度条逐渐增长，
  * 新内容替换完（page:view）后走到 100% 再淡出。
  * 内容本身直接替换、不做渐隐渐显，旧内容在加载期间也不需要先隐藏。

@@ -1,11 +1,13 @@
-// hamburger.js — 汉堡菜单交互（移动端下拉菜单开/关）
+// hamburger.ts — 汉堡菜单交互（移动端下拉菜单开/关）
 // 用法：由 NavBar.astro 在移动端按需动态 import
-import { onEnterDesktop } from './breakpoint.js';
+import { onEnterDesktop } from './breakpoint';
 
 const OPEN = 'is-open';
 const CLOSING_NAV = 'is-closing-nav';
 const NO_TRANSITION = 'no-transition';
 const NAV_CLOSE_MS = 220;
+
+type MenuMode = 'normal' | 'nav' | 'instant';
 
 function getEls() {
   return {
@@ -15,8 +17,7 @@ function getEls() {
   };
 }
 
-/** @param {boolean} opening @param {{ mode?: 'normal' | 'nav' | 'instant' }} [opts] */
-function setOpen(opening, { mode = 'normal' } = {}) {
+function setOpen(opening: boolean, { mode = 'normal' }: { mode?: MenuMode } = {}): void {
   const { btn, dropdown, overlay } = getEls();
   if (!btn) return;
 
@@ -67,40 +68,41 @@ function setOpen(opening, { mode = 'normal' } = {}) {
   }
 }
 
-function toggle() {
+function toggle(): void {
   const { btn } = getEls();
   if (!btn) return;
   setOpen(!btn.classList.contains(OPEN));
 }
 
-/** @param {'normal' | 'nav' | 'instant'} [mode] */
-function closeIfOpen(mode = 'normal') {
+function closeIfOpen(mode: MenuMode = 'normal'): void {
   const { btn } = getEls();
   if (btn?.classList.contains(OPEN)) {
-    document.activeElement?.blur();
+    (document.activeElement as HTMLElement | null)?.blur();
     setOpen(false, { mode });
   }
 }
 
-function onClick(e) {
-  if (e.target.closest('.hamburger-btn') || e.target.closest('.mobile-overlay')) {
+function onClick(e: Event): void {
+  const target = e.target as HTMLElement | null;
+  if (!target) return;
+  if (target.closest('.hamburger-btn') || target.closest('.mobile-overlay')) {
     toggle();
-  } else if (e.target.closest('.nav-logo')) {
+  } else if (target.closest('.nav-logo')) {
     closeIfOpen();
-  } else if (e.target.closest('.mobile-link')) {
+  } else if (target.closest('.mobile-link')) {
     closeIfOpen('nav');
   }
 }
 
-function onKeydown(e) {
+function onKeydown(e: KeyboardEvent): void {
   if (e.key === 'Escape') closeIfOpen();
 }
 
-function onSwupVisitStart() {
+function onSwupVisitStart(): void {
   closeIfOpen('nav');
 }
 
-function onSwupReplace() {
+function onSwupReplace(): void {
   closeIfOpen('instant');
 }
 
@@ -111,5 +113,3 @@ document.addEventListener('click', onClick);
 document.addEventListener('keydown', onKeydown);
 document.addEventListener('swup:visit:start', onSwupVisitStart);
 document.addEventListener('swup:content:replace', onSwupReplace);
-
-export {};

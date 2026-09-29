@@ -1,32 +1,48 @@
 <!-- PostSearch.svelte — 文章全文搜索（基于 Pagefind）
      用法：<PostSearch client:load />（文章列表页 / 标签页） -->
-<script>
+<script lang="ts">
   import { onMount, onDestroy } from 'svelte';
 
-  let { placeholder = '搜索文章…', categoryPath = '', filterUrls = [] } = $props();
+  interface Props {
+    placeholder?: string;
+    categoryPath?: string;
+    filterUrls?: string[];
+  }
+  let { placeholder = '搜索文章…', categoryPath = '', filterUrls = [] }: Props = $props();
+
+  /** Pagefind 加载产物用到的最小 API 面（blob 动态 import，没有现成类型） */
+  interface PagefindResult {
+    url: string;
+    excerpt: string;
+    meta?: { title?: string };
+  }
+  interface PagefindModule {
+    options?: (opts: { excerptLength: number }) => void;
+    search: (query: string) => Promise<{ results: Array<{ data: () => Promise<PagefindResult> }> }>;
+  }
 
   let kw = $state('');
-  let results = $state([]);
+  let results = $state<PagefindResult[]>([]);
   let activeIndex = $state(-1);
   let isOpen = $state(false);
   let isLoading = $state(false);
   let errorMsg = $state('');
   let seq = 0;
-  let timer;
-  let inputEl = $state(null);
-  let dropdownEl = $state(null);
-  let pagefindMod = null;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let inputEl = $state<HTMLInputElement | null>(null);
+  let dropdownEl = $state<HTMLDivElement | null>(null);
+  let pagefindMod: PagefindModule | null = null;
 
-  async function loadPagefind() {
+  async function loadPagefind(): Promise<PagefindModule> {
     if (!pagefindMod) {
       try {
         const resp = await fetch('/pagefind/pagefind.js');
         const text = await resp.text();
         const blob = new Blob([text], { type: 'text/javascript' });
         const url = URL.createObjectURL(blob);
-        pagefindMod = await import(/* @vite-ignore */ url);
+        pagefindMod = (await import(/* @vite-ignore */ url)) as PagefindModule;
         URL.revokeObjectURL(url);
-        if (pagefindMod.options) pagefindMod.options({ excerptLength: 20 });
+        pagefindMod.options?.({ excerptLength: 20 });
       } catch (e) {
         console.error('[PostSearch] Pagefind load failed', e);
         throw e;
@@ -35,7 +51,7 @@
     return pagefindMod;
   }
 
-  function clearSearch() {
+  function clearSearch(): void {
     kw = '';
     results = [];
     isOpen = false;
@@ -43,7 +59,7 @@
     inputEl?.focus();
   }
 
-  function onInput() {
+  function onInput(): void {
     activeIndex = -1;
     if (timer) clearTimeout(timer);
     if (!kw.trim()) {
@@ -52,10 +68,10 @@
       errorMsg = '';
       return;
     }
-    timer = setTimeout(() => doSearch(), 200);
+    timer = setTimeout(() => void doSearch(), 200);
   }
 
-  async function doSearch() {
+  async function doSearch(): Promise<void> {
     const s = ++seq;
     const q = kw.trim();
     if (!q) {
@@ -93,7 +109,7 @@
     }
   }
 
-  function onKeydown(e) {
+  function onKeydown(e: KeyboardEvent): void {
     const n = results.length;
     if (e.key === 'ArrowDown' && n > 0) {
       e.preventDefault();
@@ -112,24 +128,25 @@
     }
   }
 
-  function scrollActiveIntoView() {
+  function scrollActiveIntoView(): void {
     requestAnimationFrame(() => {
       const items = dropdownEl?.querySelectorAll('.psd-item');
       if (items?.[activeIndex]) items[activeIndex].scrollIntoView({ block: 'nearest' });
     });
   }
 
-  function onItemMouseover(index) {
+  function onItemMouseover(index: number): void {
     activeIndex = index;
   }
 
-  function onOutsideClick(e) {
-    if (!e.target?.closest?.('.post-search-wrap')) {
+  function onOutsideClick(e: MouseEvent): void {
+    const target = e.target as HTMLElement | null;
+    if (!target?.closest('.post-search-wrap')) {
       isOpen = false;
     }
   }
 
-  function getTitle(result) {
+  function getTitle(result: PagefindResult): string {
     return (
       result.meta?.title ||
       decodeURIComponent(result.url.replace(/\/$/, '').split('/').pop() || result.url)
@@ -171,7 +188,12 @@
       spellcheck="false"
     />
     {#if kw.length > 0}
-      <button type="button" class="post-search-clear hoverable" aria-label="清空搜索" onclick={clearSearch}>
+      <button
+        type="button"
+        class="post-search-clear hoverable"
+        aria-label="清空搜索"
+        onclick={clearSearch}
+      >
         <svg
           class="post-search-clear-icon"
           viewBox="0 0 32 32"

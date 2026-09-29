@@ -1,14 +1,14 @@
 <!-- Clock.svelte — 实时时钟（指针动画 + 时间/日期显示）
      用法：<Clock client:load />（首页 / 关于页） -->
-<script>
-  import { onMount, onDestroy } from 'svelte';
+<script lang="ts">
+  import { onMount } from 'svelte';
 
   let ready = $state(false);
   let now = $state(new Date());
   let time = $state('');
   let date = $state('');
-  let timer;
-  let raf;
+  let timer: ReturnType<typeof setInterval> | null = null;
+  let raf = 0;
 
   let hDeg = $state(0);
   let mDeg = $state(0);
@@ -22,18 +22,18 @@
   let prevM = 0;
   let prevS = 0;
 
-  function hAngle(d) {
+  function hAngle(d: Date): number {
     const h = d.getHours() % 12;
     const m = d.getMinutes();
     const s = d.getSeconds();
     return h * 30 + m * 0.5 + s / 120;
   }
 
-  function mAngle(d) {
+  function mAngle(d: Date): number {
     return d.getMinutes() * 6 + d.getSeconds() * 0.1;
   }
 
-  function sAngle(d) {
+  function sAngle(d: Date): number {
     return d.getSeconds() * 6;
   }
 
@@ -47,11 +47,11 @@
     easeToS = 0;
   let easing = false;
 
-  function easeOut(t) {
+  function easeOut(t: number): number {
     return 1 - Math.pow(1 - t, 5);
   }
 
-  function loop(ts) {
+  function loop(ts: number): void {
     if (easing) {
       const elapsed = ts - easeStart;
       const t = Math.min(elapsed / EASE_DURATION, 1);
@@ -73,7 +73,7 @@
     }
   }
 
-  function tick() {
+  function tick(): void {
     now = new Date();
     const h = String(now.getHours()).padStart(2, '0');
     const m = String(now.getMinutes()).padStart(2, '0');
@@ -135,9 +135,9 @@
     timer = setInterval(tick, 1000);
 
     // tab 不可见时暂停计时器，节省 CPU
-    function onVisibility() {
+    function onVisibility(): void {
       if (document.hidden) {
-        clearInterval(timer);
+        if (timer) clearInterval(timer);
         timer = null;
       } else if (!timer) {
         tick();
@@ -147,7 +147,7 @@
     document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
-      clearInterval(timer);
+      if (timer) clearInterval(timer);
       cancelAnimationFrame(raf);
       document.removeEventListener('visibilitychange', onVisibility);
     };

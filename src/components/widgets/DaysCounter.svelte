@@ -1,7 +1,7 @@
 <!-- DaysCounter.svelte — 数据统计卡片（入站天数 / 经验积累 / 项目数量）
      用法：<DaysCounter client:load />（首页 / 关于页） -->
-<script>
-  import { onMount, onDestroy } from 'svelte';
+<script lang="ts">
+  import { onMount } from 'svelte';
   import { fetchRepoCount } from '../../assets/js/github';
   import { daysCounterConfig } from '../../data/dayscounter';
 
@@ -11,9 +11,9 @@
   let days = $state(0);
   let projectsCount = $state(0);
   let projectsLoaded = $state(false);
-  let midnightTimer;
+  let midnightTimer: ReturnType<typeof setTimeout> | undefined;
 
-  function computeDays() {
+  function computeDays(): number {
     const start = new Date(startDate);
     const now = new Date();
     return Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
@@ -24,7 +24,7 @@
     return days % 365 > 0 ? `${y}年+` : `${y}年`;
   });
 
-  function scheduleMidnightRefresh() {
+  function scheduleMidnightRefresh(): void {
     const now = new Date();
     const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
     midnightTimer = setTimeout(() => {

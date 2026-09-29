@@ -1,6 +1,6 @@
-// @ts-check
-// astro.config.mjs — 站点构建配置（Astro 集成 / 压缩 / 构建后清理注释 / 背景预设）
+// astro.config.ts — 站点构建配置（Astro 集成 / 压缩 / 构建后清理注释 / 背景预设）
 import { defineConfig } from 'astro/config';
+import type { AstroIntegration } from 'astro';
 import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,13 +13,9 @@ import pagefind from 'astro-pagefind';
 import htmlMinifier from 'astro-html-minifier-next';
 import compress from '@playform/compress';
 
-/**
- * 收集构建输出目录下所有 .html 文件。
- * @param {string} dir
- * @returns {string[]}
- */
-function collectHtmlFiles(dir) {
-  const files = [];
+/** 收集构建输出目录下所有 .html 文件 */
+function collectHtmlFiles(dir: string): string[] {
+  const files: string[] = [];
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     const stat = statSync(full);
@@ -32,12 +28,8 @@ function collectHtmlFiles(dir) {
   return files;
 }
 
-/**
- * 判断注释是否为水合必需（Svelte 5 锚点 / Astro 岛屿标记）。
- * @param {string} inner
- * @returns {boolean}
- */
-function isHydrationComment(inner) {
+/** 判断注释是否为水合必需（Svelte 5 锚点 / Astro 岛屿标记） */
+function isHydrationComment(inner: string): boolean {
   return (
     inner === '' ||
     inner === '[' ||
@@ -47,13 +39,8 @@ function isHydrationComment(inner) {
   );
 }
 
-/**
- * 替换回调：只处理注释，script/style 整体原样保留。
- * @param {string} match 完整匹配
- * @param {string | undefined} inner 捕获组内容（script/style 时为空）
- * @returns {string}
- */
-function commentReplacer(match, inner) {
+/** 替换回调：只处理注释，script/style 整体原样保留（捕获组未命中时 inner 为 undefined） */
+function commentReplacer(match: string, inner?: string): string {
   if (inner === undefined) return match; // script/style 原样保留
   return isHydrationComment(inner) ? match : '';
 }
@@ -61,21 +48,16 @@ function commentReplacer(match, inner) {
 /**
  * 删除 HTML 注释，但保留 Svelte 5 水合锚点与 Astro 岛屿标记。
  * 只处理 <script>/<style> 之外的内容，避免误伤内联代码字符串。
- * @param {string} html
- * @returns {string}
  */
-function stripNonHydrationComments(html) {
+function stripNonHydrationComments(html: string): string {
   return html.replace(
     /<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--([\s\S]*?)-->/g,
     commentReplacer,
   );
 }
 
-/**
- * 构建后处理：清理 dist 里的展示性 HTML 注释。
- * @returns {import("astro").AstroIntegration}
- */
-function stripSafeComments() {
+/** 构建后处理：清理 dist 里的展示性 HTML 注释 */
+function stripSafeComments(): AstroIntegration {
   return {
     name: 'strip-safe-comments',
     hooks: {
@@ -98,8 +80,7 @@ function stripSafeComments() {
   };
 }
 
-/** @param {string} before @param {string} after */
-function countRemoved(before, after) {
+function countRemoved(before: string, after: string): number {
   const beforeComments = before.match(/<!--([\s\S]*?)-->/g) ?? [];
   const afterComments = after.match(/<!--([\s\S]*?)-->/g) ?? [];
   return beforeComments.length - afterComments.length;
@@ -128,12 +109,10 @@ function backgroundPreset() {
 
   return {
     name: 'background-preset',
-    /** @param {string} id @returns {string | null} */
-    resolveId(id) {
+    resolveId(id: string): string | null {
       return id === 'virtual:background' ? '\0virtual:background' : null;
     },
-    /** @param {string} id @returns {string | null} */
-    load(id) {
+    load(id: string): string | null {
       if (id !== '\0virtual:background') return null;
       // css 方案：副作用导入，样式随模块进入产物；图片方案：默认导出交给 astro:assets 优化
       return background.type === 'image'

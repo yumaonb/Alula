@@ -96,7 +96,7 @@
   min-height: 160px;
 }
 
-/* 正文图片可点击放大（配合 lightbox.js 灯箱） */
+/* 正文图片可点击放大（配合 lightbox.ts 灯箱） */
 .markdown-body img {
   cursor: zoom-in;
 }

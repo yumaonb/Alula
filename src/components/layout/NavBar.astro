@@ -14,22 +14,34 @@ import { site } from '../../data/site';
 
     <ul class="nav-links">
       <li>
-        <a class="hoverable link-plain" href="/">首页</a>
+        <a class="hoverable link-plain" href="/">
+          首页
+        </a>
       </li>
       <li>
-        <a class="hoverable link-plain" href="/about/">关于</a>
+        <a class="hoverable link-plain" href="/about/">
+          关于
+        </a>
       </li>
       <li>
-        <a class="hoverable link-plain" href="/projects/">项目</a>
+        <a class="hoverable link-plain" href="/projects/">
+          项目
+        </a>
       </li>
       <li>
-        <a class="hoverable link-plain" href="/posts/">文章</a>
+        <a class="hoverable link-plain" href="/posts/">
+          文章
+        </a>
       </li>
       <li>
-        <a class="hoverable link-plain" href="/friends/">友链</a>
+        <a class="hoverable link-plain" href="/friends/">
+          友链
+        </a>
       </li>
       <li>
-        <a class="hoverable link-plain" href="/sponsor/">赞助</a>
+        <a class="hoverable link-plain" href="/sponsor/">
+          赞助
+        </a>
       </li>
     </ul>
 
@@ -115,7 +127,7 @@ import { site } from '../../data/site';
 <script>
   // 每页加载断点模块，保证 window.__onEnterDesktop 存在：
   // 汉堡菜单脚本只在移动端加载，目录 / 筛选抽屉从全局取共享的断点监听器
-  import '../../assets/js/breakpoint.js';
+  import '../../assets/js/breakpoint';
 
   const mq = window.matchMedia('(max-width: 768px)');
   let loaded = false;
@@ -123,7 +135,7 @@ import { site } from '../../data/site';
   function loadHamburger() {
     if (!loaded) {
       loaded = true;
-      import('../../assets/js/hamburger.js');
+      import('../../assets/js/hamburger');
     }
   }
 

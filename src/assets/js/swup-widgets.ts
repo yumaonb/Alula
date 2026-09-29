@@ -1,5 +1,5 @@
-// swup-widgets.js — 侧边悬浮按钮列运行时控制器（可用性 / 显隐 / 进度环 / 点击）
-// 用法：由 BaseLayout 引入：import "../assets/js/swup-widgets.js"
+// swup-widgets.ts — 侧边悬浮按钮列运行时控制器（可用性 / 显隐 / 进度环 / 点击）
+// 用法：由 BaseLayout 引入：import "../assets/js/swup-widgets"
 // 职责：可用性按页面类型+视口重估（.unavailable/.compact）；滚动驱动显隐（.visible）；
 //       进度环更新（stroke-dashoffset + 百分比文本）；向上/向下/到评论跳转。
 //       目录（#toc-fab）与筛选（#posts-filter-fab）按钮分别由 TocModal / PostsFilterModal 监听。
@@ -8,13 +8,13 @@
 const container = document.getElementById('side-widgets');
 if (container) initSideWidgets(container);
 
-function initSideWidgets(container) {
+function initSideWidgets(container: HTMLElement): void {
   const SHOW_AT = 100; // 滚动超过该值才显示按钮
   const IDLE_RELEASE_MS = 250; // 新内容就绪后等滚动动画启动的窗口，超时按当前位置放行
   const WIDGET_ORDER = ['top', 'toc', 'filter', 'progress', 'comments', 'bottom'];
 
-  const buttons = {};
-  container.querySelectorAll('.back-to-widget').forEach((btn) => {
+  const buttons: Record<string, HTMLElement> = {};
+  container.querySelectorAll<HTMLElement>('.back-to-widget').forEach((btn) => {
     const key = btn.dataset.widget;
     if (key) buttons[key] = btn;
   });
@@ -22,14 +22,14 @@ function initSideWidgets(container) {
   const progressBtn = buttons['progress'];
   const progressBar = progressBtn ? progressBtn.querySelector('.progress-ring-bar') : null;
   const progressText = progressBtn ? progressBtn.querySelector('.progress-text') : null;
-  const available = WIDGET_ORDER.map((k) => buttons[k]).filter(Boolean);
+  const available = WIDGET_ORDER.map((k) => buttons[k]).filter((btn): btn is HTMLElement => !!btn);
 
   let busy = false; // swup 切页挂起：切页开始 → 页面回到顶部/滚动结束 期间为 true
   let scrolling = false; // swup 平滑滚动（scroll plugin）进行中
-  let settleTimer = 0; // 兜底定时器：新内容就绪后平滑滚动若迟迟不开始，按当前位置放行
+  let settleTimer: ReturnType<typeof setTimeout> | null = null; // 兜底定时器：新内容就绪后平滑滚动若迟迟不开始，按当前位置放行
   let rafId = 0;
 
-  function markUnavailable(key, flag) {
+  function markUnavailable(key: string, flag: boolean): void {
     const btn = buttons[key];
     if (btn) btn.classList.toggle('unavailable', !!flag);
   }
@@ -45,7 +45,7 @@ function initSideWidgets(container) {
   }
 
   /** 按页面类型 + 视口宽度重估每个按钮的可用性 */
-  function probe() {
+  function probe(): void {
     const { detail, list, toc, comments } = pageContext();
     const w = window.innerWidth;
 
@@ -61,19 +61,19 @@ function initSideWidgets(container) {
   }
 
   /** 挂起结束：恢复由滚动驱动的正常显隐 */
-  function release() {
+  function release(): void {
     busy = false;
     scrolling = false;
     if (settleTimer) {
       clearTimeout(settleTimer);
-      settleTimer = 0;
+      settleTimer = null;
     }
     container.classList.remove('navigating');
     render(); // 立即按当前滚动位置刷新显隐，避免兜底放行后按钮状态滞后
   }
 
   /** 渲染滚动位置相关的状态：按钮显隐 + 阅读进度环 */
-  function render(scrollY) {
+  function render(scrollY?: number): void {
     const y = typeof scrollY === 'number' ? scrollY : window.scrollY;
 
     // 页面已滚回顶部 → 挂起结束（哪怕平滑滚动只剩收尾，顶部即视为"完全到顶"）
@@ -93,7 +93,7 @@ function initSideWidgets(container) {
     if (progressText) progressText.textContent = `${Math.round(p * 100)}%`;
   }
 
-  function onScroll() {
+  function onScroll(): void {
     if (rafId) return;
     rafId = requestAnimationFrame(() => {
       rafId = 0;
@@ -101,16 +101,16 @@ function initSideWidgets(container) {
     });
   }
 
-  function onResize() {
+  function onResize(): void {
     probe();
     render();
   }
 
   // ---- 点击：目录 / 筛选由抽屉组件监听，这里只处理直接跳转类 ----
-  container.addEventListener('click', (e) => {
-    const btn = e.target && e.target.closest ? e.target.closest('.back-to-widget') : null;
+  container.addEventListener('click', (e: MouseEvent) => {
+    const btn = e.target instanceof Element ? e.target.closest('.back-to-widget') : null;
     if (!btn || btn.classList.contains('unavailable')) return;
-    const key = btn.dataset.widget;
+    const key = (btn as HTMLElement).dataset.widget;
     if (key === 'top') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (key === 'bottom') {
@@ -123,7 +123,7 @@ function initSideWidgets(container) {
 
   /** 内容替换完成后：可用性按新页面重估，但保持压制，
       直到页面滚回顶部 / 滚动动画结束 / 兜底超时，再交还滚动逻辑 */
-  function onContentReplaced() {
+  function onContentReplaced(): void {
     container.classList.add('navigating');
     available.forEach((btn) => btn.classList.remove('visible'));
     probe();
@@ -131,12 +131,12 @@ function initSideWidgets(container) {
     scrolling = false;
     if (settleTimer) {
       clearTimeout(settleTimer);
-      settleTimer = 0;
+      settleTimer = null;
     }
     // 兜底：若 250ms 内平滑滚动尚未开始（切到短页/滚动直接重置等），按当前位置放行，
     // 避免无滚动事件可等时永久挂起；一旦 scroll:start 到来会取消本定时器。
     settleTimer = setTimeout(() => {
-      settleTimer = 0;
+      settleTimer = null;
       if (busy && !scrolling) release();
     }, IDLE_RELEASE_MS);
     render();
@@ -148,7 +148,7 @@ function initSideWidgets(container) {
     scrolling = false;
     if (settleTimer) {
       clearTimeout(settleTimer);
-      settleTimer = 0;
+      settleTimer = null;
     }
     container.classList.add('navigating');
     available.forEach((btn) => btn.classList.remove('visible'));
@@ -161,7 +161,7 @@ function initSideWidgets(container) {
     scrolling = true;
     if (settleTimer) {
       clearTimeout(settleTimer);
-      settleTimer = 0;
+      settleTimer = null;
     } // 已有滚动动画，取消兜底
   });
 

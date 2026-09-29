@@ -1,4 +1,4 @@
-// shell-guard.js — 阻止 swup 跨外壳替换内容（站点页 ↔ 后台页）
+// shell-guard.ts — 阻止 swup 跨外壳替换内容（站点页 ↔ 后台页）
 // 用法：BaseLayout.astro 与 AdminLayout.astro 各 import 一次
 //
 // 站点页与后台页的外壳不同，而 swup 注入在所有页面上、只替换 #swup 里的内容，
@@ -10,15 +10,16 @@
   if (window.__alula_shell_guard) return;
   window.__alula_shell_guard = true;
 
-  const isAdminShell = () => document.getElementById('admin-shell') !== null;
+  const isAdminShell = (): boolean => document.getElementById('admin-shell') !== null;
 
-  const isAdminUrl = (url) => {
+  const isAdminUrl = (url: string): boolean => {
     const { pathname } = new URL(url, window.location.origin);
     return pathname === '/admin' || pathname.startsWith('/admin/');
   };
 
   /** 当前外壳与目标地址对不上：该整页加载，而不是让 swup 换内容 */
-  const mismatched = (url) => isAdminShell() !== isAdminUrl(url ?? window.location.href);
+  const mismatched = (url?: string): boolean =>
+    isAdminShell() !== isAdminUrl(url ?? window.location.href);
 
   window.addEventListener('popstate', (e) => {
     const target = e.state?.url ?? window.location.href;

@@ -1,6 +1,6 @@
-// toc.js — 文章目录：活动高亮、指示竖线移动动画、点击平滑滚动、目录自身滚动隔离
-// 用法：由 TableOfContents.astro 引入：import "../../assets/js/toc.js"
-(function () {
+// toc.ts — 文章目录：活动高亮、指示竖线移动动画、点击平滑滚动、目录自身滚动隔离
+// 用法：由 TableOfContents.astro 引入：import "../../assets/js/toc"
+(() => {
   if (window.__tocInit) return;
   window.__tocInit = true;
 
@@ -8,12 +8,12 @@
   let isClickMode = false;
   let isTrackScrolling = false;
 
-  function getNavOffset() {
-    const nav = document.querySelector('.navbar');
+  function getNavOffset(): number {
+    const nav = document.querySelector<HTMLElement>('.navbar');
     return nav ? nav.offsetHeight + 12 : NAV_HEIGHT;
   }
 
-  function smoothScrollTo(target) {
+  function smoothScrollTo(target: HTMLElement): void {
     const top = target.getBoundingClientRect().top + window.scrollY - getNavOffset();
     if (Math.abs(top - window.scrollY) < 1) return;
     window.scrollTo({ top: top, behavior: 'smooth' });
@@ -21,12 +21,12 @@
 
   let snapBarNext = false;
 
-  function positionBar(useTransition) {
+  function positionBar(useTransition: boolean): void {
     const bar = document.getElementById('toc-bar');
     const activeEl = document.querySelector('.toc-item.active');
     const trackEl = document.getElementById('toc-list');
     if (!bar || !activeEl || !trackEl) return;
-    const linkEl = activeEl.querySelector('.toc-link');
+    const linkEl = activeEl.querySelector<HTMLElement>('.toc-link');
     if (!linkEl) return;
 
     const newTop = linkEl.offsetTop;
@@ -38,53 +38,53 @@
     if (oldTop === null || snapBarNext) {
       snapBarNext = false;
       bar.style.transition = 'none';
-      bar.style.top = newTop + 'px';
-      bar.style.height = newH + 'px';
+      bar.style.top = `${newTop}px`;
+      bar.style.height = `${newH}px`;
       bar.style.opacity = '1';
       return;
     }
 
-    if (Math.abs(newTop - oldTop) < 1 && Math.abs(newH - oldH) < 1) return;
+    if (Math.abs(newTop - oldTop) < 1 && Math.abs(newH - (oldH ?? 0)) < 1) return;
     if (animating && !useTransition) return;
 
     if (isClickMode && !isTrackScrolling) {
       bar.style.transition = 'top 0.15s ease-out, height 0.15s ease-out, opacity 0.2s ease';
-      bar.style.top = newTop + 'px';
-      bar.style.height = newH + 'px';
+      bar.style.top = `${newTop}px`;
+      bar.style.height = `${newH}px`;
       bar.style.opacity = '1';
     } else if (Math.abs(newTop - oldTop) > 1) {
       bar._animating = true;
       bar.style.transition = 'none';
 
       if (newTop > oldTop) {
-        bar.style.top = oldTop + 'px';
-        bar.style.height = newTop + newH - oldTop + 'px';
+        bar.style.top = `${oldTop}px`;
+        bar.style.height = `${newTop + newH - oldTop}px`;
       } else {
-        bar.style.top = newTop + 'px';
-        bar.style.height = oldTop + oldH - newTop + 'px';
+        bar.style.top = `${newTop}px`;
+        bar.style.height = `${oldTop + (oldH ?? 0) - newTop}px`;
       }
       bar.style.opacity = '1';
 
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
           bar.style.transition = 'top 0.12s ease-out, height 0.12s ease-out';
-          bar.style.top = newTop + 'px';
-          bar.style.height = newH + 'px';
-          setTimeout(function () {
+          bar.style.top = `${newTop}px`;
+          bar.style.height = `${newH}px`;
+          setTimeout(() => {
             bar._animating = false;
           }, 130);
         });
       });
     } else if (!animating) {
       bar.style.transition = 'none';
-      bar.style.top = newTop + 'px';
-      bar.style.height = newH + 'px';
+      bar.style.top = `${newTop}px`;
+      bar.style.height = `${newH}px`;
       bar.style.opacity = '1';
     }
   }
 
-  document.addEventListener('click', function (e) {
-    const link = e.target.closest('.toc-link');
+  document.addEventListener('click', (e: MouseEvent) => {
+    const link = e.target instanceof Element ? e.target.closest('.toc-link') : null;
     if (!link) return;
     e.preventDefault();
     const item = link.closest('.toc-item');
@@ -95,23 +95,23 @@
     if (!el) return;
     isClickMode = true;
     smoothScrollTo(el);
-    setTimeout(function () {
+    setTimeout(() => {
       isClickMode = false;
     }, 800);
   });
 
-  let lastActiveSlug = null;
-  let lastScrolledSlug = null;
+  let lastActiveSlug: string | null = null;
+  let lastScrolledSlug: string | null = null;
 
-  function updateToc() {
+  function updateToc(): void {
     const items = document.querySelectorAll('.toc-item');
     if (items.length === 0) return;
 
     const offset = getNavOffset();
     const sy = window.scrollY;
-    let bestSlug = null;
+    let bestSlug: string | null = null;
 
-    items.forEach(function (item) {
+    items.forEach((item) => {
       const slug = item.getAttribute('data-target');
       if (!slug) return;
       const h = document.getElementById(slug);
@@ -125,7 +125,7 @@
 
     if (bestSlug !== lastActiveSlug) {
       lastActiveSlug = bestSlug;
-      items.forEach(function (item) {
+      items.forEach((item) => {
         item.classList.toggle('active', item.getAttribute('data-target') === bestSlug);
       });
     }
@@ -135,7 +135,7 @@
     const trackEl = document.getElementById('toc-list');
     if (!bar || !activeEl || !trackEl) return;
 
-    const linkEl = activeEl.querySelector('.toc-link');
+    const linkEl = activeEl.querySelector<HTMLElement>('.toc-link');
     if (!linkEl) return;
 
     const trackH = trackEl.clientHeight;
@@ -161,9 +161,9 @@
   let raf = false;
   window.addEventListener(
     'scroll',
-    function () {
+    () => {
       if (!raf) {
-        requestAnimationFrame(function () {
+        requestAnimationFrame(() => {
           updateToc();
           raf = false;
         });
@@ -174,7 +174,7 @@
   );
 
   document.addEventListener('DOMContentLoaded', updateToc);
-  document.addEventListener('swup:content:replace', function () {
+  document.addEventListener('swup:content:replace', () => {
     lastActiveSlug = null;
     requestAnimationFrame(updateToc);
   });
@@ -182,12 +182,12 @@
 
   document.addEventListener(
     'scroll',
-    function (e) {
+    (e: Event) => {
       const track = document.getElementById('toc-list');
       if (!track || e.target !== track) return;
       isTrackScrolling = true;
       positionBar(false);
-      setTimeout(function () {
+      setTimeout(() => {
         isTrackScrolling = false;
       }, 50);
     },
@@ -196,23 +196,23 @@
 
   document.addEventListener(
     'wheel',
-    function (e) {
+    (e: WheelEvent) => {
       const track = document.getElementById('toc-list');
-      if (!track || !track.contains(e.target)) return;
+      if (!track || !(e.target instanceof Node) || !track.contains(e.target)) return;
 
       e.preventDefault();
 
       track.scrollTop += e.deltaY;
       isTrackScrolling = true;
       positionBar(false);
-      setTimeout(function () {
+      setTimeout(() => {
         isTrackScrolling = false;
       }, 50);
     },
     { passive: false },
   );
 
-  window.__tocSnap = function () {
+  window.__tocSnap = () => {
     snapBarNext = true;
     updateToc();
   };

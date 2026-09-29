@@ -1,5 +1,5 @@
-// image-fallback.js — 图片加载失败降级：正文图替换为占位块、封面图隐藏
-// 用法：由 BaseLayout 引入：import "../assets/js/image-fallback.js"
+// image-fallback.ts — 图片加载失败降级：正文图替换为占位块、封面图隐藏
+// 用法：由 BaseLayout 引入：import "../assets/js/image-fallback"
 // 扫尾：图片可能在监听器挂上前已出结果，初始化 / swup 切页时都重扫一次
 (() => {
   if (window.__alula_image_fallback_bound) return;
@@ -12,7 +12,7 @@
    * 正文图片替换为占位块：尽量保留原图片占位尺寸，
    * 无尺寸时使用 CSS 的 min-height 兜底。
    */
-  function replaceWithPlaceholder(img) {
+  function replaceWithPlaceholder(img: HTMLImageElement): void {
     if (img.dataset.phReplaced) return;
     img.dataset.phReplaced = '1';
 
@@ -44,7 +44,7 @@
    *   - 正文图片：成功 → 加 .img-loaded 移除占位底；失败 → 替换为占位块。
    * 仍在加载中的图片不在此处理，由下面的捕获监听接管；因此本函数幂等，可重复调用。
    */
-  function initImg(img) {
+  function initImg(img: HTMLImageElement): void {
     if (img.closest('.post-cover, .post-card-cover')) {
       if (img.complete && img.naturalWidth === 0) img.classList.add('img-failed');
       return;
@@ -57,8 +57,8 @@
   }
 
   /** 扫描当前页面所有图片（初始化 / swup 切页后调用） */
-  function scan() {
-    document.querySelectorAll('img').forEach(initImg);
+  function scan(): void {
+    document.querySelectorAll<HTMLImageElement>('img').forEach(initImg);
   }
 
   // 加载成功：在捕获阶段监听 document 即可覆盖全部图片（load 不冒泡，但会经过捕获链），

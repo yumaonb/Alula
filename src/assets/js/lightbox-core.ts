@@ -1,7 +1,8 @@
-// lightbox-core.js — 正文图片 / 详情页封面 灯箱实现（基于 photoswipe）
-// 用法：由 lightbox.js 在首次点击时动态 import('./lightbox-core.js')，连同样式一起懒加载
+// lightbox-core.ts — 正文图片 / 详情页封面 灯箱实现（基于 photoswipe）
+// 用法：由 lightbox.ts 在首次点击时动态 import('./lightbox-core')，连同样式一起懒加载
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import PhotoSwipe from 'photoswipe';
+import type { SlideData } from 'photoswipe';
 import 'photoswipe/style.css';
 import '../css/shared/lightbox.css';
 
@@ -22,16 +23,16 @@ const lightbox = new PhotoSwipeLightbox({
  * 顺序：文章详情页封面图（若有）排在第一位，其后为正文图片（按出现顺序）。
  * 每项带 element（用于从缩略图放大的动画）与宽高（photoswipe 布局必需）。
  */
-function buildDataSource() {
-  const coverImg = document.querySelector('.post-cover img');
-  const imgs = coverImg ? [coverImg] : [];
-  imgs.push(...document.querySelectorAll('.markdown-body img'));
+function buildDataSource(): SlideData[] {
+  const coverImg = document.querySelector<HTMLImageElement>('.post-cover img');
+  const imgs: HTMLImageElement[] = coverImg ? [coverImg] : [];
+  imgs.push(...document.querySelectorAll<HTMLImageElement>('.markdown-body img'));
 
   return imgs.map((img) => {
-    const w = parseInt(img.getAttribute('width'), 10);
-    const h = parseInt(img.getAttribute('height'), 10);
+    const w = parseInt(img.getAttribute('width') ?? '0', 10);
+    const h = parseInt(img.getAttribute('height') ?? '0', 10);
 
-    const item = {
+    const item: SlideData = {
       element: img,
       src: img.currentSrc || img.src,
       alt: img.getAttribute('alt') || '',
@@ -52,13 +53,13 @@ function buildDataSource() {
   });
 }
 
-function openLightbox(img, clickEvent) {
+export function openLightbox(img: HTMLImageElement, clickEvent: MouseEvent): void {
   const dataSource = buildDataSource();
   const index = dataSource.findIndex((item) => item.element === img);
   if (index < 0) return;
 
   const initialPoint =
-    clickEvent && (clickEvent.clientX || clickEvent.clientY)
+    clickEvent.clientX || clickEvent.clientY
       ? { x: clickEvent.clientX, y: clickEvent.clientY }
       : null;
 
@@ -67,7 +68,7 @@ function openLightbox(img, clickEvent) {
 
 // swup 切页时关闭灯箱，避免覆盖层残留
 document.addEventListener('swup:content:replace', () => {
-  if (lightbox.pswp) lightbox.pswp.close();
+  // photoswipe 5.4.4 的类型没声明 pswp 属性（运行时由 _openPhotoswipe 赋值），断言补齐
+  const pswp = (lightbox as PhotoSwipeLightbox & { pswp?: PhotoSwipe | null }).pswp;
+  if (pswp) pswp.close();
 });
-
-export { openLightbox };

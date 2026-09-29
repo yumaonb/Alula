@@ -46,7 +46,7 @@ const { title = '后台' } = Astro.props;
       <div class="admin-content">
         <!--
           顶栏不参与切页：它一直挂在那儿、切页时只有标题文字变了。
-          切页本身是内容直接替换 + 顶部细进度条（见 astro.config.mjs 的 swup 配置）。 -->
+          切页本身是内容直接替换 + 顶部细进度条（见 astro.config.ts 的 swup 配置）。 -->
         <header class="admin-topbar glass">
           <!-- 手机端侧栏从左侧滑出，汉堡跟着放左边（放右边不符合常规） -->
           <button
@@ -94,7 +94,7 @@ const { title = '后台' } = Astro.props;
     <div class="admin-toast" id="admin-toast" role="status" aria-live="polite"></div>
 
     <script>
-      import '../assets/js/shell-guard.js';
+      import '../assets/js/shell-guard';
       import '../assets/js/admin/shell';
       import '../assets/js/admin/pages';
     </script>

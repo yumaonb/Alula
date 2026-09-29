@@ -1,5 +1,5 @@
-// lightbox.js — 灯箱触发入口（懒加载：首次点击才拉取 lightbox-core.js）
-// 用法：由 BaseLayout 引入：import "../assets/js/lightbox.js"
+// lightbox.ts — 灯箱触发入口（懒加载：首次点击才拉取 lightbox-core.ts）
+// 用法：由 BaseLayout 引入：import "../assets/js/lightbox"
 // 点击监听挂在 document 上，swup 切页后的新图片同样生效
 (() => {
   if (window.__alula_lightbox_bound) return;
@@ -18,7 +18,7 @@
     e.preventDefault();
 
     // 懒加载：首次点击才拉取灯箱实现
-    import('./lightbox-core.js')
+    import('./lightbox-core')
       .then((m) => m.openLightbox(target, e))
       .catch((err) => console.error('[lightbox] load failed:', err));
   });

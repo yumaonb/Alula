@@ -1,32 +1,32 @@
 <!-- PostsFilterModal.svelte — 分类与标签筛选抽屉
      用法：<PostsFilterModal client:idle />（BaseLayout 中，#swup 之外，只水合一次）
      入口：#posts-filter-fab 按钮点击打开；打开时把 sidebar-filter 移入抽屉展示 -->
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
-  
+
   let isOpen = $state(false);
-  let lastFocus = null;
-  let filterRoot = null;
-  let sidebar = null;
-  let modalEl;
+  let lastFocus: HTMLElement | null = null;
+  let filterRoot: Element | null = null;
+  let sidebar: HTMLElement | null = null;
+  let modalEl: HTMLDivElement | null = null;
 
   /** 关闭抽屉并将 sidebar-filter 还原到侧边栏 */
-  function close() {
+  function close(): void {
     if (!isOpen) return;
     isOpen = false;
     document.body.style.overflow = '';
     if (sidebar && filterRoot) sidebar.appendChild(filterRoot);
-    lastFocus?.focus?.();
+    lastFocus?.focus();
   }
 
-  function open() {
+  function open(): void {
     if (isOpen) return;
-    sidebar = document.querySelector('.posts-sidebar');
+    sidebar = document.querySelector<HTMLElement>('.posts-sidebar');
     filterRoot = sidebar?.querySelector('.sidebar-filter') || sidebar;
     if (!filterRoot?.children.length) return;
 
     isOpen = true;
-    lastFocus = document.activeElement;
+    lastFocus = document.activeElement as HTMLElement | null;
     const body = modalEl?.querySelector('.pfilter-modal-body');
     if (body && filterRoot) body.appendChild(filterRoot);
     document.body.style.overflow = 'hidden';
@@ -36,15 +36,17 @@
     });
   }
 
-  function onMaskClick(e) {
-    if (e.target?.closest?.('[data-pfilter-close]')) {
+  function onMaskClick(e: MouseEvent): void {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+    if (target.closest('[data-pfilter-close]')) {
       close();
       return;
     }
-    if (e.target?.closest?.('.cat-item') || e.target?.closest?.('.chip')) close();
+    if (target.closest('.cat-item') || target.closest('.chip')) close();
   }
 
-  function onKeydown(e) {
+  function onKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape' && isOpen) close();
   }
 
@@ -55,12 +57,12 @@
     if (fab) fab.addEventListener('click', open);
 
     // swup 切页时关闭抽屉（组件在 BaseLayout 中，不会被销毁，无需移除 modalEl）
-    function onVisitStart() {
+    function onVisitStart(): void {
       close();
     }
     document.addEventListener('swup:visit:start', onVisitStart);
 
-    function onEnterDesktop() {
+    function onEnterDesktop(): void {
       if (isOpen) close();
     }
     if (typeof window.__onEnterDesktop === 'function') {
@@ -107,7 +109,12 @@
         </svg>
         分类与标签
       </span>
-      <button class="pfilter-modal-close hoverable" data-pfilter-close aria-label="关闭筛选" onclick={close}>
+      <button
+        class="pfilter-modal-close hoverable"
+        data-pfilter-close
+        aria-label="关闭筛选"
+        onclick={close}
+      >
         <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
           <path
             d="M7.219 5.781L5.78 7.22L14.563 16L5.78 24.781l1.44 1.439L16 17.437l8.781 8.782l1.438-1.438L17.437 16l8.782-8.781L24.78 5.78L16 14.563z"
@@ -219,7 +226,7 @@
     height: 16px;
   }
 
-    .pfilter-modal-body {
+  .pfilter-modal-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;

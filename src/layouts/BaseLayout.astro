@@ -67,9 +67,9 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
       </main>
       <Footer />
     </div>
-    <!-- 侧边悬浮按钮列：静态标记，运行时（可用性/显隐/进度）由 swup-widgets.js 控制 -->
+    <!-- 侧边悬浮按钮列：静态标记，运行时（可用性/显隐/进度）由 swup-widgets.ts 控制 -->
     <SideWidgets />
-    <!-- 正文图片占位图标模板：隐藏不占位，图片加载失败时由 image-fallback.js 克隆 -->
+    <!-- 正文图片占位图标模板：隐藏不占位，图片加载失败时由 image-fallback.ts 克隆 -->
     <div id="alula-img-ph-icon" hidden>
       <Icon name="mdi:image-off-outline" />
     </div>
@@ -77,16 +77,16 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
     <PostsFilterModal client:idle />
     <CustomScrollbar />
     <script>
-      import '../assets/js/swup-widgets.js';
+      import '../assets/js/swup-widgets';
     </script>
     <script>
-      import '../assets/js/image-fallback.js';
+      import '../assets/js/image-fallback';
     </script>
     <script>
-      import '../assets/js/lightbox.js';
+      import '../assets/js/lightbox';
     </script>
     <script>
-      import '../assets/js/shell-guard.js';
+      import '../assets/js/shell-guard';
     </script>
   </body>
 </html>

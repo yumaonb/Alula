@@ -1,6 +1,6 @@
-// scrollbar.js — 自定义悬浮滚动条（鼠标拖动 / 点击轨道 / hover 定位）
-// 用法：由 CustomScrollbar.astro 引入：import "../../assets/js/scrollbar.js"
-(function () {
+// scrollbar.ts — 自定义悬浮滚动条（鼠标拖动 / 点击轨道 / hover 定位）
+// 用法：由 CustomScrollbar.astro 引入：import "../../assets/js/scrollbar"
+(() => {
   const container = document.getElementById('custom-scrollbar');
   const track = document.getElementById('scrollbar-track');
   const thumb = document.getElementById('scrollbar-thumb');
@@ -10,25 +10,23 @@
   let isDragging = false;
   let startY = 0;
   let startScrollTop = 0;
-  let hideTimer = null;
+  let hideTimer: ReturnType<typeof setTimeout> | undefined;
   const HIDE_DELAY = 1500;
 
-  function hasScroll() {
-    return document.documentElement.scrollHeight > window.innerHeight + 2;
-  }
+  const hasScroll = (): boolean => document.documentElement.scrollHeight > window.innerHeight + 2;
 
-  function showScrollbar() {
+  const showScrollbar = (): void => {
     container.classList.add('visible');
-  }
+  };
 
-  function scheduleHide() {
+  const scheduleHide = (): void => {
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(function () {
+    hideTimer = setTimeout(() => {
       if (!isDragging) container.classList.remove('visible');
     }, HIDE_DELAY);
-  }
+  };
 
-  function updateScrollbar() {
+  const updateScrollbar = (): void => {
     if (!hasScroll()) {
       container.classList.remove('visible');
       return;
@@ -43,14 +41,14 @@
     );
     const thumbTop = (scrollTop / docHeight) * (trackHeight - thumbHeight);
 
-    thumb.style.height = thumbHeight + 'px';
-    thumb.style.transform = 'translateY(' + thumbTop + 'px)';
+    thumb.style.height = `${thumbHeight}px`;
+    thumb.style.transform = `translateY(${thumbTop}px)`;
 
     showScrollbar();
     scheduleHide();
-  }
+  };
 
-  function onMouseDown(e) {
+  const onMouseDown = (e: MouseEvent): void => {
     e.preventDefault();
     isDragging = true;
     startY = e.clientY;
@@ -58,9 +56,9 @@
     document.body.style.userSelect = 'none';
     thumb.classList.add('active');
     clearTimeout(hideTimer);
-  }
+  };
 
-  function onMouseMove(e) {
+  const onMouseMove = (e: MouseEvent): void => {
     if (!isDragging) return;
     const deltaY = e.clientY - startY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -68,41 +66,41 @@
     const thumbHeight = thumb.clientHeight;
     const scrollDelta = (deltaY / (trackHeight - thumbHeight)) * docHeight;
     window.scrollTo(0, startScrollTop + scrollDelta);
-  }
+  };
 
-  function onMouseUp() {
+  const onMouseUp = (): void => {
     if (!isDragging) return;
     isDragging = false;
     document.body.style.userSelect = '';
     thumb.classList.remove('active');
     scheduleHide();
-  }
+  };
 
   // 用不可见的悬停触发区替代全局 mousemove 监听
   if (hoverZone) {
-    hoverZone.addEventListener('mouseenter', function () {
+    hoverZone.addEventListener('mouseenter', () => {
       if (!isDragging && hasScroll()) {
         clearTimeout(hideTimer);
         showScrollbar();
       }
     });
-    hoverZone.addEventListener('mouseleave', function () {
+    hoverZone.addEventListener('mouseleave', () => {
       if (!isDragging) scheduleHide();
     });
   }
 
-  container.addEventListener('mouseenter', function () {
+  container.addEventListener('mouseenter', () => {
     if (!isDragging) {
       clearTimeout(hideTimer);
       showScrollbar();
     }
   });
 
-  container.addEventListener('mouseleave', function () {
+  container.addEventListener('mouseleave', () => {
     if (!isDragging) scheduleHide();
   });
 
-  track.addEventListener('click', function (e) {
+  track.addEventListener('click', (e: MouseEvent) => {
     if (e.target === thumb) return;
     const rect = track.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
@@ -119,7 +117,7 @@
   window.addEventListener('scroll', updateScrollbar, { passive: true });
   window.addEventListener('resize', updateScrollbar, { passive: true });
 
-  document.addEventListener('swup:content:replace', function () {
+  document.addEventListener('swup:content:replace', () => {
     requestAnimationFrame(updateScrollbar);
   });
 

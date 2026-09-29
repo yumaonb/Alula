@@ -1,26 +1,28 @@
 <!-- AdminChanges.svelte — 待提交改动面板（后台布局常驻岛，swup 切页不消失）
      用法：<AdminChanges client:idle />（AdminLayout 中，#swup 之外，只水合一次） -->
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
 
   import { commitStaged } from '../../assets/js/admin/github';
-  import { adminStore } from '../../assets/js/admin/store';
+  import { adminStore, type StagedChange } from '../../assets/js/admin/store';
 
   let connected = $state(false);
-  let changes = $state([]);
+  let changes = $state<StagedChange[]>([]);
   let message = $state('');
   let busy = $state(false);
   let open = $state(false);
-  let result = $state(null);
+  let result = $state<
+    { ok: true; url: string; count: number } | { ok: false; text: string } | null
+  >(null);
 
   /** 变更类型文案：原始为空是新增，新内容为空是删除 */
-  function statusOf(change) {
+  function statusOf(change: StagedChange): string {
     if (change.original === null) return '新增';
     if (change.content === null) return '删除';
     return '修改';
   }
 
-  async function submit() {
+  async function submit(): Promise<void> {
     if (busy || changes.length === 0) return;
     busy = true;
     result = null;
@@ -37,7 +39,7 @@
       result = { ok: true, url: info.commitUrl, count: info.count };
     } catch (err) {
       adminStore.setCommitting(false);
-      result = { ok: false, text: err?.message ?? '提交失败' };
+      result = { ok: false, text: err instanceof Error ? err.message : '提交失败' };
     } finally {
       busy = false;
     }

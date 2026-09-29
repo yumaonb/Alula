@@ -1,8 +1,8 @@
 // background.ts — 全站背景设置（唯一编辑点）
 // 用法：import { background } from "../../data/background"
 //
-// 改完要重启 pnpm dev 才生效：本文件在构建「配置阶段」就被 astro.config.mjs 读取，
-// 用来决定把哪个预设文件编进产物（见 astro.config.mjs 里的 backgroundPreset 插件）。
+// 改完要重启 pnpm dev 才生效：本文件在构建「配置阶段」就被 astro.config.ts 读取，
+// 用来决定把哪个预设文件编进产物（见 astro.config.ts 里的 backgroundPreset 插件）。
 // pnpm build 每次都是新进程，不受影响。
 
 export interface BackgroundConfig {

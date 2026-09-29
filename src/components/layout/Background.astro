@@ -2,21 +2,22 @@
 // Background.astro — 全站背景容器
 // 用法：<BaseLayout> 的 <body> 里放一个 <Background />（无 props）
 // 方案由 src/data/background.ts 决定：css 走 assets/backgrounds/css/，image 走 assets/backgrounds/images/。
-// 未选中的预设不会被编进产物，机制见 astro.config.mjs 里的 backgroundPreset 插件。
+// 未选中的预设不会被编进产物，机制见 astro.config.ts 里的 backgroundPreset 插件。
 import { getImage } from 'astro:assets';
 import preset from 'virtual:background';
 import { background } from '../../data/background';
 
 if (background.type === 'image' && !preset) {
   throw new Error(
-    '[background] 图片方案没有拿到图片，请核对 src/data/background.ts 的 path 与 astro.config.mjs 的 backgroundPreset 插件',
+    '[background] 图片方案没有拿到图片，请核对 src/data/background.ts 的 path 与 astro.config.ts 的 backgroundPreset 插件',
   );
 }
 
 // 图片方案：构建期转 webp 并出指纹路径；css 方案 preset 为 null，不产生任何额外样式
-const optimized = background.type === 'image' && preset
-  ? await getImage({ src: preset, width: 1920, format: 'webp' })
-  : null;
+const optimized =
+  background.type === 'image' && preset
+    ? await getImage({ src: preset, width: 1920, format: 'webp' })
+    : null;
 
 // 铺图固定为「高度撑满 + 宽度取大者」，不接受配置，因此只需要把图片宽高比交给 CSS：
 // global.css 用 max(100%, 100lvh * ratio) 决定横向是拉伸填满还是裁剪，换图片自动跟着变。
@@ -31,4 +32,8 @@ const vars = optimized
   : '';
 ---
 
-<div class:list={['bg', optimized && 'bg--image']} style={vars || undefined} aria-hidden="true"></div>
+<div
+  class:list={['bg', optimized && 'bg--image']}
+  style={vars || undefined}
+  aria-hidden="true"
+></div>
