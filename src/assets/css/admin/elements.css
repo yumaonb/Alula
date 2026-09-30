@@ -216,10 +216,6 @@ select.input option {
   transition: border-color 0.15s ease;
 }
 
-.row:focus-within {
-  border-color: rgba(255, 255, 255, 0.22);
-}
-
 .row > .input {
   flex: 1;
   min-width: 0;

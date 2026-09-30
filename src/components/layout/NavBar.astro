@@ -255,19 +255,25 @@ import { site } from '../../data/site';
     border-top: 1px solid transparent;
     transition:
       max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 0.25s ease;
+      /* 收回时顶线先保持（菜单收合的主体阶段），再随尾部一起淡出、
+         总时长与 max-height 对齐：线要等菜单滑回顶栏重合后才消失 */
+      border-color 0.2s ease 0.2s;
   }
 
   .mobile-dropdown.is-open {
     max-height: 380px;
     border-top-color: rgba(255, 255, 255, 0.12);
+    transition:
+      max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.25s ease; /* 展开时线随菜单立即出现 */
   }
 
   /* 切页收起：用 0.2s 快于常规 0.4s 的收起，内容替换后菜单不残留 */
   .mobile-dropdown.is-closing-nav {
     transition:
       max-height 0.2s ease,
-      border-color 0.15s ease;
+      /* 同常规收回：线先保持、随菜单尾部淡出（合计 0.2s） */
+      border-color 0.1s ease 0.1s;
   }
 
   .mobile-overlay.is-closing-nav {
