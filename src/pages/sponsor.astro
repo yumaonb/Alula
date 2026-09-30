@@ -89,14 +89,14 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   /* 页头标题 / 描述的内容排版（原全站公共类，按「元件才算公共」收回到本页） */
   .header-title {
     font-size: 2rem;
-    color: #fff;
+    color: var(--hover-ink);
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     margin: 0 0 8px;
   }
 
   .header-desc {
     font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text);
   }
 
   /* ---- 主赞助卡片 ---- */
@@ -131,23 +131,23 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--color-text);
   }
 
   .hero-name {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--hover-ink);
   }
 
   .hero-desc {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--color-text);
   }
 
   .hero-arrow {
     flex-shrink: 0;
-    color: rgba(255, 255, 255, 0.2);
+    color: var(--icon-ink);
     transition:
       transform 0.3s ease,
       color 0.3s ease;
@@ -159,7 +159,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   }
 
   .hero-card:hover .hero-arrow {
-    color: var(--hover-ink);
+    color: var(--icon-hover);
   }
 
   /* ---- 其他支持方式 ---- */
@@ -193,7 +193,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--color-text);
     white-space: nowrap;
   }
 
@@ -222,7 +222,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     flex-shrink: 0;
     width: 26px;
     height: 26px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--icon-ink);
     transition: color 0.25s ease;
   }
 
@@ -232,7 +232,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   }
 
   .grid-card:hover .grid-icon {
-    color: var(--hover-ink);
+    color: var(--icon-hover);
   }
 
   .grid-body {
@@ -245,12 +245,12 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   .grid-title {
     font-size: 0.88rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--color-text);
   }
 
   .grid-desc {
     font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.35);
+    color: var(--color-text);
   }
 
   .action-card {
@@ -269,12 +269,12 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     flex-shrink: 0;
     width: 22px;
     height: 22px;
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--icon-ink);
     transition: color 0.25s ease;
   }
 
   .action-card:hover .action-icon {
-    color: var(--hover-ink);
+    color: var(--icon-hover);
   }
 
   .action-icon :global(svg) {
@@ -293,12 +293,12 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   .action-title {
     font-size: 0.88rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--color-text);
   }
 
   .action-desc {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.35);
+    color: var(--color-text);
   }
 
   /* ---- 手机端适配 ---- */

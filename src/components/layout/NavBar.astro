@@ -174,14 +174,14 @@ import { site } from '../../data/site';
     font-size: 1.2rem;
     font-weight: 700;
     letter-spacing: 0.03em;
-    color: #fff;
+    color: var(--hover-ink);
     white-space: nowrap;
   }
 
   .nav-home-icon {
     width: 1.15em;
     height: 1.15em;
-    color: inherit;
+    color: var(--icon-hover);
   }
 
   /* 桌面端链接 */
@@ -196,7 +196,7 @@ import { site } from '../../data/site';
     padding: 8px 20px;
     font-size: 0.95rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--icon-ink);
     border-radius: var(--radius);
     overflow: hidden;
   }
@@ -224,7 +224,7 @@ import { site } from '../../data/site';
     transition:
       opacity 0.3s ease,
       transform 0.3s ease;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--icon-hover);
   }
 
   .icon-bars :global(svg),
@@ -365,7 +365,7 @@ import { site } from '../../data/site';
     height: 48px;
     font-size: 0.88rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.78);
+    color: var(--icon-ink);
     border-radius: 0;
     border: none;
     text-decoration: none;
@@ -382,7 +382,7 @@ import { site } from '../../data/site';
   .mobile-link-icon {
     width: 17px;
     height: 17px;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--icon-ink);
     flex-shrink: 0;
     transition: color 0.15s;
   }
@@ -390,7 +390,7 @@ import { site } from '../../data/site';
   .mobile-link-arrow {
     width: 14px;
     height: 14px;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--icon-ink);
     flex-shrink: 0;
     transition:
       color 0.15s,
@@ -404,7 +404,7 @@ import { site } from '../../data/site';
 
   .mobile-link:hover .mobile-link-icon,
   .mobile-link:hover .mobile-link-arrow {
-    color: var(--hover-ink);
+    color: var(--icon-hover);
   }
 
   .mobile-link:hover .mobile-link-arrow {
@@ -415,7 +415,7 @@ import { site } from '../../data/site';
   .mobile-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--mask);
     z-index: 90;
     opacity: 0;
     pointer-events: none;

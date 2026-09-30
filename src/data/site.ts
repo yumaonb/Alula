@@ -14,8 +14,6 @@ export interface SiteConfig {
   footerNote: string;
   /** 语言 */
   lang: string;
-  /** 主题色 */
-  colorScheme: 'dark' | 'light';
 }
 
 export const site: SiteConfig = {
@@ -26,5 +24,4 @@ export const site: SiteConfig = {
   footerNote:
     '由 <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> 和 <a href="https://svelte.dev" target="_blank" rel="noopener noreferrer">Svelte</a> 驱动',
   lang: 'zh-CN',
-  colorScheme: 'dark',
 };

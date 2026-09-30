@@ -3,7 +3,7 @@
 // 用法：路由 /admin/settings/site/
 //
 // 这一页只管全站级的元信息与页脚，不碰任何单个前端页面自己的内容。
-// 语言与主题色会影响 <html lang> / <html color-scheme>，也就是整站外壳。
+// 语言会影响 <html lang>，也就是整站外壳。
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { Icon } from 'astro-icon/components';
 ---
@@ -50,13 +50,6 @@ import { Icon } from 'astro-icon/components';
             placeholder="zh-CN"
             autocomplete="off"
           />
-        </label>
-        <label class="field">
-          <span class="field-label">主题色</span>
-          <select class="input" id="admin-site-scheme">
-            <option value="dark">深色 (dark)</option>
-            <option value="light">浅色 (light)</option>
-          </select>
         </label>
       </div>
       <label class="field">

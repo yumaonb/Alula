@@ -252,7 +252,7 @@
     backdrop-filter: blur(var(--blur));
     -webkit-backdrop-filter: blur(var(--blur));
     box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 0 0 1px var(--ring),
       0 4px 16px rgba(0, 0, 0, 0.2);
     transition:
       box-shadow 0.25s ease,
@@ -260,9 +260,9 @@
   }
 
   .post-search:focus-within {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--hover-bg);
     box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+      inset 0 0 0 1px var(--focus-line),
       0 4px 16px rgba(0, 0, 0, 0.2);
   }
 
@@ -273,7 +273,7 @@
     justify-content: center;
     width: 13px;
     height: 13px;
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--icon-ink);
     flex-shrink: 0;
   }
 
@@ -289,13 +289,13 @@
     border: none;
     outline: none;
     background: transparent;
-    color: #fff;
+    color: var(--hover-ink);
     font: inherit;
     font-size: 0.88rem;
   }
 
   .post-search-input::placeholder {
-    color: rgba(255, 255, 255, 0.35);
+    color: var(--color-text);
   }
 
   .post-search-input::-webkit-search-cancel-button {
@@ -313,7 +313,7 @@
     border: none;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--icon-ink);
     cursor: pointer;
   }
 
@@ -374,7 +374,7 @@
   :global(.psd-item-title) {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #fff;
+    color: var(--hover-ink);
     line-height: 1.4;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -384,7 +384,7 @@
   :global(.psd-item-excerpt) {
     font-size: 0.78rem;
     line-height: 1.55;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text);
     display: -webkit-box;
     line-clamp: 2;
     -webkit-line-clamp: 2;
@@ -394,7 +394,7 @@
 
   :global(.psd-item-excerpt mark) {
     background: rgba(255, 255, 255, 0.18);
-    color: #fff;
+    color: var(--icon-hover);
     border-radius: 3px;
     padding: 0 2px;
   }
@@ -403,7 +403,7 @@
     flex-shrink: 0;
     padding: 20px 12px;
     font-size: 0.76rem;
-    color: rgba(255, 255, 255, 0.35);
+    color: var(--color-text);
     text-align: center;
   }
 </style>

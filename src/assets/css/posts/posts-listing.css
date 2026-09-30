@@ -24,7 +24,7 @@
 .posts-title,
 .category-title {
   font-size: 1.6rem;
-  color: #fff;
+  color: var(--hover-ink);
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
@@ -68,13 +68,13 @@
    否则 flex 居中后两者不在同一水平线上 */
 .title-count-sep {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--color-text);
   font-weight: 400;
 }
 
 .posts-count {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text);
   padding-left: 4px;
 }
 
@@ -104,7 +104,7 @@
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--icon-ink);
   font: inherit;
   font-size: 0.82rem;
   text-align: left;
@@ -114,12 +114,12 @@
 }
 
 .cat-item:hover {
-  color: var(--hover-ink);
+  color: var(--icon-hover);
 }
 
 /* 活跃分类 */
 .cat-item--active {
-  color: var(--hover-ink);
+  color: var(--icon-hover);
 }
 
 .cat-name {

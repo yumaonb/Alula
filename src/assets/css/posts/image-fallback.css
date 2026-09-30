@@ -19,7 +19,7 @@
   position: relative;
 }
 
-/* 封面占位图标：白色、居中、弱化 */
+/* 封面占位图标：白色、居中、弱化（无状态恒定全白，走 --icon-hover） */
 .cover-ph-icon {
   position: absolute;
   inset: 0;
@@ -27,7 +27,7 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  color: #fff;
+  color: var(--icon-hover);
   opacity: 0.5;
 }
 
@@ -117,11 +117,11 @@
   cursor: default;
 }
 
-/* 占位图标：白色，居中（容器 flex 居中） */
+/* 占位图标：白色，居中（容器 flex 居中）；无状态恒定全白，走 --icon-hover */
 .img-ph svg {
   width: 46px;
   height: 46px;
-  color: #fff;
+  color: var(--icon-hover);
   opacity: 0.75;
   flex-shrink: 0;
 }

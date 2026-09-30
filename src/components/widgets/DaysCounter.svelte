@@ -110,7 +110,7 @@
   .stat-label {
     display: block;
     font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text);
     margin-bottom: 6px;
     white-space: nowrap;
   }
@@ -119,7 +119,7 @@
     display: block;
     font-size: 1.35rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--hover-ink);
     line-height: 1.3;
   }
 </style>

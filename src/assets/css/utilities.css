@@ -40,7 +40,7 @@
 .hoverable.hoverable:hover,
 .hoverable.hoverable:focus-visible {
   --ring: var(--hover-line);
-  color: var(--hover-ink);
+  color: var(--icon-hover);
   background: var(--hover-bg);
   border-color: var(--hover-line);
 }
@@ -48,7 +48,7 @@
 .hoverable.hoverable.chip--active,
 .hoverable.hoverable.psd-item--active,
 .hoverable.hoverable.cat-item--active {
-  color: var(--hover-ink);
+  color: var(--icon-hover);
   background: var(--active-bg);
   border-color: var(--hover-line);
 }

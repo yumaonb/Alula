@@ -58,7 +58,7 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
     margin-top: 32px;
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.88);
+    color: var(--color-text);
     position: relative;
     overflow: hidden;
   }
@@ -71,20 +71,20 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
   .repost-title {
     font-size: 1rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--hover-ink);
     margin: 0 0 6px 0;
   }
   .repost-url {
     display: block;
     font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--icon-ink);
     text-decoration: none;
     word-break: break-all;
     margin-bottom: 12px;
   }
 
   .repost-url:hover {
-    color: var(--hover-ink);
+    color: var(--icon-hover);
   }
   .repost-meta {
     display: flex;
@@ -99,23 +99,23 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
   }
   .repost-meta-label {
     font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text);
     line-height: 1.2;
   }
   .repost-meta-value {
     font-size: 0.85rem;
     line-height: 1.2;
-    color: rgba(255, 255, 255, 0.88);
+    color: var(--color-text);
     text-decoration: none;
     transition: color 0.2s;
   }
   .repost-license {
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--icon-ink);
     text-decoration: none;
   }
 
   .repost-license:hover {
-    color: var(--hover-ink);
+    color: var(--icon-hover);
   }
   .repost-cc-icon {
     position: absolute;

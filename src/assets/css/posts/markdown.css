@@ -1,8 +1,10 @@
-/* markdown.css — Markdown 渲染内容样式 */
+/* markdown.css — Markdown 渲染内容样式
+ * 取色原则：能用全局令牌（--color-text / --hover-ink / --icon-hover / --ring 等）就用，
+ * 没有合适令牌的正文局部值写死在本文件，不外溢。 */
 
 /* ---- 基础排版 ---- */
 .markdown-body {
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--color-text);
   font-size: 1rem;
   line-height: 1.85;
   word-wrap: break-word;
@@ -16,7 +18,7 @@
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  color: #fff;
+  color: var(--hover-ink);
   font-weight: 700;
   line-height: 1.4;
   margin-top: 1.8em;
@@ -41,7 +43,7 @@
 }
 .markdown-body h6 {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--color-text);
 }
 
 /* ---- 段落 ---- */
@@ -54,7 +56,7 @@
 
 /* ---- 粗体 & 斜体 ---- */
 .markdown-body strong {
-  color: #fff;
+  color: var(--hover-ink);
   font-weight: 700;
 }
 .markdown-body em {
@@ -69,13 +71,13 @@
   padding: 2px 7px;
   font-size: 0.88em;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--color-text);
 }
 
 /* ---- 代码块 ---- */
 .markdown-body pre {
   background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ring);
   border-radius: 8px;
   padding: 1em 1.2em;
   margin: 1.2em 0;
@@ -89,7 +91,7 @@
   border: none;
   padding: 0;
   font-size: 1em;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--color-text);
 }
 
 /* ---- 引用 ---- */
@@ -99,7 +101,7 @@
   border-left: 4px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.03);
   border-radius: 0 8px 8px 0;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--color-text);
 }
 
 .markdown-body blockquote p {
@@ -163,12 +165,12 @@
 .markdown-body td {
   padding: 10px 16px;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--ring);
   font-size: 0.92em;
 }
 
 .markdown-body th {
-  color: #fff;
+  color: var(--hover-ink);
   font-weight: 600;
 }
 
@@ -203,7 +205,7 @@
   padding-top: 1em;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 0.88em;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text);
 }
 
 /* ---- 手机端适配 ---- */

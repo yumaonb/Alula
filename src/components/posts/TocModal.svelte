@@ -169,7 +169,7 @@
   .toc-modal-mask {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--mask);
     opacity: 0;
     transition: opacity 0.25s ease;
   }
@@ -219,7 +219,7 @@
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--color-text);
   }
 
   .toc-modal-title-icon {
@@ -243,7 +243,7 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--icon-ink);
     cursor: pointer;
   }
 

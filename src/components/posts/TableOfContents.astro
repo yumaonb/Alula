@@ -77,7 +77,7 @@ if (hasH1 && hasH2) {
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text);
   }
 
   .toc-icon {
@@ -134,7 +134,7 @@ if (hasH1 && hasH2) {
     padding: 6px 10px;
     font-size: 0.8rem;
     line-height: 1.45;
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--icon-ink);
     text-decoration: none;
     border-radius: 4px;
     cursor: pointer;
@@ -145,24 +145,24 @@ if (hasH1 && hasH2) {
   .toc-sub .toc-link {
     padding-left: 24px;
     font-size: 0.76rem;
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--icon-ink);
   }
 
-  /* 悬停不走全站 .hoverable（那会加白底描边并提亮到纯白）：
-   * 只提亮文字、不要轮廓，亮度停在静止色与活动项（0.95）之间。
-   * 两条都排在 .active 规则之前，悬停在活动项上时仍保持 0.95。 */
+  /* 悬停不走全站 .hoverable（那会加白底描边）：
+   * 只提亮文字、不要轮廓，统一走亮色令牌。
+   * 两条都排在 .active 规则之前，悬停在活动项上时规则一致。 */
   .toc-link:hover,
   .toc-link:focus-visible {
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--icon-hover);
   }
 
   .toc-sub .toc-link:hover,
   .toc-sub .toc-link:focus-visible {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--icon-hover);
   }
 
   .toc-item.active .toc-link {
-    color: rgba(255, 255, 255, 0.95);
+    color: var(--icon-hover);
     font-weight: 500;
   }
 

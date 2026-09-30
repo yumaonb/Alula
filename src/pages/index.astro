@@ -122,14 +122,14 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 
   .nickname {
     font-size: 2rem;
-    color: #fff;
+    color: var(--hover-ink);
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     letter-spacing: 0.05em;
   }
 
   .motto {
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text);
     letter-spacing: 0.25em;
   }
 
@@ -145,7 +145,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 
   .intro-about {
     font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-text);
     line-height: 1.7;
   }
 
@@ -161,7 +161,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    color: #fff;
+    color: var(--icon-ink);
     font: inherit;
     text-decoration: none;
     background: transparent;
@@ -174,11 +174,13 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
   }
 
   /* 按钮内图标 22px。选择器带 .glass-btn 作用域：后台矩形按钮图标 14px
-   * 在 admin/admin.css 的 .btn .btn-icon 里定义，两边互不干扰 */
+   * 在 admin/admin.css 的 .btn .btn-icon 里定义，两边互不干扰。
+   * 颜色走 currentColor：静止取 --icon-ink，悬停时 .hoverable 把按钮文字色
+   * 提到 --hover-ink，图标跟着一起变亮，和其他图标行为一致 */
   .glass-btn .btn-icon {
     width: 22px;
     height: 22px;
-    fill: rgba(255, 255, 255, 0.8);
+    fill: currentColor;
   }
 
   .social-row {

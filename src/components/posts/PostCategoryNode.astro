@@ -96,7 +96,7 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
     border: none;
     border-radius: 5px;
     background: transparent;
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--icon-ink);
     cursor: pointer;
     transition: color 0.15s ease;
   }
@@ -112,7 +112,7 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
   }
 
   .cat-node--open > .cat-row .cat-toggle {
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--icon-hover);
   }
 
   /* 子分类展开动画：grid-template-rows 精确贴合实际高度 */
@@ -138,14 +138,5 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
 
   .cat-node--open > .cat-children-wrap > .cat-children {
     opacity: 1;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .cat-children {
-      transition: none;
-    }
-    .cat-toggle-icon {
-      transition: none;
-    }
   }
 </style>

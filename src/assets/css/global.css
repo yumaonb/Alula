@@ -48,7 +48,7 @@ a {
  * 不用再到这个选择器里追加 :not(.xxx)——加一个类，下面三条规则同时生效。
  * .link-plain 只是个标记类，本身不产生样式。 */
 a:not(.link-plain) {
-  color: #fff;
+  color: var(--hover-ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
@@ -60,7 +60,7 @@ a:not(.link-plain) {
 
 a:not(.link-plain):hover,
 a:not(.link-plain):focus-visible {
-  color: var(--hover-ink);
+  color: var(--icon-hover);
   text-decoration-color: currentColor;
 }
 
@@ -167,7 +167,7 @@ ol {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(var(--blur));
   -webkit-backdrop-filter: blur(var(--blur));
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--icon-ink);
   cursor: pointer;
   opacity: 0;
   transform: translateX(80px);
@@ -209,7 +209,7 @@ ol {
 }
 
 .back-to-widget:hover {
-  color: var(--hover-ink);
+  color: var(--icon-hover);
   background: var(--hover-bg);
   border-color: var(--hover-line);
 }

@@ -205,19 +205,20 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     height: 1.15em;
     min-height: 16px;
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.85);
-    transition: background 0.06s ease;
+    background: var(--icon-hover);
+    opacity: 0.85;
+    transition: opacity 0.06s ease;
   }
 
   .post-card-head:has(.post-card-title-link:hover) .post-card-accent {
-    background: #fff;
+    opacity: 1;
   }
 
   .post-card-pin {
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
-    color: #fff;
+    color: var(--icon-hover);
   }
 
   .pin-icon {
@@ -228,7 +229,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
   .post-card-title {
     font-size: 1.3rem;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--color-text);
     line-height: 1.4;
     margin: 0;
     flex: 1;
@@ -250,7 +251,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
 
   /* 悬停时标题变纯白 */
   .post-card-title-link:hover {
-    color: var(--hover-ink);
+    color: var(--icon-hover);
   }
 
   /* ---- 元信息行：日期 / 分类 / 评论数（图标与详情页一致） ---- */
@@ -279,7 +280,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     align-items: center;
     gap: 5px;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text);
     white-space: nowrap;
   }
 
@@ -308,25 +309,25 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
   }
 
   .post-card-cat-sep {
-    color: rgba(255, 255, 255, 0.3);
+    color: var(--color-text);
     font-size: 0.85em;
   }
 
   .post-card-category {
     /* pointer-events:auto：抵消卡片正文的 pointer-events:none，链接单独可点击 */
     pointer-events: auto;
-    color: rgba(255, 255, 255, 0.65);
+    color: var(--icon-ink);
     text-decoration: none;
     transition: color 0.2s;
   }
 
   .post-card-category:hover {
-    color: var(--hover-ink);
+    color: var(--icon-hover);
   }
 
   .post-card-desc {
     font-size: 0.88rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--color-text);
     line-height: 1.6;
     margin: 0;
     display: -webkit-box;
@@ -390,7 +391,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
   .post-card-tag {
     display: inline-block;
     font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text);
     background: rgba(255, 255, 255, 0.06);
     padding: 2px 8px; /* 比日期行略矮，保证标签显示时介绍仍有完整两行 */
     border-radius: 4px;
@@ -449,7 +450,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--mask);
     opacity: 0;
     transition: opacity 0.2s ease;
     pointer-events: none;
@@ -462,7 +463,7 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
   .cover-chevron {
     width: 2.5rem;
     height: 2.5rem;
-    color: #fff;
+    color: var(--icon-hover);
     transform: translateX(-6px);
     transition: transform 0.2s ease;
   }

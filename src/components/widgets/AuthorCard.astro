@@ -91,12 +91,12 @@ const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, wid
   .author-name {
     font-size: 1.02rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--hover-ink);
   }
 
   .author-motto {
     font-size: 0.76rem;
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--color-text);
     letter-spacing: 0.05em;
   }
 
@@ -113,7 +113,7 @@ const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, wid
     width: 30px;
     height: 30px;
     border-radius: 8px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text);
   }
 
     .social-icon {

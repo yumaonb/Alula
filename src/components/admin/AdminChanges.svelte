@@ -149,7 +149,7 @@
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--icon-ink);
     background: transparent;
   }
 
@@ -159,7 +159,7 @@
   }
 
   .admin-dock-fab.has-changes {
-    color: #fff;
+    color: var(--icon-hover);
   }
 
   /* 数量圆点：深底 + 白描边 + 白字，黑白灰里靠对比度而不是颜色提示 */
@@ -173,7 +173,7 @@
     border-radius: 9px;
     background: rgba(18, 20, 26, 0.9);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
-    color: #fff;
+    color: var(--hover-ink);
     font-size: 0.7rem;
     line-height: 16px;
     text-align: center;
@@ -195,7 +195,7 @@
     align-items: center;
     justify-content: space-between;
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-text);
   }
 
   .admin-dock-num {
@@ -204,12 +204,12 @@
     background: rgba(255, 255, 255, 0.08);
     font-size: 0.72rem;
     font-weight: 600;
-    color: #fff;
+    color: var(--hover-ink);
   }
 
   .admin-dock-empty {
     font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--color-text);
   }
 
   .admin-dock-list {
@@ -235,7 +235,7 @@
     text-align: left;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 0.74rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text);
   }
 
   .admin-dock-undo {
@@ -245,7 +245,7 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--icon-ink);
     cursor: pointer;
     font-size: 1rem;
     line-height: 1;
@@ -258,7 +258,7 @@
     border: 1px solid var(--ring);
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.04);
-    color: #fff;
+    color: var(--hover-ink);
     font: inherit;
     font-size: 0.82rem;
     resize: vertical;
@@ -269,8 +269,8 @@
 
   .admin-dock-message:focus-visible {
     outline: none;
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+    border-color: var(--focus-line);
+    box-shadow: 0 0 0 3px var(--focus-halo);
   }
 
   .admin-dock-actions {
@@ -285,12 +285,12 @@
 
   .admin-dock-result {
     font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text);
   }
 
   /* 失败结果不靠红字，用加粗白字提亮一档 */
   .admin-dock-result.is-error {
-    color: #fff;
+    color: var(--icon-hover);
     font-weight: 600;
   }
 </style>

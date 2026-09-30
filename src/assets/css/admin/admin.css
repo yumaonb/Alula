@@ -5,11 +5,9 @@
  * 元件样式（.card / .btn / .input / 文件列表 / 徽标）在同目录的 elements.css。 */
 
 /* ---- 后台专属令牌 ----
- * 全站通用令牌在 variables.css；下面这些只服务后台侧栏与提交编号链接，
+ * 全站通用令牌在 variables.css；下面这些只服务后台侧栏，
  * 所以跟着后台走，不进全站文件。 */
 :root {
-  --link-line: rgba(255, 255, 255, 0.35); /* 「最新提交编号」的常驻下划线 */
-
   /* ---- 后台侧栏 ----
    * 导航不给每一项铺底：底色只在悬停时出现一档，用来指示「鼠标在这」；
    * 「我在哪」交给左侧那条竖线（--nav-mark）去说。
@@ -83,7 +81,7 @@
   margin-right: auto;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--hover-ink);
 }
 
 .admin-brand {
@@ -136,7 +134,7 @@
   inset: 0;
   padding: 0;
   border: none;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--mask);
   cursor: pointer;
 }
 
@@ -160,7 +158,7 @@
 .admin-modal-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--hover-ink);
 }
 
 /* 弹窗按连接状态换内容：未连接只给表单，已连接只给仓库状态。
@@ -177,7 +175,7 @@
 .admin-conn-hint {
   margin-top: 6px;
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--color-text);
   line-height: 1.6;
 }
 
@@ -196,7 +194,7 @@
   border: none;
   border-radius: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--icon-ink);
   font-size: 17px;
   cursor: pointer;
   transition: color 0.15s ease;
@@ -217,7 +215,7 @@
 .admin-drawer-toggle:focus-visible,
 .admin-nav-close:hover,
 .admin-nav-close:focus-visible {
-  color: #fff;
+  color: var(--icon-hover);
   background: transparent;
   box-shadow: none;
 }
@@ -252,12 +250,12 @@
 .admin-status-item dt {
   margin-bottom: 4px;
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--color-text);
 }
 
 .admin-status-item dd {
   font-size: 0.84rem;
-  color: #fff;
+  color: var(--hover-ink);
   overflow-wrap: anywhere;
 }
 
@@ -266,37 +264,24 @@
   grid-column: 1 / -1;
 }
 
-/* 提交编号做成链接：等宽字体 + 常驻下划线，看得出来能点；悬停时下划线加粗一档 */
+/* 提交编号做成链接：等宽字体；颜色与下划线走 global.css 的全站链接规则
+ * （静止无下划线，悬停/聚焦淡入），所以这里只留字体，不挂 .link-plain */
 .admin-status-link {
-  color: #fff;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-  text-decoration-color: var(--link-line);
-  transition:
-    text-decoration-color 0.3s ease,
-    text-decoration-thickness 0.3s ease;
-}
-
-.admin-status-link:hover,
-.admin-status-link:focus-visible {
-  text-decoration-thickness: 2px;
-  text-decoration-color: currentColor;
 }
 
 /* 速率限制：剩余次数放大突出，总量压低当注释 */
 .admin-rate-value {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--hover-ink);
   font-variant-numeric: tabular-nums;
 }
 
 .admin-rate-total {
   margin-left: 4px;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -307,7 +292,6 @@
 .btn.admin-conn-toggle {
   padding: 8px 16px;
   border-radius: var(--radius);
-  color: #fff;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.37),
     inset 0 0 0 1px var(--ring);
@@ -367,7 +351,7 @@
 .admin-nav-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--hover-ink);
 }
 
 /* 关闭按钮只有抽屉里需要（宽屏侧栏常驻，没有可关的） */
@@ -438,7 +422,7 @@
 /* 悬停：铺一档白，不换字重、不动位置（动位置会和选中的位移撞在一起） */
 .admin-nav-link:hover,
 .admin-nav-link:focus-visible {
-  color: var(--nav-ink-strong);
+  color: var(--icon-hover);
   background: var(--nav-bg-hover);
 }
 
@@ -447,7 +431,7 @@
 .admin-nav-link.is-active,
 .admin-nav-link.is-active:hover,
 .admin-nav-link.is-active:focus-visible {
-  color: var(--hover-ink);
+  color: var(--icon-hover);
   /* 整行内容右移，让开左侧竖线 */
   padding-left: var(--nav-indent);
 }
@@ -467,7 +451,7 @@
 .admin-nav-icon {
   width: 17px;
   height: 17px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--icon-ink);
   flex-shrink: 0;
   transition: color 0.15s;
 }
@@ -505,7 +489,7 @@
   width: 13px;
   height: 13px;
   margin-left: auto;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--icon-ink);
   flex-shrink: 0;
   transition:
     transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
@@ -514,7 +498,7 @@
 
 .admin-nav-group.is-open .admin-nav-arrow {
   transform: rotate(90deg);
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--icon-hover);
 }
 
 /* 父项提亮只由「身后有当前项」触发，与展开与否无关：
@@ -606,18 +590,8 @@
 .admin-nav-child.is-active,
 .admin-nav-child.is-active:hover,
 .admin-nav-child.is-active:focus-visible {
-  color: var(--hover-ink);
+  color: var(--icon-hover);
   padding-left: calc(var(--nav-indent) + 31px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .admin-nav-sub,
-  .admin-nav-sub-clip,
-  .admin-nav-arrow,
-  .admin-nav-link,
-  .admin-nav-child {
-    transition: none;
-  }
 }
 
 /* 图标与文字只做颜色过渡，不做位移：悬停时整条一起提亮。
@@ -644,14 +618,14 @@
   padding-left: var(--nav-pad);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--color-text);
 }
 
 /* 悬停只提亮文字，也不给白底：它是「离开」而不是「进入」某一区，
  * 给白底会和上面的导航项混淆。 */
 .admin-nav-back:hover,
 .admin-nav-back:focus-visible {
-  color: #fff;
+  color: var(--icon-hover);
   background: transparent;
 }
 
@@ -690,14 +664,14 @@
   display: block;
   margin-bottom: 4px;
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--color-text);
 }
 
 .admin-stat-value {
   display: block;
   font-size: 0.88rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--hover-ink);
   overflow-wrap: anywhere;
   font-variant-numeric: tabular-nums;
 }
@@ -717,7 +691,7 @@
   gap: 10px;
   font-size: 0.82rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text);
 }
 
 .admin-step-num {
@@ -732,7 +706,7 @@
   box-shadow: inset 0 0 0 1px var(--hover-line);
   font-size: 0.66rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-text);
 }
 
 /* 快捷入口：列表行，不做一组卡片 */
@@ -750,7 +724,7 @@
   gap: 12px;
   padding: 10px 12px;
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
   transition: background 0.15s ease;
 }
 
@@ -763,12 +737,12 @@
   width: 17px;
   height: 17px;
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--icon-ink);
   transition: color 0.15s ease;
 }
 
 .admin-quick-item:hover .admin-quick-icon {
-  color: #fff;
+  color: var(--icon-hover);
 }
 
 .admin-quick-text {
@@ -786,19 +760,19 @@
 
 .admin-quick-desc {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--color-text);
 }
 
 .admin-quick-arrow {
   width: 15px;
   height: 15px;
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--icon-ink);
   transition: color 0.15s ease;
 }
 
 .admin-quick-item:hover .admin-quick-arrow {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--icon-hover);
 }
 
 /* ---- 未连接遮罩 ---- */
@@ -810,7 +784,7 @@
   gap: 6px;
   padding: 44px 20px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-text);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(var(--blur));
@@ -830,7 +804,7 @@
   width: 26px;
   height: 26px;
   margin-bottom: 4px;
-  opacity: 0.35;
+  opacity: 0.8;
 }
 
 .admin-gate p {
@@ -906,7 +880,7 @@
   min-width: 120px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.76rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -923,7 +897,7 @@
   border: 1px solid var(--ring);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.8rem;
   line-height: 1.75;
@@ -936,8 +910,8 @@
 
 .admin-editor-text:focus-visible {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+  border-color: var(--focus-line);
+  box-shadow: 0 0 0 3px var(--focus-halo);
 }
 
 .admin-editor-actions {
@@ -957,7 +931,7 @@
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 0.8rem;
-  color: #fff;
+  color: var(--hover-ink);
   background: rgba(18, 20, 26, 0.94);
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.45),
@@ -1081,7 +1055,7 @@
     z-index: 130;
     padding: 0;
     border: none;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--mask);
     opacity: 0;
     visibility: hidden;
     transition:
