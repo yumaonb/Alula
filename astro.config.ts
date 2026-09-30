@@ -137,8 +137,12 @@ export default defineConfig({
         visible: true,
       },
       // @swup/head-plugin：切换页面时更新 head，并等待新样式表加载完成后再替换内容，避免样式闪烁
+      // persistAssets：旧页面的孤儿 <link>/<style>/<script> 保留在 head 里，直到内容真正被替换。
+      // head 的移除先于等待发生，而岛样式恰在 head 的内联 <style> 中：不留的话，等待期间
+      // 旧页面内容已丢样式，无宽高约束的 SVG 会按默认 300×150 画成一大块（离开项目页瞬间的巨型 GitHub 图标）
       updateHead: {
         awaitAssets: true,
+        persistAssets: true,
       },
       theme: false,
       // animationClass: false —— 关掉 swup 的「动画等待」：不找 [class*="transition-"] 元素，
