@@ -580,7 +580,7 @@
 /* 悬停：与一级项同样只给一档白底 */
 .admin-nav-child:hover,
 .admin-nav-child:focus-visible {
-  color: var(--nav-ink-strong);
+  color: var(--icon-hover);
   background: var(--nav-bg-hover);
 }
 
