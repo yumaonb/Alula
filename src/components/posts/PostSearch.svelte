@@ -253,7 +253,7 @@
     -webkit-backdrop-filter: blur(var(--blur));
     box-shadow:
       inset 0 0 0 1px var(--ring),
-      0 4px 16px rgba(0, 0, 0, 0.2);
+      var(--shadow-sm);
     transition:
       box-shadow 0.25s ease,
       background 0.25s ease;
@@ -263,7 +263,7 @@
     background: var(--hover-bg);
     box-shadow:
       inset 0 0 0 1px var(--focus-line),
-      0 4px 16px rgba(0, 0, 0, 0.2);
+      var(--shadow-sm);
   }
 
   /* 图标随 HTML 输出（不再等待水合后异步注入），首屏即可见 */
