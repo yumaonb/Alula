@@ -338,7 +338,7 @@
     backdrop-filter: blur(var(--blur));
     -webkit-backdrop-filter: blur(var(--blur));
     border-radius: var(--radius);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
 
   .post-search-dropdown::-webkit-scrollbar {
