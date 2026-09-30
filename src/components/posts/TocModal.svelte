@@ -190,9 +190,7 @@
     background: transparent;
     backdrop-filter: blur(var(--blur));
     -webkit-backdrop-filter: blur(var(--blur));
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.37),
-      inset 1px 0 0 rgba(255, 255, 255, 0.08);
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.08);
     transform: translateX(100%);
     transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   }
