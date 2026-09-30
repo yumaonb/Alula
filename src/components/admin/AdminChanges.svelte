@@ -270,7 +270,6 @@
   .admin-dock-message:focus-visible {
     outline: none;
     border-color: var(--focus-line);
-    box-shadow: 0 0 0 3px var(--focus-halo);
   }
 
   .admin-dock-actions {

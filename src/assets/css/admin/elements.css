@@ -159,7 +159,6 @@
   outline: none;
   border-color: var(--focus-line);
   background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 0 3px var(--focus-halo);
 }
 
 /* 下拉框：去掉系统箭头换成统一的白描边箭头，深色底下的原生箭头太脏 */
