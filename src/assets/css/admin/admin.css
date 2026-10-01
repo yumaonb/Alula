@@ -458,8 +458,10 @@
 
 /* ---- 侧栏二级菜单 ----
  * 结构：.admin-nav-group > [父项按钮 .admin-nav-parent] + [.admin-nav-sub > .admin-nav-sub-clip > 子项]
- * 折叠用 grid-template-rows: 0fr → 1fr，和分类树（PostCategoryNode）同一套做法：
- * 高度由内容自己量，不用写死 max-height，展开多少就撑多少。
+ * 折叠分两层（分类树 PostCategoryNode 同一套）：
+ * 外层 .admin-nav-sub 是窗口：max-height 0 → var(--sub-h)，--sub-h 由 shell.ts 量出的内容实高写入；
+ * 内层 .admin-nav-sub-clip 是刚体：translateY(-100%) ↔ 0 整组滑出/收回。
+ * 窗口与刚体同一条 0.34s 曲线，窗口只裁切、不压缩子项（为什么不直接用 0fr/1fr，见下方 .admin-nav-sub 处注释）。
  *
  * 层级用「一条细轨道 + 略暗的字」两级就够，不再铺底色：
  * 底色已经让给悬停当专用信号，再让子项铺一层，展开后整组就是一个大色块，

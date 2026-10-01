@@ -17,7 +17,7 @@ interface Window {
   __tocInit?: boolean;
   /** toc.ts 提供的目录竖线瞬移方法（供 TocModal 调用） */
   __tocSnap?: () => void;
-  /** PostCategoryTree.astro 内联脚本的幂等守卫 */
+  /** category-tree.ts 的幂等守卫 */
   __postCatTreeBound?: boolean;
   /** lightbox.ts 的幂等守卫 */
   __alula_lightbox_bound?: boolean;

@@ -115,28 +115,37 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
     color: var(--icon-hover);
   }
 
-  /* 子分类展开动画：grid-template-rows 精确贴合实际高度 */
+  /* 展开容器：让出/收回空间的那扇「窗」。
+   * max-height 只改窗口大小，内层恒为天然高度、任何一帧都不被压缩；
+   * 上限取 --cat-sub-h（category-tree.ts 量出的内容实高），600px 兜底只服务无 JS / 首次量高之前 */
   .cat-children-wrap {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.34s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   .cat-node--open > .cat-children-wrap {
-    grid-template-rows: 1fr;
+    max-height: var(--cat-sub-h, 600px);
   }
 
+  /* 内层：整组子项作为刚体，从父项底下滑出/收回 */
   .cat-children {
     margin: 0;
     padding: 0;
     list-style: none;
-    overflow: hidden;
-    min-height: 0;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    transform: translateY(-100%);
+    transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   .cat-node--open > .cat-children-wrap > .cat-children {
-    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 首屏（高度未量完）与重测期间不播动画，否则窗口会按兜底高度播一半再跳 */
+  #category-tree[data-cat-init] .cat-children-wrap,
+  #category-tree[data-cat-init] .cat-children,
+  #category-tree.cat-measuring .cat-children-wrap,
+  #category-tree.cat-measuring .cat-children {
+    transition: none;
   }
 </style>

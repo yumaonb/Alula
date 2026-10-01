@@ -20,7 +20,8 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
     分类
   </h2>
 
-  <div class="cat-panel-body" id="category-tree">
+  <!-- data-cat-init：首屏高度还没量完时的动画锁，量完由 category-tree.ts 摘掉 -->
+  <div class="cat-panel-body" id="category-tree" data-cat-init>
     <ul class="cat-root-list">
       {tree.map((node) => (
         <PostCategoryNode
@@ -35,25 +36,8 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
   </div>
 </section>
 
-<script is:inline>
-  // 点击右侧展开按钮切换子分类，不影响分类名链接的导航
-  (function () {
-    if (window.__postCatTreeBound) return;
-    window.__postCatTreeBound = true;
-    document.addEventListener('click', function (e) {
-      const btn = e.target.closest ? e.target.closest('button.cat-toggle') : null;
-      if (!btn || !document.contains(btn)) return;
-      const node = btn.closest('.cat-node');
-      if (!node) return;
-      e.preventDefault();
-      e.stopPropagation();
-      node.classList.toggle('cat-node--open');
-      btn.setAttribute(
-        'aria-expanded',
-        node.classList.contains('cat-node--open') ? 'true' : 'false',
-      );
-    });
-  })();
+<script>
+  import '../../assets/js/category-tree';
 </script>
 
 <style>
