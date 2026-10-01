@@ -3,6 +3,21 @@
 // 用法：<NavBar />（BaseLayout 引入）
 import { Icon } from 'astro-icon/components';
 import { site } from '../../data/site';
+import { navMatch } from '../../lib/nav-match';
+
+// 导航项单一数据源：桌面与移动两套标记都从它生成，URL 只在这里出现一次
+const navItems = [
+  { href: '/', label: '首页', mobileIcon: 'la:home' },
+  { href: '/about/', label: '关于', mobileIcon: 'la:user' },
+  { href: '/projects/', label: '项目', mobileIcon: 'la:cubes' },
+  { href: '/posts/', label: '文章', mobileIcon: 'la:pen-fancy' },
+  { href: '/friends/', label: '友链', mobileIcon: 'la:link' },
+  { href: '/sponsor/', label: '赞助', mobileIcon: 'la:hand-holding-heart' },
+];
+
+// is-active / aria-current 服务端渲染：下划线在首屏 HTML 里即可见，不依赖 JS；
+// 切页后由 nav-indicator.ts 在这块常驻导航上更新
+const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Astro.url.pathname) }));
 ---
 
 <nav class="navbar glass">
@@ -13,36 +28,21 @@ import { site } from '../../data/site';
     </a>
 
     <ul class="nav-links">
-      <li>
-        <a class="hoverable link-plain" href="/">
-          首页
-        </a>
-      </li>
-      <li>
-        <a class="hoverable link-plain" href="/about/">
-          关于
-        </a>
-      </li>
-      <li>
-        <a class="hoverable link-plain" href="/projects/">
-          项目
-        </a>
-      </li>
-      <li>
-        <a class="hoverable link-plain" href="/posts/">
-          文章
-        </a>
-      </li>
-      <li>
-        <a class="hoverable link-plain" href="/friends/">
-          友链
-        </a>
-      </li>
-      <li>
-        <a class="hoverable link-plain" href="/sponsor/">
-          赞助
-        </a>
-      </li>
+      {
+        items.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class:list={['link-plain', { 'is-active': item.active }]}
+              aria-current={item.active ? 'page' : undefined}
+            >
+              <span class="nav-link-text">{item.label}</span>
+            </a>
+          </li>
+        ))
+      }
+      <!-- 共享线：绝对定位不占 flex 位；静态线（活动项 ::after）负责首屏，JS 接管后由它独家绘制（nav-indicator.ts） -->
+      <li class="nav-indicator" aria-hidden="true"></li>
     </ul>
 
     <button
@@ -63,60 +63,19 @@ import { site } from '../../data/site';
   <div id="mobile-dropdown" class="mobile-dropdown" aria-hidden="true">
     <div class="mobile-dropdown-inner">
       <ul class="mobile-menu">
-        <li class="mobile-item">
-          <a href="/" class="mobile-link hoverable link-plain" tabindex="-1">
-            <span class="mobile-link-left">
-              <Icon name="la:home" class="mobile-link-icon" />
-              <span class="mobile-link-text">首页</span>
-            </span>
-            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
-          </a>
-        </li>
-        <li class="mobile-item">
-          <a href="/about/" class="mobile-link hoverable link-plain" tabindex="-1">
-            <span class="mobile-link-left">
-              <Icon name="la:user" class="mobile-link-icon" />
-              <span class="mobile-link-text">关于</span>
-            </span>
-            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
-          </a>
-        </li>
-        <li class="mobile-item">
-          <a href="/projects/" class="mobile-link hoverable link-plain" tabindex="-1">
-            <span class="mobile-link-left">
-              <Icon name="la:cubes" class="mobile-link-icon" />
-              <span class="mobile-link-text">项目</span>
-            </span>
-            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
-          </a>
-        </li>
-        <li class="mobile-item">
-          <a href="/posts/" class="mobile-link hoverable link-plain" tabindex="-1">
-            <span class="mobile-link-left">
-              <Icon name="la:pen-fancy" class="mobile-link-icon" />
-              <span class="mobile-link-text">文章</span>
-            </span>
-            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
-          </a>
-        </li>
-        <li class="mobile-item">
-          <a href="/friends/" class="mobile-link hoverable link-plain" tabindex="-1">
-            <span class="mobile-link-left">
-              <Icon name="la:link" class="mobile-link-icon" />
-              <span class="mobile-link-text">友链</span>
-            </span>
-            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
-          </a>
-        </li>
-        <li class="mobile-item">
-          <a href="/sponsor/" class="mobile-link hoverable link-plain" tabindex="-1">
-            <span class="mobile-link-left">
-              <Icon name="la:hand-holding-heart" class="mobile-link-icon" />
-              <span class="mobile-link-text">赞助</span>
-            </span>
-            <Icon name="la:external-link-alt" class="mobile-link-arrow" />
-          </a>
-        </li>
+        {
+          items.map((item) => (
+            <li class="mobile-item">
+              <a href={item.href} class="mobile-link hoverable link-plain" tabindex="-1">
+                <span class="mobile-link-left">
+                  <Icon name={item.mobileIcon} class="mobile-link-icon" />
+                  <span class="mobile-link-text">{item.label}</span>
+                </span>
+                <Icon name="la:external-link-alt" class="mobile-link-arrow" />
+              </a>
+            </li>
+          ))
+        }
       </ul>
     </div>
   </div>
@@ -142,6 +101,22 @@ import { site } from '../../data/site';
   if (mq.matches) loadHamburger();
   mq.addEventListener('change', (e) => {
     if (e.matches) loadHamburger();
+  });
+
+  // 下划线指示器只在桌面端加载，手机端不引入
+  const desktopMq = window.matchMedia('(min-width: 769px)');
+  let navLoaded = false;
+
+  function loadNavIndicator() {
+    if (!navLoaded) {
+      navLoaded = true;
+      import('../../assets/js/nav-indicator');
+    }
+  }
+
+  if (desktopMq.matches) loadNavIndicator();
+  desktopMq.addEventListener('change', (e) => {
+    if (e.matches) loadNavIndicator();
   });
 </script>
 
@@ -186,19 +161,73 @@ import { site } from '../../data/site';
 
   /* 桌面端链接 */
   .nav-links {
+    position: relative;
     display: flex;
     gap: 4px;
   }
 
   .nav-links a {
     display: block;
-    position: relative;
     padding: 8px 20px;
     font-size: 0.95rem;
     font-weight: 500;
     color: var(--icon-ink);
-    border-radius: var(--radius);
-    overflow: hidden;
+    transition: color 0.25s ease;
+  }
+
+  /* 悬停 / 聚焦 / 当前页不走全站 .hoverable（那会加白底描边）：
+     只提亮文字，静止与高亮都走现有令牌（--icon-ink → --icon-hover） */
+  .nav-links a:hover,
+  .nav-links a:focus-visible,
+  .nav-links a.is-active {
+    color: var(--icon-hover);
+  }
+
+  /* 文字包裹：下划线的位置 / 宽度从它量（nav-indicator.ts）；
+     inline-block 让 offset 度量稳定，::after 才有可靠的定位盒 */
+  .nav-link-text {
+    position: relative;
+    display: inline-block;
+  }
+
+  /* 静态线：只负责首屏与加载期（is-active 服务端渲染，首帧即可见、不依赖 JS）；
+     JS 接管（.js-ready）后由共享线独家绘制，静态线不再出现，两者同帧同位交接；
+     bottom -8px 对齐链接底边（链接 padding-bottom 为 8px） */
+  .nav-links:not(.js-ready) a.is-active .nav-link-text::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -8px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--icon-hover);
+  }
+
+  /* 共享线：JS 接管后下划线的唯一画者，点击 / 切页 / resize 都只重设它的目标位置；
+     快速连点是过渡重定向，从当前位置平滑改向（线不会消失，所以不会跳变）。
+     曲线快起缓收（与后台侧栏一致）：点击后线立刻起步，没有"没反应"的空窗 */
+  .nav-indicator {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--icon-hover);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+      width 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .nav-indicator.is-on {
+    opacity: 1;
+  }
+
+  .nav-indicator.no-transition {
+    transition: none;
   }
 
   /* 汉堡按钮（桌面隐藏） */

@@ -27,6 +27,8 @@ interface Window {
   __adminShellInit?: boolean;
   /** shell-guard.ts 的幂等守卫 */
   __alula_shell_guard?: boolean;
+  /** nav-indicator.ts 的幂等守卫 */
+  __navIndicatorInit?: boolean;
 }
 
 interface HTMLElement {
