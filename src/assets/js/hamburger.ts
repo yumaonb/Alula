@@ -24,6 +24,14 @@ function setOpen(opening: boolean, { mode = 'normal' }: { mode?: MenuMode } = {}
   const wasOpen = btn.classList.contains(OPEN);
   if (opening === wasOpen) return;
 
+  // 展开前量一次内层实高写进 --dd-h，窗口上限贴实高：
+  // 系统大字体缩放或导航加项时，不会被固定上限截断底部（scrollHeight 不受
+  // max-height 裁切影响，何时量都准）
+  if (opening && dropdown) {
+    const inner = dropdown.querySelector<HTMLElement>('.mobile-dropdown-inner');
+    dropdown.style.setProperty('--dd-h', `${inner?.scrollHeight ?? 380}px`);
+  }
+
   const navClose = !opening && mode === 'nav';
   const instant = !opening && mode === 'instant';
 

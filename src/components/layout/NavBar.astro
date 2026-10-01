@@ -261,7 +261,9 @@ import { site } from '../../data/site';
   }
 
   .mobile-dropdown.is-open {
-    max-height: 380px;
+    /* --dd-h 由 hamburger.ts 在展开前量出的内层实高；+1px 是 border-top
+       （全局 border-box，max-height 含边框）；380px 是无 JS 时的兜底 */
+    max-height: calc(var(--dd-h, 380px) + 1px);
     border-top-color: rgba(255, 255, 255, 0.12);
     transition:
       max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
@@ -317,7 +319,8 @@ import { site } from '../../data/site';
   }
 
   .mobile-menu {
-    padding: 6px 0 14px;
+    /* 上下都不留内边距（刻意）：菜单与首/末项齐平，边界靠顶部分隔线，
+       呼吸感由 48px 行高自身承担，别再加回来 */
     display: flex;
     flex-direction: column;
   }
