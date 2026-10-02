@@ -14,14 +14,6 @@
   let mDeg = $state(0);
   let sDeg = $state(0);
 
-  let hBase = 0;
-  let mBase = 0;
-  let sBase = 0;
-
-  let prevH = 0;
-  let prevM = 0;
-  let prevS = 0;
-
   function hAngle(d: Date): number {
     const h = d.getHours() % 12;
     const m = d.getMinutes();
@@ -62,13 +54,12 @@
       if (t < 1) {
         raf = requestAnimationFrame(loop);
       } else {
+        // 动画期间时间仍在走，结束时直接对齐当前时间，避免指针永久滞后
         easing = false;
-        hBase = easeToH;
-        mBase = easeToM;
-        sBase = easeToS;
-        prevH = hAngle(now);
-        prevM = mAngle(now);
-        prevS = sAngle(now);
+        const d = new Date();
+        hDeg = hAngle(d);
+        mDeg = mAngle(d);
+        sDeg = sAngle(d);
       }
     }
   }
@@ -85,37 +76,21 @@
     const d = String(now.getDate()).padStart(2, '0');
     date = `${y}/${mo}/${d}`;
 
+    // 指针角度直接取当前时间，与文本显示同源，不会累积偏差
     if (ready && !easing) {
-      const curH = hAngle(now);
-      const curM = mAngle(now);
-      const curS = sAngle(now);
-      let dh = curH - prevH;
-      let dm = curM - prevM;
-      let ds = curS - prevS;
-      if (dh < -180) dh += 360;
-      if (dm < -180) dm += 360;
-      if (ds < -180) ds += 360;
-      hBase += dh;
-      mBase += dm;
-      sBase += ds;
-      prevH = curH;
-      prevM = curM;
-      prevS = curS;
-      hDeg = hBase;
-      mDeg = mBase;
-      sDeg = sBase;
+      hDeg = hAngle(now);
+      mDeg = mAngle(now);
+      sDeg = sAngle(now);
     }
   }
 
   onMount(() => {
     tick();
-    prevH = hAngle(now);
-    prevM = mAngle(now);
-    prevS = sAngle(now);
 
-    const targetH = prevH + 360;
-    const targetM = prevM + 540;
-    const targetS = prevS + 720;
+    // 转起都是整圈（360/720/1080），动画结束时朝向正确
+    const targetH = hAngle(now) + 360;
+    const targetM = mAngle(now) + 720;
+    const targetS = sAngle(now) + 1080;
 
     easeFromH = hDeg;
     easeFromM = mDeg;
@@ -125,10 +100,6 @@
     easeToS = targetS;
     easeStart = performance.now();
     easing = true;
-
-    hBase = targetH;
-    mBase = targetM;
-    sBase = targetS;
 
     ready = true;
     raf = requestAnimationFrame(loop);
