@@ -1,5 +1,5 @@
 /* variables.css — 全站设计令牌（几何 / 文字与图标 / 状态反馈 / 聚焦·遮罩·投影）
- * 只放全站都在用的值；后台专属令牌（--nav-* / --admin-shadow*）在 admin/admin.css，
+ * 只放全站都在用的值；后台专属令牌（--nav-* / --admin-shadow*）在 admin/variables.css，
  * 随后台一起删除，不留残值。 */
 
 :root {

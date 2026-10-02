@@ -2,33 +2,8 @@
  * 整个 admin/ 目录只由 src/layouts/AdminLayout.astro 引入，不进站点其他页面；
  * 不想要后台时把 admin/ 目录连同 AdminLayout / admin 路由与组件一起删掉即可，
  * 前台不依赖这里任何东西。
+ * 后台令牌（--nav-* / --admin-shadow*）在同目录的 variables.css；
  * 元件样式（.card / .btn / .input / 文件列表 / 徽标）在同目录的 elements.css。 */
-
-/* ---- 后台专属令牌 ----
- * 全站通用令牌在 variables.css；下面这些只服务后台
- * （侧栏 --nav-*、投影 --admin-shadow*），所以跟着后台走，不进全站文件。 */
-:root {
-  /* ---- 侧栏：文字与选中 ----
-   * 导航不给每一项铺底：底色只在悬停时出现一档，用来指示「鼠标在这」；
-   * 「我在哪」交给左侧那条竖线（--nav-mark）去说。
-   * 两者分工明确，就不会出现「框和白条同时表达同一件事」的重复感。 */
-  --nav-bg-hover: rgba(255, 255, 255, 0.055); /* 悬停时的一档白 */
-  --nav-ink: rgba(255, 255, 255, 0.7); /* 一级项静止文字 */
-  --nav-ink-strong: rgba(255, 255, 255, 0.95); /* 悬停 / 展开 / 当前 */
-  --nav-ink-muted: rgba(255, 255, 255, 0.55); /* 二级项静止文字 */
-  --nav-mark: #fff; /* 当前项的左侧竖线 */
-
-  /* ---- 侧栏：水平档位 ----
-   * 未选中停在 --nav-pad，选中换成 --nav-indent。
-   * 竖线贴在左内沿（left:0）、3px 宽，选中只需要让开一点点就有「避开」的观感；
-   * 差 6px 足够，再多整行会明显右跳一下。 */
-  --nav-pad: 22px;
-  --nav-indent: 28px;
-
-  /* ---- 投影：黑色柔影，独立于全站 --shadow ---- */
-  --admin-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); /* 提示条 */
-  --admin-shadow-drawer: 12px 0 32px rgba(0, 0, 0, 0.45); /* 手机端侧栏抽屉 */
-}
 
 .admin-body {
   min-height: 100vh;
