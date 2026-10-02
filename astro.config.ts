@@ -165,7 +165,13 @@ export default defineConfig({
       // 关掉后内容直接替换（animationClass: false），不再吞掉点击。
       native: false,
     }),
-    // HTML 深度压缩（含内联 CSS/JS）；removeComments 保持 false 以保护 Svelte 水合锚点
+    // HTML 深度压缩（含内联 CSS/JS）；removeComments 保持 false 以保护 Svelte 水合锚点。
+    // ignoreCustomFragments：把整个 astro-island 岛屿按原始文本保护，压缩器不进入其内部。
+    // 原因：岛内 SSR 标记里元素之间的空白文本节点是 Svelte 5 水合遍历的一部分
+    //（SSR 输出含 `</div> <div>` 这类空白节点），collapseWhitespace 会把这些节点删掉，
+    // 导致客户端水合时 DOM 结构与预期不符：控制台报 hydration_mismatch +
+    // "Illegal invocation"，岛先被 clear 再兜底重新 mount——内容能显示但每次整岛重渲染。
+    // 同理 minifyCSS 重排岛内 style 属性值、removeEmptyAttributes 动岛内属性，一并保护。
     htmlMinifier({
       collapseWhitespace: true,
       minifyCSS: true,
@@ -175,6 +181,10 @@ export default defineConfig({
       removeScriptTypeAttributes: true,
       removeStyleLinkTypeAttributes: true,
       removeComments: false,
+      ignoreCustomFragments: [
+        /<astro-island\b[\s\S]*?<\/astro-island>/,
+        /<astro-slot\b[\s\S]*?<\/astro-slot>/,
+      ],
     }),
     // 删除展示性 HTML 注释（保留水合锚点）
     stripSafeComments(),
