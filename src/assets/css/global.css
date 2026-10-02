@@ -164,7 +164,7 @@ ol {
   padding: 0;
   border: 1px solid var(--ring);
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--rest-bg);
   backdrop-filter: blur(var(--blur));
   -webkit-backdrop-filter: blur(var(--blur));
   color: var(--icon-ink);

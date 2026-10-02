@@ -391,8 +391,9 @@ const hasMeta = !!date || hasCategory || hasStats || commentCount !== undefined;
   .post-card-tag {
     display: inline-block;
     font-size: 0.72rem;
-    color: var(--color-text);
-    background: rgba(255, 255, 255, 0.06);
+    color: var(--icon-ink);
+    background: var(--rest-bg);
+    box-shadow: inset 0 0 0 1px var(--ring);
     padding: 2px 8px; /* 比日期行略矮，保证标签显示时介绍仍有完整两行 */
     border-radius: 4px;
     text-decoration: none;
