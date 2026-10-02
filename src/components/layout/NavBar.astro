@@ -208,7 +208,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
      快速连点是过渡重定向，从当前位置平滑改向（线不会消失，所以不会跳变）。
      曲线快起缓收（与后台侧栏一致）：点击后线立刻起步，没有"没反应"的空窗。
      时长按位移成比例由 nav-indicator.ts 内联覆盖（300–450ms），这里的 0.3s 只是基线：
-     改向的短距离若跑满 0.3s 会"blink 一下"看完，看着像跳变 */
+     改向的短距离若跑满 0.3s 会一闪而过，看着像跳变 */
   .nav-indicator {
     position: absolute;
     left: 0;

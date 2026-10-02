@@ -5,14 +5,14 @@
   import { fetchRepos, type RepoInfo } from '../../assets/js/github';
 
   const langColors: Record<string, string> = {
-    // 前端框架
+    // ---- 前端框架 ----
     TypeScript: '#3178c6',
     JavaScript: '#f1e05a',
     Vue: '#41b883',
     React: '#61dafb',
     Svelte: '#ff3e00',
     Astro: '#ff5a03',
-    // 标记 / 样式
+    // ---- 标记 / 样式 ----
     HTML: '#e34c26',
     CSS: '#563d7c',
     SCSS: '#c6538c',
@@ -20,7 +20,7 @@
     Less: '#1d365d',
     Markdown: '#083fa1',
     SVG: '#ff9900',
-    // 主流语言
+    // ---- 主流语言 ----
     Python: '#3572A5',
     Go: '#00ADD8',
     Rust: '#dea584',
@@ -62,11 +62,11 @@
     SystemVerilog: '#DAE1C2',
     Assembly: '#6E4C13',
     AWK: '#c30e80',
-    // JVM / .NET / 其他
+    // ---- JVM / .NET / 其他 ----
     KotlinScript: '#A97BFF',
     V: '#4f87c4',
     Nix: '#7e7eff',
-    // 配置 / 构建 / 数据
+    // ---- 配置 / 构建 / 数据 ----
     Makefile: '#427819',
     CMake: '#DA3434',
     Meson: '#007800',

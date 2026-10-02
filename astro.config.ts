@@ -122,7 +122,6 @@ function backgroundPreset() {
   };
 }
 
-// https://astro.build/config
 export default defineConfig({
   integrations: [
     svelte(),

@@ -111,8 +111,7 @@ ol {
   background-color: rgba(0, 0, 0, var(--bg-scrim, 0));
 }
 
-/* 旧背景图（已被 src/assets/backgrounds/ 的方案系统取代，此处保留备用）
- * 回退方式见 src/components/layout/Background.astro 的文件头说明 */
+/* 旧背景图：已被 src/assets/backgrounds/ 的方案系统取代，此处保留备用 */
 .bg-layer {
   position: fixed;
   inset: 0;

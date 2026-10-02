@@ -51,7 +51,7 @@ import { friends } from '../data/friends';
     gap: 8px;
   }
 
-  /* 页头标题 / 描述的内容排版（原全站公共类，按「元件才算公共」收回到本页） */
+  /* 页头标题 / 描述的内容排版：页面排版不进公共文件（元件才算公共），写在本页 */
   .friends-title {
     font-size: 2rem;
     color: var(--hover-ink);
@@ -156,7 +156,7 @@ import { friends } from '../data/friends';
     line-height: 1.7;
   }
 
-  /* 标题移动端档沿用原公共类的 768px 断点（本页网格是 640px，两码事） */
+  /* 标题移动端档与全站页头一致用 768px 断点（本页网格是 640px，两码事） */
   @media (max-width: 768px) {
     .friends-title {
       font-size: 1.5rem;
