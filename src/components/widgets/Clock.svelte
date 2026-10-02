@@ -7,7 +7,7 @@
   let now = $state(new Date());
   let time = $state('');
   let date = $state('');
-  let timer: ReturnType<typeof setInterval> | null = null;
+  let timer: ReturnType<typeof setTimeout> | null = null;
   let raf = 0;
 
   let hDeg = $state(0);
@@ -54,7 +54,7 @@
       if (t < 1) {
         raf = requestAnimationFrame(loop);
       } else {
-        // 动画期间时间仍在走，结束时直接对齐当前时间，避免指针永久滞后
+        // 结束时对齐真实时间；目标已按结束时刻计算，校正量小于一帧、不可感知
         easing = false;
         const d = new Date();
         hDeg = hAngle(d);
@@ -84,13 +84,28 @@
     }
   }
 
+  function scheduleTick(): void {
+    if (timer) return;
+    // 对齐真实秒边界：取当前时间戳算出距下一整秒的延迟再触发，每次 tick 都落在秒针跳动的瞬间。
+    // 固定 setInterval(1000) 从任意时刻起算，显示秒会与真实秒错开并随时间漂移
+    const delay = 1000 - (Date.now() % 1000);
+    timer = setTimeout(() => {
+      timer = null;
+      tick();
+      scheduleTick();
+    }, delay);
+  }
+
   onMount(() => {
     tick();
 
-    // 转起都是整圈（360/720/1080），动画结束时朝向正确
-    const targetH = hAngle(now) + 360;
-    const targetM = mAngle(now) + 720;
-    const targetS = sAngle(now) + 1080;
+    // 转起目标 = 动画结束时刻的角度 + 整圈（360/720/1080）。
+    // 动画期间真实时间仍在走（4 秒里秒针要走 24°），若锚在开始时刻，结束时指针落后真实时间，
+    // 结尾校正会猛跳一大截；锚到结束时刻，落点即真实时间
+    const endDate = new Date(Date.now() + EASE_DURATION);
+    const targetH = hAngle(endDate) + 360;
+    const targetM = mAngle(endDate) + 720;
+    const targetS = sAngle(endDate) + 1080;
 
     easeFromH = hDeg;
     easeFromM = mDeg;
@@ -103,22 +118,22 @@
 
     ready = true;
     raf = requestAnimationFrame(loop);
-    timer = setInterval(tick, 1000);
+    scheduleTick();
 
     // tab 不可见时暂停计时器，节省 CPU
     function onVisibility(): void {
       if (document.hidden) {
-        if (timer) clearInterval(timer);
+        if (timer) clearTimeout(timer);
         timer = null;
       } else if (!timer) {
         tick();
-        timer = setInterval(tick, 1000);
+        scheduleTick();
       }
     }
     document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
-      if (timer) clearInterval(timer);
+      if (timer) clearTimeout(timer);
       cancelAnimationFrame(raf);
       document.removeEventListener('visibilitychange', onVisibility);
     };
