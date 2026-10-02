@@ -91,7 +91,9 @@ function closeIfOpen(mode: MenuMode = 'normal'): void {
 }
 
 function onClick(e: Event): void {
-  const target = e.target as HTMLElement | null;
+  // e.target 可能是文本节点（点正踩在菜单项文字上），它没有 closest，直接调会抛错
+  const raw = e.target as Node | null;
+  const target = raw instanceof Element ? raw : raw?.parentElement ?? null;
   if (!target) return;
   if (target.closest('.hamburger-btn') || target.closest('.mobile-overlay')) {
     toggle();
