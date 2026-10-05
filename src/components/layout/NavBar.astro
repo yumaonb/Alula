@@ -66,7 +66,12 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
         {
           items.map((item) => (
             <li class="mobile-item">
-              <a href={item.href} class="mobile-link hoverable link-plain" tabindex="-1">
+              <a
+                href={item.href}
+                class:list={['mobile-link', 'hoverable', 'link-plain', { 'is-active': item.active }]}
+                aria-current={item.active ? 'page' : undefined}
+                tabindex="-1"
+              >
                 <span class="mobile-link-left">
                   <Icon name={item.mobileIcon} class="mobile-link-icon" />
                   <span class="mobile-link-text">{item.label}</span>
@@ -205,10 +210,8 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
   }
 
   /* 共享线：JS 接管后下划线的唯一画者，点击 / 切页 / resize 都只重设它的目标位置；
-     快速连点是过渡重定向，从当前位置平滑改向（线不会消失，所以不会跳变）。
-     曲线快起缓收（与后台侧栏一致）：点击后线立刻起步，没有"没反应"的空窗。
-     时长按位移成比例由 nav-indicator.ts 内联覆盖（300–450ms），这里的 0.3s 只是基线：
-     改向的短距离若跑满 0.3s 会一闪而过，看着像跳变 */
+     位移由 motion 驱动（nav-indicator.ts）：时长按位移成比例（450–700ms），
+     曲线快起缓收（与后台侧栏一致），改向时从飞行中位置平滑续接 */
   .nav-indicator {
     position: absolute;
     left: 0;
@@ -219,17 +222,10 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     background: var(--icon-hover);
     opacity: 0;
     pointer-events: none;
-    transition:
-      transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
-      width 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   .nav-indicator.is-on {
     opacity: 1;
-  }
-
-  .nav-indicator.no-transition {
-    transition: none;
   }
 
   /* 汉堡按钮（桌面隐藏） */
@@ -279,16 +275,13 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     transform: rotate(0deg);
   }
 
-  /* 手机端下拉菜单 - 常驻DOM，用高度+位移实现滑落 */
+  /* 手机端下拉菜单 - 常驻DOM，用高度+位移实现滑落；
+     开合动效由 motion 驱动（hamburger.ts）：这里只定义开/关两个端点状态，
+     动画飞行中的值由 motion 接管，结束后提交的最终值与端点一致 */
   .mobile-dropdown {
     max-height: 0;
     overflow: hidden;
     border-top: 1px solid transparent;
-    transition:
-      max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-      /* 收回时顶线先保持（菜单收合的主体阶段），再随尾部一起淡出、
-         总时长与 max-height 对齐：线要等菜单滑回顶栏重合后才消失 */
-      border-color 0.2s ease 0.2s;
   }
 
   .mobile-dropdown.is-open {
@@ -296,57 +289,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
        （全局 border-box，max-height 含边框）；380px 是无 JS 时的兜底 */
     max-height: calc(var(--dd-h, 380px) + 1px);
     border-top-color: rgba(255, 255, 255, 0.12);
-    transition:
-      max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 0.25s ease; /* 展开时线随菜单立即出现 */
-  }
-
-  /* 切页收起：用 0.2s 快于常规 0.4s 的收起，内容替换后菜单不残留 */
-  .mobile-dropdown.is-closing-nav {
-    transition:
-      max-height 0.2s ease,
-      /* 同常规收回：线先保持、随菜单尾部淡出（合计 0.2s） */
-      border-color 0.1s ease 0.1s;
-  }
-
-  .mobile-overlay.is-closing-nav {
-    transition: opacity 0.2s ease;
-  }
-
-  .hamburger-btn.is-closing-nav .icon-bars,
-  .hamburger-btn.is-closing-nav .icon-close {
-    transition:
-      opacity 0.2s ease,
-      transform 0.2s ease;
-  }
-
-  /* 内容替换兜底：菜单仍未关闭时直接跳过过渡 */
-  .mobile-dropdown.no-transition,
-  .mobile-overlay.no-transition,
-  .hamburger-btn.no-transition .icon-bars,
-  .hamburger-btn.no-transition .icon-close {
-    transition: none !important;
-    animation: none !important;
-  }
-
-  .mobile-dropdown.no-transition .mobile-dropdown-inner,
-  .mobile-dropdown.no-transition .mobile-item {
-    animation: none !important;
-  }
-
-  .mobile-dropdown.is-open .mobile-dropdown-inner {
-    animation: mobile-inner-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  @keyframes mobile-inner-in {
-    from {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 
   .mobile-menu {
@@ -359,40 +301,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
   .mobile-item {
     width: 100%;
     position: relative;
-  }
-
-  .mobile-dropdown.is-open .mobile-item {
-    animation: mobile-item-in 0.3s ease both;
-  }
-
-  .mobile-dropdown.is-open .mobile-item:nth-child(1) {
-    animation-delay: 0.04s;
-  }
-  .mobile-dropdown.is-open .mobile-item:nth-child(2) {
-    animation-delay: 0.08s;
-  }
-  .mobile-dropdown.is-open .mobile-item:nth-child(3) {
-    animation-delay: 0.12s;
-  }
-  .mobile-dropdown.is-open .mobile-item:nth-child(4) {
-    animation-delay: 0.16s;
-  }
-  .mobile-dropdown.is-open .mobile-item:nth-child(5) {
-    animation-delay: 0.2s;
-  }
-  .mobile-dropdown.is-open .mobile-item:nth-child(6) {
-    animation-delay: 0.24s;
-  }
-
-  @keyframes mobile-item-in {
-    from {
-      opacity: 0;
-      transform: translateY(-12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 
   .mobile-link {
@@ -447,11 +355,17 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     color: var(--icon-hover);
   }
 
+  /* 当前页：文字 + 该项图标提亮（刻意不加位移 / 底色，见 mobile-link 两级规则） */
+  .mobile-link.is-active,
+  .mobile-link.is-active .mobile-link-icon {
+    color: var(--icon-hover);
+  }
+
   .mobile-link:hover .mobile-link-arrow {
     transform: translateX(2px);
   }
 
-  /* 遮罩层 */
+  /* 遮罩层（透明度由 motion 驱动，见 hamburger.ts） */
   .mobile-overlay {
     position: fixed;
     inset: 0;
@@ -459,7 +373,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     z-index: 90;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
     -webkit-tap-highlight-color: transparent;
   }
 

@@ -1,17 +1,18 @@
 // nav-indicator.ts — 导航下划线的运行时部分：
 // 静态线（活动项的 ::after）负责首屏与加载期（服务端渲染，首帧即可见）；
 // 样式确认应用后由共享线 .nav-indicator 独家接管绘制，此后点击 / 切页 / resize
-// 都只重设它的目标位置——快速连点就是过渡重定向，线不会消失，也就不存在跳变。
-// 改向不依赖浏览器的「飞行中自动重定向」，而是「钉住当前点 → 重新起一段过渡」，
-// 杜绝个别浏览器把飞行中的过渡 snap 到端点的怪癖（观感即"瞬变"）。
+// 都只重设它的目标位置。位移由 motion 驱动：改向时以「飞行中位置」为起点
+// 重新起一段过渡，快速连点就是平滑重定向，线不会消失，也就不存在跳变。
 // 切页后线去哪个按钮，按三分支判定（见 astro:after-swap 注释）：
 // ① 换页目标 = 最近一次点击 → 意图完成；② 换页目标是点过但已被取代的旧按钮
 // → swup 放行的迟到旧换页，忽略；③ 换页目标不是点过的任何按钮
 // → 导航外操作（logo / 正文链接 / 前进后退），旧意图作废，跟随 URL。
-// 动画时长按实际位移成比例（300–450ms），改向的短距离也不会一闪而过。
+// 动画时长按实际位移成比例（450–700ms，偏从容的滑行），改向的短距离也不会一闪而过。
 // 目标链接的 href 一律从 DOM 读取，不写死。
 // 调试：URL 加 ?ntr=1 会在控制台打印线的移动时间线（平时静默）。
 // 用法：由 NavBar.astro 在桌面端动态 import（手机端不加载）：import "../../assets/js/nav-indicator"
+import { animate } from 'motion';
+import type { AnimationPlaybackControls } from 'motion';
 import { navMatch } from '../../lib/nav-match';
 
 (() => {
@@ -21,9 +22,11 @@ import { navMatch } from '../../lib/nav-match';
   const ACTIVE = 'is-active';
   const READY = 'js-ready';
   const ON = 'is-on';
-  const NO_TRANSITION = 'no-transition';
+  const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1]; // 快起缓收（与后台侧栏一致）
+  const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let takenOver = false;
+  let controls: AnimationPlaybackControls | null = null;
 
   // 最近一次点击的链接（线的「意图目标」）+ 最近点过的几个按钮（识别"迟到的旧换页"）。
   // swup 让已提交（state≥6）的旧访问先完成、新点击排队执行，旧换页的 after-swap
@@ -74,35 +77,29 @@ import { navMatch } from '../../lib/nav-match';
   }
 
   /**
-   * 把共享线对齐到链接文字（animate 为 false 时瞬移）。
-   * 动画时：先把线钉回它此刻在屏幕上的位置（掐掉进行中的过渡），
-   * 再按「起点 → 终点」实际位移成比例的时长（300–450ms，上下限夹取）起一段新过渡——
-   * 不依赖浏览器「飞行中自动重定向」：个别浏览器在 transform 与时长同帧变化时
-   * 会把进行中的过渡 snap 到端点，快速点击下表现为"瞬变"
+   * 把共享线对齐到链接文字（smooth 为 false 时瞬移）。
+   * 动画时：以飞行中位置为起点，按「起点 → 终点」实际位移成比例的时长
+   * （450–700ms，上下限夹取）起一段新过渡；改向自然从飞行中位置续接
    */
-  function place(indicator: HTMLElement, anchor: HTMLAnchorElement, animate: boolean): void {
+  function place(indicator: HTMLElement, anchor: HTMLAnchorElement, smooth: boolean): void {
     const text = textOf(anchor);
     const targetX = text.offsetLeft;
-    if (!animate) {
-      indicator.style.transitionDuration = ''; // 清掉内联时长，让 .no-transition 真正生效
-      indicator.classList.add(NO_TRANSITION);
+    if (!smooth) {
+      controls?.cancel();
+      controls = null;
       indicator.style.transform = `translateX(${targetX}px)`;
       indicator.style.width = `${text.offsetWidth}px`;
-      void indicator.offsetHeight; // 先落位再恢复过渡
-      indicator.classList.remove(NO_TRANSITION);
       return;
     }
     const fromX = currentX(indicator);
     const dx = Math.abs(targetX - fromX);
     if (dx < 1) return; // 已在目标位（如 resize 重对齐时），不跑过渡
-    // 钉住当前点：去掉在飞过渡，把它固化为新起点
-    indicator.style.transitionDuration = '0ms, 0ms';
-    indicator.style.transform = `translateX(${fromX}px)`;
-    void indicator.offsetHeight;
-    const ms = Math.max(300, Math.min(450, dx * 3.4));
-    indicator.style.transitionDuration = `${ms}ms, ${ms}ms`;
-    indicator.style.transform = `translateX(${targetX}px)`;
-    indicator.style.width = `${text.offsetWidth}px`;
+    const ms = Math.max(450, Math.min(700, dx * 3.4));
+    controls = animate(
+      indicator,
+      { x: [fromX, targetX], width: [indicator.offsetWidth, text.offsetWidth] },
+      { duration: ms / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }
+    );
     trace('move', `x ${Math.round(fromX)}→${Math.round(targetX)}`, `dx=${Math.round(dx)}px`, `${ms}ms`);
   }
 
@@ -128,7 +125,7 @@ import { navMatch } from '../../lib/nav-match';
     trace('takeover', textOf(active).textContent ?? '');
   }
 
-  /** 移动线到 target：已接管则共享线滑动（快速连点 = 钉住当前点重新起过渡）；
+  /** 移动线到 target：已接管则共享线滑动（快速连点 = 从飞行中位置重新起过渡）；
    *  未接管（首屏 / 加载期）只挪 is-active，静态线即时切换 */
   function moveTo(target: HTMLAnchorElement): void {
     const els = getEls();

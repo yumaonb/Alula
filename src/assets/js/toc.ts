@@ -1,10 +1,16 @@
 // toc.ts — 文章目录：活动高亮、指示竖线移动动画、点击平滑滚动、目录自身滚动隔离
 // 用法：由 TableOfContents.astro 引入：import "../../assets/js/toc"
+// 竖线位移由 motion 驱动：点击短距直移；滚动跟随的大位移先拉伸覆盖「旧 ∪ 新」、
+// 再滑到原位；中断时从飞行中位置续接，不依赖 rAF / setTimeout 编排。
+import { animate } from 'motion';
+import type { AnimationPlaybackControls } from 'motion';
+
 (() => {
   if (window.__tocInit) return;
   window.__tocInit = true;
 
   const NAV_HEIGHT = 80;
+  const EASE_CSS: [number, number, number, number] = [0.25, 0.1, 0.25, 1]; // CSS 的 ease
   let isClickMode = false;
   let isTrackScrolling = false;
 
@@ -20,8 +26,15 @@
   }
 
   let snapBarNext = false;
+  let barControls: AnimationPlaybackControls[] = [];
 
-  function positionBar(useTransition: boolean): void {
+  /** 掐掉竖线上在飞的动画（直写内联前必须先撤 WAAPI，否则动画效果会盖过内联） */
+  function cancelBar(): void {
+    for (const control of barControls) control.cancel();
+    barControls = [];
+  }
+
+  function positionBar(): void {
     const bar = document.getElementById('toc-bar');
     const activeEl = document.querySelector('.toc-item.active');
     const trackEl = document.getElementById('toc-list');
@@ -31,56 +44,47 @@
 
     const newTop = linkEl.offsetTop;
     const newH = linkEl.offsetHeight;
-    const oldTop = bar.style.top ? parseFloat(bar.style.top) : null;
-    const oldH = bar.style.height ? parseFloat(bar.style.height) : null;
-    const animating = bar._animating === true;
+    // 先读飞行中值（动画进行中时是插值）；top 为 auto（首屏 / 换页后的新竖线）则直接落位
+    const inFlightTop = parseFloat(getComputedStyle(bar).top);
+    const inFlightH = parseFloat(getComputedStyle(bar).height);
 
-    if (oldTop === null || snapBarNext) {
+    if (Number.isNaN(inFlightTop) || Number.isNaN(inFlightH) || snapBarNext) {
       snapBarNext = false;
-      bar.style.transition = 'none';
+      cancelBar();
       bar.style.top = `${newTop}px`;
       bar.style.height = `${newH}px`;
       bar.style.opacity = '1';
       return;
     }
 
-    if (Math.abs(newTop - oldTop) < 1 && Math.abs(newH - (oldH ?? 0)) < 1) return;
-    if (animating && !useTransition) return;
+    if (Math.abs(newTop - inFlightTop) < 1 && Math.abs(newH - inFlightH) < 1) return;
 
     if (isClickMode && !isTrackScrolling) {
-      bar.style.transition = 'top 0.15s ease-out, height 0.15s ease-out, opacity 0.2s ease';
-      bar.style.top = `${newTop}px`;
-      bar.style.height = `${newH}px`;
-      bar.style.opacity = '1';
-    } else if (Math.abs(newTop - oldTop) > 1) {
-      bar._animating = true;
-      bar.style.transition = 'none';
-
-      if (newTop > oldTop) {
-        bar.style.top = `${oldTop}px`;
-        bar.style.height = `${newTop + newH - oldTop}px`;
-      } else {
-        bar.style.top = `${newTop}px`;
-        bar.style.height = `${oldTop + (oldH ?? 0) - newTop}px`;
-      }
-      bar.style.opacity = '1';
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          bar.style.transition = 'top 0.12s ease-out, height 0.12s ease-out';
-          bar.style.top = `${newTop}px`;
-          bar.style.height = `${newH}px`;
-          setTimeout(() => {
-            bar._animating = false;
-          }, 130);
-        });
-      });
-    } else if (!animating) {
-      bar.style.transition = 'none';
-      bar.style.top = `${newTop}px`;
-      bar.style.height = `${newH}px`;
-      bar.style.opacity = '1';
+      // 点击跳转：短距直移，位置与透明度各自跑原来的时长
+      barControls.push(
+        animate(bar, { top: newTop, height: newH }, { duration: 0.15, ease: 'easeOut' }),
+        animate(bar, { opacity: 1 }, { duration: 0.2, ease: EASE_CSS })
+      );
+      return;
     }
+
+    if (Math.abs(newTop - inFlightTop) > 1) {
+      // 滚动跟随的大位移：先直写拉伸到覆盖「旧 ∪ 新」，再滑 + 收缩到新位——
+      // 两段手感保留；改向 / 连续滚动时从飞行中位置续接，不中断重放
+      cancelBar();
+      const unionTop = Math.min(inFlightTop, newTop);
+      const unionH = Math.max(inFlightTop + inFlightH, newTop + newH) - unionTop;
+      bar.style.top = `${unionTop}px`;
+      bar.style.height = `${unionH}px`;
+      bar.style.opacity = '1';
+      barControls.push(
+        animate(bar, { top: newTop, height: newH }, { duration: 0.12, ease: 'easeOut' })
+      );
+      return;
+    }
+
+    // 小位移：直接滑过去
+    barControls.push(animate(bar, { top: newTop, height: newH }, { duration: 0.12, ease: 'easeOut' }));
   }
 
   document.addEventListener('click', (e: MouseEvent) => {
@@ -155,7 +159,7 @@
       }
     }
 
-    positionBar(isClickMode || maxScroll <= 0);
+    positionBar();
   }
 
   let raf = false;
@@ -186,7 +190,7 @@
       const track = document.getElementById('toc-list');
       if (!track || e.target !== track) return;
       isTrackScrolling = true;
-      positionBar(false);
+      positionBar();
       setTimeout(() => {
         isTrackScrolling = false;
       }, 50);
@@ -204,7 +208,7 @@
 
       track.scrollTop += e.deltaY;
       isTrackScrolling = true;
-      positionBar(false);
+      positionBar();
       setTimeout(() => {
         isTrackScrolling = false;
       }, 50);

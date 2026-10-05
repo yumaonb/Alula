@@ -4,12 +4,20 @@
 // 树在 #swup 内，切页整块重建，所以监听全挂 document（事件委托 + 幂等守卫）。
 // 每个节点的窗口高度 --cat-sub-h 由这里量出（与后台侧栏 admin/shell.ts 同一套）：
 // 外层 .cat-children-wrap 是 max-height 窗口，内层 .cat-children 是平移的刚体，
-// 两者同一条 0.34s 曲线同步进行，子项任何一帧都不被压缩。
+// 两者同一条曲线同步进行，子项任何一帧都不被压缩。
+// 开合动效由 motion 驱动：CSS 只定义开/关端点状态，窗口与刚体从「飞行中读数」
+// 走到端点；本层内容高度不变、变的是上方每层窗口的容纳总高，按 ±本层实高增量
+// 更新各祖先的 --cat-sub-h，中途再点上限也保持准确，不用等动画结束再量。
+import { animate } from 'motion';
+
 (() => {
   if (window.__postCatTreeBound) return;
   window.__postCatTreeBound = true;
 
-  const ANIM_MS = 340; // 与 PostCategoryNode 样式里的开合时长一致；开合后的窗口期内不重测，避免量到半程高度
+  const ANIM_MS = 340; // 开合时长（ms）；开合后的窗口期内不重测，避免量到半程高度
+  const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
+  const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const RM = { reduceMotion: REDUCE_MOTION };
   let lastToggleAt = 0;
 
   function treeRoot(): HTMLElement | null {
@@ -36,6 +44,19 @@
     return Number.isFinite(value) ? value : 0;
   }
 
+  /** 当前生效值（含动画进行中 / 已提交的值），作为下一段动画的起点 */
+  function cssNum(el: HTMLElement, prop: string): number {
+    return parseFloat(getComputedStyle(el).getPropertyValue(prop)) || 0;
+  }
+
+  /** 内层刚体当前的纵向位移（动画进行中时是插值，即此刻在屏幕上的真实位置） */
+  function currentY(el: HTMLElement): number {
+    const t = getComputedStyle(el).transform;
+    if (t === 'none') return 0;
+    const m = t.match(/matrix\(([^)]+)\)/);
+    return m ? parseFloat(m[1].split(',')[5]) || 0 : 0;
+  }
+
   /** 窗口所属节点的嵌套深度，供重测时从最里层开始排序 */
   function wrapDepth(wrap: HTMLElement): number {
     let depth = 0;
@@ -54,14 +75,7 @@
     for (const wrap of wraps) setWrapHeight(wrap, contentHeight(wrap));
   }
 
-  /** 锁动画重测：先锁再量、下一帧放开，避免窗口按旧上限播一半再跳 */
-  function measureAllLocked(root: HTMLElement): void {
-    root.classList.add('cat-measuring');
-    measureAll(root);
-    requestAnimationFrame(() => root.classList.remove('cat-measuring'));
-  }
-
-  /** 内容就绪（首屏 / swup 换页）后量高度并放开首帧锁；data-cat-init 在位期间 transition 全关 */
+  /** 内容就绪（首屏 / swup 换页）后量高度并放开首帧锁；data-cat-init 在位期间开合不播动画（直接落位） */
   function syncHeights(): void {
     const root = treeRoot();
     if (!root) return;
@@ -77,7 +91,7 @@
     resizeObserver = new ResizeObserver((entries) => {
       if (!entries.some((entry) => entry.contentRect.height > 0)) return;
       if (performance.now() - lastToggleAt < ANIM_MS) return;
-      measureAllLocked(root);
+      measureAll(root);
     });
     resizeObserver.observe(root);
   }
@@ -94,21 +108,42 @@
 
     lastToggleAt = performance.now();
     const open = !node.classList.contains('cat-node--open');
-    node.classList.toggle('cat-node--open', open);
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 
-    // 本层内容高度不变，变的是上方每一层窗口要容纳的总高。
-    // 直接按 ±本层实高增减各祖先的 --cat-sub-h：窗口与内容走同一条曲线同步开合，
-    // 中途再点上限也保持准确，不用等动画结束再量
     const wrap = node.querySelector<HTMLElement>(':scope > .cat-children-wrap');
     const delta = wrap ? contentHeight(wrap) : 0;
+    const fromHeight = wrap ? cssNum(wrap, 'max-height') : 0;
+    const children = wrap ? wrap.querySelector<HTMLElement>(':scope > .cat-children') : null;
+    const fromY = children ? currentY(children) : 0;
+
+    // 本层内容高度不变，变的是上方每一层窗口要容纳的总高：按 ±本层实高增减各祖先的
+    // --cat-sub-h。先读飞行中值、再翻类改上限：翻类后 computed 会变成端点值，
+    // 飞行中的位置就丢了；中途再点上限也保持准确，不用等动画结束再量
+    const ancestors: Array<{ wrap: HTMLElement; from: number; to: number }> = [];
     let parent = node.parentElement;
     while (parent) {
       const parentWrap = parent.querySelector<HTMLElement>(':scope > .cat-children-wrap');
       if (parentWrap) {
-        setWrapHeight(parentWrap, currentWrapHeight(parentWrap) + (open ? delta : -delta));
+        const to = currentWrapHeight(parentWrap) + (open ? delta : -delta);
+        ancestors.push({ wrap: parentWrap, from: cssNum(parentWrap, 'max-height'), to });
+        setWrapHeight(parentWrap, to);
       }
       parent = parent.parentElement;
+    }
+
+    node.classList.toggle('cat-node--open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+    // 首屏（高度未量完，data-cat-init 在位）直接落位，不按兜底高度播半程
+    const instant = !!treeRoot()?.hasAttribute('data-cat-init');
+    const duration = instant ? 0 : ANIM_MS / 1000;
+    if (wrap) {
+      animate(wrap, { maxHeight: [fromHeight, open ? delta : 0] }, { ...RM, duration, ease: EASE });
+    }
+    if (children) {
+      animate(children, { y: [fromY, open ? 0 : -delta] }, { ...RM, duration, ease: EASE });
+    }
+    for (const { wrap: ancestorWrap, from, to } of ancestors) {
+      animate(ancestorWrap, { maxHeight: [from, to] }, { ...RM, duration, ease: EASE });
     }
   });
 

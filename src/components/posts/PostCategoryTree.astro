@@ -20,7 +20,7 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
     分类
   </h2>
 
-  <!-- data-cat-init：首屏高度还没量完时的动画锁，量完由 category-tree.ts 摘掉 -->
+  <!-- data-cat-init：首屏高度还没量完时的动画锁（在位期间开合不播动画、直接落位），量完由 category-tree.ts 摘掉 -->
   <div class="cat-panel-body" id="category-tree" data-cat-init>
     <ul class="cat-root-list">
       {tree.map((node) => (
