@@ -2,6 +2,9 @@
 // 用法：由 TableOfContents.astro 引入：import "../../assets/js/toc"
 // 竖线与目录自动居中走同一条 motion tween（同时长、同缓动）：视觉位置是「旧中心位 →
 // 新中心位」的一次平滑滑行，条目在下方流过；改向从两通道当前实际值续接。
+// 大距离切项（首次落位 / 跨节跳跃，> SNAP_MAX_PX）不做 tween、直接瞬移矫正：
+// 长 tween 会被后续切项反复打断重定向，竖线长时间追不上、无法固定（页面中途
+// 进入时滚动位可能还没恢复，首次切项目标离竖线很远，最典型）。
 // 竖线位移走 translateY（合成器通道）而非 top（布局通道）——两通道同帧驱动时，
 // 只要一条走布局，低性能机器上会错开一帧，表现为细微抖动。
 // 居中只发生在活动项切换时；竖线到位后不再移动目录（手动滑走不拉回，
@@ -16,6 +19,12 @@ import type { AnimationPlaybackControls } from 'motion';
   const NAV_HEIGHT = 80;
   const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
   let isClickMode = false;
+
+  // ---- 临时诊断（定位「中途进入不固定 / 大幅闪回」，拿到日志后整块删除）----
+  function diag(tag: string, data: Record<string, unknown>): void {
+    console.log(`[toc-diag:${tag}]`, JSON.stringify(data));
+  }
+  console.info('[toc-diag] 临时诊断已开启：复现问题后，把控制台里 [toc-diag:*] 日志最后 30 行复制出来；修复确认后整块删除。');
 
   function getNavOffset(): number {
     const nav = document.querySelector<HTMLElement>('.navbar');
@@ -55,6 +64,8 @@ import type { AnimationPlaybackControls } from 'motion';
   let barTween: AnimationPlaybackControls | null = null;
   let barTop = 0; // 竖线当前位置（内容坐标系）；本脚本是唯一写入方，读变量不读样式
   let barTopReady = false;
+  // 大距离阈值：相邻项切项约 30px；超过即视为状态矫正（首切 / 跨节跳），瞬移不滑
+  const SNAP_MAX_PX = 120;
 
   /** 让活动项居中于目录视口的目标 scrollTop（夹在可滚范围内） */
   function centerScrollFor(linkEl: HTMLElement, trackEl: HTMLElement): number {
@@ -85,10 +96,23 @@ import type { AnimationPlaybackControls } from 'motion';
     const targetScroll = centering ? centerScrollFor(linkEl, trackEl) : startScroll;
 
     const dist = Math.max(Math.abs(targetTop - startTop), Math.abs(targetScroll - startScroll));
-    if (dist < 1) {
+    diag('glide', {
+      slug: linkEl.closest('.toc-item')?.getAttribute('data-target') ?? null,
+      centering,
+      startTop: Math.round(startTop),
+      targetTop: Math.round(targetTop),
+      startScroll: Math.round(startScroll),
+      targetScroll: Math.round(targetScroll),
+      dist: Math.round(dist),
+      snap: dist < 1 || dist > SNAP_MAX_PX,
+      scrollY: Math.round(window.scrollY),
+    });
+    // 大距离 = 状态矫正（首次落位 / 跨节跳跃）：瞬移到位，不做长 tween
+    if (dist < 1 || dist > SNAP_MAX_PX) {
       barTop = targetTop;
       barTopReady = true;
       bar.style.transform = `translateY(${targetTop}px)`;
+      if (centering) trackEl.scrollTop = targetScroll;
       return;
     }
 
@@ -157,6 +181,13 @@ import type { AnimationPlaybackControls } from 'motion';
     if (!bestSlug) bestSlug = headingTops[0].slug;
 
     if (bestSlug === lastActiveSlug) return;
+    diag('slug', {
+      from: lastActiveSlug,
+      to: bestSlug,
+      line: Math.round(line),
+      scrollY: Math.round(window.scrollY),
+      isClickMode,
+    });
     lastActiveSlug = bestSlug;
 
     document.querySelectorAll('.toc-item').forEach((item) => {
@@ -168,9 +199,23 @@ import type { AnimationPlaybackControls } from 'motion';
   }
 
   let raf = false;
+  let diagSettleTimer = 0;
   window.addEventListener(
     'scroll',
     () => {
+      // 诊断：滚动停 500ms 后记录一次终态（竖线变量 / 轨道滚动 / 活动项位置 是否对齐）
+      window.clearTimeout(diagSettleTimer);
+      diagSettleTimer = window.setTimeout(() => {
+        const trackEl = document.getElementById('toc-list');
+        const linkEl = document.querySelector<HTMLElement>('.toc-item.active .toc-link');
+        diag('settled', {
+          scrollY: Math.round(window.scrollY),
+          trackScroll: trackEl ? Math.round(trackEl.scrollTop) : null,
+          trackMax: trackEl ? trackEl.scrollHeight - trackEl.clientHeight : null,
+          barTopVar: Math.round(barTop),
+          activeTop: linkEl ? linkEl.offsetTop : null,
+        });
+      }, 500);
       if (!raf) {
         requestAnimationFrame(() => {
           updateToc();
@@ -202,6 +247,12 @@ import type { AnimationPlaybackControls } from 'motion';
   const initToc = (): void => {
     measureHeadings();
     updateToc();
+    diag('init', {
+      scrollY: Math.round(window.scrollY),
+      items: headingTops.length,
+      navOffset,
+      active: lastActiveSlug,
+    });
   };
 
   document.addEventListener('DOMContentLoaded', initToc);
