@@ -1,7 +1,7 @@
 // toc.ts — 文章目录：活动高亮、指示竖线移动动画、点击平滑滚动、目录自身滚动隔离
 // 用法：由 TableOfContents.astro 引入：import "../../assets/js/toc"
-// 竖线位移由 motion 驱动：点击短距直移；滚动跟随的大位移先拉伸覆盖「旧 ∪ 新」、
-// 再滑到原位；中断时从飞行中位置续接，不依赖 rAF / setTimeout 编排。
+// 竖线由 motion 驱动：高度恒贴合活动项（不做变长/变短动画），位置 top 平滑上下滑动、
+// 改向从飞行中位置续接，不依赖 rAF / setTimeout 编排。
 import { animate } from 'motion';
 import type { AnimationPlaybackControls } from 'motion';
 
@@ -10,9 +10,7 @@ import type { AnimationPlaybackControls } from 'motion';
   window.__tocInit = true;
 
   const NAV_HEIGHT = 80;
-  const EASE_CSS: [number, number, number, number] = [0.25, 0.1, 0.25, 1]; // CSS 的 ease
   let isClickMode = false;
-  let isTrackScrolling = false;
 
   function getNavOffset(): number {
     const nav = document.querySelector<HTMLElement>('.navbar');
@@ -34,6 +32,11 @@ import type { AnimationPlaybackControls } from 'motion';
     barControls = [];
   }
 
+  /**
+   * 竖线跟活动项：高度恒等于活动项、直接贴合（不做变长/变短动画——拉伸覆盖式动画
+   * 在快速滚动时会被逐帧重拉，表现为抖动的长条）；位置 top 从飞行中值平滑滑到新位，
+   * 改向从当前位置续接、不重放。竖线随目录内容一起滚动，手动滑目录时不重新定位。
+   */
   function positionBar(): void {
     const bar = document.getElementById('toc-bar');
     const activeEl = document.querySelector('.toc-item.active');
@@ -43,48 +46,19 @@ import type { AnimationPlaybackControls } from 'motion';
     if (!linkEl) return;
 
     const newTop = linkEl.offsetTop;
-    const newH = linkEl.offsetHeight;
+    bar.style.height = `${linkEl.offsetHeight}px`;
+
     // 先读飞行中值（动画进行中时是插值）；top 为 auto（首屏 / 换页后的新竖线）则直接落位
     const inFlightTop = parseFloat(getComputedStyle(bar).top);
-    const inFlightH = parseFloat(getComputedStyle(bar).height);
-
-    if (Number.isNaN(inFlightTop) || Number.isNaN(inFlightH) || snapBarNext) {
+    if (Number.isNaN(inFlightTop) || snapBarNext) {
       snapBarNext = false;
       cancelBar();
       bar.style.top = `${newTop}px`;
-      bar.style.height = `${newH}px`;
-      bar.style.opacity = '1';
       return;
     }
 
-    if (Math.abs(newTop - inFlightTop) < 1 && Math.abs(newH - inFlightH) < 1) return;
-
-    if (isClickMode && !isTrackScrolling) {
-      // 点击跳转：短距直移，位置与透明度各自跑原来的时长
-      barControls.push(
-        animate(bar, { top: newTop, height: newH }, { duration: 0.15, ease: 'easeOut' }),
-        animate(bar, { opacity: 1 }, { duration: 0.2, ease: EASE_CSS })
-      );
-      return;
-    }
-
-    if (Math.abs(newTop - inFlightTop) > 1) {
-      // 滚动跟随的大位移：先直写拉伸到覆盖「旧 ∪ 新」，再滑 + 收缩到新位——
-      // 两段手感保留；改向 / 连续滚动时从飞行中位置续接，不中断重放
-      cancelBar();
-      const unionTop = Math.min(inFlightTop, newTop);
-      const unionH = Math.max(inFlightTop + inFlightH, newTop + newH) - unionTop;
-      bar.style.top = `${unionTop}px`;
-      bar.style.height = `${unionH}px`;
-      bar.style.opacity = '1';
-      barControls.push(
-        animate(bar, { top: newTop, height: newH }, { duration: 0.12, ease: 'easeOut' })
-      );
-      return;
-    }
-
-    // 小位移：直接滑过去
-    barControls.push(animate(bar, { top: newTop, height: newH }, { duration: 0.12, ease: 'easeOut' }));
+    if (Math.abs(newTop - inFlightTop) < 1) return;
+    barControls.push(animate(bar, { top: newTop }, { duration: 0.2, ease: 'easeOut' }));
   }
 
   document.addEventListener('click', (e: MouseEvent) => {
@@ -184,20 +158,8 @@ import type { AnimationPlaybackControls } from 'motion';
   });
   updateToc();
 
-  document.addEventListener(
-    'scroll',
-    (e: Event) => {
-      const track = document.getElementById('toc-list');
-      if (!track || e.target !== track) return;
-      isTrackScrolling = true;
-      positionBar();
-      setTimeout(() => {
-        isTrackScrolling = false;
-      }, 50);
-    },
-    true,
-  );
-
+  // 目录内容自身滚动（滚轮 / 触摸）：只接管滚动行为，不碰竖线——
+  // 竖线随内容一起滚动，活动项由页面滚动决定，目录滚轮不改变它
   document.addEventListener(
     'wheel',
     (e: WheelEvent) => {
@@ -207,11 +169,6 @@ import type { AnimationPlaybackControls } from 'motion';
       e.preventDefault();
 
       track.scrollTop += e.deltaY;
-      isTrackScrolling = true;
-      positionBar();
-      setTimeout(() => {
-        isTrackScrolling = false;
-      }, 50);
     },
     { passive: false },
   );
