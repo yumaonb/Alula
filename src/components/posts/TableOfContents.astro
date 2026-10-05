@@ -107,6 +107,7 @@ if (hasH1 && hasH2) {
 
   .toc-active-bar {
     position: absolute;
+    top: 0; /* 位移由 toc.ts 的 translateY 驱动（合成器通道），这里只定锚点 */
     left: 0;
     width: 2px;
     background: rgba(255, 255, 255, 0.85);

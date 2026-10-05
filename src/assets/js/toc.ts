@@ -1,8 +1,11 @@
 // toc.ts — 文章目录：活动高亮、指示竖线、点击平滑滚动、目录自身滚动隔离
 // 用法：由 TableOfContents.astro 引入：import "../../assets/js/toc"
-// 竖线与目录自动居中走同一条 tween（同时长、同缓动）：竖线的视觉位置是「旧中心位 →
-// 新中心位」的一次平滑滑行，条目在下方流过；改向从两通道的当前实际值续接、不重放。
-// 两条通道若用各自时长的独立动画驱动，曲线对消不干净，竖线会在中点附近抖动。
+// 竖线与目录自动居中走同一条 motion tween（同时长、同缓动）：视觉位置是「旧中心位 →
+// 新中心位」的一次平滑滑行，条目在下方流过；改向从两通道当前实际值续接。
+// 竖线位移走 translateY（合成器通道）而非 top（布局通道）——两通道同帧驱动时，
+// 只要一条走布局，低性能机器上会错开一帧，表现为细微抖动。
+// 居中只发生在活动项切换时；竖线到位后不再移动目录（手动滑走不拉回，
+// 点击后由下一次切项自然矫正）。
 import { animate } from 'motion';
 import type { AnimationPlaybackControls } from 'motion';
 
@@ -25,7 +28,33 @@ import type { AnimationPlaybackControls } from 'motion';
     window.scrollTo({ top: top, behavior: 'smooth' });
   }
 
+  // ---- 活动判定：标题文档绝对位缓存。页面滚动不改变它们（内容布局稳定），
+  // 每帧纯算术比较，不做 getBoundingClientRect × N 的强制布局读取 ----
+  let headingTops: Array<{ slug: string; top: number }> = [];
+  let navOffset = NAV_HEIGHT;
+
+  function measureHeadings(): void {
+    const items = document.querySelectorAll('.toc-item');
+    if (items.length === 0) {
+      headingTops = [];
+      return;
+    }
+    const sy = window.scrollY;
+    const tops: Array<{ slug: string; top: number }> = [];
+    items.forEach((item) => {
+      const slug = item.getAttribute('data-target');
+      if (!slug) return;
+      const h = document.getElementById(slug);
+      if (h) tops.push({ slug: slug, top: h.getBoundingClientRect().top + sy });
+    });
+    headingTops = tops;
+    navOffset = getNavOffset();
+  }
+
+  // ---- 竖线与自动居中：同一条 tween 的两通道 ----
   let barTween: AnimationPlaybackControls | null = null;
+  let barTop = 0; // 竖线当前位置（内容坐标系）；本脚本是唯一写入方，读变量不读样式
+  let barTopReady = false;
 
   /** 让活动项居中于目录视口的目标 scrollTop（夹在可滚范围内） */
   function centerScrollFor(linkEl: HTMLElement, trackEl: HTMLElement): number {
@@ -40,34 +69,27 @@ import type { AnimationPlaybackControls } from 'motion';
     barTween = null;
   }
 
-  /**
-   * 竖线跟活动项，与目录自动居中同一条 tween：
-   *   bar.top         当前值 → 活动项 offsetTop（内容坐标系）
-   *   trackEl.scrollTop 当前值 → 活动项居中位
-   * 两通道同时长同缓动，竖线视觉位置（top - scrollTop）在数学上退化为从当前视觉位到
-   * 新中心位的一次平滑滑行，条目从旁边流过——「竖线固定在中间、丝滑上下」的效果。
-   * 返回居中通道是否真的移动了（供「每项只居中一次」标记，之后用户手动滑走不回拉）。
-   */
-  function glideBar(centering: boolean): boolean {
+  function glideBar(centering: boolean): void {
     const bar = document.getElementById('toc-bar');
     const activeEl = document.querySelector('.toc-item.active');
     const trackEl = document.getElementById('toc-list');
-    if (!bar || !activeEl || !trackEl) return false;
+    if (!bar || !activeEl || !trackEl) return;
     const linkEl = activeEl.querySelector<HTMLElement>('.toc-link');
-    if (!linkEl) return false;
+    if (!linkEl) return;
 
     // 高度恒贴合活动项，不做变长/变短动画
     bar.style.height = `${linkEl.offsetHeight}px`;
     const targetTop = linkEl.offsetTop;
-    const startTop = bar.style.top ? parseFloat(bar.style.top) : targetTop;
+    const startTop = barTopReady ? barTop : targetTop;
     const startScroll = trackEl.scrollTop;
     const targetScroll = centering ? centerScrollFor(linkEl, trackEl) : startScroll;
-    const didCenter = Math.abs(targetScroll - startScroll) > 2;
 
     const dist = Math.max(Math.abs(targetTop - startTop), Math.abs(targetScroll - startScroll));
     if (dist < 1) {
-      bar.style.top = `${targetTop}px`;
-      return didCenter;
+      barTop = targetTop;
+      barTopReady = true;
+      bar.style.transform = `translateY(${targetTop}px)`;
+      return;
     }
 
     // 时长按两通道位移成比例（0.3–0.55s），与导航下划线「远慢近快」同一原则
@@ -77,7 +99,8 @@ import type { AnimationPlaybackControls } from 'motion';
       duration,
       ease: EASE_OUT,
       onUpdate: (v: number) => {
-        bar.style.top = `${startTop + (targetTop - startTop) * v}px`;
+        barTop = startTop + (targetTop - startTop) * v;
+        bar.style.transform = `translateY(${barTop}px)`;
         trackEl.scrollTop = startScroll + (targetScroll - startScroll) * v;
       },
       onComplete: () => {
@@ -85,10 +108,9 @@ import type { AnimationPlaybackControls } from 'motion';
       },
     });
     barTween = controls;
-    return didCenter;
   }
 
-  /** 瞬移落位（首屏量完高度 / 切页后 / 目录抽屉打开）：停 tween、直接写值 */
+  /** 瞬移落位（切页后 / 目录抽屉打开）：停 tween、直接写值 */
   function snapBar(): void {
     const bar = document.getElementById('toc-bar');
     const activeEl = document.querySelector('.toc-item.active');
@@ -97,8 +119,10 @@ import type { AnimationPlaybackControls } from 'motion';
     const linkEl = activeEl.querySelector<HTMLElement>('.toc-link');
     if (!linkEl) return;
     stopBarTween();
+    barTop = linkEl.offsetTop;
+    barTopReady = true;
     bar.style.height = `${linkEl.offsetHeight}px`;
-    bar.style.top = `${linkEl.offsetTop}px`;
+    bar.style.transform = `translateY(${barTop}px)`;
   }
 
   document.addEventListener('click', (e: MouseEvent) => {
@@ -119,43 +143,28 @@ import type { AnimationPlaybackControls } from 'motion';
   });
 
   let lastActiveSlug: string | null = null;
-  let lastScrolledSlug: string | null = null;
 
   function updateToc(): void {
-    const items = document.querySelectorAll('.toc-item');
-    if (items.length === 0) return;
+    if (headingTops.length === 0) return;
 
-    const offset = getNavOffset();
-    const sy = window.scrollY;
+    // 活动项 = 最后一个越过判定线的标题（纯算术）
+    const line = window.scrollY + navOffset + 4;
     let bestSlug: string | null = null;
+    for (const { slug, top } of headingTops) {
+      if (top <= line) bestSlug = slug;
+      else break;
+    }
+    if (!bestSlug) bestSlug = headingTops[0].slug;
 
-    items.forEach((item) => {
-      const slug = item.getAttribute('data-target');
-      if (!slug) return;
-      const h = document.getElementById(slug);
-      if (!h) return;
-      if (h.getBoundingClientRect().top + sy <= sy + offset + 4) {
-        bestSlug = slug;
-      }
+    if (bestSlug === lastActiveSlug) return;
+    lastActiveSlug = bestSlug;
+
+    document.querySelectorAll('.toc-item').forEach((item) => {
+      item.classList.toggle('active', item.getAttribute('data-target') === bestSlug);
     });
-
-    if (!bestSlug) bestSlug = items[0].getAttribute('data-target');
-
-    if (bestSlug !== lastActiveSlug) {
-      lastActiveSlug = bestSlug;
-      items.forEach((item) => {
-        item.classList.toggle('active', item.getAttribute('data-target') === bestSlug);
-      });
-      // 点击窗口内不抢页面平滑滚动的居中（竖线本身仍跟活动项）；
-      // 居中真的跑了才标记，之后用户手动把目录滑走不再拉回
-      if (glideBar(!isClickMode)) lastScrolledSlug = bestSlug;
-      return;
-    }
-
-    // 活动项未变：只补居中（典型是点击窗口结束、页面平滑滚动落定后把目录拉回该项中间）
-    if (!isClickMode && !barTween && bestSlug !== lastScrolledSlug) {
-      if (glideBar(true)) lastScrolledSlug = bestSlug;
-    }
+    // 点击窗口内不抢页面平滑滚动的居中（竖线本身仍跟活动项）；
+    // 居中只在这一次切项时发生，到位后不再移动目录
+    glideBar(!isClickMode);
   }
 
   let raf = false;
@@ -173,12 +182,35 @@ import type { AnimationPlaybackControls } from 'motion';
     { passive: true },
   );
 
-  document.addEventListener('DOMContentLoaded', updateToc);
+  // 视口尺寸变化可能改变布局（断点显隐、侧栏宽度），重测一次
+  let resizeRaf = false;
+  window.addEventListener(
+    'resize',
+    () => {
+      if (!resizeRaf) {
+        resizeRaf = true;
+        requestAnimationFrame(() => {
+          resizeRaf = false;
+          measureHeadings();
+          updateToc();
+        });
+      }
+    },
+    { passive: true },
+  );
+
+  const initToc = (): void => {
+    measureHeadings();
+    updateToc();
+  };
+
+  document.addEventListener('DOMContentLoaded', initToc);
   document.addEventListener('swup:content:replace', () => {
     lastActiveSlug = null;
-    requestAnimationFrame(updateToc);
+    barTopReady = false; // 目录整块重建，竖线是全新元素
+    requestAnimationFrame(initToc);
   });
-  updateToc();
+  initToc();
 
   // 目录内容自身滚动（滚轮 / 触摸）：只接管滚动行为，不碰竖线——
   // 竖线随内容一起滚动，活动项由页面滚动决定，目录滚轮不改变它
