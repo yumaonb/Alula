@@ -254,8 +254,8 @@
         }
         for (;;) {
           const h = document.getElementById(slugs[idx]);
-          if (!h) break;
-          if (h.getBoundingClientRect().top > ly) idx = Math.max(0, idx - 1);
+          if (!h || idx === 0) break; // 线在首标题之上 → 首项即答案
+          if (h.getBoundingClientRect().top > ly) idx -= 1;
           else break;
         }
         activate(idx);
