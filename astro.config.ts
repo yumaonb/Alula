@@ -41,7 +41,7 @@ function isHydrationComment(inner: string): boolean {
 
 /** 替换回调：只处理注释，script/style 整体原样保留（捕获组未命中时 inner 为 undefined） */
 function commentReplacer(match: string, inner?: string): string {
-  if (inner === undefined) return match; // script/style 原样保留
+  if (inner === undefined) return match;
   return isHydrationComment(inner) ? match : '';
 }
 

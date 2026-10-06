@@ -166,9 +166,8 @@ function initPostsList(): Cleanup {
 // ---- 分类管理 ----
 
 /**
- * 分类树由「文章所在目录」推出来：每个分类至少得有一篇文章才存在。
- * 只列出有 index.json 的目录会漏掉大量没配元数据的分类，所以这里以文章路径为准，
- * index.json 存在与否只决定「有没有配显示名」。
+ * 分类树由目录推出来：文章所在的每一层目录都是一个分类，有 index.json 但暂无文章的目录也算。
+ * 单靠 index.json 推导会漏掉没配元数据的分类；index.json 存在与否只决定「有没有配显示名」。
  */
 function initCategories(): Cleanup {
   const cleanups: Cleanup[] = [];

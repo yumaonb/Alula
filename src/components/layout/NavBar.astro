@@ -5,7 +5,6 @@ import { Icon } from 'astro-icon/components';
 import { site } from '../../data/site';
 import { navMatch } from '../../lib/nav-match';
 
-// 导航项单一数据源：桌面与移动两套标记都从它生成，URL 只在这里出现一次
 const navItems = [
   { href: '/', label: '首页', mobileIcon: 'la:home' },
   { href: '/about/', label: '关于', mobileIcon: 'la:user' },
@@ -41,7 +40,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
           </li>
         ))
       }
-      <!-- 共享线：绝对定位不占 flex 位；静态线（活动项 ::after）负责首屏，JS 接管后由它独家绘制（nav-indicator.ts） -->
       <li class="nav-indicator" aria-hidden="true"></li>
     </ul>
 
@@ -108,7 +106,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     if (e.matches) loadHamburger();
   });
 
-  // 下划线指示器只在桌面端加载，手机端不引入
   const desktopMq = window.matchMedia('(min-width: 769px)');
   let navLoaded = false;
 
@@ -126,7 +123,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
 </script>
 
 <style>
-  /* 导航栏容器 */
   .navbar {
     position: fixed;
     top: 0;
@@ -146,7 +142,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     justify-content: space-between;
   }
 
-  /* Logo */
   .nav-logo {
     display: flex;
     align-items: center;
@@ -164,7 +159,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     color: var(--icon-hover);
   }
 
-  /* 桌面端链接 */
   .nav-links {
     position: relative;
     display: flex;
@@ -228,7 +222,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     opacity: 1;
   }
 
-  /* 汉堡按钮（桌面隐藏） */
   .hamburger-btn {
     display: none;
     align-items: center;
@@ -381,7 +374,6 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     pointer-events: auto;
   }
 
-  /* 手机端适配 */
   @media (max-width: 768px) {
     .nav-inner {
       height: 56px;

@@ -1,8 +1,6 @@
 ---
 // Background.astro — 全站背景容器
-// 用法：<BaseLayout> 的 <body> 里放一个 <Background />（无 props）
-// 方案由 src/data/background.ts 决定：css 走 assets/backgrounds/css/，image 走 assets/backgrounds/images/。
-// 未选中的预设不会被编进产物，机制见 astro.config.ts 里的 backgroundPreset 插件。
+// 用法：<Background />（无 props，用在 BaseLayout / AdminLayout 的 body 里）
 import { getImage } from 'astro:assets';
 import preset from 'virtual:background';
 import { background } from '../../data/background';

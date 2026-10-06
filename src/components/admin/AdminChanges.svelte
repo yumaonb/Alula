@@ -15,7 +15,6 @@
     { ok: true; url: string; count: number } | { ok: false; text: string } | null
   >(null);
 
-  /** 变更类型文案：原始为空是新增，新内容为空是删除 */
   function statusOf(change: StagedChange): string {
     if (change.original === null) return '新增';
     if (change.content === null) return '删除';
@@ -251,7 +250,6 @@
     line-height: 1;
   }
 
-  /* 与后台输入框同一套白色玻璃底 */
   .admin-dock-message {
     width: 100%;
     padding: 8px 10px;

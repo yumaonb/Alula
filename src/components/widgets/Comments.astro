@@ -1,6 +1,6 @@
 ---
 // Comments.astro — giscus 评论区
-// 用法：<Comments />（仅文章详情页；swup reloadScripts 每次切页时重新挂载）
+// 用法：<Comments slot="comments" />（仅文章详情页；内联脚本每次切页重跑）
 import { site } from '../../data/site';
 
 const giscusTheme = `https://${site.domain}/css/giscus.css`;

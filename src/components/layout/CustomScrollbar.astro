@@ -3,7 +3,6 @@
 // 用法：<CustomScrollbar />
 ---
 
-<!-- 触发区：鼠标靠近右侧 60px 时激活滚动条 -->
 <div class="scrollbar-hover-zone" id="scrollbar-hover-zone"></div>
 
 <div class="custom-scrollbar-container" id="custom-scrollbar">
@@ -17,7 +16,6 @@
 </script>
 
 <style>
-  /* 右侧 60px 不可见触发区 */
   .scrollbar-hover-zone {
     position: fixed;
     right: 0;
@@ -80,7 +78,6 @@
     background: rgba(255, 255, 255, 0.9);
   }
 
-  /* 移动端隐藏自定义滚动条 */
   @media (max-width: 768px) {
     .scrollbar-hover-zone {
       display: none;

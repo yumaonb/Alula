@@ -1,5 +1,5 @@
 <!-- PostSearch.svelte — 文章全文搜索（基于 Pagefind）
-     用法：<PostSearch client:load />（文章列表页 / 标签页） -->
+     用法：<PostSearch client:load />（文章列表页 / 标签页 / 分类页；标签页传 filterUrls、分类页传 categoryPath 限定范围） -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
 

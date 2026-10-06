@@ -111,7 +111,6 @@
 </script>
 
 <div class="projects-grid">
-  <!-- 骨架屏 -->
   {#if loading}
     {#each Array(6) as _, n}
       <div class="project-card glass">
@@ -138,20 +137,17 @@
       </div>
     {/each}
 
-    <!-- 错误 -->
   {:else if error}
     <div class="error-state glass">
       <p class="error-text">{error}</p>
       <button class="retry-btn" onclick={load}>重试</button>
     </div>
 
-    <!-- 空状态 -->
   {:else if repos.length === 0}
     <div class="empty-state glass">
       <p class="empty-text">暂无公开仓库</p>
     </div>
 
-    <!-- 卡片 -->
   {:else}
     {#each repos as repo (repo.name)}
       <a

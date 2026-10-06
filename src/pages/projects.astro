@@ -1,5 +1,6 @@
 ---
 // projects.astro — 项目展示页
+// 用法：路由 /projects/
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
 ---
@@ -27,7 +28,6 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
     margin-bottom: 40px;
   }
 
-  /* 页头标题 / 描述的内容排版：页面排版不进公共文件（元件才算公共），写在本页 */
   .page-title {
     font-size: 2rem;
     color: var(--hover-ink);

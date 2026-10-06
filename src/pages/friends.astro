@@ -1,5 +1,6 @@
 ---
 // friends.astro — 友情链接页面
+// 用法：路由 /friends/
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { friends } from '../data/friends';
 ---
@@ -51,7 +52,6 @@ import { friends } from '../data/friends';
     gap: 8px;
   }
 
-  /* 页头标题 / 描述的内容排版：页面排版不进公共文件（元件才算公共），写在本页 */
   .friends-title {
     font-size: 2rem;
     color: var(--hover-ink);
@@ -80,8 +80,6 @@ import { friends } from '../data/friends';
     border-radius: 12px;
   }
 
-  /* 头像元件（白环 + 圆形裁切，尺寸由 --avatar-size 控制，默认 100px，
-   * 友链卡上标记里写 --avatar-size:52px） */
   .avatar-ring {
     --avatar-size: 100px;
     width: var(--avatar-size);

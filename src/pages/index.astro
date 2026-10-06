@@ -1,5 +1,6 @@
 ---
 // index.astro — 首页（头部 + 介绍 + 时钟 / 统计 / 一言）
+// 用法：路由 /
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Clock from '../components/widgets/Clock.svelte';
 import Quote from '../components/widgets/Quote.astro';
@@ -87,7 +88,6 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     flex-shrink: 0;
   }
 
-  /* 头像元件（白环 + 圆形裁切，尺寸由 --avatar-size 控制）：本页个人头像用 */
   .avatar-ring {
     --avatar-size: 100px;
     width: var(--avatar-size);
@@ -150,7 +150,6 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
   }
 
   /* ---- 联系方式 ---- */
-  /* 玻璃圆形按钮：只在本页社交按钮用，故写在本页（不进公共文件） */
   .glass-btn {
     display: inline-flex;
     align-items: center;
@@ -171,10 +170,9 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     position: relative;
   }
 
-  /* 按钮内图标 22px。选择器带 .glass-btn 作用域：后台矩形按钮图标 14px
-   * 在 admin/admin.css 的 .btn .btn-icon 里定义，两边互不干扰。
-   * 颜色走 currentColor：静止取 --icon-ink，悬停时 .hoverable 把按钮文字色
-   * 提到 --hover-ink，图标跟着一起变亮，和其他图标行为一致 */
+  /* 选择器带 .glass-btn 作用域：后台矩形按钮图标 14px 在 admin/admin.css 的
+   * .btn .btn-icon 里定义，两边互不干扰。fill 走 currentColor：悬停时
+   * .hoverable 把按钮文字色提到 --icon-hover，图标跟着一起变亮 */
   .glass-btn .btn-icon {
     width: 22px;
     height: 22px;

@@ -1,7 +1,6 @@
 ---
 // BaseLayout.astro — 全站基础布局（背景 / 导航 / 页脚 / 侧边按钮 / 灯箱等）
-// 用法：<BaseLayout title="页面标题" description="...">...</BaseLayout>
-// 背景由 <Background /> 渲染，换方案改 src/data/background.ts 一处即可。
+// 用法：<BaseLayout title="页面标题">...</BaseLayout>
 import '../assets/css/global.css';
 import '../assets/css/shared/skeleton.css';
 import '../assets/css/posts/image-fallback.css';
@@ -36,13 +35,11 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="icon" type="image/png" href="/images/logo.png" />
-    <!-- RSS 自动发现：阅读器与浏览器靠这条找到 /posts/rss.xml -->
     <link rel="alternate" type="application/rss+xml" title={site.name} href="/posts/rss.xml" />
     <title>{pageTitle}</title>
     <slot name="head" />
   </head>
   <body class={bodyClass}>
-    <!-- 全站背景：方案由 src/data/background.ts 决定，绘制样式见 src/assets/backgrounds/ -->
     <Background />
     <div class="page">
       <NavBar />
@@ -51,9 +48,7 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
       </main>
       <Footer />
     </div>
-    <!-- 侧边悬浮按钮列：静态标记，运行时（可用性/显隐/进度）由 swup-widgets.ts 控制 -->
     <SideWidgets />
-    <!-- 正文图片占位图标模板：隐藏不占位，图片加载失败时由 image-fallback.ts 克隆 -->
     <div id="alula-img-ph-icon" hidden>
       <Icon name="mdi:image-off-outline" />
     </div>

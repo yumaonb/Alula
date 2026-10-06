@@ -1,5 +1,6 @@
 ---
 // about.astro — 关于页面（介绍 / 数据统计 / 技术栈 / 自我介绍）
+// 用法：路由 /about/
 import BaseLayout from '../layouts/BaseLayout.astro';
 import DaysCounter from '../components/widgets/DaysCounter.svelte';
 import TechStack from '../components/widgets/TechStack.astro';
@@ -12,7 +13,6 @@ import Markdown from '../components/layout/Markdown.astro';
 
 <BaseLayout title="关于">
   <div class="about-page page-container">
-    <!-- ---- 个人介绍区 ---- -->
     <section class="intro-section">
       <div class="intro-header glass">
         <div class="avatar-ring">
@@ -79,7 +79,6 @@ import Markdown from '../components/layout/Markdown.astro';
     border-radius: var(--radius);
   }
 
-  /* 页头标题 / 座右铭的内容排版：页面排版不进公共文件（元件才算公共），写在本页 */
   .intro-name {
     font-size: 2rem;
     color: var(--hover-ink);
@@ -92,7 +91,6 @@ import Markdown from '../components/layout/Markdown.astro';
     letter-spacing: 0.25em;
   }
 
-  /* 头像元件（白环 + 圆形裁切，尺寸由 --avatar-size 控制）：本页个人头像用 */
   .avatar-ring {
     --avatar-size: 100px;
     width: var(--avatar-size);

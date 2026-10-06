@@ -1,5 +1,6 @@
 ---
 // sponsor.astro — 赞助页面
+// 用法：路由 /sponsor/
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { Icon } from 'astro-icon/components';
 import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
@@ -86,7 +87,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     align-items: center;
   }
 
-  /* 页头标题 / 描述的内容排版：页面排版不进公共文件（元件才算公共），写在本页 */
   .header-title {
     font-size: 2rem;
     color: var(--hover-ink);
@@ -171,7 +171,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     gap: 16px;
   }
 
-  /* 分组标题：左右短线夹住文字，比纯小字更醒目 */
   .other-header {
     display: flex;
     align-items: center;
@@ -197,14 +196,12 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     white-space: nowrap;
   }
 
-  /* 三张卡片横向排列，窄屏回落为纵向 */
   .action-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
   }
 
-  /* 横排卡片：图标居中在上、文字在下 */
   .grid-card {
     display: flex;
     flex-direction: column;

@@ -14,7 +14,6 @@ import { Icon } from 'astro-icon/components';
 import { githubRepo, githubUsername } from '../../data/github';
 
 interface Props {
-  /** trigger 只渲染顶栏按钮，modal 只渲染弹窗本体 */
   part: 'trigger' | 'modal';
 }
 
@@ -45,7 +44,6 @@ const { part } = Astro.props;
       aria-labelledby="admin-conn-title"
     >
       <div class="admin-modal-head">
-        <!-- 标题随状态切换：两个都渲染，由 admin.css 按 .is-connected 只留一个 -->
         <h2 class="admin-modal-title admin-modal-title--form" id="admin-conn-title">
           连接 GitHub
         </h2>

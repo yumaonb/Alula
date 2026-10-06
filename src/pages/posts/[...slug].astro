@@ -1,5 +1,6 @@
 ---
 // [...slug].astro — 文章详情页 & 分类列表页（基于 astro:content 集合）
+// 用法：路由 /posts/<slug>/（catch-all，文章详情与分类列表共用）
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostsLayout from '../../layouts/PostsLayout.astro';
 import GlobalSidebar from '../../components/posts/GlobalSidebar.astro';
@@ -25,13 +26,12 @@ export async function getStaticPaths() {
   }[] = [];
   const seen = new Set<string>();
 
-  // 文章路由：posts 集合的每个条目（含隐藏文章——隐藏只是不进列表，直链仍要能打开）
+  // 含隐藏文章：隐藏只是不进列表，直链仍要能打开
   for (const p of d.allPosts) {
     seen.add(p.slug);
     routes.push({ params: { slug: p.slug }, props: { type: 'post', slug: p.slug } });
   }
 
-  // 分类路由：分类目录（index.json）+ 每篇文章所在目录的祖先目录
   const addCategory = (path: string) => {
     if (!path || seen.has(path)) return;
     seen.add(path);
@@ -222,7 +222,6 @@ if (type === 'category') {
 )}
 
 <style>
-  /* 分类页空态（复用列表共享样式，仅此页保留） */
   .posts-empty {
     display: flex;
     flex-direction: column;

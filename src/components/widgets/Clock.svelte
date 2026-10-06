@@ -1,5 +1,5 @@
 <!-- Clock.svelte — 实时时钟（指针动画 + 时间/日期显示）
-     用法：<Clock client:load />（首页 / 关于页） -->
+     用法：<Clock client:load />（首页） -->
 <script lang="ts">
   import { onMount } from 'svelte';
 
@@ -120,7 +120,6 @@
     raf = requestAnimationFrame(loop);
     scheduleTick();
 
-    // tab 不可见时暂停计时器，节省 CPU
     function onVisibility(): void {
       if (document.hidden) {
         if (timer) clearTimeout(timer);
