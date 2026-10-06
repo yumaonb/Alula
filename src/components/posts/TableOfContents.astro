@@ -40,20 +40,23 @@ if (hasH1 && hasH2) {
       <Icon name="la:list" class="toc-icon" />
       <span>文章目录</span>
     </div>
-    <div class="toc-track" id="toc-list">
+    <div class="toc-track">
+      <div class="toc-scroll" id="toc-list">
+        <ul class="toc-list">
+          {tocItems.map((heading) => (
+            <li
+              class:list={['toc-item', { 'toc-sub': heading.depth > tocItems[0].depth }]}
+              data-target={heading.slug}
+            >
+              <a class="toc-link link-plain" data-target={heading.slug}>
+                {heading.text.replace(/\s*#$/, '')}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <!-- 竖线在滚动内容之外：相对轨道真固定，不随内容滚动 -->
       <div class="toc-active-bar" id="toc-bar"></div>
-      <ul class="toc-list">
-        {tocItems.map((heading) => (
-          <li
-            class:list={['toc-item', { 'toc-sub': heading.depth > tocItems[0].depth }]}
-            data-target={heading.slug}
-          >
-            <a class="toc-link link-plain" data-target={heading.slug}>
-              {heading.text.replace(/\s*#$/, '')}
-            </a>
-          </li>
-        ))}
-      </ul>
     </div>
   </nav>
 )}
@@ -86,21 +89,25 @@ if (hasH1 && hasH2) {
     opacity: 0.55;
   }
 
+  /* 轨道只做竖线的定位盒；滚动在内层 .toc-scroll */
   .toc-track {
     position: relative;
+  }
+
+  .toc-scroll {
     max-height: calc(100vh - 211px);
     overflow-y: auto;
     overflow-x: hidden;
     padding-left: 6px;
   }
 
-  .toc-track::-webkit-scrollbar {
+  .toc-scroll::-webkit-scrollbar {
     width: 2px;
   }
-  .toc-track::-webkit-scrollbar-track {
+  .toc-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
-  .toc-track::-webkit-scrollbar-thumb {
+  .toc-scroll::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
   }

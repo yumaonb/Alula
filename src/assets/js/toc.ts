@@ -13,15 +13,19 @@
 // 标记位置按标题位缓存显式写入（top/height），布局平移（图片加载/字体）时
 // 由 rAF 重测 + 哨兵（活动项标题单元素 rect 校验缓存，偏差 > 2px 重测）保
 // 持新鲜；单元素读取（非 × N），纯滚动不改样式、不强制布局。
-// 共用过渡：竖线内容与轨道滚动用**同一条进度 p**（0→1、easeOut）推进。
-// 列表静止且居中可达时，(竖线位移) == (轨道位移) → 竖线视觉位数学上恒在
-// 视口中心：列表流动、中间部分固定（「划过去」感）；中途重定向从当前值
-// 续接，竖线视觉位只朝中心单调收敛，无先掉后回的反向抵消、无「旧目标先
-// 写回再矫正」的竞态（每帧唯一写入者，无离散 tween）。
-// 轨道只在切项 / 首次落位 / 重测重定向时动；手动滚轮关闭跟随（滑走不拉
-// 回），下一次切项恢复居中；点击窗口内轨道不动（不抢页面平滑滚动，竖线仍
-// 跟高亮）；仅「首次落位」（深链进入 / 切页后）且距离 > SNAP_MAX_PX 才是
-// 状态矫正、瞬移就位。
+// 竖线是真固定元素：放在轨道内、滚动内容之外，不随内容滚动。它的目标 =
+// 活动项在轨道坐标里的顶边（静止态）；居中可达时居中滚动恰为 itemTop -
+// trackH/2 + itemH/2 → 竖线目标 = trackH/2 - itemH/2 = 轨道中心常量：中间
+// 段竖线一点都不动、只有列表流过（「划过去」感）；项被夹住（列表太短 / 首
+// 尾）时竖线贴住项的真实位置。
+// 共用过渡：竖线静止目标与轨道滚动用**同一条进度 p**（0→1、easeOut）推进，
+// 中途重定向从当前值续接，每帧唯一写入者，无离散 tween、无「旧目标先写回
+// 再矫正」的竞态。
+// 轨道只在切项 / 首次落位 / 重测重定向时动；手动滚动（滚轮 / 触摸）= 显式
+// 接管：关闭跟随（滑走不拉回），接管期间竖线贴住活动项的当前视觉位随内容
+// 走（滚轮现算、触摸走轨道 scroll 监听），下一次切项恢复居中；点击窗口内
+// 轨道不动（不抢页面平滑滚动，竖线仍跟高亮）；仅「首次落位」（深链进入 /
+// 切页后）且距离 > SNAP_MAX_PX 才是状态矫正、瞬移就位。
 // 帧循环：单 rAF、滚动驱动（哨兵与过渡同通道）、收敛后自动停摆（静止零开
 // 销）。竖线位移走 translateY（合成器通道）而非 top（布局通道）。
 (() => {
@@ -85,7 +89,7 @@
     return Math.max(0, Math.min(desired, maxScroll));
   }
 
-  // ---- 共用过渡：单进度 p 同时驱动竖线内容与轨道滚动 ----
+  // ---- 共用过渡：单进度 p 同时驱动竖线静止目标与轨道滚动 ----
   let p = 1; // 过渡进度（1 = 完成）
   let dur = 0.12; // 过渡时长（s，按位移成比例）
   let barFrom = 0;
@@ -93,7 +97,7 @@
   let trackFrom = 0;
   let trackTo = 0;
   let lastT = 0; // 上一帧时间戳
-  let barPos = 0; // 竖线当前内容位
+  let barPos = 0; // 竖线当前轨道坐标位
   let barPlaced = false; // 竖线是否完成首次落位
   let trackPlaced = false; // 轨道是否完成首次落位
   let trackFollow = true; // 轨道居中是否生效（手动滚轮关闭，切项恢复）
@@ -109,17 +113,32 @@
    */
   function retarget(idx: number, trackEl: HTMLElement | null): void {
     barFrom = barPos;
-    barTo = itemTops[idx];
-    let dist = Math.abs(barTo - barFrom);
+    let restScroll: number;
     if (trackEl) {
       trackFrom = trackEl.scrollTop;
       trackTo = centerScrollFor(idx, trackEl);
-      dist = Math.max(dist, Math.abs(trackTo - trackFrom));
+      restScroll = trackTo;
+    } else {
+      // 点击窗口内轨道不动：静止滚动即当前值
+      const t = document.getElementById('toc-list');
+      restScroll = t ? t.scrollTop : 0;
     }
+    // 竖线目标 = 活动项顶边在轨道坐标里的静止位置：居中可达时该值恒为轨道
+    // 中心（竖线真固定、中间段不动）；项被夹住时是项的真实视觉位置
+    barTo = itemTops[idx] - restScroll;
+    let dist = Math.abs(barTo - barFrom);
+    if (trackEl) dist = Math.max(dist, Math.abs(trackTo - trackFrom));
     if ((!barPlaced || !trackPlaced) && dist > SNAP_MAX_PX) {
-      // 状态矫正：仅首次落位且距离大（深链进入 / 切页后）——立刻对齐
+      // 状态矫正：仅首次落位且距离大（深链进入 / 切页后）——立刻对齐。
+      // 必须同帧写入竖线 transform：此分支不走帧循环，只改变量竖线会停在
+      // 旧位等下次切项；落位完成，两个 placed 标志一并置位（后续大距离
+      // 走平滑过渡而非再次瞬移）
       barPos = barTo;
       if (trackEl) trackEl.scrollTop = trackTo;
+      const bar = document.getElementById('toc-bar');
+      if (bar) bar.style.transform = `translateY(${barPos}px)`;
+      barPlaced = true;
+      trackPlaced = true;
       p = 1;
       return;
     }
@@ -312,8 +331,8 @@
       }
     }
 
-    // 推进共用过渡：同一条 p 驱动竖线内容与轨道滚动——静止居中时两条位移
-    // 相等，竖线视觉位恒在中心（中间固定）；轨道关闭跟随时只推进竖线通道
+    // 推进共用过渡：同一条 p 驱动竖线静止目标与轨道滚动——居中可达时竖线
+    // 目标是轨道中心常量（中间段真固定）；轨道关闭跟随时只推进竖线通道
     if (p < 1) {
       const dt = Math.min(64, Math.max(1, now - lastT));
       lastT = now;
@@ -363,9 +382,18 @@
 
   window.addEventListener('scroll', ensureLoop, { passive: true });
 
+  // 竖线贴住活动项的当前视觉位（轨道坐标系）：手动接管 / 过渡取消时现算
+  function syncBarToActive(track: HTMLElement): void {
+    if (lastActiveIdx < 0 || lastActiveIdx >= slugs.length) return;
+    barPos = itemTops[lastActiveIdx] - track.scrollTop;
+    const bar = document.getElementById('toc-bar');
+    if (bar) bar.style.transform = `translateY(${barPos}px)`;
+  }
+
   // 目录内容自身滚动（滚轮 / 触摸）：只接管滚动行为，活动项由页面滚动决定，
-  // 目录滚轮不改变它。手动滚轮 = 显式意图接管轨道：关闭跟随（滑走不拉回），
-  // 下一次切项恢复居中。竖线每帧由活动项现算，天然不失步。
+  // 目录滚动不改变它。手动滚动 = 显式意图接管轨道：关闭跟随（滑走不拉回），
+  // 接管期间竖线贴住活动项随内容走（滚轮在此现算，触摸走下方轨道 scroll
+  // 监听），下一次切项恢复居中。
   document.addEventListener(
     'wheel',
     (e: WheelEvent) => {
@@ -374,7 +402,14 @@
 
       e.preventDefault();
       trackFollow = false;
+      if (p < 1) {
+        // 过渡飞行中也被接管：轨道停止被驱动，竖线直接落到活动项当前位
+        p = 1;
+        barPlaced = true;
+        trackPlaced = true;
+      }
       track.scrollTop += e.deltaY;
+      syncBarToActive(track);
     },
     { passive: false },
   );
@@ -382,6 +417,16 @@
   const initToc = (): void => {
     measure();
     layoutMarks(); // 观察器首次回调即落位初始活动项（深链时触发状态矫正瞬移）
+    // 触摸等原生滚动不产生 wheel 事件：轨道 scroll 监听里同样让竖线贴住
+    // 活动项；过渡自己驱动轨道时（p < 1）不接管
+    const track = document.getElementById('toc-list');
+    if (track) {
+      track.addEventListener('scroll', () => {
+        if (p < 1) return;
+        trackFollow = false;
+        syncBarToActive(track);
+      });
+    }
   };
 
   document.addEventListener('swup:content:replace', () => {
@@ -403,15 +448,16 @@
   window.__tocSnap = () => {
     if (lastActiveIdx < 0 || lastActiveIdx >= slugs.length) return;
     measure(); // 抽屉已把 .toc-nav 移入新容器：目录项 offsetTop/高度需重测
+    const track = document.getElementById('toc-list');
     const bar = document.getElementById('toc-bar');
-    if (!bar) return;
+    if (!track || !bar) return;
     barPlaced = true;
-    barPos = itemTops[lastActiveIdx];
+    barPos = itemTops[lastActiveIdx] - track.scrollTop;
     bar.style.height = `${itemHeights[lastActiveIdx]}px`;
     bar.style.transform = `translateY(${barPos}px)`;
     p = 1;
     trackFollow = true;
-    retarget(lastActiveIdx, document.getElementById('toc-list'));
+    retarget(lastActiveIdx, track);
     ensureLoop();
   };
 })();

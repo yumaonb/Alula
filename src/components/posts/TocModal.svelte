@@ -263,7 +263,12 @@
   }
 
   :global(.toc-modal .toc-modal-body .toc-track) {
-    max-height: none;
     flex: 1;
+    min-height: 0;
+  }
+
+  :global(.toc-modal .toc-modal-body .toc-scroll) {
+    max-height: none;
+    height: 100%;
   }
 </style>
