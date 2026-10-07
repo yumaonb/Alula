@@ -12,7 +12,7 @@ import Markdown from '../components/layout/Markdown.astro';
 ---
 
 <BaseLayout title="关于">
-  <div class="about-page page-container">
+  <div class="about-page">
     <section class="intro-section">
       <div class="intro-header glass">
         <div class="avatar-ring">
@@ -42,7 +42,10 @@ import Markdown from '../components/layout/Markdown.astro';
 </BaseLayout>
 
 <style>
+  /* width: 100% 必须有：.hero 是 flex 容器，只写 max-width 时 auto 宽度
+   * 会按内容尺寸收缩（纯中文内容 max-content 约一个字宽，页面会塌成窄缝） */
   .about-page {
+    width: 100%;
     min-width: 0;
     max-width: 800px;
     display: flex;

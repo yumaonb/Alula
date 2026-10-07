@@ -67,25 +67,27 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 </BaseLayout>
 
 <style>
-  /* ---- 页面布局 ---- */
+  /* ---- 页面布局 ----
+   * width: 100% 填满 .hero 的内容盒（宽度规则见 global.css）：
+   * 桌面端两栏保持设计宽（左 360 + 右 340，不拉伸不压缩）整组居中；
+   * 手机端 / 769~859px（见下方媒体查询）走单栏，单栏填满整盒 */
   .content-wrapper {
     display: flex;
     align-items: flex-start;
     justify-content: center;
     gap: 48px;
-    max-width: 1100px;
+    width: 100%;
     margin: auto 0;
-    padding: 24px 24px 0;
+    padding: 24px 0 0;
   }
 
-  /* ---- 左栏 ---- */
+  /* ---- 左栏 ----（固定 360；769~859px 走单栏，见下方媒体查询） ---- */
   .left-col {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 24px;
     width: 360px;
-    flex-shrink: 0;
   }
 
   .avatar-ring {
@@ -183,13 +185,12 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     align-self: center;
   }
 
-  /* ---- 右栏 ---- */
+  /* ---- 右栏 ----（设计宽 340，不拉伸；769~859px 走单栏） ---- */
   .right-col {
     width: 340px;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    flex-shrink: 0;
     min-height: 406px;
   }
 
@@ -200,8 +201,10 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     border-radius: var(--radius);
   }
 
-  /* ---- 手机端适配 ---- */
-  @media (max-width: 768px) {
+  /* ---- 单栏适配：手机端 + 769~859px。
+     两栏最小总宽 748 + 桌面两侧 112 = 860px，装不下就单栏，
+     组件级断点（同文章页 1000px 隐藏侧栏一个先例） ---- */
+  @media (max-width: 859px) {
     .content-wrapper {
       flex-direction: column;
       align-items: center;
@@ -215,7 +218,6 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 
     .intro-card {
       width: 100%;
-      max-width: 100vw;
       box-sizing: border-box;
       padding: 24px 20px;
     }

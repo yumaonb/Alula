@@ -39,6 +39,7 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 ---
 
 <BaseLayout title={title} description={description} noindex={hidden}>
+  <!-- 宽度由 BaseLayout 的 .hero 统一管（见 global.css），这里不声明外层宽度 -->
   <div class="posts-with-sidebar">
     <div class="posts-sidebar-wrap">
       <GlobalSidebar tree={categoryTree} tags={sidebarTags}>
@@ -70,10 +71,6 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 </BaseLayout>
 
 <style>
-  .posts-with-sidebar {
-    max-width: 1200px;
-  }
-
   .post-layout {
     display: flex;
     gap: 32px;

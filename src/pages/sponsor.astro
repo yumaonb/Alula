@@ -7,7 +7,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 ---
 
 <BaseLayout title="赞助">
-  <div class="sponsor-page page-container">
+  <div class="sponsor-page">
     <header class="sponsor-header">
       <h1 class="header-title">赞助支持</h1>
       <p class="header-desc">如果我的内容对你有帮助，欢迎请我喝杯咖啡</p>
@@ -71,7 +71,9 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 </BaseLayout>
 
 <style>
+  /* width: 100% 必须有：.hero 是 flex 容器，只写 max-width 会塌成窄缝（见 about 页注释） */
   .sponsor-page {
+    width: 100%;
     max-width: 640px;
     display: flex;
     flex-direction: column;

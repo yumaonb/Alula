@@ -1,10 +1,10 @@
 /* posts-listing.css — 文章列表布局与共享样式（列表页 / 分类页 / 文章详情页共用） */
 
-/* ---- 页面骨架：标题区 + （侧栏 | 内容列） ---- */
+/* ---- 页面骨架：标题区 + （侧栏 | 内容列） ----
+ * 外层宽度由 .hero 统一管（见 global.css），这里 width: 100% 只是填满它 */
 .posts-page,
 .category-page {
   width: 100%;
-  max-width: 1200px;
   min-width: 0;
   display: flex;
   flex-direction: column;

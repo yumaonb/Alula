@@ -6,7 +6,7 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
 ---
 
 <BaseLayout title="项目">
-  <div class="projects-page page-container">
+  <div class="projects-page">
     <div class="page-header">
       <h1 class="page-title">我的项目</h1>
       <p class="page-desc">这里是我的一些开源项目，欢迎Star或Fork</p>
@@ -17,8 +17,9 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
 </BaseLayout>
 
 <style>
-  /* ---- 页面 ---- */
+  /* ---- 页面 ----（width: 100% 必须有，原因见 about 页注释） ---- */
   .projects-page {
+    width: 100%;
     max-width: 960px;
   }
 

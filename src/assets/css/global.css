@@ -122,21 +122,20 @@ ol {
   pointer-events: none;
 }
 
-/* 主内容区 */
+/* 主内容区 —— 全站宽度的唯一执行点（BaseLayout 里，所有页面自动遵守）：
+ * 桌面端最宽 --content-width，视口不足时两侧各空 --page-gutter；
+ * 移动端（≤768px）两侧各空 --page-gutter-mobile（见下方媒体查询）。
+ * 页面自己的外层元素不要再声明宽度规则（会覆盖/绕过这里），
+ * 要收窄内容列就写 width: 100% + max-width。 */
 .hero {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  width: min(100% - var(--page-gutter) * 2, var(--content-width));
+  margin: 0 auto;
   padding: 84px 0 32px;
   position: relative;
-}
-
-/* 页面容器：前台页面内容的最外层包裹，横向居中 + 左右留白（移动端 16px） */
-.page-container {
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 56px;
 }
 
 /* ---- 侧边悬浮按钮列 ---- */
@@ -212,10 +211,10 @@ ol {
   height: 20px;
 }
 
-/* 移动端缩小悬浮按钮，减少对正文的遮挡 */
+/* 移动端缩小悬浮按钮，减少对正文的遮挡；.hero 换用移动端留白令牌 */
 @media (max-width: 768px) {
-  .page-container {
-    padding: 0 16px;
+  .hero {
+    width: calc(100% - var(--page-gutter-mobile) * 2);
   }
 
   .side-widgets {
