@@ -10,19 +10,19 @@ import { Icon } from 'astro-icon/components';
 
 <AdminLayout title="管理分类">
   <div class="admin-page" data-admin-page="categories" data-admin-title="管理分类">
-    <div class="admin-gate">
+    <div class="admin-gate glass">
       <Icon name="mdi:lock-outline" class="admin-gate-icon" />
       <p>
         还没有连接 GitHub。
         <br />
         填好仓库与访问令牌后即可管理分类。
       </p>
-      <button class="btn btn--primary" data-conn-open type="button">
+      <button class="btn glass btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="card admin-needs-conn">
+    <section class="card glass admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">分类目录</h2>
         <span class="card-extra" id="admin-cats-status">未连接</span>

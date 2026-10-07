@@ -7,19 +7,19 @@ import { Icon } from 'astro-icon/components';
 
 <AdminLayout title="文章管理">
   <div class="admin-page" data-admin-page="posts" data-admin-title="文章管理">
-    <div class="admin-gate">
+    <div class="admin-gate glass">
       <Icon name="mdi:lock-outline" class="admin-gate-icon" />
       <p>
         还没有连接 GitHub。
         <br />
         填好仓库与访问令牌后即可读写文章。
       </p>
-      <button class="btn btn--primary" data-conn-open type="button">
+      <button class="btn glass btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="card admin-needs-conn">
+    <section class="card glass admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">新建文章</h2>
       </div>
@@ -31,14 +31,14 @@ import { Icon } from 'astro-icon/components';
           placeholder="分类/文件名.md，例如 devnotes/notes/vite.md"
           autocomplete="off"
         />
-        <a class="btn link-plain" id="admin-new-open" href="/admin/posts/edit/">
+        <a class="btn glass link-plain" id="admin-new-open" href="/admin/posts/edit/">
           打开编辑
         </a>
       </div>
       <p class="hint">路径不存在就是新建，保存后才会真正写进仓库。</p>
     </section>
 
-    <section class="card admin-needs-conn">
+    <section class="card glass admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">全部文章</h2>
         <span class="card-extra" id="admin-posts-status">未连接</span>

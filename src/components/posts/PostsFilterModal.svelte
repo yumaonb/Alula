@@ -94,7 +94,7 @@
   onkeydown={onKeydown}
 >
   <div class="pfilter-modal-mask" data-pfilter-close></div>
-  <div class="pfilter-modal-panel">
+  <div class="pfilter-modal-panel glass">
     <div class="pfilter-modal-header">
       <span class="pfilter-modal-title">
         <svg
@@ -163,9 +163,6 @@
     display: flex;
     flex-direction: column;
     border-radius: var(--radius) 0 0 var(--radius);
-    backdrop-filter: blur(var(--blur));
-    -webkit-backdrop-filter: blur(var(--blur));
-    box-shadow: var(--shadow), inset 1px 0 0 rgba(255, 255, 255, 0.08);
     transform: translateX(100%);
     transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   }

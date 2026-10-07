@@ -39,7 +39,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
         {socialLinks.map((link) => (
           <a
             href={link.url}
-            class="glass-btn hoverable link-plain"
+            class="glass-btn glass hoverable link-plain"
             title={link.label}
             target="_blank"
             rel="noopener"
@@ -157,16 +157,11 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     flex-shrink: 0;
     width: 46px;
     height: 46px;
-    border: none;
-    border-radius: 50%;
+    border-radius: 50%; /* 圆形覆盖 .glass 的 10px 圆角 */
     cursor: pointer;
     color: var(--icon-ink);
     font: inherit;
     text-decoration: none;
-    background: transparent;
-    backdrop-filter: blur(var(--blur));
-    -webkit-backdrop-filter: blur(var(--blur));
-    box-shadow: var(--shadow), inset 0 0 0 1px var(--ring);
     position: relative;
   }
 

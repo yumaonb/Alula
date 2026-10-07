@@ -7,21 +7,21 @@ import { Icon } from 'astro-icon/components';
 
 <AdminLayout title="编辑文章">
   <div class="admin-page" data-admin-page="editor" data-admin-title="编辑文章">
-    <div class="admin-gate">
+    <div class="admin-gate glass">
       <Icon name="mdi:lock-outline" class="admin-gate-icon" />
       <p>
         还没有连接 GitHub。
         <br />
         填好仓库与访问令牌后即可编辑文章。
       </p>
-      <button class="btn btn--primary" data-conn-open type="button">
+      <button class="btn glass btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
     <div class="admin-editor admin-needs-conn">
       <div class="admin-editor-files">
-        <section class="card">
+        <section class="card glass">
           <div class="card-head">
             <h2 class="card-title">文件</h2>
           </div>
@@ -39,7 +39,7 @@ import { Icon } from 'astro-icon/components';
       </div>
 
       <div class="admin-editor-main">
-        <section class="card">
+        <section class="card glass">
           <div class="admin-editor-bar">
             <span class="admin-editor-path" id="admin-editor-path">
               未选择文件
@@ -58,11 +58,11 @@ import { Icon } from 'astro-icon/components';
           ></textarea>
 
           <div class="admin-editor-actions">
-            <button class="btn" id="admin-editor-delete">
+            <button class="btn glass" id="admin-editor-delete">
               <Icon name="mdi:delete-outline" class="btn-icon" />
               暂存删除
             </button>
-            <button class="btn btn--primary" id="admin-editor-save">
+            <button class="btn glass btn--primary" id="admin-editor-save">
               <Icon name="mdi:content-save-outline" class="btn-icon" />
               暂存改动
             </button>

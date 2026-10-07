@@ -118,7 +118,7 @@
   onkeydown={onKeydown}
 >
   <div class="toc-modal-mask" data-toc-close></div>
-  <div class="toc-modal-panel">
+  <div class="toc-modal-panel glass">
     <div class="toc-modal-header">
       <span class="toc-modal-title">
         <svg
@@ -187,10 +187,6 @@
     display: flex;
     flex-direction: column;
     border-radius: var(--radius) 0 0 var(--radius);
-    background: transparent;
-    backdrop-filter: blur(var(--blur));
-    -webkit-backdrop-filter: blur(var(--blur));
-    box-shadow: var(--shadow), inset 1px 0 0 rgba(255, 255, 255, 0.08);
     transform: translateX(100%);
     transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   }

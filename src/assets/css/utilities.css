@@ -4,7 +4,10 @@
  * 共享文件（如 posts-listing.css）里；页面结构（外壳 / 主内容区 / 页面容器）
  * 在 global.css。 */
 
-/* ---- 玻璃卡片 ---- */
+/* ---- 玻璃卡片 ----
+ * 全站磨砂效果唯一定义：凡需要磨砂观感的元素都挂 .glass（玻璃卡、悬浮小按钮、
+ * 搜索胶囊 / 下拉、抽屉、滚动条、后台按钮 / 卡片 / 侧栏等），
+ * 组件与页面样式不再自己写 backdrop-filter。 */
 .glass {
   background: transparent;
   backdrop-filter: blur(var(--blur));

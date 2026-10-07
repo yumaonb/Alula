@@ -89,8 +89,8 @@
             bind:value={message}></textarea>
 
           <div class="admin-dock-actions">
-            <button class="btn" onclick={() => adminStore.discardAll()}>丢弃全部</button>
-            <button class="btn btn--primary" disabled={busy} onclick={submit}>
+            <button class="btn glass" onclick={() => adminStore.discardAll()}>丢弃全部</button>
+            <button class="btn glass btn--primary" disabled={busy} onclick={submit}>
               {busy ? '提交中…' : `一次提交 ${changes.length} 个文件`}
             </button>
           </div>

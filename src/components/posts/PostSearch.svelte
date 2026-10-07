@@ -164,7 +164,7 @@
 </script>
 
 <div class="post-search-wrap">
-  <div class="post-search">
+  <div class="post-search glass">
     <span class="post-search-icon" aria-hidden="true">
       <svg viewBox="0 0 32 32" fill="currentColor">
         <path
@@ -210,7 +210,7 @@
 
   {#if isOpen}
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-    <div class="post-search-dropdown" bind:this={dropdownEl}>
+    <div class="post-search-dropdown glass" bind:this={dropdownEl}>
       {#if isLoading}
         <div class="psd-empty">搜索中…</div>
       {:else if errorMsg}
@@ -248,12 +248,6 @@
     gap: 8px;
     padding: 8px 12px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(var(--blur));
-    -webkit-backdrop-filter: blur(var(--blur));
-    box-shadow:
-      inset 0 0 0 1px var(--ring),
-      var(--shadow-sm);
     transition:
       box-shadow 0.25s ease,
       background 0.25s ease;
@@ -334,11 +328,6 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(var(--blur));
-    -webkit-backdrop-filter: blur(var(--blur));
-    border-radius: var(--radius);
-    box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
 
   .post-search-dropdown::-webkit-scrollbar {

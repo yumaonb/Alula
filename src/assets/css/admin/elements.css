@@ -17,12 +17,6 @@
   justify-content: center;
   gap: 6px;
   padding: 6px 14px;
-  border: none;
-  border-radius: 7px;
-  background: transparent;
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  box-shadow: var(--shadow), inset 0 0 0 1px var(--ring);
   color: var(--color-text);
   font: inherit;
   font-size: 0.8rem;
@@ -74,11 +68,6 @@
 
 .card {
   padding: 18px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  box-shadow: inset 0 0 0 1px var(--ring);
 }
 
 /* 卡头：标题在左，计数 / 状态在右 */

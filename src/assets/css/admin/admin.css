@@ -293,7 +293,7 @@
 /* 桌面端侧栏：外壳的左侧一列，从顶到底顶满、贴死左边缘不留白。
  * 观感参考首页手机端下拉菜单（NavBar 的 .mobile-menu/.mobile-link）：
  * 同样的顶部分隔线、同样的 0.78 白字、同样的 0.6 图标、同样的行高与左内边距。
- * 本体直角（只有里面的每一项是圆角按钮），所以不复用 .glass（它带 10px 圆角）。 */
+ * 本体直角（只有里面的每一项是圆角按钮）：磨砂走 .glass，圆角显式取 0 压掉它的 10px。 */
 .admin-nav {
   display: flex;
   flex-direction: column;
@@ -304,9 +304,6 @@
   /* 顶部不留内边距：顶部那格要从 0 开始，才能和顶栏同高、底边齐平 */
   padding: 0 0 14px;
   border-radius: 0;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
   box-shadow: inset -1px 0 0 var(--ring);
 }
 
@@ -761,11 +758,6 @@
   padding: 44px 20px;
   text-align: center;
   color: var(--color-text);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  box-shadow: inset 0 0 0 1px var(--ring);
 }
 
 .admin-shell:not(.is-connected) .admin-gate {
@@ -974,7 +966,7 @@
   }
 
   /* 抽屉：从左侧滑出，本体是直角抽屉（圆角只加在里面每一项上），
-   * 缓动与全站手机端菜单一致。底色透明 + 模糊，不加白色薄层。 */
+   * 缓动与全站手机端菜单一致。磨砂走 .glass，不加白色薄层。 */
   .admin-nav {
     position: fixed;
     top: 0;
@@ -987,9 +979,6 @@
     flex-direction: column;
     overflow-y: auto;
     border-radius: 0;
-    background: transparent;
-    backdrop-filter: blur(var(--blur));
-    -webkit-backdrop-filter: blur(var(--blur));
     box-shadow:
       var(--admin-shadow-drawer),
       inset -1px 0 0 var(--ring);

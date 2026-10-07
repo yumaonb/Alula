@@ -7,19 +7,19 @@ import { Icon } from 'astro-icon/components';
 
 <AdminLayout title="友情链接">
   <div class="admin-page" data-admin-page="settings-friends" data-admin-title="友情链接">
-    <div class="admin-gate">
+    <div class="admin-gate glass">
       <Icon name="mdi:lock-outline" class="admin-gate-icon" />
       <p>
         还没有连接 GitHub。
         <br />
         填好仓库与访问令牌后即可修改配置。
       </p>
-      <button class="btn btn--primary" data-conn-open type="button">
+      <button class="btn glass btn--primary" data-conn-open type="button">
         去连接
       </button>
     </div>
 
-    <section class="card admin-needs-conn">
+    <section class="card glass admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">友链列表</h2>
         <span class="card-extra" id="admin-friend-status">共 0 条</span>
@@ -36,7 +36,7 @@ import { Icon } from 'astro-icon/components';
         </div>
       </div>
       <div class="toolbar">
-        <button class="btn btn--dashed" id="admin-friend-add" type="button">
+        <button class="btn glass btn--dashed" id="admin-friend-add" type="button">
           <Icon name="mdi:plus" class="btn-icon" />
           添加一条
         </button>
@@ -46,7 +46,7 @@ import { Icon } from 'astro-icon/components';
       </p>
     </section>
 
-    <section class="card">
+    <section class="card glass">
       <div class="card-head">
         <h2 class="card-title">申请说明</h2>
       </div>

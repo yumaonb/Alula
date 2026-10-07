@@ -161,11 +161,6 @@ ol {
   height: 44px;
   margin-top: 8px;
   padding: 0;
-  border: 1px solid var(--ring);
-  border-radius: 5px;
-  background: var(--rest-bg);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
   color: var(--icon-ink);
   cursor: pointer;
   opacity: 0;
@@ -210,7 +205,6 @@ ol {
 .back-to-widget:hover {
   color: var(--icon-hover);
   background: var(--hover-bg);
-  border-color: var(--hover-line);
 }
 
 .back-to-widget-icon {
