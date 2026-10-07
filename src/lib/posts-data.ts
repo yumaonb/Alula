@@ -13,7 +13,6 @@ import {
   type CategoryTreeNode,
   type PostItem,
 } from './category';
-import { commentCountFor, loadCommentCounts } from './comment-counts';
 
 const contentRoot = 'content/posts';
 
@@ -76,8 +75,6 @@ function countWords(body: string): number {
 async function buildData(): Promise<BlogData> {
   const entries = await getCollection('posts');
   const meta = buildCategoryMeta();
-  // 构建期拉取一次 giscus 评论数；失败为 null（所有卡片隐藏评论数）
-  const commentCounts = await loadCommentCounts();
 
   const allPosts: PostItem[] = entries
     .map((e) => {
@@ -98,7 +95,6 @@ async function buildData(): Promise<BlogData> {
         hidden: d.hidden === true,
         category,
         categoryTrail: category ? buildCategoryTrail(category, meta) : [],
-        commentCount: commentCountFor(commentCounts, url),
         basePath: category ? `${contentRoot}/${category}` : contentRoot,
         url,
         words,

@@ -52,8 +52,6 @@ export interface PostItem {
   category: string;
   /** 完整分类链（每级分类名 + 对应分类页 URL；无分类时为空数组） */
   categoryTrail: CategoryTrailItem[];
-  /** 评论数（构建期由 giscus 数据而来；拉取失败时为 undefined，卡片隐藏评论数） */
-  commentCount?: number;
   /** 图片基准目录（相对 src/），供 ImageWrapper 解析相对图片 */
   basePath: string;
   /** 文章完整 URL，如 /posts/devnotes/css/at-rule/ */
