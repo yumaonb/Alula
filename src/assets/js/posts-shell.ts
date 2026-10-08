@@ -1,24 +1,34 @@
 // posts-shell.ts — 文章区常驻壳（.page-main 行）的运行时控制器
 // 用法：由 BaseLayout 引入：import "../assets/js/posts-shell"
 //
-// 侧边栏（GlobalSidebar）在 #swup 之外、切页不重建，所以每次切页后三件事要自己跟上：
-// ① 行的变体类（--plain/--listing/--post，驱动侧栏显隐与内容列 1000px 收窄）；
+// 侧边栏（GlobalSidebar）与搜索框（PostSearch）都在 #swup 之外、切页不重建，
+// 所以每次切页后四件事要自己跟上：
+// ① 行的变体类（--plain/--listing/--post，驱动侧栏/搜索显隐与内容列 1000px 收窄）；
 // ② 侧栏顶偏移 --posts-side-offset（实测"页锚高度 + 间隙"，页锚 = 页头 / 面包屑条，
 //    带 data-posts-anchor 标记）；
-// ③ 侧栏高亮态（当前分类高亮 + 其路径补展开、当前标签高亮）。
+// ③ 侧栏高亮态（当前分类高亮 + 其路径补展开、当前标签高亮）；
+// ④ 行级常驻搜索框的叠放位置（实测页头占位符 .posts-header-search 的行内坐标，
+//    写 .posts-search-float 的内联 top/left/width——占位随标题换行/窗口变，跟着重测）。
 // 只"补展开"不收起：用户手动开合的节点在切页后保留，当前分类路径恒可见。
-// ④ 左缘元素（列表页头 / 文章面包屑条）切页滑动切换，motion 驱动：
+// ⑤ 左缘元素（列表页头 / 文章面包屑条）切页滑动切换，motion 驱动：
 //    只在文章区界面之间生效（涉及普通屏不播、不消耗流向）；swup 替换瞬间丢弃旧 DOM，
 //    替换前（astro:before-swap）克隆旧元素进行内静止暂存，等新界面加载完
 //    （astro:after-swap）才播放——过渡绝不先于内容。
 //    流向交替：每次播放的流向与上一次相反（首次"上"）；"上" = 旧元素向上滑出、
 //    新元素自下方上滑入，"下"相反。
-//    "一张纸"整体感：退出侧位移 + 全时长渐隐（边滑出边淡掉，同时消掉「下」流向
-//    尾段压新卡片的问题）、进入侧纯位移全程不透明（淡入会留落地前空白闪）——
-//    新旧两条实心带位移上全程贴合，像同一张纸被拉开，不出现"先出后进"的割裂。
-//    搜索框不参与滑动（反向位移抵消 = 原地不动；克隆副本默认 visibility:hidden 防
-//    双份投影加深搜索下方阴影，仅新页无搜索框时随父带淡出，列表系互切零淡变）。
-//    目录不参与滑动，进出各做一次 220ms 淡入/淡出防硬切闪。
+//    "一张纸"整体感：退出侧位移 + 全时长渐隐（边滑出边淡掉）、进入侧纯位移全程不透明
+//    （淡入会留落地前空白闪）——新旧两条实心带位移上全程贴合，像同一张纸被拉开。
+//    滑动只发生在「口袋」里：旧带克隆裁进 .posts-edge-stage、新带由 .posts-edge-slot
+//    转场期 is-clip 裁切（两者同盒 = 条自身盒）——条只在自己 36px 高度内滑动，
+//    永不伸进下方内容（作者卡顶 132px），进入/退出都从口袋上下沿出现/消失。
+//    搜索框是行级常驻（.posts-search-float，不在条里、不被 swup 碰）：天生不参与滑动、
+//    永不被重新插入（旧方案 data-swup-persist 每次切页摘出再插回，.glass 胶囊的
+//    backdrop 层每页重建 + 位移动画每帧重光栅化 = 用户看到的「阴影一闪一闪」），
+//    进出文章详情时随行变体类做 400ms opacity 渐隐/渐显。
+//    快速连切保护：上一次转场未播完又切页时，旧条带可能带着被 cancel 的位移动画
+//    残留内联 transform——克隆前先把它的 transform 清零再量盒，否则克隆/舞台按
+//    中途位置裁切，两条标题会在半空中重叠。
+//    目录不参与滑动，进出各做一次 400ms 淡入/淡出防硬切闪。
 // 另负责 category-tree 脚本守卫：从非文章页 swup 进文章区时，壳里脚本不在首屏 HTML，
 // 这里按需懒加载（模块单例，加载后自身的 document 委托与 after-swap 监听长期存活）。
 import { animate } from 'motion';
@@ -28,8 +38,8 @@ import type { AnimationPlaybackControls } from 'motion';
   if (window.__postsShellInit) return;
   window.__postsShellInit = true;
 
-  const EDGE_MS = 220; // 滑动 / 目录淡入淡出时长（与 nav-indicator 的从容感区分：短促干脆）
-  const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1]; // 快起缓收（与导航指示线一致）
+  const EDGE_MS = 400; // 滑动 / 目录淡入淡出时长（用户要求再慢一点：300ms 还不够）
+  const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1]; // 平滑进出（比快起缓收更"匀速丝滑"）
   const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function row(): HTMLElement | null {
@@ -63,13 +73,42 @@ import type { AnimationPlaybackControls } from 'motion';
     r.style.setProperty('--posts-side-offset', `${Math.round(anchor.offsetHeight + gap)}px`);
   }
 
-  /** 锚是每页元素，切页后重新观察（标题换行 / 窗口缩放都会改它的高度） */
+  /** 行级常驻搜索框的叠放位置：实测页头占位符（.posts-header-search）的行内坐标，
+   *  写 .posts-search-float 的内联 top/left/width——占位随标题换行/窗口变，跟着重测。
+   *  占位不存在（文章页/普通页）时不动：浮动搜索已被行变体类隐藏 */
+  function syncSearchPos(): void {
+    const r = row();
+    const floatEl = r?.querySelector<HTMLElement>('.posts-search-float');
+    const ph = r?.querySelector<HTMLElement>('.posts-header-search');
+    if (!r || !floatEl || !ph) return;
+    // 用不依赖 transform 的布局坐标：锚的 ResizeObserver 首次回调（observe 后立即触发）
+    // 可能赶在新条带 enter 动画刚起步时——getBoundingClientRect 含动画位移（首帧 y=±36px），
+    // 按 rect 量会把错误位置写进内联且不再被重测（动画不改变锚的尺寸）。槽是条的父级
+    // （自身不参与动画），占位的 offsetTop/offsetLeft/offsetWidth 是布局值，不受影响
+    const b = r.getBoundingClientRect();
+    const slot = ph.closest<HTMLElement>('.posts-edge-slot');
+    if (slot) {
+      const s = slot.getBoundingClientRect();
+      floatEl.style.top = `${s.top - b.top + ph.offsetTop}px`;
+      floatEl.style.left = `${s.left - b.left + ph.offsetLeft}px`;
+    } else {
+      const a = ph.getBoundingClientRect();
+      floatEl.style.top = `${a.top - b.top}px`;
+      floatEl.style.left = `${a.left - b.left}px`;
+    }
+    floatEl.style.width = `${ph.offsetWidth}px`;
+  }
+
+  /** 锚是每页元素，切页后重新观察（标题换行 / 窗口缩放都会改它的高度，占位位置跟着变） */
   function observeAnchor(): void {
     resizeObserver?.disconnect();
     resizeObserver = null;
     const anchor = row()?.querySelector<HTMLElement>('[data-posts-anchor]');
     if (!anchor) return;
-    resizeObserver = new ResizeObserver(() => syncOffset());
+    resizeObserver = new ResizeObserver(() => {
+      syncOffset();
+      syncSearchPos();
+    });
     resizeObserver.observe(anchor);
   }
 
@@ -132,6 +171,7 @@ import type { AnimationPlaybackControls } from 'motion';
   // 要先空一段（空白闪）；只位移的话元素落地前就可见、连续滑到位，无闪。
   type Flow = 'up' | 'down';
   let edgeClone: HTMLElement | null = null;
+  let edgeStage: HTMLElement | null = null; // 旧带克隆的裁切舞台（口袋），与克隆同生共死
   let tocClone: HTMLElement | null = null;
   let lastFlow: Flow | null = null;
   let anims: AnimationPlaybackControls[] = [];
@@ -142,33 +182,30 @@ import type { AnimationPlaybackControls } from 'motion';
     anims = [];
   }
 
-  /** 把元素的视觉副本贴进行内（过场用：不参与测量、不可交互、不进可访问性树）。
+  /** 清掉所有槽上的转场裁切类（兜底：动画被中断/放弃时不让 is-clip 残留） */
+  function clearSlotClip(): void {
+    document.querySelectorAll<HTMLElement>('.posts-edge-slot.is-clip').forEach((s) => s.classList.remove('is-clip'));
+  }
+
+  /** 把元素的视觉副本贴进容器内（过场用：不参与测量、不可交互、不进可访问性树）。
+   *  container = 行（目录克隆）或「口袋」舞台 .posts-edge-stage（左缘带克隆）：
+   *  舞台带 overflow:hidden，把克隆裁在条自身盒内——滑动全程只在条自己高度内，
+   *  永不伸进下方内容（作者卡顶 132px），与 .posts-edge-slot.is-clip 裁出的新带
+   *  同盒对齐、两条可见部分保持贴合。
+   *  克隆是纯静态展示（左缘带与目录里没有 island；搜索框已挪出条外行级常驻）。
    *  清除时机：正常转场由 playTransition 在滑出动画结束（finished）时移除；
    *  快速二次导航由下一次 captureOld 先清掉；5s 兜底只覆盖"visit 被中断、
-   *  after-swap 永不来"的孤儿克隆（dev 慢加载也不会误伤：动画 220ms 内必已结束） */
-  function cloneIntoRow(src: HTMLElement, r: HTMLElement): HTMLElement | null {
+   *  after-swap 永不来"的孤儿（dev 慢加载也不会误伤：动画 400ms 内必已结束） */
+  function cloneIntoRow(src: HTMLElement, container: HTMLElement): HTMLElement | null {
     const clone = src.cloneNode(true) as HTMLElement;
     clone.removeAttribute('data-posts-anchor');
-    // 克隆必须与 swup 的跨屏持久机制彻底绝缘（否则两处事故）：
-    // 1) data-swup-persist：swup 换页前会 queryAll 收集带此属性的元素做恢复，克隆若带着它，
-    //    恢复循环会把刚换回的真实搜索实例二次替换成克隆的静态副本（搜索直接失效）
-    clone.querySelectorAll('[data-swup-persist]').forEach((el) => el.removeAttribute('data-swup-persist'));
-    // 2) astro-island 是自定义元素：克隆插入 DOM 即触发 connectedCallback→start() 白跑一次水合，
-    //    还挂一个永不触发的 window 监听把整棵克隆子树钉在内存里。换成 display:contents 的普通 div
-    //    （astro-island 本身就是 display:contents，视觉不变），克隆保持纯静态展示
-    clone.querySelectorAll('astro-island').forEach((island) => {
-      const d = document.createElement('div');
-      d.style.display = 'contents';
-      d.innerHTML = island.innerHTML;
-      island.replaceWith(d);
-    });
     // 克隆按实测 top/left/width 绝对定位，必须把类继承的 margin 清零：
     // .posts-header / .posts-breadcrumb 宽屏带负 margin-left 压过侧栏区（流内布局手段），
     // 对绝对定位元素这个 margin 仍会生效（left+width+margin-left 过约束时 margin-left 被保留），
     // 不清零整条克隆向左偏 284px，转场时标题「跑到左侧最前面」
     clone.style.margin = '0';
     const a = src.getBoundingClientRect();
-    const b = r.getBoundingClientRect();
+    const b = container.getBoundingClientRect();
     clone.style.position = 'absolute';
     clone.style.top = `${a.top - b.top}px`;
     clone.style.left = `${a.left - b.left}px`;
@@ -176,38 +213,45 @@ import type { AnimationPlaybackControls } from 'motion';
     clone.style.zIndex = '20';
     clone.style.pointerEvents = 'none';
     clone.setAttribute('aria-hidden', 'true');
-    r.appendChild(clone);
-    window.setTimeout(() => clone.remove(), 5000);
+    container.appendChild(clone);
+    // 兜底：舞台整个移除（连克隆一起），普通行容器只移除克隆
+    window.setTimeout(() => {
+      if (container.classList.contains('posts-edge-stage')) container.remove();
+      else clone.remove();
+      clearSlotClip();
+    }, 5000);
     return clone;
   }
 
   /** 替换前调用：旧左缘元素与旧目录克隆进行内静止暂存（还没播，等新界面加载完定流向） */
   function captureOld(): void {
-    // 快速二次导航：先清掉上一次转场还没跑完的克隆
+    // 快速二次导航：先清掉上一次转场还没跑完的克隆（舞台整个移除 = 连克隆一起）
     stopAnims();
-    edgeClone?.remove();
-    tocClone?.remove();
+    edgeStage?.remove();
+    edgeStage = null;
     edgeClone = null;
+    tocClone?.remove();
     tocClone = null;
+    clearSlotClip();
     const r = row();
     if (!r) return;
     const old = r.querySelector<HTMLElement>('.posts-header, .posts-breadcrumb');
-    // 搜索框跨屏持久（.posts-header-search 带 data-swup-persist）：swup 换页时会把同一个
-    // astro-island 节点重新插回新页头，而 astro-island 的 connectedCallback 会再跑 start()
-    // 对同一节点二次水合（双 Svelte 实例、事件监听翻倍）。这里把该实例的 start 一次性屏蔽成
-    // 空操作——元素本身持久存活，标记只需打一次（克隆在下方制作，克隆内的 island 会被替换掉）
-    const searchIsland = old?.querySelector('astro-island');
-    if (searchIsland) {
-      (searchIsland as unknown as { start?: unknown }).start = () => {};
-    }
     if (old) {
-      edgeClone = cloneIntoRow(old, r);
-      // 搜索胶囊克隆默认隐藏（visibility 而非移除）：它是 .glass 胶囊（大投影 + 描边 + 磨砂）的
-      // 完整副本，在 before-swap→after-swap 的取数窗口里会与真实胶囊精确重叠——双份投影把搜索
-      // 下方的阴影变深，用户看到「搜索下面有啥、切页时阴影在变」；playTransition 判定新页没有
-      // 搜索框时才显示它做原地淡出
-      const searchCopy = edgeClone?.querySelector<HTMLElement>('.posts-header-search');
-      if (searchCopy) searchCopy.style.visibility = 'hidden';
+      // 快速连切保护：上一次转场未播完时本条带可能带着被 cancel 的位移动画残留内联
+      // transform（cancel 不清内联样式）——克隆/舞台的量盒必须按自然位置来，先清零。
+      // 本条带马上就要被 swup 换掉，清零的这一帧不会被看见
+      old.style.transform = '';
+      // 「口袋」舞台：行内绝对定位、同条自身盒（top/height 实测），overflow:hidden 裁切克隆。
+      // 舞台与 playTransition 里新带槽的 is-clip 同盒 → 两条可见部分在口袋内保持贴合
+      const a = old.getBoundingClientRect();
+      const b = r.getBoundingClientRect();
+      const stage = document.createElement('div');
+      stage.className = 'posts-edge-stage';
+      stage.style.top = `${a.top - b.top}px`;
+      stage.style.height = `${a.height}px`;
+      r.appendChild(stage);
+      edgeStage = stage;
+      edgeClone = cloneIntoRow(old, stage);
     }
     const oldToc = r.querySelector<HTMLElement>('.post-sidebar');
     if (oldToc) tocClone = cloneIntoRow(oldToc, r);
@@ -227,50 +271,42 @@ import type { AnimationPlaybackControls } from 'motion';
         // 新旧都在文章区：播放并消耗流向（本次与上次相反；首次"上"）
         const flow: Flow = lastFlow === 'up' ? 'down' : 'up';
         lastFlow = flow;
-        // 用局部引用接住克隆：edgeClone 变量本函数末尾会置 null，
-        // finished 回调（220ms 后才触发）里若再读变量，拿到的就是 null，克隆永远清不掉
+        // 用局部引用接住克隆与舞台：edgeClone/edgeStage 变量本函数末尾会置 null，
+        // finished 回调（400ms 后才触发）finished 回调（300ms 后才触发）里若再读变量，拿到的就是 null，克隆永远清不掉
         const exitEl = edgeClone;
-        const oldHadSearch = !!exitEl.querySelector('.posts-header-search'); // 旧页是否为列表系（有搜索框）
+        const exitStage = edgeStage;
         const H = exitEl.offsetHeight; // 左缘带高（36px）：滑动距离 = 带高，新旧两带全程保持贴合
         const exitTo = flow === 'up' ? -H : H; // 旧元素退出方向
+        // 新带槽转场期裁切（与舞台同盒 = 「口袋」）：滑动只在条自身盒内、永不压下方内容（作者卡）；
+        // 常态槽是 overflow:visible——搜索下拉（top:calc(100%+8px)）要溢出槽外才可见，
+        // 只有转场窗口内才收紧裁切（下拉在切页期间本就不可用）
+        const newSlot = newEdge.parentElement;
+        if (newSlot?.classList.contains('posts-edge-slot')) newSlot.classList.add('is-clip');
         // 退出侧：位移 + 渐隐同时走（用户要求「边滑动边渐隐」）：旧带边滑出边淡掉，
-        // 进入侧仍纯位移全程不透明——几何上两带全程贴合（「一张纸」不破坏），退场的一半优雅溶解；
-        // 全时长渐隐也顺带解决了「下」流向尾段压过新内容卡片顶的问题（尾段自己淡没了）
+        // 进入侧仍纯位移全程不透明——几何上两带全程贴合（「一张纸」不破坏），退场的一半优雅溶解
         const exit = animate(exitEl, { y: [0, `${exitTo}px`], opacity: [1, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION });
         anims.push(exit);
-        // 滑出结束即移除克隆（cancel 时 finished 会 reject，忽略——克隆已由 captureOld 清掉）
-        exit.finished.then(() => exitEl.remove()).catch(() => {});
-        // 搜索框不跟滑动（用户要求）：克隆里的搜索框做反向位移抵消父级位移 = 原地不动。
-        // 新页也有搜索框（列表系互切）：真实实例（data-swup-persist）已在原位，克隆副本全程保持
-        // captureOld 设的 visibility:hidden——.glass 胶囊叠在真实胶囊上会把搜索下方阴影加倍变深，
-        // 绝不能露出来。新页没有搜索框（文章详情）：显示出来，随父带一起淡出（父带的全时长渐隐
-        // 已覆盖它，无需单独 opacity 动画），只补反向位移保持原地
-        const newHasSearch = !!newEdge.querySelector('.posts-header-search');
-        const oldSearch = exitEl.querySelector<HTMLElement>('.posts-header-search');
-        if (oldSearch && !newHasSearch) {
-          oldSearch.style.visibility = 'visible';
-          anims.push(animate(oldSearch, { y: [0, `${-exitTo}px`] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
-        }
-        // 进入侧：全程不透明（只位移不淡入）；两条带各走自身全高，任意时刻并集覆盖左缘格子
-        anims.push(animate(newEdge, { y: [`${-exitTo}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
-        // 新搜索框（只有新页面是列表/分类/标签页才有）：反向位移抵消 = 原地不动。
-        // 搜索框跨屏持久（.posts-header-search 带 data-swup-persist，swup 切页把同一实例原样换回）：
-        // 列表系界面之间实例位置本就不变，不能带淡入淡出（淡变 = 用户看到的「搜索闪一下」）；
-        // 只有从没有搜索框的页面（文章详情）回来才淡入
-        const newSearch = newEdge.querySelector<HTMLElement>('.posts-header-search');
-        if (newSearch) {
-          const searchOpts = { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION };
-          if (oldHadSearch) {
-            anims.push(animate(newSearch, { y: [`${exitTo}px`, 0] }, searchOpts));
-          } else {
-            anims.push(animate(newSearch, { y: [`${exitTo}px`, 0], opacity: [0, 1] }, searchOpts));
-          }
-        }
+        // 滑出结束即移除舞台（连克隆一起）（cancel 时 finished 会 reject，忽略——舞台已由 captureOld 清掉）
+        exit.finished.then(() => {
+          if (exitStage) exitStage.remove();
+          else exitEl.remove();
+          newSlot?.classList.remove('is-clip');
+        }).catch(() => {});
+        // 进入侧：全程不透明（只位移不淡入）；两条带各走自身全高，任意时刻并集覆盖口袋
+        // 搜索框是行级常驻（.posts-search-float，不在条里）：天生不参与滑动、永不被 swup 重插，
+        // 进出文章详情的显隐交给行变体类的 CSS 过渡（global.css .posts-search-float）
+        const enter = animate(newEdge, { y: [`${-exitTo}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION });
+        anims.push(enter);
+        enter.finished.then(() => {
+          newSlot?.classList.remove('is-clip');
+        }).catch(() => {});
       } else {
-        edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
+        if (edgeStage) edgeStage.remove();
+        else edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
       }
     }
     edgeClone = null;
+    edgeStage = null;
     // 旧页有目录就淡出（不取决于新页有没有）：离开文章页时目录右侧硬消失同样会闪
     if (tocClone) {
       const fadeEl = tocClone; // 同上：局部引用，防止回调触发时变量已置 null
@@ -303,6 +339,7 @@ import type { AnimationPlaybackControls } from 'motion';
     syncVariant();
     syncOffset();
     observeAnchor();
+    syncSearchPos();
     syncActive();
     ensureCategoryTree();
     // 首屏整页加载不播转场，只有 swup 切页才播；此刻新内容已加载完，播放不会先于内容

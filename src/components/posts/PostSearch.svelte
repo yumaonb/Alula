@@ -1,7 +1,8 @@
 <!-- PostSearch.svelte — 文章全文搜索（基于 Pagefind，全站文章范围）
-     用法：<PostSearch client:load />（文章列表 / 标签 / 分类页共用；
-     外层 .posts-header-search 带 data-swup-persist，swup 切页时同一实例原样换回，
-     输入内容与下拉状态跨屏保留，占位符全站固定「搜索文章」） -->
+     用法：<PostSearch client:load />（由 BaseLayout 渲染在 .page-main 行级、main#swup 之外，
+     行级常驻：swup 切页永不重建——不摘出/不重插，.glass 胶囊的 backdrop 层不重建、
+     切页零闪零重建；位置由 posts-shell.ts 按页头占位符实测叠放，显隐随行变体类 CSS 过渡，
+     占位符全站固定「搜索文章」） -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
 

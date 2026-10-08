@@ -145,16 +145,21 @@ ol {
 
 /* 文章区变体（posts-shell.ts 切页后按内容同步类名）：
  * 侧栏显示时内容列收窄到 1000px（与旧 .posts-content 上限一致）；
- * 偏移默认值贴合常见首帧（两变体页锚均为 36px 高、间隙 12px，即 48px），防 JS 前的闪跳。
+ * 行 padding-top 82px（普通页 84px 不动）+ 间隙 14px 配平：左缘条（36px）恰好垂直居中于
+ * 导航底(69)→内容顶(132)窗口（用户要求上方留白小一点、下方大一点、搜索框上下居中：
+ * 82+18=100 ≈ (69+132)/2=100.5），内容顶 82+36+14 = 132 不变。
+ * 偏移默认值贴合常见首帧（两变体页锚均为 36px 高、间隙 14px，即 50px），防 JS 前的闪跳。
  * --posts-offset-gap 是 .posts-page / .posts-article-main 的 flex gap 的镜像（侧栏偏移测算用），
  * 改那两处的 gap 必须同步改这里 */
 .page-main--listing {
-  --posts-offset-gap: 12px;
-  --posts-side-offset: 48px;
+  --posts-offset-gap: 14px;
+  --posts-side-offset: 50px;
+  padding-top: 82px; /* 用户要求：搜索框上方留白 20→13（配间隙 12→14，内容顶仍 132） */
 }
 .page-main--post {
-  --posts-offset-gap: 12px;
-  --posts-side-offset: 48px;
+  --posts-offset-gap: 14px;
+  --posts-side-offset: 50px;
+  padding-top: 82px;
 }
 .page-main--listing > .hero,
 .page-main--post > .hero {
@@ -178,12 +183,33 @@ ol {
 }
 
 /* 侧栏顶偏移：作者卡与锚下方的内容顶边对齐（列表页=页头下，文章页=面包屑条下）。
- * 两变体偏移同为 48px（36px 锚 + 12px 间隙），列表↔文章切换作者卡不再位移；
+ * 两变体偏移同为 50px（36px 锚 + 14px 间隙），列表↔文章切换作者卡不再位移；
  * padding-top 仍带过渡：仅剩"锚高实测变化"（标题换行 / 窗口缩放）时平滑补差 */
 .page-main--listing > .global-sidebar,
 .page-main--post > .global-sidebar {
   padding-top: var(--posts-side-offset, 0);
-  transition: padding-top 0.22s ease;
+  transition: padding-top 0.4s ease; /* 与 posts-shell.ts 的 EDGE_MS（400ms）同步 */
+}
+
+/* 搜索框行级常驻（BaseLayout 渲染在行内、main#swup 之外）：
+ * swup 切页永不重建——节点不移动、不参与位移动画，.glass 胶囊（backdrop-filter + 投影）
+ * 的层不重建，切页零闪零重建（旧方案 data-swup-persist 每次切页摘出再插回，层重建=阴影闪）。
+ * 位置由 posts-shell.ts 实测页头占位符写内联 top/left/width（叠在占位上，各宽适配）；
+ * 仅列表变体可见（opacity + visibility 过渡，隐藏时 pointer-events 关闭）。
+ * z-index 30 压过转场舞台（20）与侧栏（10）；搜索下拉在自身层叠上下文里 z-60，盖过栅格 */
+.posts-search-float {
+  position: absolute;
+  z-index: 30;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+}
+.page-main--listing .posts-search-float {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.4s ease;
 }
 
 /* 内容列：承接原 .hero 的容器职责（flex 居中），宽度/居中/上下留白全在 .page-main */

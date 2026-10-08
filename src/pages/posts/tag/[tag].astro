@@ -2,7 +2,6 @@
 // [tag].astro — 标签文章列表页
 // 用法：路由 /posts/tag/<tag>/
 import PostsShell from '../../../layouts/PostsShell.astro';
-import PostSearch from '../../../components/posts/PostSearch.svelte';
 import { loadBlogData } from '../../../lib/posts-data';
 
 const data = await loadBlogData();
@@ -22,6 +21,4 @@ const posts = data.posts.filter((post) => post.tags.includes(tag));
   heading={`#${tag}`}
   count={posts.length}
   posts={posts}
->
-  <PostSearch slot="search" client:load />
-</PostsShell>
+/>

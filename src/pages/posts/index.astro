@@ -1,8 +1,7 @@
 ---
 // index.astro — 文章列表首页
-// 用法：路由 /posts/
+// 用法：路由 /posts/（搜索框在 BaseLayout 行级常驻，这里不再传）
 import PostsShell from '../../layouts/PostsShell.astro';
-import PostSearch from '../../components/posts/PostSearch.svelte';
 import { loadBlogData } from '../../lib/posts-data';
 
 const data = await loadBlogData();
@@ -14,6 +13,4 @@ const data = await loadBlogData();
   heading="文章列表"
   count={data.posts.length}
   posts={data.posts}
->
-  <PostSearch slot="search" client:load />
-</PostsShell>
+/>

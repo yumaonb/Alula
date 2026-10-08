@@ -5,7 +5,6 @@ import PostsShell from '../../layouts/PostsShell.astro';
 import Repost from '../../components/posts/Repost.astro';
 import PostNav from '../../components/posts/PostNav.astro';
 import Comments from '../../components/widgets/Comments.astro';
-import PostSearch from '../../components/posts/PostSearch.svelte';
 import ImageWrapper from '../../components/posts/ImageWrapper.astro';
 import { Icon } from 'astro-icon/components';
 import { loadBlogData, renderPost, postBreadcrumbs } from '../../lib/posts-data';
@@ -93,9 +92,7 @@ if (type === 'category') {
     heading={catName}
     count={catPosts.length}
     posts={catPosts}
-  >
-    <PostSearch slot="search" client:load />
-  </PostsShell>
+  />
 )}
 
 {type === 'post' && post && entry && PostContent && (

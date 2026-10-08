@@ -8,7 +8,22 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px; /* 页头→栅格间隙；与文章页 .posts-article-main 同值（两界面内容顶同位），用户要求减小 */
+  gap: 14px; /* 页头→栅格间隙；与文章页 .posts-article-main 同值（两界面内容顶同位）。
+                与文章区行 padding-top 82px 配平：胶囊（36px）恰好居中于导航底(69)→内容顶(132)窗口 */
+}
+
+/* 转场克隆的裁切舞台（口袋）：posts-shell.ts 在 astro:before-swap 创建、动画结束移除。
+ * top/height 运行时按旧带实测写入，行内绝对定位铺满行宽（左 0 右 0）。
+ * overflow:hidden 把旧带克隆裁在条自身盒内：滑动全程只在条自己高度内，永不伸进
+ * 下方内容（作者卡顶 132px）——与新页 .posts-edge-slot.is-clip 同盒对齐，
+ * 两条可见部分在口袋内保持贴合（「一张纸」观感保留） */
+.posts-edge-stage {
+  position: absolute;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  z-index: 20;
+  pointer-events: none;
 }
 
 .posts-header {
@@ -26,8 +41,11 @@
   text-shadow: var(--title-shadow);
 }
 
+/* 搜索框占位：真实搜索框是 BaseLayout 行级常驻（.posts-search-float），
+   这里只留布局空间（宽/高与原胶囊一致），posts-shell.ts 按实测位置把常驻搜索框叠上来 */
 .posts-header-search {
   width: min(360px, 100%);
+  height: 36px;
 }
 
 /* 标题与计数垂直居中对齐；line-height 1 把页头压到与面包屑条同高

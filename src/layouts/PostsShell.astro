@@ -1,16 +1,16 @@
 ---
-// PostsShell.astro — 文章区统一布局（列表 / 分类 / 标签 / 文章详情共用；常驻侧栏在 BaseLayout 壳里）
+// PostsShell.astro — 文章区统一布局（列表 / 分类 / 标签 / 文章详情共用；常驻侧栏与搜索框在 BaseLayout 壳里）
 // 用法：
 //   列表：
-//     <PostsShell title="文章列表" variant="listing" heading="文章列表" count={n} posts={data.posts}>
-//       <PostSearch placeholder="搜索文章…" slot="search" client:load />
-//     </PostsShell>
+//     <PostsShell title="文章列表" variant="listing" heading="文章列表" count={n} posts={data.posts} />
 //   文章：
 //     <PostsShell title={post.title} variant="post" breadcrumbs={...} headings={...} hidden={post.hidden}>
 //       …正文…
 //       <PostNav slot="postnav" prev={...} next={...} />
 //       <Comments slot="comments" />
 //     </PostsShell>
+// 搜索框不在这里：它是 BaseLayout 行级常驻的（swup 永不重建，切页零闪），
+// 页头里只留 .posts-header-search 空占位供 posts-shell.ts 实测叠放位置。
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumb from '../components/posts/Breadcrumb.astro';
 import TableOfContents from '../components/posts/TableOfContents.astro';
@@ -63,14 +63,16 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 <BaseLayout title={title} description={description} noindex={hidden} shellVariant={variant}>
   {variant === 'listing' ? (
     <div class="posts-page">
-      <div class="posts-header" data-posts-anchor>
-        <h1 class="posts-title">
-          {heading}
-          <span class="title-count-sep"> — </span>
-          <span class="posts-count">共 {count} 篇文章</span>
-        </h1>
-        <div class="posts-header-search" data-swup-persist="post-search">
-          <slot name="search" />
+      <div class="posts-edge-slot">
+        <div class="posts-header" data-posts-anchor>
+          <h1 class="posts-title">
+            {heading}
+            <span class="title-count-sep"> — </span>
+            <span class="posts-count">共 {count} 篇文章</span>
+          </h1>
+          <!-- 搜索框占位：真实搜索框在 BaseLayout 行级常驻（.posts-search-float，swup 永不重建），
+               posts-shell.ts 按此占位的实测位置把常驻搜索框叠上来。占位只留布局空间，无视觉 -->
+          <div class="posts-header-search" aria-hidden="true"></div>
         </div>
       </div>
 
@@ -101,8 +103,10 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
   ) : (
     <div class="posts-article">
       <div class="posts-article-main">
-        <div class="posts-breadcrumb" data-posts-anchor>
-          <Breadcrumb items={breadcrumbs} />
+        <div class="posts-edge-slot">
+          <div class="posts-breadcrumb" data-posts-anchor>
+            <Breadcrumb items={breadcrumbs} />
+          </div>
         </div>
         <div class="post-main">
           <article class="post-content glass glass-tall" {...pagefindAttrs}>
@@ -125,16 +129,20 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 
 <style>
   /* ---- 列表页 ---- */
-  /* 页头通栏：≥769px 负边距向左压过侧栏区、与行左缘对齐（侧栏在页头下方开始，
-     作者卡顶偏移由 posts-shell.ts 实测，不会压到页头）。
-     position + z-index 20（高于侧栏的 10）：负边距压过去的区域落在侧栏盒的
-     顶部 padding 里，没有这层抬升，页头左段的点击/选择会被侧栏盒拦截 */
-  .posts-header {
+  /* 转场裁切槽（口袋）：包住左缘条（页头/面包屑）。常态 overflow:visible
+     （搜索下拉 top:calc(100%+8px) 要溢出槽外可见）；转场窗口内 posts-shell.ts
+     加 .is-clip 收紧裁切——条只在自己盒内滑动、永不伸进下方内容（作者卡顶 132px）。
+     负边距通栏 + z-index 20 抬升（高于侧栏的 10）从条本身移到槽上：槽才是压过侧栏区
+     的全宽元素（侧栏盒的顶部 padding 落在槽的左段，没有这层抬升左段点击会被侧栏拦截） */
+  .posts-edge-slot {
     position: relative;
     z-index: 20;
   }
+  .posts-edge-slot.is-clip {
+    overflow: hidden;
+  }
   @media (min-width: 769px) {
-    .posts-header {
+    .posts-page > .posts-edge-slot {
       margin-left: calc(-1 * (var(--posts-side-w, 260px) + var(--posts-side-gap, 24px)));
     }
   }
@@ -166,27 +174,26 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px; /* 与列表页 .posts-page 的页头→栅格间隙同一值：两页"锚下方内容"顶边对齐，切换不位移 */
+    gap: 14px; /* 与列表页 .posts-page 的页头→栅格间隙同一值：两页"锚下方内容"顶边对齐，切换不位移。
+                   14px 与行 padding-top 82px 配平：搜索胶囊（36px）恰好居中于导航底(69)→内容顶(132)窗口 */
   }
 
-  /* 面包屑条：宽屏用负边距向左压过侧栏区，与侧栏顶部同一水平线（与行 gap 同一令牌）；
-     ≤1150px 侧栏隐藏，负边距归零即移动端原位（卡片正上方）。
-     高固定 36px 与列表页头同高、内容垂直居中（左缘元素同位同高，切换才无缝；旧版上下 padding 5px 只撑到 35.75px，切换时顶部留白对不齐）；
-     z-index 20（高于侧栏 10）：负边距压过侧栏区的那一段必须压在侧栏盒上面，
-     否则链接落在侧栏顶部 padding 里、点不动（旧版面包屑是侧栏子元素所以没这问题） */
+  /* 文章变体的槽：断点比列表晚（侧栏 ≥1151px 才显示），负边距断点随侧栏 */
+  @media (min-width: 1151px) {
+    .posts-article-main > .posts-edge-slot {
+      margin-left: calc(-1 * (var(--posts-side-w, 260px) + var(--posts-side-gap, 24px)));
+    }
+  }
+
+  /* 面包屑条：宽屏负边距通栏 + z-index 抬升在包裹槽 .posts-edge-slot 上（见列表页注释），
+     这里只管条自身：≤1150px 侧栏隐藏时槽无边距、条即卡片正上方。
+     高固定 36px 与列表页头同高、内容垂直居中（左缘元素同位同高，切换才无缝；旧版上下 padding 5px 只撑到 35.75px，切换时顶部留白对不齐） */
   .posts-breadcrumb {
     overflow: visible;
     white-space: nowrap;
     display: flex;
     align-items: center;
     height: 36px; /* 与列表页头（36px）同高：左缘元素像素级同位同高，切换滑动无跳变 */
-    position: relative;
-    z-index: 20;
-  }
-  @media (min-width: 1151px) {
-    .posts-breadcrumb {
-      margin-left: calc(-1 * (var(--posts-side-w, 260px) + var(--posts-side-gap, 24px)));
-    }
   }
 
   .post-main {
@@ -201,13 +208,13 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     padding: 36px 40px;
   }
 
-  /* 目录顶到行顶（84 = 行 padding-top），与面包屑条顶边同一水平线——
-     顶差 4px 在切页时会闪；sticky 滚动吸附位也随这一起取 84 */
+  /* 目录顶到行顶（82 = 文章变体行 padding-top），与面包屑条顶边同一水平线——
+     顶差 4px 在切页时会闪；sticky 滚动吸附位也随这一起取 82 */
   .post-sidebar {
     width: 240px;
     flex-shrink: 0;
     position: sticky;
-    top: 84px;
+    top: 82px;
     overflow-y: auto;
     scrollbar-width: thin;
   }
