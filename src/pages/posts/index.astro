@@ -1,50 +1,19 @@
 ---
 // index.astro — 文章列表首页
 // 用法：路由 /posts/
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import GlobalSidebar from '../../components/posts/GlobalSidebar.astro';
-import PostCard from '../../components/posts/PostCard.astro';
+import PostsShell from '../../layouts/PostsShell.astro';
 import PostSearch from '../../components/posts/PostSearch.svelte';
 import { loadBlogData } from '../../lib/posts-data';
-import '../../assets/css/posts/posts-listing.css';
 
 const data = await loadBlogData();
 ---
 
-<BaseLayout title="文章列表">
-  <div class="posts-page">
-    <div class="posts-header">
-      <h1 class="posts-title">
-        文章列表<span class="title-count-sep"> — </span>
-        <span class="posts-count">共 {data.posts.length} 篇文章</span>
-      </h1>
-      <div class="posts-header-search">
-        <PostSearch placeholder="搜索文章…" client:load />
-      </div>
-    </div>
-
-    <div class="posts-with-sidebar">
-      <GlobalSidebar tree={data.categoryTree} tags={data.tags} />
-      <div class="posts-content">
-        <div class="posts-grid">
-          {data.posts.map((post) => (
-            <div class="post-card-slot">
-              <PostCard
-                title={post.title}
-                date={post.date}
-                description={post.description}
-                image={post.image || undefined}
-                basePath={post.basePath}
-                tags={post.tags}
-                pinned={post.pinned}
-                url={post.url}
-                categoryTrail={post.categoryTrail}
-                words={post.words}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </div>
-</BaseLayout>
+<PostsShell
+  title="文章列表"
+  variant="listing"
+  heading="文章列表"
+  count={data.posts.length}
+  posts={data.posts}
+>
+  <PostSearch slot="search" client:load />
+</PostsShell>

@@ -1,6 +1,11 @@
 ---
-// BaseLayout.astro — 全站基础布局（背景 / 导航 / 页脚 / 侧边按钮 / 灯箱等）
-// 用法：<BaseLayout title="页面标题">...</BaseLayout>
+// BaseLayout.astro — 全站基础布局（背景 / 导航 / 常驻侧栏 / 页脚 / 侧边按钮 / 灯箱等）
+// 用法：<BaseLayout title="页面标题" shellVariant="listing">...</BaseLayout>
+//
+// 关键结构：文章区左侧边栏（GlobalSidebar）放在 main#swup 之外、所有站点页的壳里——
+// swup 切页只替换 #swup 内容，侧栏永不重建，切换文章区界面时不闪不丢状态。
+// 非文章页侧栏靠 global.css 的 .page-main--* 变体类隐藏；
+// 变体类首屏由 shellVariant 决定，切页后由 posts-shell.ts 按内容同步。
 import '../assets/css/global.css';
 import '../assets/css/shared/skeleton.css';
 import '../assets/css/posts/image-fallback.css';
@@ -8,11 +13,13 @@ import NavBar from '../components/layout/NavBar.astro';
 import Background from '../components/layout/Background.astro';
 import Footer from '../components/layout/Footer.astro';
 import SideWidgets from '../components/layout/SideWidgets.astro';
+import GlobalSidebar from '../components/posts/GlobalSidebar.astro';
 import TocModal from '../components/posts/TocModal.svelte';
 import PostsFilterModal from '../components/posts/PostsFilterModal.svelte';
 import CustomScrollbar from '../components/layout/CustomScrollbar.astro';
 import { Icon } from 'astro-icon/components';
 import { site } from '../data/site';
+import { loadBlogData } from '../lib/posts-data';
 
 interface Props {
   title?: string;
@@ -20,11 +27,20 @@ interface Props {
   bodyClass?: string;
   /** 隐藏文章：给页面加 noindex，别让搜索引擎把直链页收录出去 */
   noindex?: boolean;
+  /** 主内容行变体：plain 普通页 / listing 列表·分类·标签页 / post 文章详情页（PostsShell 传入） */
+  shellVariant?: 'plain' | 'listing' | 'post';
 }
 
-const { title, description = site.description, bodyClass = '', noindex = false } = Astro.props;
+const {
+  title,
+  description = site.description,
+  bodyClass = '',
+  noindex = false,
+  shellVariant = 'plain',
+} = Astro.props;
 
 const pageTitle = title ? `${title} - ${site.name}` : site.name;
+const blog = await loadBlogData();
 ---
 
 <!doctype html>
@@ -43,9 +59,12 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
     <Background />
     <div class="page">
       <NavBar />
-      <main class="hero" id="swup">
-        <slot />
-      </main>
+      <div class:list={['page-main', `page-main--${shellVariant}`]}>
+        <GlobalSidebar tree={blog.categoryTree} tags={blog.tags} />
+        <main class="hero" id="swup">
+          <slot />
+        </main>
+      </div>
       <Footer />
     </div>
     <SideWidgets />
@@ -57,6 +76,9 @@ const pageTitle = title ? `${title} - ${site.name}` : site.name;
     <CustomScrollbar />
     <script>
       import '../assets/js/swup-widgets';
+    </script>
+    <script>
+      import '../assets/js/posts-shell';
     </script>
     <script>
       import '../assets/js/image-fallback';

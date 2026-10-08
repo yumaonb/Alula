@@ -1,0 +1,224 @@
+---
+// PostsShell.astro — 文章区统一布局（列表 / 分类 / 标签 / 文章详情共用；常驻侧栏在 BaseLayout 壳里）
+// 用法：
+//   列表：
+//     <PostsShell title="文章列表" variant="listing" heading="文章列表" count={n} posts={data.posts}>
+//       <PostSearch placeholder="搜索文章…" slot="search" client:load />
+//     </PostsShell>
+//   文章：
+//     <PostsShell title={post.title} variant="post" breadcrumbs={...} headings={...} hidden={post.hidden}>
+//       …正文…
+//       <PostNav slot="postnav" prev={...} next={...} />
+//       <Comments slot="comments" />
+//     </PostsShell>
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumb from '../components/posts/Breadcrumb.astro';
+import TableOfContents from '../components/posts/TableOfContents.astro';
+import PostCard from '../components/posts/PostCard.astro';
+import type { BreadcrumbItem, PostItem } from '../lib/category';
+import '../assets/css/posts/posts-listing.css';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  description?: string;
+  /** listing：标题区 + 卡片栅格；post：面包屑条 + 正文卡 + 右侧目录 */
+  variant: 'listing' | 'post';
+  /** listing：页头标题文本（计数取 count） */
+  heading?: string;
+  /** listing：文章数（页头显示"共 N 篇"） */
+  count?: number;
+  /** listing：卡片栅格数据 */
+  posts?: PostItem[];
+  /** post：面包屑项（渲染为内容列顶部的面包屑条） */
+  breadcrumbs?: BreadcrumbItem[];
+  /** post：正文标题树（渲染右侧目录） */
+  headings?: Heading[];
+  /** post：隐藏文章——正文不进站内搜索索引，页面加 noindex（直链访问仍然正常） */
+  hidden?: boolean;
+}
+
+const {
+  title,
+  description,
+  variant,
+  heading = '',
+  count = 0,
+  posts = [],
+  breadcrumbs = [],
+  headings = [],
+  hidden = false,
+} = Astro.props;
+
+const hasToc = headings.length > 0;
+// 不输出 data-pagefind-body：Pagefind 只索引带该属性的页面，隐藏文章因此整个页面不进索引
+const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
+---
+
+<BaseLayout title={title} description={description} noindex={hidden} shellVariant={variant}>
+  {variant === 'listing' ? (
+    <div class="posts-page">
+      <div class="posts-header" data-posts-anchor>
+        <h1 class="posts-title">
+          {heading}
+          <span class="title-count-sep"> — </span>
+          <span class="posts-count">共 {count} 篇文章</span>
+        </h1>
+        <div class="posts-header-search" data-swup-persist="post-search">
+          <slot name="search" />
+        </div>
+      </div>
+
+      <div class="posts-grid">
+        {posts.map((post) => (
+          <div class="post-card-slot">
+            <PostCard
+              title={post.title}
+              date={post.date}
+              description={post.description}
+              image={post.image || undefined}
+              basePath={post.basePath}
+              tags={post.tags}
+              pinned={post.pinned}
+              url={post.url}
+              categoryTrail={post.categoryTrail}
+              words={post.words}
+            />
+          </div>
+        ))}
+      </div>
+      {posts.length === 0 && (
+        <div class="posts-empty glass">
+          <p>该分类下暂无文章</p>
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="posts-article">
+      <div class="posts-article-main">
+        <div class="posts-breadcrumb" data-posts-anchor>
+          <Breadcrumb items={breadcrumbs} />
+        </div>
+        <div class="post-main">
+          <article class="post-content glass glass-tall" {...pagefindAttrs}>
+            <div class="post-content-inner">
+              <slot />
+            </div>
+          </article>
+          <slot name="postnav" />
+          <slot name="comments" />
+        </div>
+      </div>
+      {hasToc && (
+        <aside class="post-sidebar">
+          <TableOfContents headings={headings} />
+        </aside>
+      )}
+    </div>
+  )}
+</BaseLayout>
+
+<style>
+  /* ---- 列表页 ---- */
+  /* 页头通栏：≥769px 负边距向左压过侧栏区、与行左缘对齐（侧栏在页头下方开始，
+     作者卡顶偏移由 posts-shell.ts 实测，不会压到页头）。
+     position + z-index 20（高于侧栏的 10）：负边距压过去的区域落在侧栏盒的
+     顶部 padding 里，没有这层抬升，页头左段的点击/选择会被侧栏盒拦截 */
+  .posts-header {
+    position: relative;
+    z-index: 20;
+  }
+  @media (min-width: 769px) {
+    .posts-header {
+      margin-left: calc(-1 * (var(--posts-side-w, 260px) + var(--posts-side-gap, 24px)));
+    }
+  }
+
+  /* 列表页空状态 */
+  .posts-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--color-text);
+    border-radius: var(--radius);
+  }
+
+  /* ---- 文章详情页：左列（面包屑条 + 正文）与右侧目录是行的两列，
+     目录顶到行顶（与面包屑条 / 侧栏顶部同一水平线），正文卡在面包屑条下方 ---- */
+  .posts-article {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  .posts-article-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* 与列表页 .posts-page 的页头→栅格间隙同一值：两页"锚下方内容"顶边对齐，切换不位移 */
+  }
+
+  /* 面包屑条：宽屏用负边距向左压过侧栏区，与侧栏顶部同一水平线（与行 gap 同一令牌）；
+     ≤1150px 侧栏隐藏，负边距归零即移动端原位（卡片正上方）。
+     高固定 36px 与列表页头同高、内容垂直居中（左缘元素同位同高，切换才无缝；旧版上下 padding 5px 只撑到 35.75px，切换时顶部留白对不齐）；
+     z-index 20（高于侧栏 10）：负边距压过侧栏区的那一段必须压在侧栏盒上面，
+     否则链接落在侧栏顶部 padding 里、点不动（旧版面包屑是侧栏子元素所以没这问题） */
+  .posts-breadcrumb {
+    overflow: visible;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    height: 36px; /* 与列表页头（36px）同高：左缘元素像素级同位同高，切换滑动无跳变 */
+    position: relative;
+    z-index: 20;
+  }
+  @media (min-width: 1151px) {
+    .posts-breadcrumb {
+      margin-left: calc(-1 * (var(--posts-side-w, 260px) + var(--posts-side-gap, 24px)));
+    }
+  }
+
+  .post-main {
+    min-width: 0;
+  }
+
+  .post-content {
+    border-radius: var(--radius);
+  }
+
+  .post-content-inner {
+    padding: 36px 40px;
+  }
+
+  /* 目录顶到行顶（84 = 行 padding-top），与面包屑条顶边同一水平线——
+     顶差 4px 在切页时会闪；sticky 滚动吸附位也随这一起取 84 */
+  .post-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 84px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  @media (max-width: 850px) {
+    .post-sidebar {
+      display: none;
+    }
+
+    .post-content-inner {
+      padding: 16px;
+    }
+  }
+</style>

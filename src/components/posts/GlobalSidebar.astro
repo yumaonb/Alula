@@ -1,6 +1,9 @@
 ---
-// GlobalSidebar.astro — 文章区左侧边栏（分类树 + 标签云）
-// 用法：<GlobalSidebar tree={data.categoryTree} tags={data.tags} activeTag={activeTag} />
+// GlobalSidebar.astro — 文章区常驻侧边栏（作者卡 + 分类树 + 标签云）
+// 用法：<GlobalSidebar tree={data.categoryTree} tags={data.tags} />
+// 由 BaseLayout 渲染在 main#swup 之外（切页不重建）；显示与否由 global.css 按
+// .page-main--* 变体与宽度决定；高亮与展开态首屏由本文件按 URL 算好，
+// swup 切页后由 posts-shell.ts 同步（保留用户手动开合的节点）。
 import AuthorCard from '../widgets/AuthorCard.astro';
 import PostCategoryTree from './PostCategoryTree.astro';
 import PostTagCloud from './PostTagCloud.astro';
@@ -11,18 +14,16 @@ interface Props {
   tree?: CategoryTreeNode[];
   /** 标签计数（来自 loadBlogData()） */
   tags?: { name: string; count: number }[];
-  /** 当前所在标签（高亮用，可选） */
-  activeTag?: string;
 }
 
-const { tree = [], tags = [], activeTag = '' } = Astro.props;
+const { tree = [], tags = [] } = Astro.props;
 
 const categoryTree = tree;
 
 const catUrl = (path: string) => `/${[postRoute, ...path.split('/')].join('/')}/`;
 const tagUrl = (name: string) => `/${postRoute}/tag/${encodeURIComponent(name)}/`;
 
-// ---- 当前页对应的分类（用于高亮 + 自动展开祖先） ----
+// ---- 当前页对应的分类与标签（高亮 + 自动展开祖先）----
 // 收集分类树中全部分类路径，从 URL 解析出能匹配到分类的最长前缀
 const allCatPaths = new Set<string>();
 const collect = (nodes: CategoryTreeNode[]) => {
@@ -44,18 +45,15 @@ for (let i = catSegments.length; i > 0; i--) {
     break;
   }
 }
-// 顶部插槽（面包屑）只有文章页会传。列表页没传时必须连容器一起不渲染：
-// 空的 .sidebar-top 仍占 min-height（22px），叠加父容器 gap（16px）会在个人卡片上方露出空白。
-// :empty 兜不住——模板里的换行缩进算文本节点。
-const hasTopSlot = Astro.slots.has('top');
+// /posts/tag/<tag>/ 且标签真实存在（排除恰好叫 "tag" 的分类目录）
+let activeTag = '';
+if (catSegments[0] === 'tag' && catSegments.length === 2) {
+  const candidate = decodeURIComponent(catSegments[1]);
+  if (tags.some((t) => t.name === candidate)) activeTag = candidate;
+}
 ---
 
 <aside class="global-sidebar posts-sidebar">
-  {hasTopSlot && (
-    <div class="sidebar-top">
-      <slot name="top" />
-    </div>
-  )}
   <AuthorCard />
 
   <div class="sidebar-filter">
@@ -68,29 +66,14 @@ const hasTopSlot = Astro.slots.has('top');
 
 <style>
   .global-sidebar {
-    width: 260px;
+    width: var(--posts-side-w, 260px);
     flex-shrink: 0;
     /* 拉伸到与内容列同高：让内部的 .sidebar-filter 有滚动行程，sticky 才能生效 */
     align-self: stretch;
     margin: 0;
-    display: flex;
     flex-direction: column;
     gap: 16px;
     z-index: 10;
-  }
-
-  /* 面包屑行：不换行，放不下时向右延伸到文章区上方。是否渲染由 hasTopSlot 决定 */
-  .sidebar-top {
-    display: flex;
-    align-items: center;
-    overflow: visible;
-    white-space: nowrap;
-    min-height: 22px;
-  }
-
-  /* 兜底：插槽传了但内容渲染为空时也不占位（注意 :empty 匹配不到只含空白的元素） */
-  .sidebar-top:empty {
-    display: none;
   }
 
   /* 分类树 + 标签云：随页面滚动，滚到分类处再固定 */

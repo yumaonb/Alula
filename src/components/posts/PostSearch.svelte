@@ -1,14 +1,14 @@
-<!-- PostSearch.svelte — 文章全文搜索（基于 Pagefind）
-     用法：<PostSearch client:load />（文章列表页 / 标签页 / 分类页；标签页传 filterUrls、分类页传 categoryPath 限定范围） -->
+<!-- PostSearch.svelte — 文章全文搜索（基于 Pagefind，全站文章范围）
+     用法：<PostSearch client:load />（文章列表 / 标签 / 分类页共用；
+     外层 .posts-header-search 带 data-swup-persist，swup 切页时同一实例原样换回，
+     输入内容与下拉状态跨屏保留，占位符全站固定「搜索文章」） -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
 
   interface Props {
     placeholder?: string;
-    categoryPath?: string;
-    filterUrls?: string[];
   }
-  let { placeholder = '搜索文章…', categoryPath = '', filterUrls = [] }: Props = $props();
+  let { placeholder = '搜索文章' }: Props = $props();
 
   /** Pagefind 加载产物用到的最小 API 面（blob 动态 import，没有现成类型） */
   interface PagefindResult {
@@ -90,16 +90,7 @@
       const loaded = await Promise.all(res.results.map((r) => r.data()));
       if (s !== seq) return;
 
-      let filtered = loaded;
-      if (categoryPath) {
-        const prefix = categoryPath.startsWith('/') ? categoryPath : '/' + categoryPath;
-        filtered = filtered.filter((it) => it.url.startsWith(prefix));
-      } else if (filterUrls.length > 0) {
-        const allowed = new Set(filterUrls);
-        filtered = filtered.filter((it) => allowed.has(it.url));
-      }
-
-      results = filtered;
+      results = loaded;
       activeIndex = -1;
     } catch {
       if (s !== seq) return;
@@ -246,6 +237,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    /* 上下留白 8px（36px 胶囊，原始观感）。页头与面包屑条同为左缘元素、
+       高度必须一致（切换滑动才无缝）——等高由面包屑条的上下 padding 配平，
+       不再压扁搜索框。<input> 有约 20px 平台最小高（不受 line-height 压小），
+       所以 36 = 20 + 8×2 */
     padding: 8px 12px;
     border-radius: 999px;
     transition:
@@ -286,6 +281,7 @@
     color: var(--hover-ink);
     font: inherit;
     font-size: 0.88rem;
+    line-height: 1;
   }
 
   .post-search-input::placeholder {

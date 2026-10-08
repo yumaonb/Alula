@@ -19,6 +19,8 @@ interface Window {
   __tocSnap?: () => void;
   /** category-tree.ts 的幂等守卫 */
   __postCatTreeBound?: boolean;
+  /** posts-shell.ts 的幂等守卫 */
+  __postsShellInit?: boolean;
   /** lightbox.ts 的幂等守卫 */
   __alula_lightbox_bound?: boolean;
   /** image-fallback.ts 的幂等守卫 */

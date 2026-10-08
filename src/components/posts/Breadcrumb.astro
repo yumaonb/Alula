@@ -22,7 +22,7 @@ const { items } = Astro.props;
       <span class="breadcrumb-item">
         {index > 0 && <span class="breadcrumb-sep">/</span>}
         {item.href ? (
-          <a href={item.href} class="breadcrumb-link hoverable link-plain">
+          <a href={item.href} class="breadcrumb-link link-plain">
             {item.icon && <Icon name={item.icon} class="breadcrumb-icon" />}
             {item.label}
           </a>
@@ -76,6 +76,13 @@ const { items } = Astro.props;
     text-decoration: none;
     padding: 2px 6px;
     border-radius: 4px;
+    transition: color 0.25s ease;
+  }
+
+  /* 悬停只「亮起来」（文字变亮），不加背景底：面包屑条是 36px 的细左缘元素，
+     挂 .hoverable 的悬停底色会在条里多出一块底，观感突兀（用户要求） */
+  .breadcrumb-link:hover {
+    color: var(--icon-hover);
   }
 
   .breadcrumb-current {

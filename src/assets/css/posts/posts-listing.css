@@ -1,18 +1,17 @@
-/* posts-listing.css — 文章列表布局与共享样式（列表页 / 分类页 / 文章详情页共用） */
+/* posts-listing.css — 文章列表布局与共享样式（列表 / 分类 / 标签页共用；
+ * 侧栏行与文章详情样式分别在 global.css 与 PostsShell.astro） */
 
-/* ---- 页面骨架：标题区 + （侧栏 | 内容列） ----
- * 外层宽度由 .hero 统一管（见 global.css），这里 width: 100% 只是填满它 */
-.posts-page,
-.category-page {
+/* ---- 页面骨架：标题区 + 卡片栅格 ----
+ * 外层宽度与「侧栏 | 内容列」行由 .page-main 统一管（见 global.css），这里 width: 100% 只是填满 */
+.posts-page {
   width: 100%;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px; /* 页头→栅格间隙；与文章页 .posts-article-main 同值（两界面内容顶同位），用户要求减小 */
 }
 
-.posts-header,
-.category-header {
+.posts-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -20,48 +19,24 @@
   flex-wrap: wrap;
 }
 
-/* 列表/分类/文章页的页头标题（白字 + 阴影是页头观感的一部分，随字号一起放这） */
-.posts-title,
-.category-title {
+/* 列表页的页头标题（白字 + 阴影是页头观感的一部分，随字号一起放这） */
+.posts-title {
   font-size: 1.6rem;
   color: var(--hover-ink);
   text-shadow: var(--title-shadow);
 }
 
-.posts-header-search,
-.category-header-search {
+.posts-header-search {
   width: min(360px, 100%);
 }
 
-/* 侧栏 + 内容列（PostsLayout 与列表页共用） */
-.posts-with-sidebar {
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
-  min-width: 0;
-}
-
-.posts-sidebar-wrap {
-  width: 260px;
-  flex-shrink: 0;
-}
-
-.posts-content {
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: 1000px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* 标题与计数垂直居中对齐 */
-.posts-title,
-.category-title {
+/* 标题与计数垂直居中对齐；line-height 1 把页头压到与面包屑条同高
+   （两种左缘元素等高，切页交叉渐隐才无跳变） */
+.posts-title {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  line-height: 1;
 }
 
 /* 标题与计数的连接符：字号必须和 .posts-count 一致，
@@ -131,31 +106,19 @@
 
 /* ---- 列表页手机端 ---- */
 @media (max-width: 768px) {
-  .posts-with-sidebar {
-    gap: 0;
-    flex-wrap: wrap;
-  }
-
-  .posts-with-sidebar > .global-sidebar {
-    display: none;
-  }
-
-  .posts-header,
-  .category-header {
+  .posts-header {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
 
-  .posts-title,
-  .category-title {
+  .posts-title {
     font-size: 1.35rem;
     text-align: center;
     justify-content: center;
   }
 
-  .posts-header-search,
-  .category-header-search {
+  .posts-header-search {
     width: 100%;
   }
 }

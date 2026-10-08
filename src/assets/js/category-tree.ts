@@ -1,7 +1,8 @@
 // category-tree.ts — 分类树开合交互：点箭头切换、量真实内容高度驱动展开动画
-// 用法：由 PostCategoryTree 引入：import "../../assets/js/category-tree"
+// 用法：由 posts-shell.ts 懒加载：import("./category-tree")（文章区页面才加载，模块单例）
 //
-// 树在 #swup 内，切页整块重建，所以监听全挂 document（事件委托 + 幂等守卫）。
+// 树在 #swup 外的常驻侧栏里、切页不重建，监听仍全挂 document（事件委托 + 幂等守卫），
+// 模块加载一次后长期存活。
 // 每个节点的窗口高度 --cat-sub-h 由这里量出（与后台侧栏 admin/shell.ts 同一套）：
 // 外层 .cat-children-wrap 是 max-height 窗口，内层 .cat-children 是平移的刚体，
 // 两者同一条曲线同步进行，子项任何一帧都不被压缩。

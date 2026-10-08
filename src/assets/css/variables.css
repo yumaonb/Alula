@@ -8,12 +8,12 @@
   --blur: 6px; /* 毛玻璃模糊半径：backdrop-filter 唯一来源 */
 
   /* ---- 几何：全局宽度（前台内容区宽度的唯一来源）----
-   * 执行点在 BaseLayout 的主内容区 .hero（所有页面自动遵守，见 global.css），
+   * 执行点在 BaseLayout 的主内容行 .page-main（所有页面自动遵守，见 global.css），
    * 页面不再自己声明外层宽度；后台独立布局，不用这三个令牌：
    * 桌面端内容最宽 --content-width 且横向居中，视口不足时两侧各空 --page-gutter；
    * 移动端（≤768px）不设最大宽度，两侧各空 --page-gutter-mobile。
    * 宽度类数值只写在这里，组件里不再出现 1200 / 56 / 16 这类硬编码。 */
-  --content-width: 1200px; /* 桌面端内容最大宽度：.hero 与导航 / 页脚统一取它 */
+  --content-width: 1200px; /* 桌面端内容最大宽度：.page-main 与导航 / 页脚统一取它 */
   --page-gutter: 56px; /* 桌面端视口窄于内容宽度时，页面左右各留的空白 */
   --page-gutter-mobile: 16px; /* 移动端（≤768px）页面左右各留的空白 */
 

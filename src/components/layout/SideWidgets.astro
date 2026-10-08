@@ -64,19 +64,8 @@ import { Icon } from 'astro-icon/components';
 </div>
 
 <style>
-  /* ---- 目录按钮：桌面端有右侧目录栏，隐藏悬浮按钮 ---- */
-  @media (min-width: 769px) {
-    #toc-fab {
-      display: none;
-    }
-  }
-
-  /* ---- 筛选按钮：>1000px 一律隐藏（桌面侧栏常驻） ---- */
-  @media (min-width: 1001px) {
-    #posts-filter-fab {
-      display: none;
-    }
-  }
+  /* 目录 / 筛选按钮的显隐全由 swup-widgets.ts 的 probe 按"侧栏/目录栏是否可见"控制
+     （挂 .unavailable 类），这里不再写静态媒体查询，避免断点两处漂移。 */
 
   /* 列表页缩小为紧凑按钮 */
   #posts-filter-fab.compact {

@@ -122,21 +122,85 @@ ol {
   pointer-events: none;
 }
 
-/* 主内容区 —— 全站宽度的唯一执行点（BaseLayout 里，所有页面自动遵守）：
+/* 主内容行 —— 全站宽度的唯一执行点（BaseLayout 里，所有页面自动遵守）：
  * 桌面端最宽 --content-width，视口不足时两侧各空 --page-gutter；
  * 移动端（≤768px）两侧各空 --page-gutter-mobile（见下方媒体查询）。
+ * 行内两个子元素：常驻侧边栏（.global-sidebar，默认隐藏）+ main#swup 内容列。
  * 页面自己的外层元素不要再声明宽度规则（会覆盖/绕过这里），
  * 要收窄内容列就写 width: 100% + max-width。 */
-.hero {
+.page-main {
+  --posts-side-w: 260px; /* 侧栏宽（面包屑负边距共用同一令牌） */
+  --posts-side-gap: 24px; /* 侧栏与内容列的横向间隙（即行 gap） */
+  --posts-offset-gap: 0px; /* 页锚（页头/面包屑）与下方内容的纵向间隙，供测侧栏顶偏移 */
+  --posts-side-offset: 0px; /* 侧栏顶偏移 = 锚高 + 间隙；posts-shell.ts 实测写内联值覆盖 */
   flex: 1;
   display: flex;
-  justify-content: center;
   align-items: flex-start;
+  gap: var(--posts-side-gap);
   width: min(100% - var(--page-gutter) * 2, var(--content-width));
   margin: 0 auto;
   padding: 84px 0 32px;
   position: relative;
 }
+
+/* 文章区变体（posts-shell.ts 切页后按内容同步类名）：
+ * 侧栏显示时内容列收窄到 1000px（与旧 .posts-content 上限一致）；
+ * 偏移默认值贴合常见首帧（两变体页锚均为 36px 高、间隙 12px，即 48px），防 JS 前的闪跳。
+ * --posts-offset-gap 是 .posts-page / .posts-article-main 的 flex gap 的镜像（侧栏偏移测算用），
+ * 改那两处的 gap 必须同步改这里 */
+.page-main--listing {
+  --posts-offset-gap: 12px;
+  --posts-side-offset: 48px;
+}
+.page-main--post {
+  --posts-offset-gap: 12px;
+  --posts-side-offset: 48px;
+}
+.page-main--listing > .hero,
+.page-main--post > .hero {
+  max-width: 1000px;
+}
+
+/* 侧栏显隐：普通页默认隐藏；列表变体 ≥769px 显示、文章变体 ≥1151px 显示——
+ * 与 swup-widgets.ts 探测的筛选按钮出现区间（≤768 / ≤1150）互补，改断点两处同改 */
+.page-main > .global-sidebar {
+  display: none;
+}
+@media (min-width: 769px) {
+  .page-main--listing > .global-sidebar {
+    display: flex;
+  }
+}
+@media (min-width: 1151px) {
+  .page-main--post > .global-sidebar {
+    display: flex;
+  }
+}
+
+/* 侧栏顶偏移：作者卡与锚下方的内容顶边对齐（列表页=页头下，文章页=面包屑条下）。
+ * 两变体偏移同为 48px（36px 锚 + 12px 间隙），列表↔文章切换作者卡不再位移；
+ * padding-top 仍带过渡：仅剩"锚高实测变化"（标题换行 / 窗口缩放）时平滑补差 */
+.page-main--listing > .global-sidebar,
+.page-main--post > .global-sidebar {
+  padding-top: var(--posts-side-offset, 0);
+  transition: padding-top 0.22s ease;
+}
+
+/* 内容列：承接原 .hero 的容器职责（flex 居中），宽度/居中/上下留白全在 .page-main */
+.page-main > .hero {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* 左缘元素（列表页头 / 文章面包屑条）切页滑动切换由 motion 驱动（posts-shell.ts ④）：
+ * 本文件只保留端点状态（元素自然位置），不写 keyframes/transition——motion 的
+ * commitStyles 会把动画终帧写进内联样式，CSS 端点必须与动画终态一致。
+ * 规则：流向逐次交替（首次"上"，之后与上一次相反；涉普通屏不播不消耗）；
+ * 旧元素克隆沿流向滑出并淡出，新元素自另一侧滑入且进入侧全程不透明
+ * （新内容落地瞬间左缘元素即可见，顶部不留空白闪）。 */
 
 /* ---- 侧边悬浮按钮列 ---- */
 .side-widgets {
@@ -211,10 +275,11 @@ ol {
   height: 20px;
 }
 
-/* 移动端缩小悬浮按钮，减少对正文的遮挡；.hero 换用移动端留白令牌 */
+/* 移动端缩小悬浮按钮，减少对正文的遮挡；.page-main 换用移动端留白令牌 */
 @media (max-width: 768px) {
-  .hero {
+  .page-main {
     width: calc(100% - var(--page-gutter-mobile) * 2);
+    gap: 0;
   }
 
   .side-widgets {

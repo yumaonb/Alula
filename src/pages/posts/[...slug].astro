@@ -1,10 +1,7 @@
 ---
 // [...slug].astro — 文章详情页 & 分类列表页（基于 astro:content 集合）
 // 用法：路由 /posts/<slug>/（catch-all，文章详情与分类列表共用）
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import PostsLayout from '../../layouts/PostsLayout.astro';
-import GlobalSidebar from '../../components/posts/GlobalSidebar.astro';
-import PostCard from '../../components/posts/PostCard.astro';
+import PostsShell from '../../layouts/PostsShell.astro';
 import Repost from '../../components/posts/Repost.astro';
 import PostNav from '../../components/posts/PostNav.astro';
 import Comments from '../../components/widgets/Comments.astro';
@@ -14,7 +11,6 @@ import { Icon } from 'astro-icon/components';
 import { loadBlogData, renderPost, postBreadcrumbs } from '../../lib/posts-data';
 import { postRoute, buildCategoryUrl, postMatchesCategory } from '../../lib/category';
 import '../../assets/css/posts/markdown.css';
-import '../../assets/css/posts/posts-listing.css';
 
 const data = await loadBlogData();
 
@@ -91,63 +87,24 @@ if (type === 'category') {
 ---
 
 {type === 'category' && (
-  <BaseLayout title={`${catName} - 文章分类`}>
-    <div class="category-page">
-      <div class="category-header">
-        <h1 class="category-title">
-          {catName}
-          <span class="title-count-sep"> — </span>
-          <span class="posts-count">共 {catPosts.length} 篇文章</span>
-        </h1>
-        <div class="category-header-search">
-          <PostSearch
-            placeholder={`在「${catName}」中搜索…`}
-            categoryPath={buildCategoryUrl(catPath, postRoute)}
-            client:load
-          />
-        </div>
-      </div>
-
-      <div class="posts-with-sidebar">
-        <GlobalSidebar tree={data.categoryTree} tags={data.tags} />
-        <div class="posts-content">
-          <div class="posts-grid">
-            {catPosts.map((p) => (
-              <div class="post-card-slot">
-                <PostCard
-                  title={p.title}
-                  date={p.date}
-                  description={p.description}
-                  image={p.image || undefined}
-                  basePath={p.basePath}
-                  tags={p.tags}
-                  pinned={p.pinned}
-                  url={p.url}
-                  categoryTrail={p.categoryTrail}
-                  words={p.words}
-                />
-              </div>
-            ))}
-          </div>
-          {catPosts.length === 0 && (
-            <div class="posts-empty glass">
-              <p>该分类下暂无文章</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  </BaseLayout>
+  <PostsShell
+    title={`${catName} - 文章分类`}
+    variant="listing"
+    heading={catName}
+    count={catPosts.length}
+    posts={catPosts}
+  >
+    <PostSearch slot="search" client:load />
+  </PostsShell>
 )}
 
 {type === 'post' && post && entry && PostContent && (
-  <PostsLayout
+  <PostsShell
     title={post.title}
     description={post.description}
-    headings={headings}
+    variant="post"
     breadcrumbs={postBreadcrumbs(post, data.meta)}
-    categoryTree={data.categoryTree}
-    sidebarTags={data.tags}
+    headings={headings}
     hidden={post.hidden}
   >
     <header class="post-header">
@@ -217,21 +174,10 @@ if (type === 'category') {
     <Repost title={post.title} date={post.date} />
     <PostNav slot="postnav" prev={prevPost} next={nextPost} />
     <Comments slot="comments" />
-  </PostsLayout>
+  </PostsShell>
 )}
 
 <style>
-  .posts-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--color-text);
-    border-radius: var(--radius);
-  }
-
   /* ---- 文章详情页样式 ---- */
   .post-header {
     margin-bottom: 24px;

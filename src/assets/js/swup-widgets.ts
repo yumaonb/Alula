@@ -38,7 +38,7 @@ function initSideWidgets(container: HTMLElement): void {
   function pageContext() {
     return {
       detail: !!document.querySelector('.post-content'),
-      list: !!document.querySelector('.posts-page, .category-page'),
+      list: !!document.querySelector('.posts-page'),
       toc: !!document.querySelector('.toc-nav .toc-link'),
       comments: !!document.getElementById('comments-section'),
     };
@@ -49,12 +49,14 @@ function initSideWidgets(container: HTMLElement): void {
     const { detail, list, toc, comments } = pageContext();
     const w = window.innerWidth;
 
-    // 筛选按钮：详情页 ≤1000px / 列表·分类页 ≤768px 才需要；桌面端侧栏常驻则隐藏
+    // 筛选按钮：侧栏不可见时才需要——文章变体 ≤1150px（global.css 侧栏 ≥1151px 显示）、
+    // 列表变体 ≤768px（≥769px 显示），断点互补，改一处另一处跟着改
     let filterMode = 'none';
-    if (detail) filterMode = w <= 1000 ? 'detail' : 'none';
+    if (detail) filterMode = w <= 1150 ? 'detail' : 'none';
     else if (list) filterMode = w <= 768 ? 'list' : 'none';
 
-    markUnavailable('toc', !toc);
+    // 目录按钮：右侧目录栏不可见时才需要（PostsShell ≤850px 隐藏右侧栏）
+    markUnavailable('toc', !(toc && w <= 850));
     markUnavailable('comments', !comments);
     markUnavailable('filter', filterMode === 'none');
     buttons['filter']?.classList.toggle('compact', filterMode === 'list');
