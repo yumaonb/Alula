@@ -192,10 +192,13 @@ ol {
 }
 
 /* 搜索框行级常驻（BaseLayout 渲染在行内、main#swup 之外）：
- * swup 切页永不重建——节点不移动、不参与位移动画，.glass 胶囊（backdrop-filter + 投影）
+ * swup 切页永不重建——节点不被 swup 移动，.glass 胶囊（backdrop-filter + 投影）
  * 的层不重建，切页零闪零重建（旧方案 data-swup-persist 每次切页摘出再插回，层重建=阴影闪）。
  * 位置由 posts-shell.ts 实测页头占位符写内联 top/left/width（叠在占位上，各宽适配）；
- * 仅列表变体可见（opacity + visibility 过渡，隐藏时 pointer-events 关闭）。
+ * visibility/pointer-events 随行变体类**瞬时**翻转（列表变体显示、其他隐藏），
+ * opacity 与退场/入场位移（右移渐隐 ↔ 自右渐显，与目录滑动配对、先退场再入场）
+ * 全部由 posts-shell.ts 用 motion 驱动（见 ARCHITECTURE.md「搜索/目录退场配对」）——
+ * 这里不写 opacity 过渡，否则 CSS 过渡会和 motion 关键帧抢写同一个属性。
  * z-index 30 压过转场舞台（20）与侧栏（10）；搜索下拉在自身层叠上下文里 z-60，盖过栅格 */
 .posts-search-float {
   position: absolute;
@@ -203,13 +206,10 @@ ol {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.4s ease, visibility 0s linear 0.4s;
 }
 .page-main--listing .posts-search-float {
-  opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transition: opacity 0.4s ease;
 }
 
 /* 内容列：承接原 .hero 的容器职责（flex 居中），宽度/居中/上下留白全在 .page-main */
@@ -219,6 +219,10 @@ ol {
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  /* 纵向拉伸填满整行（行本身是 .page 列里 flex:1 撑满视口的）：
+   * 首页 .content-wrapper 的 margin: auto 0 靠这里的富余高度垂直居中——
+   * 重构进行级布局时丢了这一条，首页内容贴顶（与旧版 .hero flex:1 列布局行为对齐） */
+  align-self: stretch;
 }
 
 /* 左缘元素（列表页头 / 文章面包屑条）切页滑动切换由 motion 驱动（posts-shell.ts ④）：
