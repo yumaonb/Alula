@@ -47,7 +47,7 @@ const hasMeta = !!date || hasCategory || hasStats;
   {hasCover && (
     <a href={url} class="post-card-cover link-plain" aria-label={`阅读：${title}`}>
       <span class="cover-ph-icon">
-        <Icon name="mdi:image-outline" />
+        <Icon is:inline name="mdi:image-outline" />
       </span>
       <ImageWrapper
         src={image!}
@@ -57,7 +57,7 @@ const hasMeta = !!date || hasCategory || hasStats;
         widths={[320, 640]}
       />
       <span class="cover-overlay">
-        <Icon name="mdi:chevron-right" class="cover-chevron" />
+        <Icon is:inline name="mdi:chevron-right" class="cover-chevron" />
       </span>
     </a>
   )}
@@ -68,7 +68,7 @@ const hasMeta = !!date || hasCategory || hasStats;
       <span class="post-card-accent" aria-hidden="true"></span>
       {pinned && (
         <span class="post-card-pin" title="置顶">
-          <Icon name="la:thumbtack" class="pin-icon" />
+          <Icon is:inline name="la:thumbtack" class="pin-icon" />
         </span>
       )}
       <h3 class="post-card-title">
@@ -90,13 +90,13 @@ const hasMeta = !!date || hasCategory || hasStats;
         <div class="post-card-meta">
           {date && (
             <span class="post-card-meta-item">
-              <Icon name="la:calendar" class="meta-icon" />
+              <Icon is:inline name="la:calendar" class="meta-icon" />
               <time datetime={date}>{date}</time>
             </span>
           )}
           {hasCategory && (
             <span class="post-card-meta-item">
-              <Icon name="la:layer-group" class="meta-icon" />
+              <Icon is:inline name="la:layer-group" class="meta-icon" />
               <span class="post-card-categories">
                 {trail.map((item, i) => (
                   <span class="post-card-cat-item">
@@ -119,7 +119,7 @@ const hasMeta = !!date || hasCategory || hasStats;
           )}
           {hasStats && (
             <span class="post-card-meta-item post-card-meta-words" title={`${words} 字`}>
-              <Icon name="la:file-alt" class="meta-icon" />
+              <Icon is:inline name="la:file-alt" class="meta-icon" />
               <span>{words} 字</span>
             </span>
           )}

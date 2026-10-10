@@ -22,7 +22,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
 <nav class="navbar glass">
   <div class="nav-inner">
     <a href="/" class="nav-logo link-plain" aria-label="首页">
-      <Icon name="la:home" class="nav-home-icon" />
+      <Icon is:inline name="la:home" class="nav-home-icon" />
       {site.name}
     </a>
 
@@ -50,10 +50,10 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
       aria-controls="mobile-dropdown"
     >
       <span class="icon-bars">
-        <Icon name="la:bars" />
+        <Icon is:inline name="la:bars" />
       </span>
       <span class="icon-close">
-        <Icon name="la:times" />
+        <Icon is:inline name="la:times" />
       </span>
     </button>
   </div>
@@ -71,10 +71,10 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
                 tabindex="-1"
               >
                 <span class="mobile-link-left">
-                  <Icon name={item.mobileIcon} class="mobile-link-icon" />
+                  <Icon is:inline name={item.mobileIcon} class="mobile-link-icon" />
                   <span class="mobile-link-text">{item.label}</span>
                 </span>
-                <Icon name="la:external-link-alt" class="mobile-link-arrow" />
+                <Icon is:inline name="la:external-link-alt" class="mobile-link-arrow" />
               </a>
             </li>
           ))

@@ -25,7 +25,7 @@ const { prev = null, next = null } = Astro.props;
         rel="prev"
       >
         <span class="post-nav-label">
-          <Icon name="la:arrow-left" class="post-nav-icon" />
+          <Icon is:inline name="la:arrow-left" class="post-nav-icon" />
           上一篇
         </span>
         <span class="post-nav-title">{prev.title}</span>
@@ -33,7 +33,7 @@ const { prev = null, next = null } = Astro.props;
     ) : (
       <span class="post-nav-item post-nav-empty glass">
         <span class="post-nav-label">
-          <Icon name="la:arrow-left" class="post-nav-icon" />
+          <Icon is:inline name="la:arrow-left" class="post-nav-icon" />
           上一篇
         </span>
         <span class="post-nav-title">没有更多文章了</span>
@@ -47,7 +47,7 @@ const { prev = null, next = null } = Astro.props;
       >
         <span class="post-nav-label">
           下一篇
-          <Icon name="la:arrow-right" class="post-nav-icon" />
+          <Icon is:inline name="la:arrow-right" class="post-nav-icon" />
         </span>
         <span class="post-nav-title">{next.title}</span>
       </a>
@@ -55,7 +55,7 @@ const { prev = null, next = null } = Astro.props;
       <span class="post-nav-item post-nav-empty post-nav-next glass">
         <span class="post-nav-label">
           下一篇
-          <Icon name="la:arrow-right" class="post-nav-icon" />
+          <Icon is:inline name="la:arrow-right" class="post-nav-icon" />
         </span>
         <span class="post-nav-title">没有更多文章了</span>
       </span>

@@ -108,7 +108,7 @@ if (type === 'category') {
       <h1 class="post-title">
         {post.pinned && (
           <span class="post-title-pin">
-            <Icon name="la:thumbtack" class="pin-icon" />
+            <Icon is:inline name="la:thumbtack" class="pin-icon" />
           </span>
         )}
         {post.title}
@@ -116,13 +116,13 @@ if (type === 'category') {
       <div class="post-meta">
         {post.date && (
           <span class="post-meta-item">
-            <Icon name="la:calendar" class="meta-icon" />
+            <Icon is:inline name="la:calendar" class="meta-icon" />
             <time datetime={post.date}>{post.date}</time>
           </span>
         )}
         {post.category && (
           <span class="post-meta-item">
-            <Icon name="la:layer-group" class="meta-icon" />
+            <Icon is:inline name="la:layer-group" class="meta-icon" />
             <a
               href={buildCategoryUrl(post.category.split('/'), postRoute)}
               class="post-meta-link link-plain"
@@ -133,7 +133,7 @@ if (type === 'category') {
         )}
         {post.tags.length > 0 && (
           <span class="post-meta-item">
-            <Icon name="la:tag" class="meta-icon" />
+            <Icon is:inline name="la:tag" class="meta-icon" />
             {post.tags.map((tag, i) => (
               <span>
                 <a
@@ -151,7 +151,7 @@ if (type === 'category') {
       {post.image && (
         <div class="post-cover">
           <span class="cover-ph-icon" aria-hidden="true">
-            <Icon name="mdi:image-outline" />
+            <Icon is:inline name="mdi:image-outline" />
           </span>
           <ImageWrapper
             src={post.image}

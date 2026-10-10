@@ -153,6 +153,11 @@ export default defineConfig({
       // 新页面渲染完（page:view）后走到 100% 并淡出。
       // 默认是 3px 黑条，高度与颜色在 global.css 里覆盖。
       progress: true,
+      // globalInstance：把实例挂到 window.swup。posts-shell.ts 需要订阅 swup 原生钩子
+      //（visit:start / fetch:error / visit:abort）区分「导航在途」与「swup 忽略了这次点击」——
+      // @swup/astro 只在 document 上桥接 astro:before-swap / after-swap / page-load 三个事件，
+      // 覆盖不了这两个状态（在途时恢复定时器不能提前触发，否则搜索框会在切换中途弹回）
+      globalInstance: true,
       // native: false —— 关掉浏览器原生 View Transition。
       //
       // 原因（已在 swup 产物里核对）：native 为 true 时 swup 会执行

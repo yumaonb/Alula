@@ -161,6 +161,17 @@ ol {
   --posts-side-offset: 50px;
   padding-top: 82px;
 }
+/* 手机端（≤768px）：导航更矮（57px），同样的 82px 留白显得松——内容顶提到导航底 12px 处。
+ * 文章页：面包屑在大框上方（独立 36px 条，与列表页头同位同高 69/36），大框在面包屑条下
+ * 沿用默认 14px 间隙（69 + 36 + 14 = 119）；文章页上方距离（导航底 57 → 面包屑顶 69）
+ * = 12px，与列表页头（69）距导航同一值（用户指定：文章页到导航的距离 = 文章列表到导航
+ * 的距离，见 PostsShell.astro 移动端注释）；桌面端 82/132 几何不变 */
+@media (max-width: 768px) {
+  .page-main--listing,
+  .page-main--post {
+    padding-top: 69px;
+  }
+}
 .page-main--listing > .hero,
 .page-main--post > .hero {
   max-width: 1000px;
@@ -206,6 +217,11 @@ ol {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  /* 转场白纱的载体：容器与胶囊同盒，圆角对齐胶囊（999px 全圆）。
+   * 移动渐隐时 motion 把容器背景在 透明 ↔ --glass-veil 之间过渡（实体白纱替代
+   * 随透明度消失的 backdrop 模糊）；写在容器上而不是胶囊上，避开胶囊
+   * :focus-within 的 background 过渡与逐帧内联写入打架 */
+  border-radius: 999px;
 }
 .page-main--listing .posts-search-float {
   visibility: visible;

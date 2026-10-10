@@ -127,7 +127,8 @@
   .posts-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 20px; /* 标题→搜索 12→20：标题下方多留白（用户指定） */
+    padding-top: 12px; /* 标题上方多留白：导航底(57)→标题(81) = 24px（用户指定） */
   }
 
   .posts-title {

@@ -8,7 +8,7 @@ import { Icon } from 'astro-icon/components';
 <AdminLayout title="友情链接">
   <div class="admin-page" data-admin-page="settings-friends" data-admin-title="友情链接">
     <div class="admin-gate glass">
-      <Icon name="mdi:lock-outline" class="admin-gate-icon" />
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
       <p>
         还没有连接 GitHub。
         <br />
@@ -31,13 +31,13 @@ import { Icon } from 'astro-icon/components';
           <input class="input" type="text" placeholder="描述" />
           <input class="input" type="text" placeholder="链接" />
           <button class="row-remove" type="button" aria-label="删除这条">
-            <Icon name="mdi:close" />
+            <Icon is:inline name="mdi:close" />
           </button>
         </div>
       </div>
       <div class="toolbar">
         <button class="btn glass btn--dashed" id="admin-friend-add" type="button">
-          <Icon name="mdi:plus" class="btn-icon" />
+          <Icon is:inline name="mdi:plus" class="btn-icon" />
           添加一条
         </button>
       </div>

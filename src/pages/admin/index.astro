@@ -98,12 +98,12 @@ const quickLinks = [
           quickLinks.map((link) => (
             <li>
               <a class="admin-quick-item link-plain" href={link.href}>
-                <Icon name={link.icon} class="admin-quick-icon" />
+                <Icon is:inline name={link.icon} class="admin-quick-icon" />
                 <span class="admin-quick-text">
                   <span class="admin-quick-name">{link.name}</span>
                   <span class="admin-quick-desc">{link.desc}</span>
                 </span>
-                <Icon name="mdi:chevron-right" class="admin-quick-arrow" />
+                <Icon is:inline name="mdi:chevron-right" class="admin-quick-arrow" />
               </a>
             </li>
           ))

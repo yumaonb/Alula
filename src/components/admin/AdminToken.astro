@@ -29,7 +29,7 @@ const { part } = Astro.props;
       aria-expanded="false"
       aria-controls="admin-conn-panel"
     >
-      <Icon name="mdi:shield-key-outline" class="admin-conn-icon" />
+      <Icon is:inline name="mdi:shield-key-outline" class="admin-conn-icon" />
       <span id="admin-conn-label">未连接</span>
     </button>
   </div>
@@ -49,7 +49,7 @@ const { part } = Astro.props;
         </h2>
         <h2 class="admin-modal-title admin-modal-title--status">仓库状态</h2>
         <button class="admin-modal-close" type="button" data-conn-close aria-label="关闭">
-          <Icon name="mdi:close" />
+          <Icon is:inline name="mdi:close" />
         </button>
       </div>
 

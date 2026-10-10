@@ -23,12 +23,12 @@ const { items } = Astro.props;
         {index > 0 && <span class="breadcrumb-sep">/</span>}
         {item.href ? (
           <a href={item.href} class="breadcrumb-link link-plain">
-            {item.icon && <Icon name={item.icon} class="breadcrumb-icon" />}
+            {item.icon && <Icon is:inline name={item.icon} class="breadcrumb-icon" />}
             {item.label}
           </a>
         ) : (
           <span class="breadcrumb-current">
-            {item.icon && <Icon name={item.icon} class="breadcrumb-icon" />}
+            {item.icon && <Icon is:inline name={item.icon} class="breadcrumb-icon" />}
             {item.label}
           </span>
         )}

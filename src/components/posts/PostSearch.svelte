@@ -35,20 +35,32 @@
   let pagefindMod: PagefindModule | null = null;
 
   async function loadPagefind(): Promise<PagefindModule> {
-    if (!pagefindMod) {
+    if (pagefindMod) return pagefindMod;
+    // 重试：构建窗口里 dist/pagefind 短暂缺失（404 / 半截文件）——「搜索像失效」多半出在这里
+    let mod: PagefindModule | null = null;
+    let lastErr: unknown = null;
+    for (let attempt = 0; attempt < 3 && !mod; attempt++) {
       try {
         const resp = await fetch('/pagefind/pagefind.js');
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const text = await resp.text();
         const blob = new Blob([text], { type: 'text/javascript' });
         const url = URL.createObjectURL(blob);
-        pagefindMod = (await import(/* @vite-ignore */ url)) as PagefindModule;
+        mod = (await import(/* @vite-ignore */ url)) as PagefindModule;
         URL.revokeObjectURL(url);
-        pagefindMod.options?.({ excerptLength: 20 });
+        lastErr = null;
       } catch (e) {
-        console.error('[PostSearch] Pagefind load failed', e);
-        throw e;
+        lastErr = e;
+        mod = null;
+        if (attempt < 2) await new Promise((r) => setTimeout(r, 1500));
       }
     }
+    if (!mod) {
+      console.error('[PostSearch] Pagefind load failed', lastErr);
+      throw lastErr ?? new Error('Pagefind load failed');
+    }
+    pagefindMod = mod;
+    pagefindMod.options?.({ excerptLength: 20 });
     return pagefindMod;
   }
 
@@ -95,7 +107,7 @@
       activeIndex = -1;
     } catch {
       if (s !== seq) return;
-      errorMsg = '搜索索引不可用（请先构建站点）';
+      errorMsg = '搜索索引不可用（站点构建中或尚未构建，请稍后重试）';
     } finally {
       if (s === seq) isLoading = false;
     }
@@ -147,6 +159,11 @@
 
   onMount(() => {
     document.addEventListener('click', onOutsideClick);
+    // 空闲预取：首查只付查询成本（wasm + 索引拉取提前完成），
+    // 避免第一次搜索等 1–3s 看起来像没反应
+    const idleCb = () => { void loadPagefind().catch(() => {}); };
+    if ('requestIdleCallback' in window) window.requestIdleCallback(idleCb);
+    else setTimeout(idleCb, 1000);
     return () => document.removeEventListener('click', onOutsideClick);
   });
 

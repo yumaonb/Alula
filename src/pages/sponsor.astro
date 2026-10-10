@@ -21,13 +21,13 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
           <p class="hero-desc">{sponsorLink.desc}</p>
         </div>
         <div class="hero-arrow">
-          <Icon name="la:angle-right" />
+          <Icon is:inline name="la:angle-right" />
         </div>
       </div>
     </a>
 
     <a href={sponsorList.href} class="action-card glass hoverable link-plain" target={sponsorList.target} rel="noopener">
-      <Icon name={sponsorList.icon} class="action-icon" />
+      <Icon is:inline name={sponsorList.icon} class="action-icon" />
       <div class="action-body">
         <span class="action-title">{sponsorList.title}</span>
         <span class="action-desc">{sponsorList.desc}</span>
@@ -49,7 +49,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
               target={a.target}
               rel="noopener"
             >
-              <Icon name={a.icon} class="grid-icon" />
+              <Icon is:inline name={a.icon} class="grid-icon" />
               <div class="grid-body">
                 <span class="grid-title">{a.title}</span>
                 <span class="grid-desc">{a.desc}</span>
@@ -57,7 +57,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
             </a>
           ) : (
             <div class="grid-card glass">
-              <Icon name={a.icon} class="grid-icon" />
+              <Icon is:inline name={a.icon} class="grid-icon" />
               <div class="grid-body">
                 <span class="grid-title">{a.title}</span>
                 <span class="grid-desc">{a.desc}</span>

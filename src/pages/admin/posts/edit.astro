@@ -8,7 +8,7 @@ import { Icon } from 'astro-icon/components';
 <AdminLayout title="编辑文章">
   <div class="admin-page" data-admin-page="editor" data-admin-title="编辑文章">
     <div class="admin-gate glass">
-      <Icon name="mdi:lock-outline" class="admin-gate-icon" />
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
       <p>
         还没有连接 GitHub。
         <br />
@@ -59,11 +59,11 @@ import { Icon } from 'astro-icon/components';
 
           <div class="admin-editor-actions">
             <button class="btn glass" id="admin-editor-delete">
-              <Icon name="mdi:delete-outline" class="btn-icon" />
+              <Icon is:inline name="mdi:delete-outline" class="btn-icon" />
               暂存删除
             </button>
             <button class="btn glass btn--primary" id="admin-editor-save">
-              <Icon name="mdi:content-save-outline" class="btn-icon" />
+              <Icon is:inline name="mdi:content-save-outline" class="btn-icon" />
               暂存改动
             </button>
           </div>
