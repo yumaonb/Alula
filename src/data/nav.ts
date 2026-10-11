@@ -15,7 +15,7 @@ export const navItems: NavItem[] = [
   { key: 'home', href: '/', label: '首页', icon: 'la:home' },
   { key: 'about', href: '/about/', label: '关于', icon: 'la:user' },
   { key: 'projects', href: '/projects/', label: '项目', icon: 'la:cubes' },
-  { key: 'posts', href: '/posts/', label: '文章', icon: 'mdi:book-open-variant' },
+  { key: 'posts', href: '/posts/', label: '文章', icon: 'la:book-open' },
   { key: 'friends', href: '/friends/', label: '友链', icon: 'la:link' },
   { key: 'sponsor', href: '/sponsor/', label: '赞助', icon: 'la:hand-holding-heart' },
 ];
