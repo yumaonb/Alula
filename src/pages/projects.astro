@@ -1,6 +1,8 @@
 ---
 // projects.astro — 项目展示页
 // 用法：路由 /projects/
+import { Icon } from 'astro-icon/components';
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
 ---
@@ -8,8 +10,10 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
 <BaseLayout title="项目">
   <div class="projects-page">
     <div class="page-header">
-      <h1 class="page-title">我的项目</h1>
-      <p class="page-desc">这里是我的一些开源项目，欢迎Star或Fork</p>
+      <h1 class="page-title">
+        <Icon is:inline name="la:cubes" class="page-title-icon" />
+        我的项目
+      </h1>
     </div>
 
     <ProjectsGrid client:load />
@@ -21,30 +25,45 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
   .projects-page {
     width: 100%;
     max-width: 960px;
+    margin-top: 1px; /* 标题距导航底 16px（桌面导航底 69 + 16 = 85），与页头下方间距相等；手机端在媒体查询里配平到同值 */
   }
 
   /* ---- 标题区 ---- */
   .page-header {
-    text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 16px;
+    padding-left: 12px; /* 图标前留一点呼吸空间 */
   }
 
   .page-title {
-    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.6rem; /* 与文章列表 .posts-title 同号，改字号两处同改 */
+    line-height: 1.2; /* 压掉大行高带来的文字上下留白 */
     color: var(--hover-ink);
     text-shadow: var(--title-shadow);
-    gap: 10px;
   }
 
-  .page-desc {
-    font-size: 0.95rem;
-    color: var(--color-text);
+  .page-title-icon {
+    width: 1.6rem;
+    height: 1.6rem;
+    flex-shrink: 0;
+    color: var(--icon-ink);
   }
 
   /* ---- 手机端适配 ---- */
   @media (max-width: 768px) {
+    .projects-page {
+      margin-top: -11px; /* 手机导航底 57：84-11=73=57+16，标题距导航底同样 16px，与电脑端统一 */
+    }
+
     .page-title {
-      font-size: 1.5rem;
+      font-size: 1.35rem; /* 手机端同 .posts-title（1.35rem） */
+    }
+
+    .page-title-icon {
+      width: 1.35rem;
+      height: 1.35rem;
     }
   }
 </style>
