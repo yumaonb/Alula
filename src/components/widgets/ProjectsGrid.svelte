@@ -227,12 +227,12 @@
     overflow: hidden;
   }
 
+  /* 标题贴卡顶；logo 绝对定位贴卡片右上角，不参与标题行的纵向排布（标题行高只剩标题自身行高）；
+   * 右侧 56px 内边距给 logo 让位，标题省略号不会滑到 logo 底下 */
   .card-header {
+    position: relative;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 20px 0;
-    gap: 8px;
+    padding: 14px 56px 0 20px;
   }
 
   .card-header-left {
@@ -244,12 +244,14 @@
   }
 
   .card-header-right {
-    flex-shrink: 0;
+    position: absolute;
+    top: 8px;
+    right: 14px;
   }
 
   .gh-icon {
-    width: 2.3rem;
-    height: 2.3rem;
+    width: calc(2.3rem + 2px);
+    height: calc(2.3rem + 2px);
     color: var(--icon-ink);
   }
 
