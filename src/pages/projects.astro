@@ -8,8 +8,8 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
 ---
 
 <BaseLayout title="项目">
-  <div class="projects-page">
-    <div class="page-header">
+  <div class="projects-page page-top-standard">
+    <div class="page-head">
       <h1 class="page-title">
         <Icon is:inline name="la:cubes" class="page-title-icon" />
         我的项目
@@ -21,48 +21,9 @@ import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
 </BaseLayout>
 
 <style>
-  /* ---- 页面 ----（width: 100% 必须有，原因见 about 页注释；横向顶满内容列，同文章区） ---- */
+  /* ---- 页面 ----（width: 100% 必须有，原因见 about 页注释；横向顶满内容列，同文章区）
+     标题区用全站页面标题：.page-head / .page-title / .page-title-icon / .page-top-standard（见 utilities.css） */
   .projects-page {
     width: 100%;
-    margin-top: 1px; /* 标题距导航底 16px（桌面导航底 69 + 16 = 85），与页头下方间距相等；手机端在媒体查询里配平到同值 */
-  }
-
-  /* ---- 标题区 ---- */
-  .page-header {
-    margin-bottom: 16px;
-    padding-left: 12px; /* 图标前留一点呼吸空间 */
-  }
-
-  .page-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.6rem; /* 与文章列表 .posts-title 同号，改字号两处同改 */
-    line-height: 1.2; /* 压掉大行高带来的文字上下留白 */
-    color: var(--hover-ink);
-    text-shadow: var(--title-shadow);
-  }
-
-  .page-title-icon {
-    width: 1.6rem;
-    height: 1.6rem;
-    flex-shrink: 0;
-    color: var(--icon-ink);
-  }
-
-  /* ---- 手机端适配 ---- */
-  @media (max-width: 768px) {
-    .projects-page {
-      margin-top: -11px; /* 手机导航底 57：84-11=73=57+16，标题距导航底同样 16px，与电脑端统一 */
-    }
-
-    .page-title {
-      font-size: 1.35rem; /* 手机端同 .posts-title（1.35rem） */
-    }
-
-    .page-title-icon {
-      width: 1.35rem;
-      height: 1.35rem;
-    }
   }
 </style>

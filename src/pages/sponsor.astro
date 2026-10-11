@@ -7,10 +7,10 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 ---
 
 <BaseLayout title="赞助">
-  <div class="sponsor-page">
-    <header class="sponsor-header">
-      <h1 class="header-title">
-        <Icon is:inline name="la:hand-holding-heart" class="header-title-icon" />
+  <div class="sponsor-page page-top-standard">
+    <header class="page-head">
+      <h1 class="page-title">
+        <Icon is:inline name="la:hand-holding-heart" class="page-title-icon" />
         赞助支持
       </h1>
     </header>
@@ -73,42 +73,18 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 </BaseLayout>
 
 <style>
-  /* width: 100% 必须有：.hero 是 flex 容器，只写 max-width 会塌成窄缝（见 about 页注释） */
+  /* width: 100% 必须有：.hero 是 flex 容器，只写 max-width 会塌成窄缝（见 about 页注释）
+     标题区用全站页面标题：.page-head / .page-title / .page-title-icon / .page-top-standard（见 utilities.css） */
   .sponsor-page {
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    margin-top: 1px; /* 标题距导航底 16px（桌面导航底 69 + 16 = 85）；手机端媒体查询里配平到同值 */
-  }
-
-  /* ---- 标题区 ----（与项目页同一标准：左对齐 + 前置图标，标题距内容 16px） ---- */
-  .sponsor-header {
-    width: 100%;
-    padding-left: 12px; /* 图标前留一点呼吸空间 */
-  }
-
-  .header-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.6rem; /* 与文章列表 .posts-title 同号，改字号多处同改 */
-    line-height: 1.2; /* 压掉大行高带来的文字上下留白 */
-    color: var(--hover-ink);
-    text-shadow: var(--title-shadow);
-  }
-
-  .header-title-icon {
-    width: 1.6rem;
-    height: 1.6rem;
-    flex-shrink: 0;
-    color: var(--icon-ink);
   }
 
   /* ---- 主赞助卡片 ---- */
   .hero-card {
-    margin-top: 4px; /* 页面 gap 12 + 4 = 16px：标题区距内容 16px，与项目页一致 */
+    margin-bottom: 12px; /* 卡间距（页面 gap 已删；标题→卡的 16px 由 .page-head 定） */
     width: 100%;
     text-decoration: none;
     color: inherit;
@@ -262,6 +238,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     align-items: center;
     gap: 16px;
     width: 100%;
+    margin-bottom: 12px;
     padding: 18px 20px;
     border-radius: 12px;
     text-decoration: none;
@@ -307,22 +284,8 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
   /* ---- 手机端适配 ---- */
   @media (max-width: 768px) {
-    .sponsor-page {
-      gap: 10px;
-      margin-top: -11px; /* 手机导航底 57：84-11=73=57+16，标题距导航底同样 16px，与电脑端统一 */
-    }
-
-    .header-title {
-      font-size: 1.35rem; /* 手机端同 .posts-title（1.35rem） */
-    }
-
-    .header-title-icon {
-      width: 1.35rem;
-      height: 1.35rem;
-    }
-
     .hero-card {
-      margin-top: 6px; /* 手机端 gap 10 + 6 = 16px，与桌面端同标准 */
+      margin-bottom: 10px; /* 手机端卡间距（原页面 gap 10px） */
     }
 
     .hero-card-inner {
@@ -340,6 +303,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     }
 
     .action-card {
+      margin-bottom: 10px; /* 手机端卡间距（原页面 gap 10px） */
       padding: 15px 16px;
       gap: 14px;
     }

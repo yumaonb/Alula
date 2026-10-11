@@ -20,14 +20,6 @@
   flex-wrap: wrap;
 }
 
-/* 列表页的页头标题（白字 + 阴影是页头观感的一部分，随字号一起放这） */
-.posts-title {
-  font-size: 1.6rem;
-  color: var(--hover-ink);
-  text-shadow: var(--title-shadow);
-  padding-left: 5px; /* 标题前留一点呼吸空间 */
-}
-
 /* 搜索框占位：真实搜索框是 BaseLayout 行级常驻（.posts-search-float），
    这里只留布局空间（宽/高与原胶囊一致），posts-shell.ts 按实测位置把常驻搜索框叠上来 */
 .posts-header-search {
@@ -35,11 +27,10 @@
   height: 36px;
 }
 
-/* 标题与计数垂直居中对齐；line-height 1 把页头压到与面包屑条同高
-   （两种左缘元素等高，切页交叉渐隐才无跳变） */
+/* 文章区页头是 36px 左缘条：line-height 1 把标题压到与面包屑条同高
+   （两种左缘元素等高，切页滑动才无跳变）；flex 行 / 白字阴影 / 图标 /
+   图标前 12px 留空继承全站 .page-title（utilities.css） */
 .posts-title {
-  display: flex;
-  align-items: center;
   flex-wrap: wrap;
   line-height: 1;
 }
@@ -118,8 +109,8 @@
     padding-top: 12px; /* 标题上方多留白：导航底(57)→标题(81) = 24px（用户指定） */
   }
 
-  .posts-title {
-    font-size: 1.35rem;
+  .posts-header .posts-title {
+    padding-right: 12px; /* 左右留空对称：保留图标前 12px 且居中标题不偏位 */
     text-align: center;
     justify-content: center;
   }

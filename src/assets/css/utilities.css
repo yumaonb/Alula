@@ -1,8 +1,8 @@
 /* utilities.css — 工具类样式（元件级：玻璃卡片 / 悬停）
  * 只放高频复用的元件；页面专属的元件（如首页的圆形按钮）写在页面 <style>；
- * 页面内容排版（标题 / 描述 / 座右铭等）写在各自页面的 <style> 或页面组
- * 共享文件（如 posts-listing.css）里；页面结构（外壳 / 主内容区 / 页面容器）
- * 在 global.css。 */
+ * 页面内容排版（描述 / 座右铭等）写在各自页面的 <style> 或页面组
+ * 共享文件（如 posts-listing.css）里；页面标题是全站元件（.page-title 系列，
+ * 见文末「页面标题」）；页面结构（外壳 / 主内容区 / 页面容器）在 global.css。 */
 
 /* ---- 玻璃卡片 ----
  * 全站磨砂效果唯一定义：凡需要磨砂观感的元素都挂 .glass（玻璃卡、悬浮小按钮、
@@ -92,6 +92,56 @@
     pointer-events: none;
     backdrop-filter: blur(var(--blur));
     -webkit-backdrop-filter: blur(var(--blur));
+  }
+}
+
+/* ---- 页面标题（项目 / 友链 / 赞助 / 文章列表共用） ----
+ * 各界面统一的入口标题：左图标 + 文字，字号 / 颜色 / 图标前留空全站一份。
+ * - .page-title：标题本体（flex 行，图标前 12px 留空，白字 + 阴影）
+ * - .page-title-icon：前置图标，1em 随标题字号自动缩放
+ * - .page-head：独立页的页头包裹层，供标题下方 16px 间距；文章区页头是
+ *   36px 左缘条，不用 .page-head，上下间距仍由 posts-listing.css 管
+ * - .page-top-standard：页面最外层元素，标题距导航底 16px（桌面导航底
+ *   69 + 16 = 85；手机导航底 57 + 16 = 73，两端相等）
+ * 文章列表的 h1 同时挂 .posts-title page-title：字号 / 颜色 / 图标 / 12px 留空
+ * 继承自这里，36px 条几何由 posts-listing.css 的 .posts-title 覆写保证（line-height 1）。 */
+.page-head {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.page-head .page-title {
+  line-height: 1.2; /* 压掉 body 1.6 行高带来的文字上下留白 */
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  padding-left: 12px; /* 图标前留一点呼吸空间 */
+  font-size: 1.6rem;
+  color: var(--hover-ink);
+  text-shadow: var(--title-shadow);
+}
+
+.page-title-icon {
+  width: 1em;
+  height: 1em;
+  margin-right: 10px;
+  flex-shrink: 0;
+  color: var(--icon-ink);
+}
+
+.page-top-standard {
+  margin-top: 1px;
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.35rem;
+  }
+
+  .page-top-standard {
+    margin-top: -11px;
   }
 }
 

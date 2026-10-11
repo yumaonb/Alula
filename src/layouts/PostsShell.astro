@@ -11,6 +11,8 @@
 //     </PostsShell>
 // 搜索框不在这里：它是 BaseLayout 行级常驻的（swup 永不重建，切页零闪），
 // 页头里只留 .posts-header-search 空占位供 posts-shell.ts 实测叠放位置。
+import { Icon } from 'astro-icon/components';
+
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumb from '../components/posts/Breadcrumb.astro';
 import TableOfContents from '../components/posts/TableOfContents.astro';
@@ -65,7 +67,8 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     <div class="posts-page">
       <div class="posts-edge-slot">
         <div class="posts-header" data-posts-anchor>
-          <h1 class="posts-title">
+          <h1 class="posts-title page-title">
+            <Icon is:inline name="la:pen-fancy" class="page-title-icon" />
             {heading}
             <span class="title-count-sep"> — </span>
             <span class="posts-count">共 {count} 篇文章</span>
