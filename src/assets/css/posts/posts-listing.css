@@ -25,6 +25,7 @@
   font-size: 1.6rem;
   color: var(--hover-ink);
   text-shadow: var(--title-shadow);
+  padding-left: 5px; /* 标题前留一点呼吸空间 */
 }
 
 /* 搜索框占位：真实搜索框是 BaseLayout 行级常驻（.posts-search-float），
