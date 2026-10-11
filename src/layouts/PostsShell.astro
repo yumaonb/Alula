@@ -129,17 +129,13 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 
 <style>
   /* ---- 列表页 ---- */
-  /* 转场裁切槽（口袋）：包住左缘条（页头/面包屑）。常态 overflow:visible
-     （搜索下拉 top:calc(100%+8px) 要溢出槽外可见）；转场窗口内 posts-shell.ts
-     加 .is-clip 收紧裁切——条只在自己盒内滑动、永不伸进下方内容（作者卡顶 132px）。
-     负边距通栏 + z-index 20 抬升（高于侧栏的 10）从条本身移到槽上：槽才是压过侧栏区
-     的全宽元素（侧栏盒的顶部 padding 落在槽的左段，没有这层抬升左段点击会被侧栏拦截） */
+  /* 包裹槽：包住左缘条（页头/面包屑），转场期 posts-shell.ts 的条带模糊渐显/手机端
+     反推 counter 都作用在条/槽上。负边距通栏 + z-index 20 抬升（高于侧栏的 10）在槽上：
+     槽才是压过侧栏区的全宽元素（侧栏盒的顶部 padding 落在槽的左段，没有这层抬升左段
+     点击会被侧栏拦截） */
   .posts-edge-slot {
     position: relative;
     z-index: 20;
-  }
-  .posts-edge-slot.is-clip {
-    overflow: hidden;
   }
   @media (min-width: 769px) {
     .posts-page > .posts-edge-slot {

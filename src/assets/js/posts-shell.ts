@@ -7,22 +7,19 @@
 // ② 侧栏顶偏移 --posts-side-offset（实测「页锚高度 + 间隙」，页锚 = 页头 / 面包屑条）；
 // ③ 侧栏高亮态（当前分类高亮 + 其路径补展开、当前标签高亮）；
 // ④ 行级常驻搜索框的叠放位置（实测页头占位符 .posts-header-search 的行内坐标）；
-// ⑤ 切页转场（motion 驱动，只在文章区界面之间生效；涉及普通屏不播、不消耗流向）。
+// ⑤ 切页转场（motion 驱动，只在文章区界面之间生效；涉及普通屏不播）。
 //
 // ---- 转场机制 ----
-// a) 左缘元素滑动（列表页头 ↔ 文章面包屑条）：swup 替换瞬间丢弃旧 DOM，替换前
+// a) 左缘元素条带切换（列表页头 ↔ 文章面包屑条）：swup 替换瞬间丢弃旧 DOM，替换前
 //    （astro:before-swap，即 content:replace 前一刻）克隆旧元素进行内**静止暂存**，
-//    等新界面加载完（astro:after-swap）才播放——过渡绝不先于内容。「一张纸」整体感：
-//    退出侧位移 + 全时长渐隐、进入侧纯位移全程不透明。滑动只在「口袋」里：旧带克隆裁进
-//    .posts-edge-stage、新带槽转场期 is-clip 裁切——条只在自己高度内滑动，永不压
-//    下方内容（内容顶 132px）。桌面端流向逐次交替（首次「上」）；手机端（≤768px）
-//    列表↔文章走**固定方向**：开文章 = 整页向上（旧页面上滑出、新内容自下方滑入），
-//    关文章 = 镜像向下——不参与交替、不消耗流向。条带交换（面包屑 ↔ 列表页头）：
-//    **模糊变过去**——旧带原地模糊渐隐（blur 0→4px + 渐隐）、新带原地模糊渐显（blur 4px→0 + 渐显）：
-//    桌面端**全部**左缘条带切换（用户指定：电脑端也用模糊）+ 手机端列表↔文章（新带槽另做
-//    与整页推入**等距反向**的 counter 位移，屏幕上原地不动——避免新带跟随推入上滑显得
-//    「面包屑浮上去」，读起来是「标题模糊成面包屑」）；手机端列表↔分类/标签（无推拉）
-//    保留「一张纸」滑动（流向交替）
+//    等新界面加载完（astro:after-swap）才播放——过渡绝不先于内容。**全部**左缘条带
+//    切换（桌面端所有 + 手机端列表↔文章 + 手机端列表↔分类/标签；用户指定电脑端也用
+//    模糊，手机端滑动形态随之整体退役）走**模糊变过去**——旧带原地模糊渐隐
+//    （blur 0→4px + opacity 1→0，160ms）、新带原地模糊渐显（blur 4px→0 + opacity 0→1，
+//    260ms），两带同位交叉渐隐、无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
+//    开文章 = 整页向上（新内容自下方 48px 滑入）、关文章 = 镜像向下（新列表自上方 48px
+//    滑下）——新带槽另做与推入**等距反向**的 counter 位移，屏幕上原地不动——避免新带
+//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。
 // b) 搜索/目录退场配对（用户要求「先退场再入场」）：目录出现/消失的切页里，退出相位
 //    （240ms）走完才播进入相位（320ms）——列表→文章：搜索右移 48px「移一段」渐隐
 //    （退出）→ 目录自屏幕右缘左移渐显（入场）；文章→列表：目录右移移出屏幕渐隐
@@ -88,7 +85,14 @@ import type { AnimationPlaybackControls } from 'motion';
   const FLOAT_EXIT_MS = 300;
   const FLOAT_EXIT_FADE_MS = 180;
   const FLOAT_ENTRY_FADE_MS = 220;
-  // 条带交换「模糊变过去」（桌面端全部左缘条带切换 + 手机端列表↔文章，用户指定）：
+  // 手机端「关文章」：搜索自上方落回的延迟（用户反馈：下移时叠在文章卡片上）。
+  // 整页自上方 48px 推下时，文章卡顶（172.6-48=124.6）起初在搜索框钉住位底边（138.6）
+  // 之下；搜索框落回（20px）若与推下同帧起步，半透明胶囊会压在卡顶约 14px。推迟到
+  // 卡片顶已下移越过胶囊底边（≈135ms）再落回，可见帧全程无叠压；150+300=450ms，
+  // 比 400ms 推入仅晚 50ms 收尾
+  const FLOAT_ENTRY_DELAY_MS = 150;
+  // 条带交换「模糊变过去」（**全部**左缘条带切换——桌面端所有 + 手机端列表↔文章 + 手机端
+  // 列表↔分类/标签；用户指定电脑端也用模糊，滑动形态整体退役）：
   // 旧带原地模糊渐隐（blur 0→4px + opacity 1→0）、新带原地模糊渐显（blur 4px→0 + opacity 0→1）
   const STRIP_BLUR_OUT_MS = 160; // 旧条带：模糊渐隐
   const STRIP_BLUR_IN_MS = 260; // 新条带：模糊渐显
@@ -281,12 +285,11 @@ import type { AnimationPlaybackControls } from 'motion';
     }
   }
 
-  // ================= 3. 克隆与口袋 =================
+  // ================= 3. 克隆 =================
 
   /** 把元素的视觉副本贴进容器内（过场用：不参与测量、不可交互、不进可访问性树）。
-   *  container = 行（目录克隆）或「口袋」舞台 .posts-edge-stage（左缘带克隆）：
-   *  舞台带 overflow:hidden，把克隆裁在条自身盒内——滑动全程只在条自己高度内，
-   *  永不伸进下方内容。克隆是纯静态展示（左缘条与目录里没有 island）。
+   *  container = 行（左缘条克隆与目录克隆都直接挂行内，绝对定位按实测 top/left 摆位）。
+   *  克隆是纯静态展示（左缘条与目录里没有 island）。
    *  清除时机：正常转场由 finished 回调移除；快速二次导航由 captureOld 查 DOM 清掉；
    *  5s 兜底只覆盖「visit 被中断、after-swap 永不来」的孤儿 */
   function cloneIntoRow(src: HTMLElement, container: HTMLElement, markerClass?: string): HTMLElement | null {
@@ -308,26 +311,14 @@ import type { AnimationPlaybackControls } from 'motion';
     clone.style.pointerEvents = 'none';
     clone.setAttribute('aria-hidden', 'true');
     container.appendChild(clone);
-    // 兜底：舞台整个移除（连克隆一起），普通行容器只移除克隆
-    window.setTimeout(() => {
-      if (container.classList.contains('posts-edge-stage')) container.remove();
-      else clone.remove();
-      clearSlotClip();
-    }, 5000);
+    // 兜底：孤儿克隆 5s 后移除（visit 被中断、after-swap 永不来）
+    window.setTimeout(() => clone.remove(), 5000);
     return clone;
   }
 
-  /** 清掉所有槽上的转场裁切类（兜底：动画被中断/放弃时不让 is-clip 残留） */
-  function clearSlotClip(): void {
-    document.querySelectorAll<HTMLElement>('.posts-edge-slot.is-clip').forEach((s) => s.classList.remove('is-clip'));
-  }
-
-  /** 查 DOM 清掉所有残留克隆/舞台（不信任模块变量——见文件头 d②） */
+  /** 查 DOM 清掉所有残留克隆（不信任模块变量——见文件头 d②） */
   function clearClones(): void {
-    const r = row();
-    r?.querySelectorAll<HTMLElement>('.posts-edge-stage').forEach((s) => s.remove());
-    r?.querySelectorAll<HTMLElement>('.posts-toc-clone').forEach((c) => c.remove());
-    clearSlotClip();
+    row()?.querySelectorAll<HTMLElement>('.posts-toc-clone').forEach((c) => c.remove());
   }
 
   /** 目录移出屏幕的距离：整体移到视口右缘之外 + 余量（按元素左缘实测） */
@@ -451,11 +442,14 @@ import type { AnimationPlaybackControls } from 'motion';
       f.style.transform = `translateY(-${FLOAT_MOVE}px)`;
       f.style.opacity = '0';
       f.style.backgroundColor = VEIL; // 入场前先加上半透明白（见文件头 c），关键帧随入场全程褪去
+      // 落回延迟（FLOAT_ENTRY_DELAY_MS）：等整页推下把文章卡顶移过胶囊底边再下移，
+      // 可见帧不叠卡片（钉住位 opacity 0，延迟期不可见）
+      const delay = FLOAT_ENTRY_DELAY_MS / 1000;
       const move = trackFloat(
-        animate(f, { y: [`-${FLOAT_MOVE}px`, 0] }, { duration: FLOAT_EXIT_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
+        animate(f, { y: [`-${FLOAT_MOVE}px`, 0] }, { duration: FLOAT_EXIT_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
       );
       const fade = trackFloat(
-        animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, { duration: FLOAT_ENTRY_FADE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
+        animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, { duration: FLOAT_ENTRY_FADE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
       );
       this.active = move;
       move.finished.then(() => this.finish(true, f)).catch(() => {});
@@ -483,19 +477,15 @@ import type { AnimationPlaybackControls } from 'motion';
   };
 
   // ================= 5. 转场编排 =================
-  type Flow = 'up' | 'down';
   let edgeClone: HTMLElement | null = null;
-  let edgeStage: HTMLElement | null = null; // 旧带克隆的裁切舞台（口袋），与克隆同生共死
   let tocClone: HTMLElement | null = null;
   let oldHadSearch = false; // 旧页是列表系界面（搜索正在显示）——captureOld 时记录
   let oldIsPost = false; // 旧页是文章详情（面包屑条）——区分「区内」与「跨区」搜索处理
-  let lastFlow: Flow | null = null;
 
   /** 替换前调用（astro:before-swap，content:replace 前一刻）：清场 + 克隆静止暂存 */
   function captureOld(): void {
     stopAnims(); // 只停转场动画；搜索浮层的点击退场独立生命周期，不连带
     clearClones();
-    edgeStage = null;
     edgeClone = null;
     tocClone = null;
     oldIsPost = false;
@@ -504,7 +494,7 @@ import type { AnimationPlaybackControls } from 'motion';
     if (!r) return;
     const main = r.querySelector<HTMLElement>('main#swup');
     // 快速连切保护：上次转场未播完时，旧内容根 / 旧条带 / 旧目录可能带着被 cancel 的
-    // 动画残留内联 transform/opacity（cancel 不清内联样式）——克隆/舞台的量盒必须按
+    // 动画残留内联 transform/opacity（cancel 不清内联样式）——克隆的量盒必须按
     // 自然位置来，先清零。这些元素马上就要被 swup 换掉，清零的这一帧不会被看见
     main?.querySelector<HTMLElement>('.posts-article, .posts-page')?.style.removeProperty('transform');
     const old = main?.querySelector<HTMLElement>('.posts-header, .posts-breadcrumb');
@@ -513,16 +503,7 @@ import type { AnimationPlaybackControls } from 'motion';
       old.style.opacity = '';
       oldHadSearch = !!old.querySelector('.posts-header-search');
       oldIsPost = old.classList.contains('posts-breadcrumb');
-      // 「口袋」舞台：行内绝对定位、同条自身盒（top/height 实测），overflow:hidden 裁切克隆
-      const a = old.getBoundingClientRect();
-      const b = r.getBoundingClientRect();
-      const stage = document.createElement('div');
-      stage.className = 'posts-edge-stage';
-      stage.style.top = `${a.top - b.top}px`;
-      stage.style.height = `${a.height}px`;
-      r.appendChild(stage);
-      edgeStage = stage;
-      edgeClone = cloneIntoRow(old, stage);
+      edgeClone = cloneIntoRow(old, r);
     }
     const oldToc = main?.querySelector<HTMLElement>('.post-sidebar');
     if (oldToc && getComputedStyle(oldToc).display !== 'none') {
@@ -545,7 +526,7 @@ import type { AnimationPlaybackControls } from 'motion';
     const newIsPost = !!main?.querySelector<HTMLElement>('.post-content'); // 新页是文章详情（区分区内/跨区）
     const opening = oldHadSearch && !newHadSearch; // 列表→文章
     const closing = !oldHadSearch && newHadSearch; // 文章→列表
-    // 手机端（≤768px）列表↔文章：固定方向整页推拉（开=上 / 关=下），不参与流向交替
+    // 手机端（≤768px）列表↔文章：固定方向整页推拉（开=上 / 关=下）
     const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing);
 
     // ---- 搜索/目录相位：退出相位走完才播进入相位（先退场再入场）----
@@ -613,82 +594,41 @@ import type { AnimationPlaybackControls } from 'motion';
     // 本轮无搜索退场/入场（列表↔列表互切、首屏、**跨区边界**——区内才做淡变）：钉回目标态，零闪
     if (!exitAction && !entryAction) floatCtl.settle(newHadSearch);
 
-    // ---- 左缘条带切换（列表页头 ↔ 文章面包屑条）----
+    // ---- 左缘条带切换（列表页头 ↔ 文章面包屑条）：全部走「模糊变过去」----
+    // 旧带原地模糊渐隐、新带原地模糊渐显，无位移（用户指定：电脑端也用模糊；手机端
+    // 列表↔分类/标签的「一张纸」滑动形态随之整体退役）。手机端列表↔文章另做整页推入的
+    // 反向抵消（counter）：根自 ±MOBILE_SLIDE 推到 0 时槽走反方向同距离（同任务启动、
+    // 同时长同缓动，见下方推拉块），新条带在屏幕上原地不动——读起来是「标题模糊成
+    // 面包屑」，不是「面包屑浮上来」
     if (edgeClone && newEdge) {
-      if (isMobile() && !mobilePush) {
-        // 手机端列表↔分类/标签（无整页推拉）：保留「一张纸」滑动（用户指定模糊的是
-        // 桌面端与列表↔文章，此组仍滑动）——退出侧位移 + 渐隐、进入侧纯位移全程不透明，
-        // 流向逐次交替（首次「上」）
-        let flow: Flow;
-        flow = lastFlow === 'up' ? 'down' : 'up';
-        lastFlow = flow; // 只在交替时消耗流向
-        // 用局部引用接住克隆与舞台：finished 回调（动画结束才触发）里若读模块变量，
-        // 变量可能已被后续逻辑改写——回调一律用局部引用，模块变量在元素真正移除时才置 null
-        const exitEl = edgeClone;
-        const exitStage = edgeStage;
-        const H = exitEl.offsetHeight; // 左缘带高：滑动距离 = 带高，新旧两带全程保持贴合
-        const exitTo = flow === 'up' ? -H : H;
-        // 新带槽转场期裁切（口袋）：滑动只在条自身盒内、永不压下方内容
+      const exitEl = edgeClone;
+      const out = track(animate(exitEl, { opacity: [1, 0], filter: ['blur(0px)', `blur(${STRIP_BLUR_PX}px)`] }, { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }));
+      out.finished
+        .then(() => {
+          exitEl.remove();
+          edgeClone = null;
+        })
+        .catch(() => {});
+      if (mobilePush) {
         const newSlot = newEdge.parentElement;
-        const clipSlot = newSlot?.classList.contains('posts-edge-slot');
-        if (clipSlot) newSlot?.classList.add('is-clip');
-        const exit = track(animate(exitEl, { y: [0, `${exitTo}px`], opacity: [1, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
-        exit.finished
-          .then(() => {
-            if (exitStage) exitStage.remove();
-            else exitEl.remove();
-            if (clipSlot) newSlot?.classList.remove('is-clip');
-            edgeStage = null;
-            edgeClone = null;
-          })
-          .catch(() => {});
-        // 进入侧：全程不透明（只位移不淡入），两条带各走自身全高、任意时刻并集覆盖口袋
-        const enter = track(animate(newEdge, { y: [`${-exitTo}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
-        enter.finished
-          .then(() => {
-            if (clipSlot) newSlot?.classList.remove('is-clip');
-          })
-          .catch(() => {});
-      } else {
-        // 桌面端（全部左缘条带切换）+ 手机端列表↔文章：条带「模糊变过去」（用户指定：
-        // 电脑端也用模糊）——旧带原地模糊渐隐、新带原地模糊渐显，无位移、无口袋裁切。
-        // 手机端列表↔文章另做整页推入的反向抵消（counter）：根自 ±MOBILE_SLIDE 推到 0
-        // 时槽走反方向同距离（同任务启动、同时长同缓动，见下方推拉块），新条带在屏幕上
-        // 原地不动——读起来是「标题模糊成面包屑」，不是「面包屑浮上来」
-        const exitEl = edgeClone;
-        const exitStage = edgeStage;
-        const out = track(animate(exitEl, { opacity: [1, 0], filter: ['blur(0px)', `blur(${STRIP_BLUR_PX}px)`] }, { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }));
-        out.finished
-          .then(() => {
-            if (exitStage) exitStage.remove();
-            else exitEl.remove();
-            edgeStage = null;
-            edgeClone = null;
-          })
-          .catch(() => {});
-        if (mobilePush) {
-          const newSlot = newEdge.parentElement;
-          if (newSlot) {
-            const y0 = opening ? -MOBILE_SLIDE : MOBILE_SLIDE;
-            const cnt = track(animate(newSlot, { y: [`${y0}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
-            cnt.finished
-              .then(() => {
-                newSlot.style.transform = '';
-              })
-              .catch(() => {});
-          }
+        if (newSlot) {
+          const y0 = opening ? -MOBILE_SLIDE : MOBILE_SLIDE;
+          const cnt = track(animate(newSlot, { y: [`${y0}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
+          cnt.finished
+            .then(() => {
+              newSlot.style.transform = '';
+            })
+            .catch(() => {});
         }
-        const inn = track(animate(newEdge, { opacity: [0, 1], filter: [`blur(${STRIP_BLUR_PX}px)`, 'blur(0px)'] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
-        inn.finished
-          .then(() => {
-            newEdge.style.filter = ''; // 终态 = 无模糊，清内联
-          })
-          .catch(() => {});
       }
+      const inn = track(animate(newEdge, { opacity: [0, 1], filter: [`blur(${STRIP_BLUR_PX}px)`, 'blur(0px)'] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+      inn.finished
+        .then(() => {
+          newEdge.style.filter = ''; // 终态 = 无模糊，清内联
+        })
+        .catch(() => {});
     } else if (edgeClone) {
-      if (edgeStage) edgeStage.remove();
-      else edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
-      edgeStage = null;
+      edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
       edgeClone = null;
     }
 

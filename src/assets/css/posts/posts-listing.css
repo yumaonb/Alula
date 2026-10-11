@@ -12,20 +12,6 @@
                 与文章区行 padding-top 82px 配平：胶囊（36px）恰好居中于导航底(69)→内容顶(132)窗口 */
 }
 
-/* 转场克隆的裁切舞台（口袋）：posts-shell.ts 在 astro:before-swap 创建、动画结束移除。
- * top/height 运行时按旧带实测写入，行内绝对定位铺满行宽（左 0 右 0）。
- * overflow:hidden 把旧带克隆裁在条自身盒内：滑动全程只在条自己高度内，永不伸进
- * 下方内容（作者卡顶 132px）——与新页 .posts-edge-slot.is-clip 同盒对齐，
- * 两条可见部分在口袋内保持贴合（「一张纸」观感保留） */
-.posts-edge-stage {
-  position: absolute;
-  left: 0;
-  right: 0;
-  overflow: hidden;
-  z-index: 20;
-  pointer-events: none;
-}
-
 .posts-header {
   display: flex;
   align-items: center;
