@@ -1,6 +1,8 @@
 ---
 // friends.astro — 友情链接页面
 // 用法：路由 /friends/
+import { Icon } from 'astro-icon/components';
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { friends } from '../data/friends';
 ---
@@ -8,8 +10,10 @@ import { friends } from '../data/friends';
 <BaseLayout title="友情链接">
   <div class="friends-page">
     <header class="friends-header">
-      <h1 class="friends-title">友情链接</h1>
-      <p class="friends-desc">欢迎各位互加友链，本站域名后续可能更换，如介意请勿申请友链</p>
+      <h1 class="friends-title">
+        <Icon is:inline name="la:link" class="friends-title-icon" />
+        友情链接
+      </h1>
     </header>
 
     <div class="friends-grid">
@@ -42,27 +46,30 @@ import { friends } from '../data/friends';
     max-width: 800px;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    margin-top: 1px; /* 标题距导航底 16px（桌面导航底 69 + 16 = 85）；手机端媒体查询里配平到同值 */
   }
 
-  /* ---- 标题区 ---- */
+  /* ---- 标题区 ----（与项目页同一标准：左对齐 + 前置图标，标题距内容 16px） ---- */
   .friends-header {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+    margin-bottom: 16px;
+    padding-left: 12px; /* 图标前留一点呼吸空间 */
   }
 
   .friends-title {
-    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.6rem; /* 与文章列表 .posts-title 同号，改字号多处同改 */
+    line-height: 1.2; /* 压掉大行高带来的文字上下留白 */
     color: var(--hover-ink);
     text-shadow: var(--title-shadow);
   }
 
-  .friends-desc {
-    font-size: 0.95rem;
-    color: var(--color-text);
+  .friends-title-icon {
+    width: 1.6rem;
+    height: 1.6rem;
+    flex-shrink: 0;
+    color: var(--icon-ink);
   }
 
   /* ---- 友链网格 ---- */
@@ -70,6 +77,7 @@ import { friends } from '../data/friends';
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
+    margin-bottom: 32px; /* 网格→申请区间距（原页面 gap 拆到此处；标题→网格由页头 margin-bottom 16px 定） */
   }
 
   .friend-card {
@@ -158,8 +166,17 @@ import { friends } from '../data/friends';
 
   /* 标题移动端档与全站页头一致用 768px 断点（本页网格是 640px，两码事） */
   @media (max-width: 768px) {
+    .friends-page {
+      margin-top: -11px; /* 手机导航底 57：84-11=73=57+16，标题距导航底同样 16px，与电脑端统一 */
+    }
+
     .friends-title {
-      font-size: 1.5rem;
+      font-size: 1.35rem; /* 手机端同 .posts-title（1.35rem） */
+    }
+
+    .friends-title-icon {
+      width: 1.35rem;
+      height: 1.35rem;
     }
   }
 

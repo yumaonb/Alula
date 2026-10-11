@@ -9,8 +9,10 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 <BaseLayout title="赞助">
   <div class="sponsor-page">
     <header class="sponsor-header">
-      <h1 class="header-title">赞助支持</h1>
-      <p class="header-desc">如果我的内容对你有帮助，欢迎请我喝杯咖啡</p>
+      <h1 class="header-title">
+        <Icon is:inline name="la:hand-holding-heart" class="header-title-icon" />
+        赞助支持
+      </h1>
     </header>
 
     <a href={sponsorLink.href} class="hero-card glass hoverable link-plain" target="_blank" rel="noopener">
@@ -79,31 +81,35 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     flex-direction: column;
     align-items: center;
     gap: 12px;
+    margin-top: 1px; /* 标题距导航底 16px（桌面导航底 69 + 16 = 85）；手机端媒体查询里配平到同值 */
   }
 
-  /* ---- 标题区 ---- */
+  /* ---- 标题区 ----（与项目页同一标准：左对齐 + 前置图标，标题距内容 16px） ---- */
   .sponsor-header {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: 100%;
+    padding-left: 12px; /* 图标前留一点呼吸空间 */
   }
 
   .header-title {
-    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.6rem; /* 与文章列表 .posts-title 同号，改字号多处同改 */
+    line-height: 1.2; /* 压掉大行高带来的文字上下留白 */
     color: var(--hover-ink);
     text-shadow: var(--title-shadow);
-    margin: 0 0 8px;
   }
 
-  .header-desc {
-    font-size: 0.95rem;
-    color: var(--color-text);
+  .header-title-icon {
+    width: 1.6rem;
+    height: 1.6rem;
+    flex-shrink: 0;
+    color: var(--icon-ink);
   }
 
   /* ---- 主赞助卡片 ---- */
   .hero-card {
-    margin-top: 25px;
+    margin-top: 4px; /* 页面 gap 12 + 4 = 16px：标题区距内容 16px，与项目页一致 */
     width: 100%;
     text-decoration: none;
     color: inherit;
@@ -304,10 +310,20 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   @media (max-width: 768px) {
     .sponsor-page {
       gap: 10px;
+      margin-top: -11px; /* 手机导航底 57：84-11=73=57+16，标题距导航底同样 16px，与电脑端统一 */
     }
 
     .header-title {
-      font-size: 1.5rem;
+      font-size: 1.35rem; /* 手机端同 .posts-title（1.35rem） */
+    }
+
+    .header-title-icon {
+      width: 1.35rem;
+      height: 1.35rem;
+    }
+
+    .hero-card {
+      margin-top: 6px; /* 手机端 gap 10 + 6 = 16px，与桌面端同标准 */
     }
 
     .hero-card-inner {
