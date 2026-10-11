@@ -211,7 +211,8 @@
 <style>
   .projects-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    /* 列数由容器宽度决定（单卡最窄 300px），不设上限：宽屏 / 超宽屏自动多列 */
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
     gap: 20px;
   }
 

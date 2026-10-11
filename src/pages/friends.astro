@@ -43,7 +43,6 @@ import { friends } from '../data/friends';
   /* width: 100% 必须有：.hero 是 flex 容器，只写 max-width 会塌成窄缝（见 about 页注释） */
   .friends-page {
     width: 100%;
-    max-width: 800px;
     display: flex;
     flex-direction: column;
     margin-top: 1px; /* 标题距导航底 16px（桌面导航底 69 + 16 = 85）；手机端媒体查询里配平到同值 */
@@ -75,7 +74,8 @@ import { friends } from '../data/friends';
   /* ---- 友链网格 ---- */
   .friends-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    /* 列数由容器宽度决定（单卡最窄 300px），不设上限：宽屏 / 超宽屏自动多列 */
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
     gap: 12px;
     margin-bottom: 32px; /* 网格→申请区间距（原页面 gap 拆到此处；标题→网格由页头 margin-bottom 16px 定） */
   }
