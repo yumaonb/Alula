@@ -27,7 +27,9 @@
 //    （240ms）走完才播进入相位（320ms）——列表→文章：搜索右移 48px「移一段」渐隐
 //    （退出）→ 目录自屏幕右缘左移渐显（入场）；文章→列表：目录右移移出屏幕渐隐
 //    （退出）→ 搜索自 48px 右偏移左移渐显（入场）。只在电脑端显示目录（≥851px）时
-//    带位移；文章↔文章保持 400ms 并行交叉渐隐。
+//    带位移；文章↔文章保持 400ms 并行交叉渐隐。目录的渐显/渐隐与位移解耦：入场渐显
+//    延迟 80ms 起（位移先走）、出场渐隐 140ms 快于位移（先淡净再带走）——位移节奏
+//    参照搜索框移动切换（用户要求：入场渐显延迟一点、出场渐隐更快）。
 // c) 手机端（≤768px）列表↔文章：搜索框**点击即退场**（委托 click 监听，不等内容加载）：
 //    上移 + 渐隐（渐隐比位移快，避免与上方标题视觉冲突）；新内容自下方 48px 滑入
 //    （开文章）/ 新列表自上方 48px 滑下（关文章），搜索框自上方偏移落回渐显。
@@ -75,6 +77,10 @@ import type { AnimationPlaybackControls } from 'motion';
   const EASE_ENTRY: [number, number, number, number] = [0, 0, 0.2, 1];
   const SEARCH_DX = 48; // 搜索「移一段」的位移距离
   const TOC_OFFSCREEN_PAD = 40; // 目录移出屏幕的额外余量（整体在视口右缘之外）
+  // 目录的渐显/渐隐与位移解耦（用户要求：入场渐显延迟一点、出场渐隐更快——位移节奏
+  // 参照电脑端搜索框的移动切换：进入 ENTRY_MS/EASE_ENTRY、退出 EXIT_MS/EASE_EXIT）：
+  const TOC_ENTRY_FADE_DELAY = 80; // 目录入场渐显延迟（ms）：位移先起步、渐显后到，与位移同时收尾
+  const TOC_EXIT_FADE_MS = 140; // 目录出场渐隐时长（ms）：快于位移（EXIT_MS），先淡净、位移再带走
   // 手机端（≤768px）：新内容滑动距离 / 搜索框小位移 / 搜索位移与渐隐时长
   // （渐隐比位移快：上移时避免半透明胶囊蹭到上方标题）
   const MOBILE_SLIDE = 48;
@@ -330,22 +336,24 @@ import type { AnimationPlaybackControls } from 'motion';
   }
 
   /** 目录入场动作的构造（相位开始前先钉在屏外/透明，同任务内无绘制间隙、不闪）：
-   *  电脑端自屏幕右缘左移渐显（320ms），其他只渐显（400ms）。用于「旧界面没有目录、
-   *  新界面出现」的进入相位（列表→文章，退出相位由搜索承担；有旧目录克隆的切页走
-   *  退场相位或并行交叉渐隐，不经这里） */
+   *  电脑端自屏幕右缘左移渐显——位移 320ms 与搜索框移动切换同节奏（ENTRY_MS/EASE_ENTRY），
+   *  渐显延迟 80ms 才起（用户要求入场渐显延迟一点）、与位移同时收尾；其他只渐显（400ms）。
+   *  用于「旧界面没有目录、新界面出现」的进入相位（列表→文章，退出相位由搜索承担；
+   *  有旧目录克隆的切页走退场相位或并行交叉渐隐，不经这里） */
   function makeTocEntry(newToc: HTMLElement): () => void {
     if (tocSlideGate()) {
       const dx = tocOffscreenDx(newToc);
       newToc.style.transform = `translateX(${dx}px)`;
       newToc.style.opacity = '0';
       return () => {
-        const a = track(animate(newToc, { x: [`${dx}px`, 0], opacity: [0, 1] }, { duration: ENTRY_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
-        a.finished
-          .then(() => {
-            newToc.style.transform = '';
-            newToc.style.opacity = '';
-          })
-          .catch(() => {});
+        const move = track(animate(newToc, { x: [`${dx}px`, 0] }, { duration: ENTRY_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+        const fade = track(animate(newToc, { opacity: [0, 1] }, { duration: (ENTRY_MS - TOC_ENTRY_FADE_DELAY) / 1000, delay: TOC_ENTRY_FADE_DELAY / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+        const cleanup = () => {
+          newToc.style.transform = '';
+          newToc.style.opacity = '';
+        };
+        move.finished.then(cleanup).catch(() => {});
+        fade.finished.then(cleanup).catch(() => {});
       };
     }
     return () => {
@@ -558,25 +566,24 @@ import type { AnimationPlaybackControls } from 'motion';
     } else if (tocClone) {
       const crossfade = hasNewToc; // 文章↔文章：两侧都有目录 → 并行交叉渐隐（不参与相位，见下）
       if (!crossfade) {
-        // 目录退场：电脑端右移移出屏幕渐隐，其他只渐隐
+        // 目录退场：电脑端右移移出屏渐隐——位移 240ms 与搜索框移动切换同节奏
+        // （EXIT_MS/EASE_EXIT），渐隐 140ms 快于位移（用户要求出场渐隐更快）；其他只渐隐
         exitAction = () => {
           const el = tocClone as HTMLElement;
           const slide = tocSlideGate();
           const dx = slide ? tocOffscreenDx(el) : 0;
-          const a = track(
-            animate(el, slide ? { x: [0, `${dx}px`], opacity: [1, 0] } : { opacity: [1, 0] }, {
-              duration: (slide ? EXIT_MS : EDGE_MS) / 1000,
-              ease: slide ? EASE_EXIT : EASE,
-              reduceMotion: REDUCE_MOTION,
-            }),
-          );
-          a.finished
+          const move = slide
+            ? track(animate(el, { x: [0, `${dx}px`] }, { duration: EXIT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }))
+            : null;
+          const fade = track(animate(el, { opacity: [1, 0] }, { duration: (slide ? TOC_EXIT_FADE_MS : EDGE_MS) / 1000, ease: slide ? EASE_EXIT : EASE, reduceMotion: REDUCE_MOTION }));
+          const last = move ?? fade; // 相位链等位移走完（位移比渐隐长）；无位移时等渐隐
+          last.finished
             .then(() => {
               el.remove();
               tocClone = null;
             })
             .catch(() => {});
-          return a;
+          return last;
         };
       }
     } else if (hasNewToc) {
