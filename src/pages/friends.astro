@@ -2,16 +2,20 @@
 // friends.astro — 友情链接页面
 // 用法：路由 /friends/
 import { Icon } from 'astro-icon/components';
+import { navItem } from '../data/nav';
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { friends } from '../data/friends';
+
+// 页头标题图标与导航同源（src/data/nav.ts），页面不写死自己的路径
+const pageNav = navItem('friends');
 ---
 
 <BaseLayout title="友情链接">
   <div class="friends-page page-top-standard">
     <header class="page-head">
       <h1 class="page-title">
-        <Icon is:inline name="la:link" class="page-title-icon" />
+        <Icon is:inline name={pageNav.icon} class="page-title-icon" />
         友情链接
       </h1>
     </header>

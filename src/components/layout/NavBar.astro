@@ -1,18 +1,11 @@
 ---
 // NavBar.astro — 导航栏（桌面链接 + 移动端汉堡菜单）
 // 用法：<NavBar />（BaseLayout 引入）
+// 六个导航项来自唯一来源 src/data/nav.ts（桌面 / 手机共用，各界面页头标题图标也从这取）
 import { Icon } from 'astro-icon/components';
 import { site } from '../../data/site';
+import { navItems } from '../../data/nav';
 import { navMatch } from '../../lib/nav-match';
-
-const navItems = [
-  { href: '/', label: '首页', mobileIcon: 'la:home' },
-  { href: '/about/', label: '关于', mobileIcon: 'la:user' },
-  { href: '/projects/', label: '项目', mobileIcon: 'la:cubes' },
-  { href: '/posts/', label: '文章', mobileIcon: 'la:pen-fancy' },
-  { href: '/friends/', label: '友链', mobileIcon: 'la:link' },
-  { href: '/sponsor/', label: '赞助', mobileIcon: 'la:hand-holding-heart' },
-];
 
 // is-active / aria-current 服务端渲染：下划线在首屏 HTML 里即可见，不依赖 JS；
 // 切页后由 nav-indicator.ts 在这块常驻导航上更新
@@ -36,7 +29,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
               aria-current={item.active ? 'page' : undefined}
             >
               <span class="nav-link-inner">
-                <Icon is:inline name={item.mobileIcon} class="nav-link-icon" />
+                <Icon is:inline name={item.icon} class="nav-link-icon" />
                 <span>{item.label}</span>
               </span>
             </a>
@@ -74,7 +67,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
                 tabindex="-1"
               >
                 <span class="mobile-link-left">
-                  <Icon is:inline name={item.mobileIcon} class="mobile-link-icon" />
+                  <Icon is:inline name={item.icon} class="mobile-link-icon" />
                   <span class="mobile-link-text">{item.label}</span>
                 </span>
                 <Icon is:inline name="la:external-link-alt" class="mobile-link-arrow" />

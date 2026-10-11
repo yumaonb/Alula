@@ -2,16 +2,20 @@
 // projects.astro — 项目展示页
 // 用法：路由 /projects/
 import { Icon } from 'astro-icon/components';
+import { navItem } from '../data/nav';
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectsGrid from '../components/widgets/ProjectsGrid.svelte';
+
+// 页头标题图标与导航同源（src/data/nav.ts），页面不写死自己的路径
+const pageNav = navItem('projects');
 ---
 
 <BaseLayout title="项目">
   <div class="projects-page page-top-standard">
     <div class="page-head">
       <h1 class="page-title">
-        <Icon is:inline name="la:cubes" class="page-title-icon" />
+        <Icon is:inline name={pageNav.icon} class="page-title-icon" />
         我的项目
       </h1>
     </div>

@@ -12,6 +12,7 @@
 // 搜索框不在这里：它是 BaseLayout 行级常驻的（swup 永不重建，切页零闪），
 // 页头里只留 .posts-header-search 空占位供 posts-shell.ts 实测叠放位置。
 import { Icon } from 'astro-icon/components';
+import { navItem } from '../data/nav';
 
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumb from '../components/posts/Breadcrumb.astro';
@@ -19,6 +20,9 @@ import TableOfContents from '../components/posts/TableOfContents.astro';
 import PostCard from '../components/posts/PostCard.astro';
 import type { BreadcrumbItem, PostItem } from '../lib/category';
 import '../assets/css/posts/posts-listing.css';
+
+// 页头标题图标与导航同源（src/data/nav.ts），列表 / 分类 / 标签页都用「文章」条目
+const pageNav = navItem('posts');
 
 interface Heading {
   depth: number;
@@ -68,7 +72,7 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
       <div class="posts-edge-slot">
         <div class="posts-header" data-posts-anchor>
           <h1 class="posts-title page-title">
-            <Icon is:inline name="la:pen-fancy" class="page-title-icon" />
+            <Icon is:inline name={pageNav.icon} class="page-title-icon" />
             {heading}
             <span class="title-count-sep"> — </span>
             <span class="posts-count">共 {count} 篇文章</span>
