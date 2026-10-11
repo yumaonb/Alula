@@ -58,7 +58,8 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
               </div>
             </a>
           ) : (
-            <div class="grid-card glass">
+            // 无链接的卡片（分享本站 / 收藏本站）：挂 hoverable 与 Star 卡同款悬浮高亮，但不做超链接
+            <div class="grid-card glass hoverable">
               <Icon is:inline name={a.icon} class="grid-icon" />
               <div class="grid-body">
                 <span class="grid-title">{a.title}</span>
