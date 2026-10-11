@@ -51,8 +51,9 @@ import { navMatch } from '../../lib/nav-match';
     };
   }
 
+  /** 下划线量测目标：图标 + 文字的包裹层（.nav-link-inner），下划线一并描住图标 */
   function textOf(anchor: HTMLAnchorElement): HTMLElement {
-    return anchor.querySelector<HTMLElement>('.nav-link-text') ?? anchor;
+    return anchor.querySelector<HTMLElement>('.nav-link-inner') ?? anchor;
   }
 
   function currentActive(anchors: HTMLAnchorElement[]): HTMLAnchorElement | null {
@@ -77,7 +78,7 @@ import { navMatch } from '../../lib/nav-match';
   }
 
   /**
-   * 把共享线对齐到链接文字（smooth 为 false 时瞬移）。
+   * 把共享线对齐到链接内容（图标 + 文字，smooth 为 false 时瞬移）。
    * 动画时：以飞行中位置为起点，按「起点 → 终点」实际位移成比例的时长
    * （450–700ms，上下限夹取）起一段新过渡；改向自然从飞行中位置续接
    */

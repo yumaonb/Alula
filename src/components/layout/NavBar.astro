@@ -35,7 +35,10 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
               class:list={['link-plain', { 'is-active': item.active }]}
               aria-current={item.active ? 'page' : undefined}
             >
-              <span class="nav-link-text">{item.label}</span>
+              <span class="nav-link-inner">
+                <Icon is:inline name={item.mobileIcon} class="nav-link-icon" />
+                <span>{item.label}</span>
+              </span>
             </a>
           </li>
         ))
@@ -174,6 +177,22 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     transition: color 0.25s ease;
   }
 
+  /* 图标 + 文字整体：下划线的位置 / 宽度从它量（nav-indicator.ts 量 .nav-link-inner），
+     所以下划线一并描住图标；position: relative 给静态线 ::after 提供定位盒 */
+  .nav-link-inner {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-link-icon {
+    width: 1em;
+    height: 1em;
+    margin-top: 2px; /* 数学居中观感偏高，视觉下移 2px */
+    flex-shrink: 0;
+  }
+
   /* 悬停 / 聚焦 / 当前页不走全站 .hoverable（那会加白底描边）：
      只提亮文字，静止与高亮都走现有令牌（--icon-ink → --icon-hover） */
   .nav-links a:hover,
@@ -182,17 +201,10 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     color: var(--icon-hover);
   }
 
-  /* 文字包裹：下划线的位置 / 宽度从它量（nav-indicator.ts）；
-     inline-block 让 offset 度量稳定，::after 才有可靠的定位盒 */
-  .nav-link-text {
-    position: relative;
-    display: inline-block;
-  }
-
   /* 静态线：只负责首屏与加载期（is-active 服务端渲染，首帧即可见、不依赖 JS）；
      JS 接管（.js-ready）后由共享线独家绘制，静态线不再出现，两者同帧同位交接；
      bottom -8px 对齐链接底边（链接 padding-bottom 为 8px） */
-  .nav-links:not(.js-ready) a.is-active .nav-link-text::after {
+  .nav-links:not(.js-ready) a.is-active .nav-link-inner::after {
     content: '';
     position: absolute;
     left: 0;
