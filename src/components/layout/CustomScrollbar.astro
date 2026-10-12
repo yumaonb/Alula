@@ -61,7 +61,8 @@
     width: 100%;
     background: rgba(255, 255, 255, 0.45);
     border-radius: 3px;
-    transition: background 0.2s ease;
+    /* 悬停 / 拖动提亮的时长走 --t-hover（容器显隐的 0.3s opacity 是显隐动效，不动） */
+    transition: background var(--t-hover);
     cursor: grab;
     min-height: 30px;
   }

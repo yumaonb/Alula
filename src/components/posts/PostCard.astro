@@ -195,7 +195,8 @@ const hasMeta = !!date || hasCategory || hasStats;
     border-radius: 4px;
     background: var(--icon-hover);
     opacity: 0.85;
-    transition: opacity 0.06s ease;
+    /* 悬停随标题提亮，走 --t-hover（原 0.06s 等于瞬间跳变） */
+    transition: opacity var(--t-hover);
   }
 
   .post-card-head:has(.post-card-title-link:hover) .post-card-accent {
@@ -226,7 +227,8 @@ const hasMeta = !!date || hasCategory || hasStats;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    transition: color 0.06s ease;
+    /* 悬停提亮走 --t-hover（原 0.06s 等于瞬间跳变） */
+    transition: color var(--t-hover);
   }
 
   .post-card-title-link {
@@ -234,7 +236,8 @@ const hasMeta = !!date || hasCategory || hasStats;
     pointer-events: auto;
     color: inherit;
     text-decoration: none;
-    transition: color 0.06s ease;
+    /* 悬停提亮走 --t-hover（原 0.06s 等于瞬间跳变） */
+    transition: color var(--t-hover);
   }
 
   /* 悬停时标题变纯白 */
@@ -306,7 +309,7 @@ const hasMeta = !!date || hasCategory || hasStats;
     pointer-events: auto;
     color: var(--icon-ink);
     text-decoration: none;
-    transition: color 0.2s;
+    transition: color var(--t-hover);
   }
 
   .post-card-category:hover {
@@ -429,7 +432,8 @@ const hasMeta = !!date || hasCategory || hasStats;
     justify-content: center;
     background: var(--mask);
     opacity: 0;
-    transition: opacity 0.2s ease;
+    /* 悬停淡入的时长走 --t-hover，与卡片其余悬停反馈同速（封面图缩放是位移，仍各自定） */
+    transition: opacity var(--t-hover);
     pointer-events: none;
   }
 

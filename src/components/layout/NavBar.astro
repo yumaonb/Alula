@@ -167,7 +167,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     font-size: 0.95rem;
     font-weight: 500;
     color: var(--icon-ink);
-    transition: color 0.25s ease;
+    transition: color var(--t-hover);
   }
 
   /* 图标 + 文字整体：下划线的位置 / 宽度从它量（nav-indicator.ts 量 .nav-link-inner），
@@ -330,7 +330,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     height: 17px;
     color: var(--icon-ink);
     flex-shrink: 0;
-    transition: color 0.15s;
+    transition: color var(--t-hover);
   }
 
   .mobile-link-arrow {
@@ -338,8 +338,9 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     height: 14px;
     color: var(--icon-ink);
     flex-shrink: 0;
+    /* color 是悬停提亮走 --t-hover；箭头 2px 挪位是位移，走自己的时长 */
     transition:
-      color 0.15s,
+      color var(--t-hover),
       transform 0.15s;
   }
 

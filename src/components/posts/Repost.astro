@@ -81,6 +81,7 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
     text-decoration: none;
     word-break: break-all;
     margin-bottom: 12px;
+    transition: color var(--t-hover);
   }
 
   .repost-url:hover {
@@ -107,7 +108,8 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
     line-height: 1.2;
     color: var(--color-text);
     text-decoration: none;
-    transition: color 0.2s;
+    /* 许可协议链接（.repost-license 也挂此列）悬停提亮走 --t-hover */
+    transition: color var(--t-hover);
   }
   .repost-license {
     color: var(--icon-ink);

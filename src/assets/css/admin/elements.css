@@ -24,9 +24,12 @@
   line-height: 1.4;
   cursor: pointer;
   white-space: nowrap;
+  /* 悬停 / 聚焦提亮的时长走 --t-hover；border-color 一并收进过渡，
+   * 让 .btn--dashed 的虚线描边也渐变变亮而不是跳变 */
   transition:
-    box-shadow 0.2s ease,
-    background 0.2s ease;
+    box-shadow var(--t-hover),
+    background var(--t-hover),
+    border-color var(--t-hover);
 }
 
 .btn:hover:not(:disabled),
@@ -233,8 +236,8 @@ select.input option {
   color: var(--icon-ink);
   cursor: pointer;
   transition:
-    color 0.15s ease,
-    background 0.15s ease;
+    color var(--t-hover),
+    background var(--t-hover);
 }
 
 .row-remove svg {
@@ -319,8 +322,8 @@ select.input option {
   text-overflow: ellipsis;
   white-space: nowrap;
   transition:
-    background 0.12s ease,
-    color 0.12s ease;
+    background var(--t-hover),
+    color var(--t-hover);
 }
 
 .file-row:hover .file-link {

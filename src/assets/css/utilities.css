@@ -28,13 +28,14 @@
  * 挂 .hoverable 的元素同样不要自己写 `transition`：组件样式也是 (0,2,0) 且排在后面，
  * 本地 transition 会悄悄盖掉上面那份全站悬停过渡，悬停时颜色/描边变成直接跳变。
  * 确需过渡 transform 等额外属性，要么把共享的四个属性
- * （background / box-shadow / border-color / color）一并写全，要么写到子元素上。 */
+ * （background / box-shadow / border-color / color）一并写全，要么写到子元素上。
+ * 过渡时长走 --t-hover（悬停提亮时长的全站唯一来源，见 variables.css）。 */
 .hoverable.hoverable {
   transition:
-    background 0.25s ease,
-    box-shadow 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease;
+    background var(--t-hover),
+    box-shadow var(--t-hover),
+    border-color var(--t-hover),
+    color var(--t-hover);
 }
 
 /* 已选中的元素（chip / psd-item / cat-item 的 --active 态）不被悬停盖回未选中观感 */

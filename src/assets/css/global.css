@@ -43,7 +43,7 @@ a {
 }
 
 /* 全站链接：正文里那种「纯文字链接」——静止时不画下划线（颜色透明），文字取 #fff
- * 比正文（0.88 白）亮一档作区分；悬停/聚焦时下划线 0.3s ease 淡入，不直接跳变。
+ * 比正文（0.88 白）亮一档作区分；悬停/聚焦时下划线与文字色 var(--t-hover) 淡入，不直接跳变。
  * 按钮、卡片、导航项、标签这类自带样式的链接，在标记里挂 .link-plain 即可退出，
  * 不用再到这个选择器里追加 :not(.xxx)——加一个类，下面三条规则同时生效。
  * .link-plain 只是个标记类，本身不产生样式。 */
@@ -54,8 +54,8 @@ a:not(.link-plain) {
   text-underline-offset: 2px;
   text-decoration-color: transparent;
   transition:
-    color 0.3s ease,
-    text-decoration-color 0.3s ease;
+    color var(--t-hover),
+    text-decoration-color var(--t-hover);
 }
 
 a:not(.link-plain):hover,
@@ -276,13 +276,14 @@ ol {
   transform: translateX(80px);
   visibility: hidden;
   pointer-events: none;
-  /* visibility 延迟到滑出动画播完再生效 */
+  /* visibility 延迟到滑出动画播完再生效；
+   * color / background 是悬停提亮，走 --t-hover（滑入滑出位移仍各 0.18s） */
   transition:
     opacity 0.18s ease,
     transform 0.18s ease,
     visibility 0s linear 0.2s,
-    color 0.15s ease,
-    background 0.15s ease;
+    color var(--t-hover),
+    background var(--t-hover);
 }
 
 .back-to-widget.visible {
@@ -294,8 +295,8 @@ ol {
     opacity 0.18s ease,
     transform 0.18s ease,
     visibility 0s linear 0s,
-    color 0.15s ease,
-    background 0.15s ease;
+    color var(--t-hover),
+    background var(--t-hover);
 }
 
 /* 当前页面不适用的按钮移除占位，只在 swup 切页时重估 */

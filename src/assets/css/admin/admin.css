@@ -176,7 +176,7 @@
   color: var(--icon-ink);
   font-size: 17px;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color var(--t-hover);
 }
 
 /* 图标本体不做任何位移或旋转，悬停只把颜色提亮（由下面的 :hover 规则给出）。
@@ -185,7 +185,7 @@
 .admin-modal-close use,
 .admin-drawer-toggle use,
 .admin-nav-close use {
-  transition: color 0.15s ease;
+  transition: color var(--t-hover);
 }
 
 .admin-modal-close:hover,
@@ -365,10 +365,12 @@
   color: var(--nav-ink);
   /* 位移用 padding 而不是 transform：transform 会新建层叠上下文，
    * 也会改变 ::before 的定位基准；改 padding 只动内容，整行宽度不变。 */
+  /* 选中位移（padding-left）是点击触发的动效，走自己的时长；
+   * 悬停 / 聚焦提亮（background / color）统一走 --t-hover */
   transition:
     padding-left 0.24s cubic-bezier(0.32, 0.72, 0, 1),
-    background 0.16s ease,
-    color 0.16s ease;
+    background var(--t-hover),
+    color var(--t-hover);
 }
 /* 当前项的左侧竖线：贯通整行（上下顶满），3px 粗，贴死侧栏左内沿。
  * 顶满才有「这一栏从这里开始」的分隔感；居中的一小段只是装饰点。
@@ -424,7 +426,7 @@
   height: 17px;
   color: var(--icon-ink);
   flex-shrink: 0;
-  transition: color 0.15s;
+  transition: color var(--t-hover);
 }
 
 /* ---- 侧栏二级菜单 ----
@@ -544,10 +546,11 @@
   font-weight: 400;
   color: var(--nav-ink-muted);
   background: transparent;
+  /* 与一级项同规则：位移走自己的时长，悬停 / 聚焦提亮走 --t-hover */
   transition:
     padding-left 0.24s cubic-bezier(0.32, 0.72, 0, 1),
-    background 0.16s ease,
-    color 0.16s ease;
+    background var(--t-hover),
+    color var(--t-hover);
 }
 
 /* 悬停：与一级项同样只给一档白底 */
@@ -571,7 +574,7 @@
  * 位移在侧栏这种「图标固定宽度 + 文字左对齐」的行里只有 2px，
  * 实际看不出来，反而让 hover 显得拖沓，所以不做。 */
 .admin-nav-text {
-  transition: color 0.15s;
+  transition: color var(--t-hover);
 }
 
 .admin-nav-link:hover .admin-nav-icon,
@@ -698,7 +701,7 @@
   padding: 10px 12px;
   border-radius: 8px;
   color: var(--color-text);
-  transition: background 0.15s ease;
+  transition: background var(--t-hover);
 }
 
 .admin-quick-item:hover,
@@ -711,7 +714,7 @@
   height: 17px;
   flex-shrink: 0;
   color: var(--icon-ink);
-  transition: color 0.15s ease;
+  transition: color var(--t-hover);
 }
 
 .admin-quick-item:hover .admin-quick-icon {
@@ -741,7 +744,7 @@
   height: 15px;
   flex-shrink: 0;
   color: var(--icon-ink);
-  transition: color 0.15s ease;
+  transition: color var(--t-hover);
 }
 
 .admin-quick-item:hover .admin-quick-arrow {
