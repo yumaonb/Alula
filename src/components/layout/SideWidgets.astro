@@ -38,14 +38,13 @@ import { Icon } from 'astro-icon/components';
 
   <button class="back-to-widget glass" data-widget="progress" aria-label="阅读进度">
     <svg class="progress-ring" viewBox="0 0 54 54" aria-hidden="true">
-      <rect class="progress-ring-bg" x="1" y="1" width="52" height="52" rx="5" pathLength="100" />
+      <rect class="progress-ring-bg" x="1" y="1" width="52" height="52" pathLength="100" />
       <rect
         class="progress-ring-bar"
         x="1"
         y="1"
         width="52"
         height="52"
-        rx="5"
         pathLength="100"
         stroke-dasharray="100"
         stroke-dashoffset="100"
@@ -91,6 +90,19 @@ import { Icon } from 'astro-icon/components';
     fill: none;
     stroke: rgba(255, 255, 255, 0.08);
     stroke-width: 2;
+  }
+
+  /* 环的圆角 = 按钮圆角（var(--radius)）：环按 54 视口缩放到实际渲染尺寸
+     （按钮 +2px，桌面 46px / 移动端 40px），视口单位 = 目标 px × 54 ÷ 实际尺寸；
+     以后改 --radius 自动跟随，改按钮尺寸或 viewBox 时同步分母。 */
+  .progress-ring rect {
+    rx: calc(var(--radius) * 54 / 46);
+  }
+
+  @media (max-width: 768px) {
+    .progress-ring rect {
+      rx: calc(var(--radius) * 54 / 40);
+    }
   }
 
   .progress-ring-bar {
