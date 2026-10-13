@@ -52,6 +52,10 @@ const blog = await loadBlogData();
 <html lang={site.lang}>
   <head>
     <meta charset="UTF-8" />
+    <!-- 标记 JS 可用：首载 loading 屏只在 html 带 js 类时显示（无 JS 不显示，避免整屏永久盖住页面） -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, follow" />}
@@ -59,8 +63,105 @@ const blog = await loadBlogData();
     <link rel="alternate" type="application/rss+xml" title={site.name} href="/posts/rss.xml" />
     <title>{pageTitle}</title>
     <slot name="head" />
+    <!-- 首载 loading 屏样式：必须 is:inline（留在 head 内联，不打包进外链 CSS）。
+         首帧只靠这段样式自足：颜色不引用 variables.css 令牌，
+         唯一例外是 --bg-base——CSS 背景预设时取预设底色保持衔接，图片预设不定义它则退回深色兜底。 -->
+    <style is:inline>
+      #boot-splash {
+        display: none;
+      }
+      html.js #boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(134% 112% at 50% 44%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.5) 100%),
+          var(--bg-base, #000);
+        transition: opacity 0.5s ease;
+      }
+      html.js #boot-splash.is-done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .boot-splash-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        animation: boot-splash-in 0.6s ease both;
+      }
+      .boot-splash-name {
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 20px;
+        letter-spacing: 0.2em;
+        text-indent: 0.2em;
+      }
+      .boot-splash-bar {
+        position: relative;
+        width: 120px;
+        height: 2px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .boot-splash-bar-dot {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0),
+          rgba(255, 255, 255, 0.85),
+          rgba(255, 255, 255, 0)
+        );
+        animation: boot-splash-sweep 1.4s ease-in-out infinite;
+      }
+      @keyframes boot-splash-in {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes boot-splash-sweep {
+        from {
+          transform: translateX(-44px);
+        }
+        to {
+          transform: translateX(124px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html.js #boot-splash .boot-splash-inner {
+          animation: none;
+        }
+        html.js #boot-splash .boot-splash-bar-dot {
+          animation: none;
+          opacity: 0;
+        }
+      }
+    </style>
   </head>
   <body class={bodyClass}>
+    <!-- 首载 loading 屏：body 第一个元素 + head 内联样式，不依赖任何外部资源即可画出；
+         只在首次加载显示（swup 切页不重建 body 壳），页面就绪后 0.5s 渐隐并移除节点 -->
+    <div class="boot-splash" id="boot-splash" aria-hidden="true">
+      <div class="boot-splash-inner">
+        <span class="boot-splash-name">{site.name}</span>
+        <span class="boot-splash-bar">
+          <span class="boot-splash-bar-dot"></span>
+        </span>
+      </div>
+    </div>
     <Background />
     <div class="page">
       <NavBar />
@@ -96,6 +197,46 @@ const blog = await loadBlogData();
     </script>
     <script>
       import '../assets/js/shell-guard';
+    </script>
+    <script is:inline>
+      // 首载 loading 屏：HTML 到齐 + 背景图就绪即揭幕，不等 load / DOMContentLoaded。
+      // 本脚本在 body 尾部：执行时 HTML 字节已全部到齐、body 已解析完，只剩等背景图。
+      // 不等 DCL / load：它们被岛脚本的模块图卡着（内联 CSS 后文档更重、模块发现更晚，
+      // 等它们反而把揭幕拖得比不内联还晚）；岛脚本晚就绪不影响视觉
+      // （首帧本就是水合前的静态标记，交互随水合陆续生效）。
+      // 背景图先用 Image 预热：同一 URL 走缓存，揭幕时背景已就位，不闪。
+      // 兜底：图片卡住 5s 也揭幕，别让 loading 屏永久挂着。
+      (function () {
+        const splash = document.getElementById('boot-splash');
+        if (!splash) return;
+        const started = performance.now();
+        let finished = false;
+        const fade = () => {
+          if (finished) return;
+          finished = true;
+          const minShown = 500; // 快网下防闪：至少展示 500ms
+          setTimeout(
+            () => {
+              splash.classList.add('is-done');
+              setTimeout(() => splash.remove(), 800);
+            },
+            Math.max(0, minShown - (performance.now() - started)),
+          );
+        };
+        const bgStyle = document.querySelector('.bg')?.style;
+        const bgUrl = /url\(['"]?([^'")]+)/.exec(
+          bgStyle ? bgStyle.getPropertyValue('--bg-image') : '',
+        )?.[1];
+        if (bgUrl) {
+          const warm = new Image();
+          warm.onload = warm.onerror = () => fade();
+          warm.src = bgUrl;
+        } else {
+          fade();
+        }
+        // 兜底：图片卡住 5s 也揭幕
+        setTimeout(fade, 5000);
+      })();
     </script>
   </body>
 </html>

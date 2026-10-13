@@ -87,6 +87,47 @@ function countRemoved(before: string, after: string): number {
 }
 
 /**
+ * 构建后处理：把 head 里的 <link rel="stylesheet"> 内联成 <style>。
+ *
+ * 为什么：外链 CSS 是渲染阻塞资源——首帧要等 HTML 和 CSS 两个串行请求都到齐，
+ * 国内访问 CDN 时这一等就是好几秒白屏。CSS 内联进 HTML 后，首帧 = 第一块
+ * HTML 解析完即可，BaseLayout 的首载 loading 屏（#boot-splash）因此能在
+ * HTML 刚到达时就画出来，盖住后续背景图与脚本的加载时间。
+ * 代价是每页 HTML 重约 30KB（压缩后仅几 KB），换来砍掉一整个 CSS 串行请求。
+ *
+ * swup 不受影响：SwupHeadPlugin 的 awaitAssets 只等 link[rel=stylesheet]，
+ * 切页后新 head 只有 <style>（同步生效），不产生等待也不闪样式。
+ */
+function inlineCss(): AstroIntegration {
+  return {
+    name: 'inline-css',
+    hooks: {
+      'astro:build:done': async ({ dir: outDir }) => {
+        const root = fileURLToPath(outDir);
+        let inlined = 0;
+        for (const file of collectHtmlFiles(root)) {
+          const before = readFileSync(file, 'utf8');
+          const after = before.replace(
+            /<link rel="stylesheet" href="([^"]+\.css)"\s*\/?>/g,
+            (_match, href: string) => {
+              const css = readFileSync(join(root, href.slice(1)), 'utf8');
+              inlined += 1;
+              return `<style>${css}</style>`;
+            },
+          );
+          if (after !== before) {
+            writeFileSync(file, after);
+          }
+        }
+        if (inlined > 0) {
+          console.log(`[inline-css] 已内联 ${inlined} 份样式表`);
+        }
+      },
+    },
+  };
+}
+
+/**
  * 背景预设插件：把 src/data/background.ts 里的文件名在构建期翻译成字面量 import。
  *
  * 为什么需要它：用户要求「只填一个文件名」就能换背景方案，而字符串变量在构建期
@@ -192,6 +233,8 @@ export default defineConfig({
     }),
     // 删除展示性 HTML 注释（保留水合锚点）
     stripSafeComments(),
+    // 内联 head 里的外链 CSS（首帧不阻塞在 CSS 下载上，见 inlineCss）
+    inlineCss(),
     // 独立文件压缩；按官方要求放在集成列表最后
     // CSS 必须保持 false：compress 底层用 lightningcss，会无条件删掉不带前缀的
     // backdrop-filter、只保留 -webkit- 版，导致 Firefox 等只支持原版属性的浏览器
