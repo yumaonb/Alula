@@ -269,8 +269,8 @@
   .post-search:focus-within {
     background: var(--hover-bg);
     box-shadow:
-      inset 0 0 0 1px var(--focus-line),
-      var(--shadow-sm);
+      inset 0 0 0 1px var(--hover-line),
+      var(--shadow);
   }
 
   /* 图标随 HTML 输出（不再等待水合后异步注入），首屏即可见 */
@@ -280,7 +280,7 @@
     justify-content: center;
     width: 13px;
     height: 13px;
-    color: var(--icon-ink);
+    color: var(--ink);
     flex-shrink: 0;
   }
 
@@ -296,14 +296,14 @@
     border: none;
     outline: none;
     background: transparent;
-    color: var(--hover-ink);
+    color: var(--white);
     font: inherit;
     font-size: 0.88rem;
     line-height: 1;
   }
 
   .post-search-input::placeholder {
-    color: var(--color-text);
+    color: var(--ink);
   }
 
   .post-search-input::-webkit-search-cancel-button {
@@ -321,7 +321,7 @@
     border: none;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.1);
-    color: var(--icon-ink);
+    color: var(--ink);
     cursor: pointer;
   }
 
@@ -375,7 +375,7 @@
   :global(.psd-item-title) {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--hover-ink);
+    color: var(--white);
     line-height: 1.4;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -385,7 +385,7 @@
   :global(.psd-item-excerpt) {
     font-size: 0.78rem;
     line-height: 1.55;
-    color: var(--color-text);
+    color: var(--ink);
     display: -webkit-box;
     line-clamp: 2;
     -webkit-line-clamp: 2;
@@ -395,7 +395,7 @@
 
   :global(.psd-item-excerpt mark) {
     background: rgba(255, 255, 255, 0.18);
-    color: var(--icon-hover);
+    color: var(--white);
     border-radius: 3px;
     padding: 0 2px;
   }
@@ -404,7 +404,7 @@
     flex-shrink: 0;
     padding: 20px 12px;
     font-size: 0.76rem;
-    color: var(--color-text);
+    color: var(--ink);
     text-align: center;
   }
 </style>

@@ -193,7 +193,7 @@ const hasMeta = !!date || hasCategory || hasStats;
     height: 1.15em;
     min-height: 16px;
     border-radius: 4px;
-    background: var(--icon-hover);
+    background: var(--white);
     opacity: 0.85;
     /* 悬停随标题提亮，走 --t-hover（原 0.06s 等于瞬间跳变） */
     transition: opacity var(--t-hover);
@@ -207,7 +207,7 @@ const hasMeta = !!date || hasCategory || hasStats;
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   .pin-icon {
@@ -218,7 +218,7 @@ const hasMeta = !!date || hasCategory || hasStats;
   .post-card-title {
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--ink);
     line-height: 1.4;
     margin: 0;
     flex: 1;
@@ -242,7 +242,7 @@ const hasMeta = !!date || hasCategory || hasStats;
 
   /* 悬停时标题变纯白 */
   .post-card-title-link:hover {
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   /* ---- 元信息行：日期 / 分类 / 字数（图标与详情页一致） ---- */
@@ -271,7 +271,7 @@ const hasMeta = !!date || hasCategory || hasStats;
     align-items: center;
     gap: 5px;
     font-size: 0.8rem;
-    color: var(--color-text);
+    color: var(--ink);
     white-space: nowrap;
   }
 
@@ -300,25 +300,25 @@ const hasMeta = !!date || hasCategory || hasStats;
   }
 
   .post-card-cat-sep {
-    color: var(--color-text);
+    color: var(--ink);
     font-size: 0.85em;
   }
 
   .post-card-category {
     /* pointer-events:auto：抵消卡片正文的 pointer-events:none，链接单独可点击 */
     pointer-events: auto;
-    color: var(--icon-ink);
+    color: var(--ink);
     text-decoration: none;
     transition: color var(--t-hover);
   }
 
   .post-card-category:hover {
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   .post-card-desc {
     font-size: 0.88rem;
-    color: var(--color-text);
+    color: var(--ink);
     line-height: 1.6;
     margin: 0;
     display: -webkit-box;
@@ -370,7 +370,7 @@ const hasMeta = !!date || hasCategory || hasStats;
   .post-card-tag {
     display: inline-block;
     font-size: 0.72rem;
-    color: var(--icon-ink);
+    color: var(--ink);
     background: var(--rest-bg);
     box-shadow: inset 0 0 0 1px var(--ring);
     padding: 2px 8px; /* 比日期行略矮，保证标签显示时介绍仍有完整两行 */
@@ -444,7 +444,7 @@ const hasMeta = !!date || hasCategory || hasStats;
   .cover-chevron {
     width: 2.5rem;
     height: 2.5rem;
-    color: var(--icon-hover);
+    color: var(--white);
     transform: translateX(-6px);
     transition: transform 0.2s ease;
   }

@@ -19,7 +19,7 @@
 
 /* ---- 悬浮反馈 ----
  * 全站唯一的悬停样式：按钮、卡片、链接、标签、导航项都挂 .hoverable，
- * 不再各自写 :hover。浓淡只改 variables.css 里的 --hover-* 三个值。
+ * 不再各自写 :hover。浓淡只改 variables.css 里的 --hover-bg / --hover-line 两个值。
  *
  * 类名故意重复写两遍：Astro 把组件样式编译成 .xxx[data-astro-cid-yyy]，同样是
  * (0,2,0) 且排在全局样式之后，只写一次会被组件的静止态颜色盖掉（悬停看着像没反应）；
@@ -42,7 +42,7 @@
 .hoverable.hoverable:hover,
 .hoverable.hoverable:focus-visible {
   --ring: var(--hover-line);
-  color: var(--icon-hover);
+  color: var(--white);
   background: var(--hover-bg);
   border-color: var(--hover-line);
 }
@@ -50,7 +50,7 @@
 .hoverable.hoverable.chip--active,
 .hoverable.hoverable.psd-item--active,
 .hoverable.hoverable.cat-item--active {
-  color: var(--icon-hover);
+  color: var(--white);
   background: var(--active-bg);
   border-color: var(--hover-line);
 }
@@ -120,7 +120,7 @@
   align-items: center;
   padding-left: 12px; /* 图标前留一点呼吸空间 */
   font-size: 1.6rem;
-  color: var(--hover-ink);
+  color: var(--white);
   text-shadow: var(--title-shadow);
 }
 
@@ -129,7 +129,7 @@
   height: 1em;
   margin-right: 10px;
   flex-shrink: 0;
-  color: var(--icon-ink);
+  color: var(--ink);
 }
 
 .page-top-standard {

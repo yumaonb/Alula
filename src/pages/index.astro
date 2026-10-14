@@ -124,14 +124,14 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 
   .nickname {
     font-size: 2rem;
-    color: var(--hover-ink);
+    color: var(--white);
     text-shadow: var(--title-shadow);
     letter-spacing: 0.05em;
   }
 
   .motto {
     font-size: 0.9rem;
-    color: var(--color-text);
+    color: var(--ink);
     letter-spacing: 0.25em;
   }
 
@@ -147,7 +147,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 
   .intro-about {
     font-size: 0.95rem;
-    color: var(--color-text);
+    color: var(--ink);
     line-height: 1.7;
   }
 
@@ -161,7 +161,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
     height: 46px;
     border-radius: 50%; /* 圆形覆盖 .glass 的 10px 圆角 */
     cursor: pointer;
-    color: var(--icon-ink);
+    color: var(--ink);
     font: inherit;
     text-decoration: none;
     position: relative;
@@ -169,7 +169,7 @@ import { nickname, motto, intro, socialLinks } from '../data/profile';
 
   /* 选择器带 .glass-btn 作用域：后台矩形按钮图标 14px 在 admin/admin.css 的
    * .btn .btn-icon 里定义，两边互不干扰。fill 走 currentColor：悬停时
-   * .hoverable 把按钮文字色提到 --icon-hover，图标跟着一起变亮 */
+   * .hoverable 把按钮文字色提到 --white，图标跟着一起变亮 */
   .glass-btn .btn-icon {
     width: 22px;
     height: 22px;

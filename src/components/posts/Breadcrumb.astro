@@ -54,7 +54,7 @@ const { items } = Astro.props;
   }
 
   .breadcrumb-sep {
-    color: var(--color-text);
+    color: var(--ink);
     margin: 0 4px;
     font-size: 0.8em;
   }
@@ -72,7 +72,7 @@ const { items } = Astro.props;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: var(--icon-ink);
+    color: var(--ink);
     text-decoration: none;
     padding: 2px 6px;
     border-radius: 4px;
@@ -82,14 +82,14 @@ const { items } = Astro.props;
   /* 悬停只「亮起来」（文字变亮），不加背景底：面包屑条是 36px 的细左缘元素，
      挂 .hoverable 的悬停底色会在条里多出一块底，观感突兀（用户要求） */
   .breadcrumb-link:hover {
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   .breadcrumb-current {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: var(--color-text);
+    color: var(--ink);
     font-weight: 500;
   }
 </style>

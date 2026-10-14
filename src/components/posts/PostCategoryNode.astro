@@ -96,7 +96,7 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
     border: none;
     border-radius: 5px;
     background: transparent;
-    color: var(--icon-ink);
+    color: var(--ink);
     cursor: pointer;
     transition: color 0.15s ease;
   }
@@ -112,7 +112,7 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
   }
 
   .cat-node--open > .cat-row .cat-toggle {
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   /* 展开容器：让出/收回空间的那扇「窗」。开合动效由 motion 驱动（category-tree.ts），

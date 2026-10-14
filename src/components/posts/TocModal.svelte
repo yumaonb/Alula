@@ -213,7 +213,7 @@
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--color-text);
+    color: var(--ink);
   }
 
   .toc-modal-title-icon {
@@ -237,7 +237,7 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: var(--icon-ink);
+    color: var(--ink);
     cursor: pointer;
   }
 

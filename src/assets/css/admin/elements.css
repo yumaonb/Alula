@@ -17,7 +17,7 @@
   justify-content: center;
   gap: 6px;
   padding: 6px 14px;
-  color: var(--color-text);
+  color: var(--ink);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 500;
@@ -87,7 +87,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: var(--color-text);
+  color: var(--ink);
 }
 
 /* 卡头里的补充说明：紧跟标题下方一行，不再单独占段落 */
@@ -95,13 +95,13 @@
   margin-top: 3px;
   font-size: 0.76rem;
   line-height: 1.6;
-  color: var(--color-text);
+  color: var(--ink);
 }
 
 /* 卡头右侧的计数 / 状态文字 */
 .card-extra {
   font-size: 0.74rem;
-  color: var(--color-text);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -125,7 +125,7 @@
   margin-bottom: 6px;
   font-size: 0.76rem;
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--ink);
 }
 
 .input {
@@ -134,7 +134,7 @@
   border: 1px solid var(--ring);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.04);
-  color: var(--hover-ink);
+  color: var(--white);
   font: inherit;
   font-size: 0.8rem;
   transition:
@@ -144,12 +144,12 @@
 }
 
 .input::placeholder {
-  color: var(--color-text);
+  color: var(--ink);
 }
 
 .input:focus-visible {
   outline: none;
-  border-color: var(--focus-line);
+  border-color: var(--hover-line);
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -166,7 +166,7 @@ select.input {
 
 select.input option {
   background: #17191f;
-  color: var(--hover-ink);
+  color: var(--white);
 }
 
 /* 多行输入（自我介绍、正文这类）：沿用 .input 的观感，只放开高度与行距 */
@@ -233,7 +233,7 @@ select.input option {
   border: none;
   border-radius: 6px;
   background: none;
-  color: var(--icon-ink);
+  color: var(--ink);
   cursor: pointer;
   transition:
     color var(--t-hover),
@@ -246,7 +246,7 @@ select.input option {
 }
 
 .row-remove:hover {
-  color: var(--icon-hover);
+  color: var(--white);
   background: rgba(255, 255, 255, 0.12);
 }
 
@@ -255,7 +255,7 @@ select.input option {
   margin-top: 10px;
   font-size: 0.74rem;
   line-height: 1.7;
-  color: var(--color-text);
+  color: var(--ink);
 }
 
 /* ---- 文件列表 ---- */
@@ -283,7 +283,7 @@ select.input option {
 /* 列表旁的小字计数（条数、行数），等宽数字避免跳动 */
 .status {
   font-size: 0.74rem;
-  color: var(--color-text);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -313,7 +313,7 @@ select.input option {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--color-text);
+  color: var(--ink);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.76rem;
   text-align: left;
@@ -328,12 +328,12 @@ select.input option {
 
 .file-row:hover .file-link {
   background: rgba(255, 255, 255, 0.06);
-  color: var(--icon-hover);
+  color: var(--white);
 }
 
 .file-row.is-active .file-link {
   background: rgba(255, 255, 255, 0.12);
-  color: var(--icon-hover);
+  color: var(--white);
 }
 
 /* 状态徽标：胶囊形，黑白灰里靠「填底浓淡 + 删除线」分状态 */
@@ -343,23 +343,23 @@ select.input option {
   border-radius: 999px;
   font-size: 0.68rem;
   line-height: 1.5;
-  color: var(--color-text);
+  color: var(--ink);
   background: rgba(255, 255, 255, 0.08);
 }
 
 .badge.is-staged {
-  color: var(--icon-hover);
+  color: var(--white);
   background: rgba(255, 255, 255, 0.2);
 }
 
 .badge.is-dirty {
-  color: var(--color-text);
+  color: var(--ink);
   background: transparent;
   box-shadow: inset 0 0 0 1px var(--hover-line);
 }
 
 .badge.is-delete {
-  color: var(--icon-hover);
+  color: var(--white);
   background: rgba(255, 255, 255, 0.2);
   text-decoration: line-through;
 }
@@ -368,7 +368,7 @@ select.input option {
   padding: 20px 10px;
   text-align: center;
   font-size: 0.8rem;
-  color: var(--color-text);
+  color: var(--ink);
 }
 
 /* ---- 手机端 ---- */

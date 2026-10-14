@@ -253,13 +253,13 @@
   .gh-icon {
     width: calc(2.3rem + 2px);
     height: calc(2.3rem + 2px);
-    color: var(--icon-ink);
+    color: var(--ink);
   }
 
   .card-name {
     font-size: 1.05rem;
     font-weight: 600;
-    color: var(--hover-ink);
+    color: var(--white);
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -268,7 +268,7 @@
 
   .card-desc {
     font-size: 0.85rem;
-    color: var(--color-text);
+    color: var(--ink);
     line-height: 1.6;
     padding: 10px 20px 0;
     flex: 1;
@@ -289,7 +289,7 @@
 
   .topic-tag {
     font-size: 0.7rem;
-    color: var(--color-text);
+    color: var(--ink);
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
@@ -309,7 +309,7 @@
     align-items: center;
     gap: 4px;
     font-size: 0.75rem;
-    color: var(--color-text);
+    color: var(--ink);
   }
 
   .stat-icon {
@@ -359,12 +359,12 @@
   .error-text {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--hover-ink);
+    color: var(--white);
     margin: 0 0 12px;
   }
   .empty-text {
     font-size: 0.9rem;
-    color: var(--color-text);
+    color: var(--ink);
     margin: 0;
   }
   .retry-btn {
@@ -372,7 +372,7 @@
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.08);
-    color: var(--color-text);
+    color: var(--ink);
     cursor: pointer;
     font-size: 0.8rem;
   }

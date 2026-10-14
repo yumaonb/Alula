@@ -58,7 +58,7 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
     margin-top: 32px;
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--color-text);
+    color: var(--ink);
     position: relative;
     overflow: hidden;
   }
@@ -71,13 +71,13 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
   .repost-title {
     font-size: 1rem;
     font-weight: 700;
-    color: var(--hover-ink);
+    color: var(--white);
     margin: 0 0 6px 0;
   }
   .repost-url {
     display: block;
     font-size: 0.78rem;
-    color: var(--icon-ink);
+    color: var(--ink);
     text-decoration: none;
     word-break: break-all;
     margin-bottom: 12px;
@@ -85,7 +85,7 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
   }
 
   .repost-url:hover {
-    color: var(--icon-hover);
+    color: var(--white);
   }
   .repost-meta {
     display: flex;
@@ -100,24 +100,24 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
   }
   .repost-meta-label {
     font-size: 0.78rem;
-    color: var(--color-text);
+    color: var(--ink);
     line-height: 1.2;
   }
   .repost-meta-value {
     font-size: 0.85rem;
     line-height: 1.2;
-    color: var(--color-text);
+    color: var(--ink);
     text-decoration: none;
     /* 许可协议链接（.repost-license 也挂此列）悬停提亮走 --t-hover */
     transition: color var(--t-hover);
   }
   .repost-license {
-    color: var(--icon-ink);
+    color: var(--ink);
     text-decoration: none;
   }
 
   .repost-license:hover {
-    color: var(--icon-hover);
+    color: var(--white);
   }
   .repost-cc-icon {
     position: absolute;

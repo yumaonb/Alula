@@ -80,7 +80,7 @@ if (hasH1 && hasH2) {
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--color-text);
+    color: var(--ink);
   }
 
   .toc-icon {
@@ -142,7 +142,7 @@ if (hasH1 && hasH2) {
     padding: 6px 10px;
     font-size: 0.8rem;
     line-height: 1.45;
-    color: var(--icon-ink);
+    color: var(--ink);
     text-decoration: none;
     border-radius: 4px;
     cursor: pointer;
@@ -153,7 +153,7 @@ if (hasH1 && hasH2) {
   .toc-sub .toc-link {
     padding-left: 24px;
     font-size: 0.76rem;
-    color: var(--icon-ink);
+    color: var(--ink);
   }
 
   /* 悬停不走全站 .hoverable（那会加白底描边）：
@@ -161,16 +161,16 @@ if (hasH1 && hasH2) {
    * 两条都排在 .active 规则之前，悬停在活动项上时规则一致。 */
   .toc-link:hover,
   .toc-link:focus-visible {
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   .toc-sub .toc-link:hover,
   .toc-sub .toc-link:focus-visible {
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   .toc-item.active .toc-link {
-    color: var(--icon-hover);
+    color: var(--white);
     font-weight: 500;
   }
 

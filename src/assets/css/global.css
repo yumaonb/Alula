@@ -21,7 +21,7 @@ html::-webkit-scrollbar {
 }
 
 body {
-  color: var(--color-text);
+  color: var(--ink);
   line-height: 1.6;
   min-height: 100vh;
   scrollbar-width: none;
@@ -42,13 +42,13 @@ a {
   text-decoration: none;
 }
 
-/* 全站链接：正文里那种「纯文字链接」——静止时不画下划线（颜色透明），文字取 #fff
- * 比正文（0.88 白）亮一档作区分；悬停/聚焦时下划线与文字色 var(--t-hover) 淡入，不直接跳变。
+/* 全站链接：正文里那种「纯文字链接」——静止时不画下划线（颜色透明），文字取 --white（纯白）
+ * 比正文（--ink）亮一档作区分；悬停/聚焦时下划线与文字色 var(--t-hover) 淡入，不直接跳变。
  * 按钮、卡片、导航项、标签这类自带样式的链接，在标记里挂 .link-plain 即可退出，
  * 不用再到这个选择器里追加 :not(.xxx)——加一个类，下面三条规则同时生效。
  * .link-plain 只是个标记类，本身不产生样式。 */
 a:not(.link-plain) {
-  color: var(--hover-ink);
+  color: var(--white);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
@@ -60,7 +60,7 @@ a:not(.link-plain) {
 
 a:not(.link-plain):hover,
 a:not(.link-plain):focus-visible {
-  color: var(--icon-hover);
+  color: var(--white);
   text-decoration-color: currentColor;
 }
 
@@ -270,7 +270,7 @@ ol {
   height: 44px;
   margin-top: 8px;
   padding: 0;
-  color: var(--icon-ink);
+  color: var(--ink);
   cursor: pointer;
   opacity: 0;
   transform: translateX(80px);
@@ -313,7 +313,7 @@ ol {
 }
 
 .back-to-widget:hover {
-  color: var(--icon-hover);
+  color: var(--white);
   background: var(--hover-bg);
 }
 

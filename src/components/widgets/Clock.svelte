@@ -242,7 +242,7 @@
   }
   .clock-icon {
     flex-shrink: 0;
-    color: var(--icon-ink);
+    color: var(--ink);
     border-radius: 50%;
     box-shadow:
       0 3px 6px rgba(0, 0, 0, 0.4),
@@ -267,7 +267,7 @@
   }
   .clock-date {
     font-size: 1.05rem;
-    color: var(--color-text);
+    color: var(--ink);
     letter-spacing: 0.02em;
   }
   @media (min-width: 1024px) {

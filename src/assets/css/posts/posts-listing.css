@@ -39,13 +39,13 @@
    否则 flex 居中后两者不在同一水平线上 */
 .title-count-sep {
   font-size: 0.82rem;
-  color: var(--color-text);
+  color: var(--ink);
   font-weight: 400;
 }
 
 .posts-count {
   font-size: 0.82rem;
-  color: var(--color-text);
+  color: var(--ink);
   padding-left: 4px;
 }
 
@@ -75,7 +75,7 @@
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: var(--icon-ink);
+  color: var(--ink);
   font: inherit;
   font-size: 0.82rem;
   text-align: left;
@@ -86,12 +86,12 @@
 }
 
 .cat-item:hover {
-  color: var(--icon-hover);
+  color: var(--white);
 }
 
 /* 活跃分类 */
 .cat-item--active {
-  color: var(--icon-hover);
+  color: var(--white);
 }
 
 .cat-name {

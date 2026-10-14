@@ -145,14 +145,14 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     font-size: 1.2rem;
     font-weight: 700;
     letter-spacing: 0.03em;
-    color: var(--hover-ink);
+    color: var(--white);
     white-space: nowrap;
   }
 
   .nav-home-icon {
     width: 1.15em;
     height: 1.15em;
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   .nav-links {
@@ -166,7 +166,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     padding: 8px 20px;
     font-size: 0.95rem;
     font-weight: 500;
-    color: var(--icon-ink);
+    color: var(--ink);
     transition: color var(--t-hover);
   }
 
@@ -187,11 +187,11 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
   }
 
   /* 悬停 / 聚焦 / 当前页不走全站 .hoverable（那会加白底描边）：
-     只提亮文字，静止与高亮都走现有令牌（--icon-ink → --icon-hover） */
+     只提亮文字，静止与高亮都走现有令牌（--ink → --white） */
   .nav-links a:hover,
   .nav-links a:focus-visible,
   .nav-links a.is-active {
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   /* 静态线：只负责首屏与加载期（is-active 服务端渲染，首帧即可见、不依赖 JS）；
@@ -205,7 +205,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     bottom: -8px;
     height: 2px;
     border-radius: 1px;
-    background: var(--icon-hover);
+    background: var(--white);
   }
 
   /* 共享线：JS 接管后下划线的唯一画者，点击 / 切页 / resize 都只重设它的目标位置；
@@ -218,7 +218,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     width: 0;
     height: 2px;
     border-radius: 1px;
-    background: var(--icon-hover);
+    background: var(--white);
     opacity: 0;
     pointer-events: none;
   }
@@ -249,7 +249,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     transition:
       opacity 0.3s ease,
       transform 0.3s ease;
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   .icon-bars :global(svg),
@@ -311,7 +311,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     height: 48px;
     font-size: 0.88rem;
     font-weight: 500;
-    color: var(--icon-ink);
+    color: var(--ink);
     border-radius: 0;
     border: none;
     text-decoration: none;
@@ -328,7 +328,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
   .mobile-link-icon {
     width: 17px;
     height: 17px;
-    color: var(--icon-ink);
+    color: var(--ink);
     flex-shrink: 0;
     transition: color var(--t-hover);
   }
@@ -336,7 +336,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
   .mobile-link-arrow {
     width: 14px;
     height: 14px;
-    color: var(--icon-ink);
+    color: var(--ink);
     flex-shrink: 0;
     /* color 是悬停提亮走 --t-hover；箭头 2px 挪位是位移，走自己的时长 */
     transition:
@@ -351,13 +351,13 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
 
   .mobile-link:hover .mobile-link-icon,
   .mobile-link:hover .mobile-link-arrow {
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   /* 当前页：文字 + 该项图标提亮（刻意不加位移 / 底色，见 mobile-link 两级规则） */
   .mobile-link.is-active,
   .mobile-link.is-active .mobile-link-icon {
-    color: var(--icon-hover);
+    color: var(--white);
   }
 
   .mobile-link:hover .mobile-link-arrow {
