@@ -107,9 +107,9 @@ import type { AnimationPlaybackControls } from 'motion';
   const BG0 = 'rgba(255, 255, 255, 0)'; // 白纱关键帧的透明端（与 .glass 的 transparent 等价）
   const VEIL = (() => {
     try {
-      return getComputedStyle(document.documentElement).getPropertyValue('--glass-veil').trim() || 'rgba(255, 255, 255, 0.3)';
+      return getComputedStyle(document.documentElement).getPropertyValue('--glass-veil').trim() || 'rgba(255, 255, 255, 0.15)';
     } catch {
-      return 'rgba(255, 255, 255, 0.3)';
+      return 'rgba(255, 255, 255, 0.15)';
     }
   })(); // 白纱令牌（variables.css --glass-veil）：移动渐隐的毛玻璃用它替代模糊
 
