@@ -48,7 +48,8 @@ const { type } = Astro.props;
 // ---- 文章页数据 ----
 let post = undefined as (typeof data.allPosts)[number] | undefined;
 let entry = undefined as (typeof data.entries)[number] | undefined;
-let PostContent: any = undefined;
+type RenderedPost = Awaited<ReturnType<typeof renderPost>>;
+let PostContent: RenderedPost['Content'] | undefined;
 let headings: { depth: number; slug: string; text: string }[] = [];
 let prevPost: { title: string; url: string } | null = null;
 let nextPost: { title: string; url: string } | null = null;

@@ -27,14 +27,17 @@ function metaKeyOf(fileKey: string): string | null {
   return rel || null;
 }
 
-const metaJson = import.meta.glob('../content/posts/**/index.json', { eager: true });
+const metaJson = import.meta.glob<{ default?: { name?: unknown; description?: unknown } }>(
+  '../content/posts/**/index.json',
+  { eager: true },
+);
 
 export function buildCategoryMeta(): Record<string, CategoryMeta> {
   const meta: Record<string, CategoryMeta> = {};
   for (const [fp, m] of Object.entries(metaJson)) {
     const key = metaKeyOf(fp);
     if (!key) continue;
-    const raw = (m as any)?.default ?? m;
+    const raw = m.default;
     if (!raw || typeof raw !== 'object') continue;
     meta[key] = {
       name: typeof raw.name === 'string' ? raw.name : undefined,
@@ -78,7 +81,7 @@ async function buildData(): Promise<BlogData> {
 
   const allPosts: PostItem[] = entries
     .map((e) => {
-      const d = e.data as any;
+      const d = e.data;
       const parts = e.id.split('/');
       // 分类 = 文件所在目录（content/posts 之内的路径）
       const category = parts.slice(0, -1).join('/');
