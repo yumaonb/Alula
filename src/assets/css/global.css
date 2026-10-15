@@ -359,7 +359,7 @@ body .swup-progress-bar {
 
 /* 根元素画布色，这行不能删：过度滚动回弹、背景未渲染时露出的底就是它。
  * 取预设自带的 --bg-base（换预设只改 src/data/background.ts）；
- * 图片方案不打包任何 CSS 预设，没人声明它，就用浏览器默认白底，不做额外处理。 */
+ * 图片方案不打包任何 CSS 预设，没人声明它，回退深色与首载 loading 屏衔接。 */
 html {
-  background-color: var(--bg-base, #fff);
+  background-color: var(--bg-base, #000);
 }
