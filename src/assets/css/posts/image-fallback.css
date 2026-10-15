@@ -3,9 +3,12 @@
  * 正文：图片加载期间自带占位底 + 图标，成功加 .img-loaded 移除；失败由 JS 替换为 .img-ph 占位块。
  */
 
-/* 加载失败的图片：隐藏（占位效果由容器 / 占位块提供） */
-.img-failed {
-  display: none !important;
+/* 加载失败的图片：隐藏（占位效果由容器 / 占位块提供）。
+ * img.img-failed 压全局 img 的 display:block；.markdown-body 变体压正文的 .markdown-body img，
+ * 保证正文与封面两种上下文里坏图都藏得住 */
+img.img-failed,
+.markdown-body img.img-failed {
+  display: none;
 }
 
 /* ---- 文章详情页封面 ---- */
