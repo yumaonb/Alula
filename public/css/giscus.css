@@ -109,30 +109,26 @@ main {
   background-color: var(--color-btn-bg);
 }
 
-/* 输入框聚焦:去掉发亮效果 */
+/* 输入框聚焦：鼠标点击不发亮，键盘聚焦保留焦点环（可访问性） */
 main textarea:focus,
-main textarea:focus-visible,
 main input:focus,
 main .form-control:focus,
-main .form-control:focus-visible,
-main [contenteditable]:focus,
-main [contenteditable]:focus-visible {
+main [contenteditable]:focus {
   border-color: var(--color-border-default) !important;
   box-shadow: none !important;
   outline: none !important;
+}
+
+main textarea:focus-visible,
+main input:focus-visible,
+main .form-control:focus-visible,
+main [contenteditable]:focus-visible {
+  outline: 2px solid var(--color-btn-hover-border) !important;
 }
 
 /* 评论卡片本身聚焦时不点亮 */
 main .gsc-comment-box:focus-within,
 main .gsc-comment-box-markdown:focus-within {
   border-color: var(--color-border-default) !important;
-  box-shadow: none !important;
-}
-
-/* 禁用所有聚焦环 */
-*:focus,
-*:focus-visible,
-*:focus-within {
-  outline: none !important;
   box-shadow: none !important;
 }
