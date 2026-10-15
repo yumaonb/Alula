@@ -121,7 +121,7 @@
   padding-left: 12px; /* 图标前留一点呼吸空间 */
   font-size: 1.6rem;
   color: var(--white);
-  text-shadow: var(--title-shadow);
+  text-shadow: var(--shadow);
 }
 
 .page-title-icon {
