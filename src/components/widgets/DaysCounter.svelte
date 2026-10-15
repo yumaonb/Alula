@@ -19,7 +19,7 @@
     return Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   }
 
-  let yearsLabel = $derived(() => {
+  let yearsLabel = $derived.by(() => {
     const y = Math.floor(days / 365);
     return days % 365 > 0 ? `${y}年+` : `${y}年`;
   });
@@ -68,7 +68,7 @@
   <div class="stat-card glass">
     <span class="stat-label">经验积累</span>
     {#if ready}
-      <span class="stat-value">{yearsLabel()}</span>
+      <span class="stat-value">{yearsLabel}</span>
     {:else}
       <span class="stat-value">
         <span
