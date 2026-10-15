@@ -105,15 +105,9 @@ main {
   --color-social-reaction-bg-reacted-hover: rgba(255, 255, 255, 0.14);
 }
 
-main .pagination-loader-container {
-  background-image: url("https://github.com/images/modules/pulls/progressive-disclosure-line-dark.svg");
-}
-
 .gsc-pagination-button {
   background-color: var(--color-btn-bg);
 }
-
-/* 使用 giscus 内置 loading 图标，不跨域引用 githubassets */
 
 /* 输入框聚焦:去掉发亮效果 */
 main textarea:focus,
