@@ -111,17 +111,6 @@ ol {
   background-color: rgba(0, 0, 0, var(--bg-scrim, 0));
 }
 
-/* 旧背景图（已弃用，保留备用） */
-.bg-layer {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -1;
-  pointer-events: none;
-}
-
 /* 主内容行 —— 全站宽度的唯一执行点（BaseLayout 里，所有页面自动遵守）：
  * 桌面端最宽 --content-width，视口不足时两侧各空 --page-gutter；
  * 移动端（≤768px）两侧各空 --page-gutter-mobile（见下方媒体查询）。
