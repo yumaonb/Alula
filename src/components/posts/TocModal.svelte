@@ -12,7 +12,6 @@
   let modalEl: HTMLDivElement | null = null;
   let bodyEl: HTMLDivElement | null = null;
 
-  /** 让入口按钮的 aria-expanded 跟随抽屉开关 */
   function setFabExpanded(v: boolean): void {
     const fab = document.getElementById('toc-fab');
     if (fab) fab.setAttribute('aria-expanded', v ? 'true' : 'false');

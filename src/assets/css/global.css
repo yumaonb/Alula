@@ -111,7 +111,7 @@ ol {
   background-color: rgba(0, 0, 0, var(--bg-scrim, 0));
 }
 
-/* 旧背景图：已被 src/assets/backgrounds/ 的方案系统取代，此处保留备用 */
+/* 旧背景图（已弃用，保留备用） */
 .bg-layer {
   position: fixed;
   inset: 0;
@@ -144,9 +144,9 @@ ol {
 }
 
 /* 文章区变体（posts-shell.ts 切页后按内容同步类名）：
- * 侧栏显示时内容列收窄到 1000px（与旧 .posts-content 上限一致）；
+ * 侧栏显示时内容列收窄到 1000px；
  * 行 padding-top 82px（普通页 84px 不动）+ 间隙 14px 配平：左缘条（36px）恰好垂直居中于
- * 导航底(69)→内容顶(132)窗口（用户要求上方留白小一点、下方大一点、搜索框上下居中：
+ * 导航底(69)→内容顶(132)窗口（搜索框上下居中：
  * 82+18=100 ≈ (69+132)/2=100.5），内容顶 82+36+14 = 132 不变。
  * 偏移默认值贴合常见首帧（两变体页锚均为 36px 高、间隙 14px，即 50px），防 JS 前的闪跳。
  * --posts-offset-gap 是 .posts-page / .posts-article-main 的 flex gap 的镜像（侧栏偏移测算用），
@@ -154,7 +154,7 @@ ol {
 .page-main--listing {
   --posts-offset-gap: 14px;
   --posts-side-offset: 50px;
-  padding-top: 82px; /* 用户要求：搜索框上方留白 20→13（配间隙 12→14，内容顶仍 132） */
+  padding-top: 82px;
 }
 .page-main--post {
   --posts-offset-gap: 14px;
@@ -164,7 +164,7 @@ ol {
 /* 手机端（≤768px）：导航更矮（57px），同样的 82px 留白显得松——内容顶提到导航底 12px 处。
  * 文章页：面包屑在大框上方（独立 36px 条，与列表页头同位同高 69/36），大框在面包屑条下
  * 沿用默认 14px 间隙（69 + 36 + 14 = 119）；文章页上方距离（导航底 57 → 面包屑顶 69）
- * = 12px，与列表页头（69）距导航同一值（用户指定：文章页到导航的距离 = 文章列表到导航
+ * = 12px，与列表页头（69）距导航同一值（文章页到导航的距离 = 文章列表到导航
  * 的距离，见 PostsShell.astro 移动端注释）；桌面端 82/132 几何不变 */
 @media (max-width: 768px) {
   .page-main--listing,
@@ -204,7 +204,7 @@ ol {
 
 /* 搜索框行级常驻（BaseLayout 渲染在行内、main#swup 之外）：
  * swup 切页永不重建——节点不被 swup 移动，.glass 胶囊（backdrop-filter + 投影）
- * 的层不重建，切页零闪零重建（旧方案 data-swup-persist 每次切页摘出再插回，层重建=阴影闪）。
+ * 的层不重建，切页零闪零重建。
  * 位置由 posts-shell.ts 实测页头占位符写内联 top/left/width（叠在占位上，各宽适配）；
  * visibility/pointer-events 随行变体类**瞬时**翻转（列表变体显示、其他隐藏），
  * opacity 与退场/入场位移（右移渐隐 ↔ 自右渐显，与目录滑动配对、先退场再入场）
@@ -228,7 +228,7 @@ ol {
   pointer-events: auto;
 }
 
-/* 内容列：承接原 .hero 的容器职责（flex 居中），宽度/居中/上下留白全在 .page-main */
+/* 内容列：只做 flex 居中；宽度/居中/上下留白全在 .page-main */
 .page-main > .hero {
   flex: 1 1 auto;
   min-width: 0;
@@ -236,8 +236,7 @@ ol {
   justify-content: center;
   align-items: flex-start;
   /* 纵向拉伸填满整行（行本身是 .page 列里 flex:1 撑满视口的）：
-   * 首页 .content-wrapper 的 margin: auto 0 靠这里的富余高度垂直居中——
-   * 重构进行级布局时丢了这一条，首页内容贴顶（与旧版 .hero flex:1 列布局行为对齐） */
+   * 首页 .content-wrapper 的 margin: auto 0 靠这里的富余高度垂直居中 */
   align-self: stretch;
 }
 

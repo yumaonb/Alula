@@ -27,9 +27,7 @@ const mimeByExt: Record<string, string> = {
 };
 
 /**
- * 把正文里的站内地址补成绝对 URL。
  * 阅读器拿到的是一段脱离站点的 HTML，没有"当前页面"可作基准，`./x.png`、`/posts/y/` 全都会断。
- * @param html 正文 HTML
  * @param pageUrl 该篇文章的绝对地址，作为相对路径的基准
  */
 function absolutize(html: string, pageUrl: string): string {
@@ -61,7 +59,7 @@ function absolutize(html: string, pageUrl: string): string {
 }
 
 /**
- * 解析文章封面，用于 item 的 enclosure（阅读器靠它显示缩略图）。
+ * 用于 item 的 enclosure（阅读器靠它显示缩略图）。
  * `/` 开头的是 public 静态文件，原样引用；相对路径走 astro:assets，与文章页同一套口径。
  * 解析不出封面（路径写错等）时返回 undefined，宁可少一个 enclosure 也不要让构建挂掉。
  * @param image frontmatter 的 image 字段

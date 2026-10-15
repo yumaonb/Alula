@@ -34,7 +34,6 @@ export interface CategoryTrailItem {
   url: string;
 }
 
-/** 文章列表项 */
 export interface PostItem {
   /** 文章标识 = 集合条目 id（相对 content/posts 的无扩展名路径），同时用作路由参数 */
   slug: string;
@@ -60,7 +59,6 @@ export interface PostItem {
   words: number;
 }
 
-/** 面包屑项 */
 export interface BreadcrumbItem {
   label: string;
   href?: string;

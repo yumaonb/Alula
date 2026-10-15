@@ -10,7 +10,6 @@
   let sidebar: HTMLElement | null = null;
   let modalEl: HTMLDivElement | null = null;
 
-  /** 关闭抽屉并将 sidebar-filter 还原到侧边栏 */
   function close(): void {
     if (!isOpen) return;
     isOpen = false;

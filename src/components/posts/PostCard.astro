@@ -43,7 +43,6 @@ const hasMeta = !!date || hasCategory || hasStats;
 ---
 
 <article class:list={['post-card glass hoverable', { 'has-cover': hasCover }]}>
-  <!-- 封面（右侧，固定 4:3） -->
   {hasCover && (
     <a href={url} class="post-card-cover link-plain" aria-label={`阅读：${title}`}>
       <span class="cover-ph-icon">
@@ -62,7 +61,6 @@ const hasMeta = !!date || hasCategory || hasStats;
     </a>
   )}
 
-  <!-- 正文 -->
   <div class="post-card-body">
     <div class="post-card-head">
       <span class="post-card-accent" aria-hidden="true"></span>
@@ -84,7 +82,6 @@ const hasMeta = !!date || hasCategory || hasStats;
       </a>
     )}
 
-    <!-- 底部：元信息靠左，标签靠右（手机端隐藏标签） -->
     <div class="post-card-bottom">
       {hasMeta && (
         <div class="post-card-meta">
@@ -195,7 +192,7 @@ const hasMeta = !!date || hasCategory || hasStats;
     border-radius: 4px;
     background: var(--white);
     opacity: 0.85;
-    /* 悬停随标题提亮，走 --t-hover（原 0.06s 等于瞬间跳变） */
+    /* 悬停随标题提亮，走 --t-hover */
     transition: opacity var(--t-hover);
   }
 
@@ -227,7 +224,7 @@ const hasMeta = !!date || hasCategory || hasStats;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    /* 悬停提亮走 --t-hover（原 0.06s 等于瞬间跳变） */
+    /* 悬停提亮走 --t-hover */
     transition: color var(--t-hover);
   }
 
@@ -236,11 +233,10 @@ const hasMeta = !!date || hasCategory || hasStats;
     pointer-events: auto;
     color: inherit;
     text-decoration: none;
-    /* 悬停提亮走 --t-hover（原 0.06s 等于瞬间跳变） */
+    /* 悬停提亮走 --t-hover */
     transition: color var(--t-hover);
   }
 
-  /* 悬停时标题变纯白 */
   .post-card-title-link:hover {
     color: var(--white);
   }
@@ -381,7 +377,6 @@ const hasMeta = !!date || hasCategory || hasStats;
     pointer-events: auto;
   }
 
-  /* 卡片过窄时隐藏标签 */
   @container (max-width: 560px) {
     .post-card-tags {
       display: none;
@@ -391,12 +386,12 @@ const hasMeta = !!date || hasCategory || hasStats;
   /* ---- 封面（卡片右侧：高度控制，宽度按 4:3 自动推导） ---- */
   .post-card-cover {
     flex: 0 0 auto;
-    width: auto; /* 宽度由高度按 4:3 比例推导 */
+    width: auto;
     align-self: flex-start;
     display: block;
     position: relative;
     aspect-ratio: 4 / 3;
-    height: calc(100% - 24px); /* 高度 = 卡片高度 - 上下 12px 留白 */
+    height: calc(100% - 24px);
     max-width: 320px;
     margin: 12px 12px 12px 0;
     z-index: 2;
@@ -469,7 +464,7 @@ const hasMeta = !!date || hasCategory || hasStats;
     }
 
     .post-card-cover {
-      height: calc(100% - 20px); /* 上下留白 10px */
+      height: calc(100% - 20px);
       margin: 10px 10px 10px 0;
       border-radius: 10px;
     }

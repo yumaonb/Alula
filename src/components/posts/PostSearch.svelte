@@ -255,7 +255,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    /* 上下留白 8px（36px 胶囊，原始观感）。页头与面包屑条同为左缘元素、
+    /* 页头与面包屑条同为左缘元素、
        高度必须一致（切换滑动才无缝）——等高由面包屑条的上下 padding 配平，
        不再压扁搜索框。<input> 有约 20px 平台最小高（不受 line-height 压小），
        所以 36 = 20 + 8×2 */
@@ -273,7 +273,7 @@
       var(--shadow);
   }
 
-  /* 图标随 HTML 输出（不再等待水合后异步注入），首屏即可见 */
+  /* 图标随 HTML 输出，首屏即可见 */
   .post-search-icon {
     display: inline-flex;
     align-items: center;

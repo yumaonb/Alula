@@ -13,7 +13,6 @@ import pagefind from 'astro-pagefind';
 import htmlMinifier from 'astro-html-minifier-next';
 import compress from '@playform/compress';
 
-/** 收集构建输出目录下所有 .html 文件 */
 function collectHtmlFiles(dir: string): string[] {
   const files: string[] = [];
   for (const entry of readdirSync(dir)) {
@@ -28,7 +27,7 @@ function collectHtmlFiles(dir: string): string[] {
   return files;
 }
 
-/** 判断注释是否为水合必需（Svelte 5 锚点 / Astro 岛屿标记） */
+/** Svelte 5 水合锚点与 Astro 岛屿标记，不能删 */
 function isHydrationComment(inner: string): boolean {
   return (
     inner === '' ||
@@ -39,16 +38,13 @@ function isHydrationComment(inner: string): boolean {
   );
 }
 
-/** 替换回调：只处理注释，script/style 整体原样保留（捕获组未命中时 inner 为 undefined） */
+/** inner 为 undefined 表示命中 script/style 捕获组，原样保留 */
 function commentReplacer(match: string, inner?: string): string {
   if (inner === undefined) return match;
   return isHydrationComment(inner) ? match : '';
 }
 
-/**
- * 删除 HTML 注释，但保留 Svelte 5 水合锚点与 Astro 岛屿标记。
- * 只处理 <script>/<style> 之外的内容，避免误伤内联代码字符串。
- */
+/** 只处理 <script>/<style> 之外的内容，避免误伤内联代码字符串 */
 function stripNonHydrationComments(html: string): string {
   return html.replace(
     /<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--([\s\S]*?)-->/g,
@@ -56,7 +52,6 @@ function stripNonHydrationComments(html: string): string {
   );
 }
 
-/** 构建后处理：清理 dist 里的展示性 HTML 注释 */
 function stripSafeComments(): AstroIntegration {
   return {
     name: 'strip-safe-comments',
@@ -87,8 +82,6 @@ function countRemoved(before: string, after: string): number {
 }
 
 /**
- * 构建后处理：把 head 里的 <link rel="stylesheet"> 内联成 <style>。
- *
  * 为什么：外链 CSS 是渲染阻塞资源——首帧要等 HTML 和 CSS 两个串行请求都到齐，
  * 国内访问 CDN 时这一等就是好几秒白屏。CSS 内联进 HTML 后，首帧 = 第一块
  * HTML 解析完即可，BaseLayout 的首载 loading 屏（#boot-splash）因此能在
@@ -128,8 +121,6 @@ function inlineCss(): AstroIntegration {
 }
 
 /**
- * 背景预设插件：把 src/data/background.ts 里的文件名在构建期翻译成字面量 import。
- *
  * 为什么需要它：用户要求「只填一个文件名」就能换背景方案，而字符串变量在构建期
  * 无法当模块路径用（import.meta.glob 会把每个预设都编进产物，无论是否被选中）。
  * 这里读一次设置，生成一个虚拟模块，模块体里是真正的字面量 import——Vite 只会把

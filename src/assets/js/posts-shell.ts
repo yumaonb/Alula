@@ -65,7 +65,7 @@ import type { AnimationPlaybackControls } from 'motion';
 
   // ================= 0. 常量与环境 =================
 
-  const EDGE_MS = 400; // 左缘滑动 / 内容滑动 / 普通渐隐时长（用户要求 220→300→400ms 逐步放慢）
+  const EDGE_MS = 400; // 左缘滑动 / 内容滑动 / 普通渐隐时长
   const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1]; // 平滑进出
   // 桌面端搜索/目录配对相位：退出短促（加速离场），进入稍长（减速落位）
   const EXIT_MS = 240;
@@ -685,7 +685,7 @@ import type { AnimationPlaybackControls } from 'motion';
     const restoreAfterFail = () => {
       navInFlight = false;
       // 只在「仍停在列表系界面」时恢复——失败后内容未换，若此刻在详情页，
-      // 搜索不该出现（旧版无条件 settle(true) 会在详情页把搜索弹出来）
+      // 搜索不该出现
       if (floatCtl.state !== 'shown' && row()?.classList.contains('page-main--listing')) floatCtl.settle(true);
     };
     swup.hooks.on('fetch:error', restoreAfterFail);

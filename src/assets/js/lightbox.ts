@@ -17,7 +17,6 @@
 
     e.preventDefault();
 
-    // 懒加载：首次点击才拉取灯箱实现
     import('./lightbox-core')
       .then((m) => m.openLightbox(target, e))
       .catch((err) => console.error('[lightbox] load failed:', err));

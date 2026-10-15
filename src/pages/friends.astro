@@ -58,7 +58,7 @@ const pageNav = navItem('friends');
     /* 列数由容器宽度决定（单卡最窄 300px），不设上限：宽屏 / 超宽屏自动多列 */
     grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
     gap: 12px;
-    margin-bottom: 32px; /* 网格→申请区间距（原页面 gap 拆到此处；标题→网格由页头 margin-bottom 16px 定） */
+    margin-bottom: 32px; /* 网格→申请区间距（标题→网格由页头 margin-bottom 16px 定） */
   }
 
   .friend-card {

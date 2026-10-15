@@ -1,6 +1,5 @@
-/*! 自定义 giscus 主题 — Alula 玻璃拟态配色
- * 基底: giscus transparent_dark(背景透明,贴合玻璃卡片)
- * 改动: 1) 内部边框由深灰改为半透明白  2) 按钮改为玻璃白透明,替代 GitHub 绿色主按钮
+/*! giscus.css — 自定义 giscus 主题(Alula 玻璃拟态配色)
+ * 背景透明贴合玻璃卡片,内部边框半透明白,按钮玻璃白透明
  * 用法: 上传到支持 CORS 的静态托管(如 jsDelivr / Cloudflare Pages),
  *       然后 giscus 的 data-theme 填该文件的完整 URL,例如:
  *       https://cdn.jsdelivr.net/gh/你的用户名/你的仓库@main/giscus.css
@@ -102,7 +101,6 @@ main {
   --color-danger-subtle: rgb(229 83 75 / 10%);
   --color-primer-shadow-inset: 0 0 transparent;
 
-  /*! Extensions from @primer/css/alerts/flash.scss */
   --color-social-reaction-bg-hover: rgba(255, 255, 255, 0.1);
   --color-social-reaction-bg-reacted-hover: rgba(255, 255, 255, 0.14);
 }
