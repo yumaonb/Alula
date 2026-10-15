@@ -437,11 +437,8 @@
     p = 1;
     requestAnimationFrame(initToc);
   });
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initToc);
-  } else {
-    initToc();
-  }
+  // 模块脚本在 DOM 解析完成后才执行，直接初始化即可；切页重绑由上面的 swup:content:replace 负责
+  initToc();
 
   /** 瞬移落位（目录抽屉打开）：竖线直接贴活动项（状态矫正），并让列表按
    * 抽屉新高度流向居中 */
