@@ -35,7 +35,11 @@ const pageNav = navItem('friends');
     </div>
 
     <section class="apply-section">
-      <p class="apply-label">申请友链</p>
+      <div class="apply-header">
+        <span class="apply-line"></span>
+        <p class="apply-label">申请友链</p>
+        <span class="apply-line"></span>
+      </div>
       <div class="apply-card glass">
         <p class="apply-text">如果你想交换友链，请通过首页联系方式联系我，首选QQ联系，其他联系方式可能存在回复不及时的情况</p>
       </div>
@@ -125,13 +129,29 @@ const pageNav = navItem('friends');
     gap: 12px;
   }
 
+  .apply-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .apply-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.18));
+  }
+
+  .apply-line:last-child {
+    background: linear-gradient(to left, transparent, rgba(255, 255, 255, 0.18));
+  }
+
   .apply-label {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.14em;
     color: var(--ink);
-    padding-left: 4px;
+    white-space: nowrap;
   }
 
   .apply-card {
