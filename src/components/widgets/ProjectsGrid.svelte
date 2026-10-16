@@ -292,7 +292,7 @@
     color: var(--ink);
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
     padding: 2px 10px;
   }
 
@@ -342,7 +342,7 @@
   .skeleton-tag {
     width: 56px;
     height: 1.4em;
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
   }
   .skeleton-stat {
     width: 36px;
