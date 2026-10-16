@@ -21,6 +21,23 @@ export class GitHubError extends Error {
   }
 }
 
+/**
+ * GitHub 错误状态码 → 文案的单一来源（连接弹窗与各页面共用，避免两处措辞对不齐）。
+ * 仅处理 GitHubError：命中返回文案，非 GitHubError 返回 null，交调用点自行兜底。
+ * 404 语境不同（连接时 = 仓库不存在、操作时 = 资源不存在），由 notFoundMessage 区分。
+ */
+export function githubErrorMessage(
+  err: unknown,
+  notFoundMessage = '资源不存在（404），检查仓库与分支名',
+): string | null {
+  if (!(err instanceof GitHubError)) return null;
+  if (err.status === 401) return '令牌无效或已过期（401）';
+  if (err.status === 403) return '权限不足或触发限流（403）';
+  if (err.status === 404) return notFoundMessage;
+  if (err.status === 409) return '分支已被更新（409），重新连接后再提交';
+  return err.message;
+}
+
 interface RequestOptions {
   method?: string;
   body?: unknown;

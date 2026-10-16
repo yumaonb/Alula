@@ -18,7 +18,7 @@
 
 /* 灯箱内的图片圆角，与正文图片一致 */
 .pswp__img {
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 /* 文章详情页封面图可点击放大（与正文图片一致的提示光标） */

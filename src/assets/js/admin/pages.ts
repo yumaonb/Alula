@@ -3,13 +3,13 @@
 // 模块只在首次加载求值一次；swup 换掉 #swup 里的内容后由 boot() 重新绑定当前页面。
 
 import {
-  GitHubError,
   getFileTextOrNull,
+  githubErrorMessage,
   listCategoryMeta,
   listPostFiles,
   type TreeEntry,
 } from './github';
-import { renderRateLimit, setAccordion, setNavActive, toast } from './shell';
+import { renderRateLimit, setAccordion, setNavActive, setText, toast } from './shell';
 import { adminStore } from './store';
 
 const POSTS_PREFIX = 'src/content/posts/';
@@ -17,15 +17,7 @@ const POSTS_PREFIX = 'src/content/posts/';
 type Cleanup = () => void;
 
 function formatError(err: unknown): string {
-  if (err instanceof GitHubError) {
-    if (err.status === 401) return '令牌无效或已过期（401）';
-    if (err.status === 403) return '权限不足或触发限流（403）';
-    if (err.status === 404) return '资源不存在（404），检查仓库与分支名';
-    if (err.status === 409) return '分支已被更新（409），重新连接后再提交';
-    return err.message;
-  }
-  if (err instanceof Error) return err.message;
-  return '未知错误';
+  return githubErrorMessage(err) ?? (err instanceof Error ? err.message : '未知错误');
 }
 
 function byId<T extends HTMLElement>(id: string): T | null {
@@ -65,11 +57,6 @@ function whenConnected(run: () => Promise<void>): Cleanup {
       // 成功失败都刷新：失败（如限流）时这次请求同样消耗/反映了额度
       .finally(renderRateLimit);
   });
-}
-
-function setText(id: string, value: string): void {
-  const target = byId(id);
-  if (target) target.textContent = value;
 }
 
 // ---- 仪表盘 ----

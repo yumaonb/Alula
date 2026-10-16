@@ -292,7 +292,7 @@
     color: var(--ink);
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
+    border-radius: var(--radius);
     padding: 2px 10px;
   }
 
@@ -342,7 +342,7 @@
   .skeleton-tag {
     width: 56px;
     height: 1.4em;
-    border-radius: 20px;
+    border-radius: var(--radius);
   }
   .skeleton-stat {
     width: 36px;
@@ -369,7 +369,7 @@
   }
   .retry-btn {
     padding: 6px 20px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.08);
     color: var(--ink);

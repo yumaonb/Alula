@@ -58,27 +58,16 @@ function stripSafeComments(): AstroIntegration {
     hooks: {
       'astro:build:done': async ({ dir: outDir }) => {
         const root = fileURLToPath(outDir);
-        let removed = 0;
         for (const file of collectHtmlFiles(root)) {
           const before = readFileSync(file, 'utf8');
           const after = stripNonHydrationComments(before);
           if (after !== before) {
             writeFileSync(file, after);
-            removed += countRemoved(before, after);
           }
-        }
-        if (removed > 0) {
-          console.log(`[strip-safe-comments] 已移除 ${removed} 条非水合注释`);
         }
       },
     },
   };
-}
-
-function countRemoved(before: string, after: string): number {
-  const beforeComments = before.match(/<!--([\s\S]*?)-->/g) ?? [];
-  const afterComments = after.match(/<!--([\s\S]*?)-->/g) ?? [];
-  return beforeComments.length - afterComments.length;
 }
 
 /**
@@ -97,23 +86,18 @@ function inlineCss(): AstroIntegration {
     hooks: {
       'astro:build:done': async ({ dir: outDir }) => {
         const root = fileURLToPath(outDir);
-        let inlined = 0;
         for (const file of collectHtmlFiles(root)) {
           const before = readFileSync(file, 'utf8');
           const after = before.replace(
             /<link rel="stylesheet" href="([^"]+\.css)"\s*\/?>/g,
             (_match, href: string) => {
               const css = readFileSync(join(root, href.slice(1)), 'utf8');
-              inlined += 1;
               return `<style>${css}</style>`;
             },
           );
           if (after !== before) {
             writeFileSync(file, after);
           }
-        }
-        if (inlined > 0) {
-          console.log(`[inline-css] 已内联 ${inlined} 份样式表`);
         }
       },
     },

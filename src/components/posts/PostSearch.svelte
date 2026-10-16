@@ -220,28 +220,30 @@
   {#if isOpen}
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div class="post-search-dropdown glass" bind:this={dropdownEl}>
-      {#if isLoading}
-        <div class="psd-empty">搜索中…</div>
-      {:else if errorMsg}
-        <div class="psd-empty">{errorMsg}</div>
-      {:else if results.length === 0}
-        <div class="psd-empty">没有找到与「{kw}」相关的文章</div>
-      {:else}
-        {#each results as result, i}
-          <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-          <a
-            class="psd-item hoverable link-plain"
-            class:psd-item--active={i === activeIndex}
-            href={result.url}
-            data-index={i}
-            onmouseover={() => onItemMouseover(i)}
-            onfocus={() => onItemMouseover(i)}
-          >
-            <span class="psd-item-title">{getTitle(result)}</span>
-            <span class="psd-item-excerpt">{@html result.excerpt}</span>
-          </a>
-        {/each}
-      {/if}
+      <div class="post-search-scroll">
+        {#if isLoading}
+          <div class="psd-empty">搜索中…</div>
+        {:else if errorMsg}
+          <div class="psd-empty">{errorMsg}</div>
+        {:else if results.length === 0}
+          <div class="psd-empty">没有找到与「{kw}」相关的文章</div>
+        {:else}
+          {#each results as result, i}
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <a
+              class="psd-item hoverable link-plain"
+              class:psd-item--active={i === activeIndex}
+              href={result.url}
+              data-index={i}
+              onmouseover={() => onItemMouseover(i)}
+              onfocus={() => onItemMouseover(i)}
+            >
+              <span class="psd-item-title">{getTitle(result)}</span>
+              <span class="psd-item-excerpt">{@html result.excerpt}</span>
+            </a>
+          {/each}
+        {/if}
+      </div>
     </div>
   {/if}
 </div>
@@ -326,8 +328,8 @@
   }
 
   .post-search-clear-icon {
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
   }
 
   .post-search-dropdown {
@@ -339,21 +341,28 @@
     display: flex;
     flex-direction: column;
     max-height: min(520px, 62vh);
+    padding: 8px 2px 8px 6px; /* 上下留空把滚动条顶进容器，右侧靠紧 */
+  }
+
+  .post-search-scroll {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 6px;
   }
 
-  .post-search-dropdown::-webkit-scrollbar {
-    width: 6px;
+  .post-search-scroll::-webkit-scrollbar {
+    width: 4px;
   }
 
-  .post-search-dropdown::-webkit-scrollbar-thumb {
+  .post-search-scroll::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
+    border-radius: 2px;
   }
 
-  .post-search-dropdown::-webkit-scrollbar-track {
+  .post-search-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
 
@@ -363,7 +372,7 @@
     flex-direction: column;
     gap: 4px;
     padding: 10px 12px;
-    border-radius: 10px;
+    border-radius: var(--radius);
     text-decoration: none;
   }
 

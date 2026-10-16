@@ -231,11 +231,11 @@
     gap: 18px;
   }
 
-  :global(.pfilter-modal-body .glass),
-  :global(.pfilter-modal-body .sidebar-filter) {
-    position: static !important;
+  :global(.pfilter-modal .pfilter-modal-body .glass),
+  :global(.pfilter-modal .pfilter-modal-body .sidebar-filter) {
+    position: static;
     max-height: none;
-    top: auto !important;
+    top: auto;
     overflow: visible;
   }
 

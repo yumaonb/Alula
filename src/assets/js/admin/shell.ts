@@ -7,9 +7,9 @@
 // 同一个弹窗按连接状态换内容：未连接是填仓库与令牌的表单，已连接是仓库状态。
 
 import {
-  GitHubError,
   getBranchHead,
   getRateLimit,
+  githubErrorMessage,
   parseRepoInput,
   verifyConnection,
 } from './github';
@@ -30,7 +30,7 @@ export function toast(text: string, kind: 'ok' | 'error' = 'ok'): void {
   el.dataset.timer = String(timer);
 }
 
-function setText(id: string, text: string): void {
+export function setText(id: string, text: string): void {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
 }
@@ -265,14 +265,8 @@ async function submit(): Promise<void> {
     toast(`已连接 ${repoInfo.fullName}`);
     void refreshHead();
   } catch (err) {
-    const message =
-      err instanceof GitHubError
-        ? err.status === 401
-          ? '令牌无效或已过期（401）'
-          : err.status === 404
-            ? '仓库不存在，或令牌没有这个仓库的权限（404）'
-            : err.message
-        : '连接失败，请检查网络';
+    const notFound = '仓库不存在，或令牌没有这个仓库的权限（404）';
+    const message = githubErrorMessage(err, notFound) ?? '连接失败，请检查网络';
     toast(message, 'error');
   } finally {
     setBusy(false);
