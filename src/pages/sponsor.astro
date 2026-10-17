@@ -22,9 +22,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
           <h2 class="hero-name">{sponsorLink.name}</h2>
           <p class="hero-desc">{sponsorLink.desc}</p>
         </div>
-        <div class="hero-arrow">
-          <Icon is:inline name="la:angle-right" />
-        </div>
       </div>
     </a>
 
@@ -98,7 +95,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     position: relative;
     display: flex;
     align-items: center;
-    gap: 20px;
     padding: 28px 24px;
   }
 
@@ -127,21 +123,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   .hero-desc {
     font-size: 0.8rem;
     color: var(--ink);
-  }
-
-  .hero-arrow {
-    flex-shrink: 0;
-    color: var(--ink);
-    transition: color var(--t-hover);
-  }
-
-  .hero-arrow :global(svg) {
-    width: 20px;
-    height: 20px;
-  }
-
-  .hero-card:hover .hero-arrow {
-    color: var(--white);
   }
 
   /* ---- 其他支持方式 ---- */
@@ -289,7 +270,6 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
     .hero-card-inner {
       padding: 22px 18px;
-      gap: 16px;
     }
 
     .hero-name {
