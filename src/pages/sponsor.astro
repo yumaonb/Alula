@@ -146,11 +146,11 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
   /* ---- 其他支持方式 ---- */
   .other-section {
-    margin-top: 14px;
+    margin-top: 12px; /* 12 + .action-card 的 12px = 24px，与「其他方式」字→栅格间距（下方）相等 */
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 24px; /* 「其他方式」字→栅格间距，与字→上方 action-card 间距（上方）相等 */
   }
 
   .other-header {
@@ -329,8 +329,8 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     }
 
     .other-section {
-      margin-top: 6px;
-      gap: 14px;
+      margin-top: 6px; /* 10 + 6 = 16px，与手机端「其他方式」字→栅格间距（下方）相等 */
+      gap: 16px;
     }
   }
 </style>
