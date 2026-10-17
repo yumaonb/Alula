@@ -101,19 +101,15 @@
   min-width: 0;
 }
 
-/* ---- 列表页手机端 ---- */
+/* ---- 列表页手机端 ----
+ * 标题与项目等标准页同一节奏：左对齐（继承 .page-title 的 12px 图标前留空）、
+ * 上间距 16px（行 padding-top 73px，见 global.css）、下间距 16px（标题→搜索，
+ * 同 .page-head 的标题下间距）；桌面端行式页头几何不变 */
 @media (max-width: 768px) {
   .posts-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 20px;
-    padding-top: 12px; /* 导航底(57)→标题(81) = 24px */
-  }
-
-  .posts-header .posts-title {
-    padding-right: 12px; /* 左右留空对称：保留图标前 12px 且居中标题不偏位 */
-    text-align: center;
-    justify-content: center;
+    gap: 16px;
   }
 
   .posts-header-search {
