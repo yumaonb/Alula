@@ -19,7 +19,9 @@
 //    260ms），两带同位交叉渐隐、无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
 //    开文章 = 整页向上（新内容自下方 48px 滑入）、关文章 = 镜像向下（新列表自上方 48px
 //    滑下）——新带槽另做与推入**等距反向**的 counter 位移，屏幕上原地不动——避免新带
-//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。
+//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。推拉只在区内
+//    （旧屏为列表或文章详情）播放；跨区（普通页→列表）直接落位不推入——旧屏无条带、
+//    常驻搜索框无入场相位，整页滑入会标题/列表滑动而搜索框原地不动，割裂。
 // b) 搜索/目录退场配对（用户要求「先退场再入场」）：目录出现/消失的切页里，退出相位
 //    （240ms）走完才播进入相位（320ms）——列表→文章：搜索右移 48px「移一段」渐隐
 //    （退出）→ 目录自屏幕右缘左移渐显（入场）；文章→列表：目录右移移出屏幕渐隐
@@ -488,6 +490,7 @@ import type { AnimationPlaybackControls } from 'motion';
     clearClones();
     edgeClone = null;
     tocClone = null;
+    oldHadSearch = false;
     oldIsPost = false;
     floatCtl.commit(); // 切页已提交：撤销点击退场的恢复定时器
     const r = row();
@@ -524,9 +527,11 @@ import type { AnimationPlaybackControls } from 'motion';
     const hasNewToc = !!newTocEl && getComputedStyle(newTocEl).display !== 'none'; // ≤850px 目录 display:none，不参与
     const newHadSearch = !!newEdge?.querySelector('.posts-header-search');
     const newIsPost = !!main?.querySelector<HTMLElement>('.post-content'); // 新页是文章详情（区分区内/跨区）
-    const opening = oldHadSearch && !newHadSearch; // 列表→文章
-    const closing = !oldHadSearch && newHadSearch; // 文章→列表
-    // 手机端（≤768px）列表↔文章：固定方向整页推拉（开=上 / 关=下）
+    const opening = oldHadSearch && !newHadSearch; // 列表→文章（旧页必为列表系）
+    const closing = !oldHadSearch && newHadSearch && oldIsPost; // 文章→列表（旧页必为文章详情）
+    // 手机端（≤768px）列表↔文章：固定方向整页推拉（开=上 / 关=下）；
+    // opening/closing 均要求旧页在文章区内——跨区（普通页→列表）旧屏无条带可配对、
+    // 常驻搜索框直接 settle 落位，整页滑入会出现内容滑动而搜索框原地不动的割裂
     const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing);
 
     // ---- 搜索/目录相位：退出相位走完才播进入相位（先退场再入场）----
