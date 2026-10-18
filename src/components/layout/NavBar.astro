@@ -128,10 +128,13 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     border-radius: 0;
   }
 
+  /* 与 .page-main 同一宽度公式（全站唯一宽度机制）：最宽 --content-width、视口不足时
+     两侧各空 --page-gutter，左右边缘与页面内容对齐；
+     下限 720px = 导航内容自然宽（logo + 六个导航项约 710px），832px 以下的
+     窄视口按内容宽居中，防止中文链接折行 */
   .nav-inner {
-    max-width: var(--content-width);
+    width: clamp(720px, 100% - var(--page-gutter) * 2, var(--content-width));
     margin: 0 auto;
-    padding: 0 24px;
     height: 68px;
     display: flex;
     align-items: center;
@@ -164,7 +167,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
   .nav-links a {
     display: block;
     padding: 8px 20px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--ink);
     transition: color var(--t-hover);
@@ -383,7 +386,7 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
   @media (max-width: 768px) {
     .nav-inner {
       height: 56px;
-      padding: 0 16px;
+      width: calc(100% - var(--page-gutter-mobile) * 2);
     }
 
     .nav-logo {
