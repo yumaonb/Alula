@@ -54,6 +54,7 @@
     startY = e.clientY;
     startScrollTop = window.scrollY;
     document.body.style.userSelect = 'none';
+    document.body.classList.add('is-dragging-scrollbar');
     thumb.classList.add('active');
     clearTimeout(hideTimer);
   };
@@ -72,6 +73,7 @@
     if (!isDragging) return;
     isDragging = false;
     document.body.style.userSelect = '';
+    document.body.classList.remove('is-dragging-scrollbar');
     thumb.classList.remove('active');
     scheduleHide();
   };
@@ -113,6 +115,8 @@
   thumb.addEventListener('mousedown', onMouseDown);
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('mouseup', onMouseUp);
+  // 在浏览器窗口外松开鼠标时 mouseup 不会派发，靠失焦兜底清理拖拽态
+  window.addEventListener('blur', onMouseUp);
 
   window.addEventListener('scroll', updateScrollbar, { passive: true });
   window.addEventListener('resize', updateScrollbar, { passive: true });

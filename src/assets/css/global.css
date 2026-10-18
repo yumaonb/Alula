@@ -1,4 +1,4 @@
-/* global.css — 全局样式（基础重置 / 布局 / 悬浮按钮 / swup 进度条） */
+/* global.css — 全局样式（基础重置 / 布局 / 悬浮按钮 / swup 进度条 / 滚动条拖拽态） */
 @import './variables.css';
 @import './utilities.css';
 
@@ -349,4 +349,15 @@ body .swup-progress-bar {
  * 图片方案不打包任何 CSS 预设，没人声明它，回退深色与首载 loading 屏衔接。 */
 html {
   background-color: var(--bg-base, #000);
+}
+
+/* ---- 自定义滚动条拖拽态 ----
+ * 滚动条只有 6px 宽，拖动中鼠标一离开滑块，光标就按所在元素退回 pointer / 箭头；
+ * 按住鼠标期间（isDragging）把整页光标固定成 grabbing。
+ * 类由 scrollbar.ts 在 mousedown / mouseup 增删。
+ * :root 前缀把权重抬到 (0,2,1)，压过组件 scoped 样式里的 cursor 规则
+ * （类 + 作用域属性 = (0,2,0)），否则拖过右侧分类树 / 目录时光标会闪回 pointer。 */
+:root body.is-dragging-scrollbar,
+:root body.is-dragging-scrollbar * {
+  cursor: grabbing;
 }
