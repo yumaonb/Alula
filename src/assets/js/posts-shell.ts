@@ -23,12 +23,11 @@
 //    （旧屏为列表或文章详情）播放；跨区（普通页→列表）直接落位不推入——旧屏无条带、
 //    常驻搜索框无入场相位，整页滑入会标题/列表滑动而搜索框原地不动，割裂。
 // b) 搜索/目录退场配对（用户要求「先退场再入场」）：目录出现/消失的切页里，退出相位
-//    （240ms）走完才播进入相位（320ms）——列表→文章：搜索右移 48px「移一段」渐隐
+//    （320ms）走完才播进入相位（320ms）——列表→文章：搜索右移 48px「移一段」渐隐
 //    （退出）→ 目录自屏幕右缘左移渐显（入场）；文章→列表：目录右移移出屏幕渐隐
-//    （退出）→ 搜索自 48px 右偏移左移渐显（入场）。只在电脑端显示目录（≥851px）时
-//    带位移；文章↔文章保持 400ms 并行交叉渐隐。目录的渐显/渐隐与位移解耦：入场渐显
-//    延迟 80ms 起（位移先走）、出场渐隐 140ms 快于位移（先淡净再带走）——位移节奏
-//    参照搜索框移动切换（用户要求：入场渐显延迟一点、出场渐隐更快）。
+//    （退出）→ 搜索自 48px 右偏移左移渐显（入场）。四个动效（搜索/目录 × 出场/退场）
+//    完全统一：同时长（PHASE_MS）、渐显渐隐与位移同步（用户要求四个效果全一样）。
+//    只在电脑端显示目录（≥851px）时带位移；文章↔文章保持 400ms 并行交叉渐隐。
 // c) 手机端（≤768px）列表↔文章：搜索框**点击即退场**（委托 click 监听，不等内容加载）：
 //    上移 + 渐隐（渐隐比位移快，避免与上方标题视觉冲突）；新内容自下方 48px 滑入
 //    （开文章）/ 新列表自上方 48px 滑下（关文章），搜索框自上方偏移落回渐显。
@@ -73,17 +72,13 @@ import type { AnimationPlaybackControls } from 'motion';
 
   const EDGE_MS = 400; // 左缘滑动 / 内容滑动 / 普通渐隐时长
   const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1]; // 平滑进出
-  // 桌面端搜索/目录配对相位：退出短促（加速离场），进入稍长（减速落位）
-  const EXIT_MS = 240;
-  const ENTRY_MS = 320;
+  // 桌面端搜索/目录配对相位：四个动效（搜索/目录 × 出场/退场）完全统一——同时长、
+  // 渐显渐隐与位移同步（用户要求四个效果全一样）；入场减速落位、退场加速离场
+  const PHASE_MS = 320;
   const EASE_EXIT: [number, number, number, number] = [0.4, 0, 1, 1];
   const EASE_ENTRY: [number, number, number, number] = [0, 0, 0.2, 1];
   const SEARCH_DX = 48; // 搜索「移一段」的位移距离
   const TOC_OFFSCREEN_PAD = 40; // 目录移出屏幕的额外余量（整体在视口右缘之外）
-  // 目录的渐显/渐隐与位移解耦（用户要求：入场渐显延迟一点、出场渐隐更快——位移节奏
-  // 参照电脑端搜索框的移动切换：进入 ENTRY_MS/EASE_ENTRY、退出 EXIT_MS/EASE_EXIT）：
-  const TOC_ENTRY_FADE_DELAY = 80; // 目录入场渐显延迟（ms）：位移先起步、渐显后到，与位移同时收尾
-  const TOC_EXIT_FADE_MS = 140; // 目录出场渐隐时长（ms）：快于位移（EXIT_MS），先淡净、位移再带走
   // 手机端（≤768px）：新内容滑动距离 / 搜索框小位移 / 搜索位移与渐隐时长
   // （渐隐比位移快：上移时避免半透明胶囊蹭到上方标题）
   const MOBILE_SLIDE = 48;
@@ -333,8 +328,8 @@ import type { AnimationPlaybackControls } from 'motion';
   }
 
   /** 目录入场动作的构造（相位开始前先钉在屏外/透明，同任务内无绘制间隙、不闪）：
-   *  电脑端自屏幕右缘左移渐显——位移 320ms 与搜索框移动切换同节奏（ENTRY_MS/EASE_ENTRY），
-   *  渐显延迟 80ms 才起（用户要求入场渐显延迟一点）、与位移同时收尾；其他只渐显（400ms）。
+   *  电脑端自屏幕右缘左移渐显——位移与渐显同步（PHASE_MS/EASE_ENTRY），与搜索框
+   *  移动切换同节奏；其他只渐显（400ms）。
    *  用于「旧界面没有目录、新界面出现」的进入相位（列表→文章，退出相位由搜索承担；
    *  有旧目录克隆的切页走退场相位或并行交叉渐隐，不经这里） */
   function makeTocEntry(newToc: HTMLElement): () => void {
@@ -343,8 +338,20 @@ import type { AnimationPlaybackControls } from 'motion';
       newToc.style.transform = `translateX(${dx}px)`;
       newToc.style.opacity = '0';
       return () => {
-        const move = track(animate(newToc, { x: [`${dx}px`, 0] }, { duration: ENTRY_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
-        const fade = track(animate(newToc, { opacity: [0, 1] }, { duration: (ENTRY_MS - TOC_ENTRY_FADE_DELAY) / 1000, delay: TOC_ENTRY_FADE_DELAY / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+        const move = track(
+          animate(
+            newToc,
+            { x: [`${dx}px`, 0] },
+            { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION },
+          ),
+        );
+        const fade = track(
+          animate(
+            newToc,
+            { opacity: [0, 1] },
+            { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION },
+          ),
+        );
         const cleanup = () => {
           newToc.style.transform = '';
           newToc.style.opacity = '';
@@ -430,7 +437,7 @@ import type { AnimationPlaybackControls } from 'motion';
       this.settle(true); // 清掉任何残留内联（幂等起点）
       this.state = 'exiting';
       f.style.visibility = 'visible'; // 变体类已先隐藏容器——退出窗口内强制可见
-      const opts = { duration: EXIT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION };
+      const opts = { duration: PHASE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION };
       const move = withX ? trackFloat(animate(f, { x: [0, `${SEARCH_DX}px`] }, opts)) : null;
       const fade = trackFloat(animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, opts));
       this.active = move ?? fade; // 相位链到整体退场（位移与渐隐同时长，链谁等效）
@@ -468,7 +475,7 @@ import type { AnimationPlaybackControls } from 'motion';
       if (!f || this.state !== 'hidden') return;
       this.settle(false); // 清掉任何残留内联（幂等起点）
       this.state = 'entering';
-      const opts = { duration: ENTRY_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION };
+      const opts = { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION };
       // 相位开始前先钉住（同任务内无绘制间隙，不闪）
       if (withX) f.style.transform = `translateX(${SEARCH_DX}px)`;
       f.style.opacity = '0';
@@ -557,17 +564,33 @@ import type { AnimationPlaybackControls } from 'motion';
     } else if (tocClone) {
       const crossfade = hasNewToc; // 文章↔文章：两侧都有目录 → 并行交叉渐隐（不参与相位，见下）
       if (!crossfade) {
-        // 目录退场：电脑端右移移出屏渐隐——位移 240ms 与搜索框移动切换同节奏
-        // （EXIT_MS/EASE_EXIT），渐隐 140ms 快于位移（用户要求出场渐隐更快）；其他只渐隐
+        // 目录退场：电脑端右移移出屏渐隐——位移与渐隐同步（PHASE_MS/EASE_EXIT），
+        // 与搜索框移动切换同节奏；其他只渐隐
         exitAction = () => {
           const el = tocClone as HTMLElement;
           const slide = tocSlideGate();
           const dx = slide ? tocOffscreenDx(el) : 0;
           const move = slide
-            ? track(animate(el, { x: [0, `${dx}px`] }, { duration: EXIT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }))
+            ? track(
+                animate(
+                  el,
+                  { x: [0, `${dx}px`] },
+                  { duration: PHASE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION },
+                ),
+              )
             : null;
-          const fade = track(animate(el, { opacity: [1, 0] }, { duration: (slide ? TOC_EXIT_FADE_MS : EDGE_MS) / 1000, ease: slide ? EASE_EXIT : EASE, reduceMotion: REDUCE_MOTION }));
-          const last = move ?? fade; // 相位链等位移走完（位移比渐隐长）；无位移时等渐隐
+          const fade = track(
+            animate(
+              el,
+              { opacity: [1, 0] },
+              {
+                duration: (slide ? PHASE_MS : EDGE_MS) / 1000,
+                ease: slide ? EASE_EXIT : EASE,
+                reduceMotion: REDUCE_MOTION,
+              },
+            ),
+          );
+          const last = move ?? fade; // 相位链：有位移时位移与渐隐同时长、等它走完；无位移时等渐隐
           last.finished
             .then(() => {
               el.remove();
