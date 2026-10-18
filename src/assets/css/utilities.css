@@ -97,14 +97,14 @@
 }
 
 /* ---- 页面标题（项目 / 友链 / 赞助 / 文章列表共用） ----
- * 各界面统一的入口标题：左图标 + 文字，字号 / 颜色 / 图标前留空全站一份。
- * - .page-title：标题本体（flex 行，图标前 12px 留空，白字 + 阴影）
+ * 各界面统一的入口标题：左图标 + 文字，字号 / 颜色全站一份。
+ * - .page-title：标题本体（flex 行，白字 + 阴影）
  * - .page-title-icon：前置图标，1em 随标题字号自动缩放
  * - .page-head：独立页的页头包裹层，供标题下方 16px 间距；文章区页头是
  *   36px 左缘条，不用 .page-head，上下间距仍由 posts-listing.css 管
  * - .page-top-standard：页面最外层元素，标题距导航底 16px（桌面导航底
  *   69 + 16 = 85；手机导航底 57 + 16 = 73，两端相等）
- * 文章列表的 h1 同时挂 .posts-title page-title：字号 / 颜色 / 图标 / 12px 留空
+ * 文章列表的 h1 同时挂 .posts-title page-title：字号 / 颜色 / 图标
  * 继承自这里，36px 条几何由 posts-listing.css 的 .posts-title 覆写保证（line-height 1）。 */
 .page-head {
   width: 100%;
@@ -118,7 +118,6 @@
 .page-title {
   display: flex;
   align-items: center;
-  padding-left: 12px; /* 图标前留一点呼吸空间 */
   font-size: 1.6rem;
   color: var(--white);
   text-shadow: var(--shadow);

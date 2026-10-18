@@ -28,8 +28,8 @@
 }
 
 /* 文章区页头是 36px 左缘条：line-height 1 把标题压到与面包屑条同高
-   （两种左缘元素等高，切页滑动才无跳变）；flex 行 / 白字阴影 / 图标 /
-   图标前 12px 留空继承全站 .page-title（utilities.css） */
+   （两种左缘元素等高，切页滑动才无跳变）；flex 行 / 白字阴影 / 图标
+   继承全站 .page-title（utilities.css） */
 .posts-title {
   flex-wrap: wrap;
   line-height: 1;
@@ -102,9 +102,9 @@
 }
 
 /* ---- 列表页手机端 ----
- * 标题与项目等标准页同一节奏：左对齐（继承 .page-title 的 12px 图标前留空）、
- * 上间距 16px（行 padding-top 73px，见 global.css）、下间距 16px（标题→搜索，
- * 同 .page-head 的标题下间距）；桌面端行式页头几何不变 */
+ * 标题与项目等标准页同一节奏：左对齐、上间距 16px（行 padding-top 73px，
+ * 见 global.css）、下间距 16px（标题→搜索，同 .page-head 的标题下间距）；
+ * 桌面端行式页头几何不变 */
 @media (max-width: 768px) {
   .posts-header {
     flex-direction: column;
