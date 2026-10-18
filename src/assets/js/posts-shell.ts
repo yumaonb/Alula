@@ -55,6 +55,10 @@
 // e) 搜索框行级常驻：永不被 swup 重建（节点不被摘出/重插，backdrop 层与投影不重建，
 //    切页零闪）。CSS 不写 opacity 过渡（与 motion 关键帧抢写同一属性），只负责
 //    visibility/pointer-events 随行变体类瞬时翻转；opacity/位移/白纱全由本文件驱动。
+// f) 首屏早期点击：实例未就绪时点区内链接（swup 委托未挂载，原生 = 整页跳转，
+//    落地首屏不播转场）——拦截点击、等实例就绪后 navigate() 转正常切页、转场照常播，
+//    超时回退原生跳转（onEarlyClick）。实例赋值前 window.swup 会被 DOM id 回退解析成
+//    <main id="swup"> 元素，就绪判定必须走 realSwup() 特征甄别。
 //
 // category-tree 脚本守卫：从非文章页 swup 进文章区时，壳里脚本不在首屏 HTML，
 // 这里按需懒加载（模块单例，加载后自身的 document 委托与 after-swap 监听长期存活）。
@@ -492,6 +496,7 @@ import type { AnimationPlaybackControls } from 'motion';
     tocClone = null;
     oldHadSearch = false;
     oldIsPost = false;
+    pendingEarlyNav = null; // 切页已提交：早期点击等待结束
     floatCtl.commit(); // 切页已提交：撤销点击退场的恢复定时器
     const r = row();
     if (!r) return;
@@ -667,6 +672,19 @@ import type { AnimationPlaybackControls } from 'motion';
 
   // ================= 6. 事件与初始化 =================
 
+  // window.swup 在实例赋值前会被 DOM id 回退解析成 <main id="swup"> 元素（truthy），
+  // !!window.swup 判不出就绪，必须按实例自身特征甄别
+  interface SwupLike {
+    hooks: { on: (name: string, handler: () => void) => void };
+    navigate: (url: string) => void;
+  }
+  function realSwup(): SwupLike | null {
+    const s = (window as Window & { swup?: unknown }).swup;
+    if (!s || typeof s !== 'object') return null;
+    const sw = s as Partial<SwupLike>;
+    return sw.hooks && typeof sw.navigate === 'function' ? (s as SwupLike) : null;
+  }
+
   // swup 实例钩子：区分「真实导航在途」与「swup 忽略了这次点击」。
   // @swup/astro 只在 document 上桥接 astro:before-swap / after-swap / page-load 三个事件，
   // 覆盖不了这两个状态，所以用 astro.config.ts globalInstance: true 暴露的 window.swup
@@ -676,10 +694,16 @@ import type { AnimationPlaybackControls } from 'motion';
   // 「初次切到文章搜索框渐显」）；fetch 失败（404 / 中断）时在失败回调里恢复。
   let navInFlight = false;
   let swupHooksBound = false;
+  // 首屏实例未就绪时点区内链接：拦截原生全页跳转，等实例就绪后 navigate() 转正场，
+  // 超时回退原生跳转（保持 pending 到 before-swap，覆盖 fetch 在途的恢复定时器窗口）
+  let pendingEarlyNav: { url: string; timer: number } | null = null;
+  // 实例在 load+idle 才创建：慢网/冷缓存下 load 可超 5s（首载场景），时限要覆盖它
+  const EARLY_NAV_TIMEOUT_MS = 10000;
+
   function bindSwupHooks(): void {
     if (swupHooksBound) return;
-    const swup = (window as Window & { swup?: { hooks: { on: (name: string, handler: () => void) => void } } }).swup;
-    if (!swup) return;
+    const swup = realSwup();
+    if (!swup) return; // 实例未就绪（取到的是 <main> 元素回退）——不打污染标记，下次点击再绑
     swupHooksBound = true;
     swup.hooks.on('visit:start', () => {
       navInFlight = true;
@@ -689,12 +713,60 @@ import type { AnimationPlaybackControls } from 'motion';
     });
     const restoreAfterFail = () => {
       navInFlight = false;
+      pendingEarlyNav = null; // 导航已失败：早期等待随之作废，走原生兜底结果
       // 只在「仍停在列表系界面」时恢复——失败后内容未换，若此刻在详情页，
       // 搜索不该出现
-      if (floatCtl.state !== 'shown' && row()?.classList.contains('page-main--listing')) floatCtl.settle(true);
+      if (floatCtl.state !== 'shown' && row()?.classList.contains('page-main--listing'))
+        floatCtl.settle(true);
     };
     swup.hooks.on('fetch:error', restoreAfterFail);
     swup.hooks.on('visit:abort', restoreAfterFail);
+  }
+
+  /** 首屏实例未就绪时点区内链接：swup 点击委托还没挂载，原生跳转 = 整页加载，
+   *  落地首屏不播转场（用户所见「首次访问没预加载好就点卡片、动效不播」）。
+   *  拦截点击、等实例就绪后 navigate() 转成正常切页——转场照常播；
+   *  超时回退原生跳转（整页加载，与现状一致）。跨区目的地本就无转场，不拦截 */
+  function onEarlyClick(e: MouseEvent): void {
+    if (REDUCE_MOTION || realSwup()) return; // 实例已就绪：swup 自己的委托接管
+    const t = e.target;
+    if (!(t instanceof Element)) return;
+    const a = t.closest('a[href]');
+    if (!(a instanceof HTMLAnchorElement)) return;
+    const href = a.getAttribute('href') ?? '';
+    if (!href.startsWith('/posts/') || a.target === '_blank') return;
+    if (a.hasAttribute('data-no-swup') || t.closest('[data-no-swup]')) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const r = row();
+    if (
+      !r ||
+      (!r.classList.contains('page-main--listing') && !r.classList.contains('page-main--post'))
+    )
+      return;
+    if (href.replace(/\/+$/, '') === location.pathname.replace(/\/+$/, '')) return; // 同页
+    e.preventDefault();
+    if (pendingEarlyNav) window.clearTimeout(pendingEarlyNav.timer);
+    const started = Date.now();
+    const poll = (): void => {
+      const s = realSwup();
+      if (s) {
+        // 保持 pendingEarlyNav 到 captureOld（before-swap）：fetch 在途期间压制搜索恢复定时器
+        try {
+          s.navigate(href);
+        } catch {
+          pendingEarlyNav = null;
+          location.assign(href);
+        }
+        return;
+      }
+      if (Date.now() - started > EARLY_NAV_TIMEOUT_MS) {
+        pendingEarlyNav = null;
+        location.assign(href);
+        return;
+      }
+      pendingEarlyNav = { url: href, timer: window.setTimeout(poll, 100) };
+    };
+    pendingEarlyNav = { url: href, timer: window.setTimeout(poll, 100) };
   }
 
   /** 手机端列表页出发：/posts/ 内导航点击即退场（用户要求——不等内容加载）；
@@ -728,7 +800,13 @@ import type { AnimationPlaybackControls } from 'motion';
       // 时不动——dev 首次 fetch 常超 1.2s，提前恢复 = 搜索框中途弹回；
       // 导航真没发生（swup 忽略 / fetch 失败未回调）就钉回——退场可能早已播完
       //（state 已是 'hidden'），只查 'exiting' 会让搜索框永远消失
-      if (floatCtl.state !== 'shown' && !navInFlight && row()?.classList.contains('page-main--listing')) floatCtl.settle(true);
+      if (
+        floatCtl.state !== 'shown' &&
+        !navInFlight &&
+        !pendingEarlyNav &&
+        row()?.classList.contains('page-main--listing')
+      )
+        floatCtl.settle(true);
     }, FLOAT_RESTORE_MS);
   }
 
@@ -764,6 +842,7 @@ import type { AnimationPlaybackControls } from 'motion';
   }
 
   // astro:* 事件由 @swup/astro 在 document 上派发且不冒泡（new Event 默认 bubbles:false），必须监听 document
+  document.addEventListener('click', onEarlyClick);
   document.addEventListener('click', onDocClick);
   document.addEventListener('astro:before-swap', captureOld);
   document.addEventListener('astro:after-swap', () => onReady(true));
