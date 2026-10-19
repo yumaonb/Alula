@@ -51,9 +51,12 @@
 //    ② 上一轮的克隆/舞台清理必须**查 DOM** 而不是读模块变量——finished 回调在动画结束才跑，
 //    变量可能已为 null，读变量清理是 no-op，旧标题克隆会残留到 5s 兜底（用户看到的
 //    「快速切换时旧残留，过一会儿才消失」），条带克隆与目录克隆都带标记类供查 DOM 清除；
-//    ③ 搜索浮层的在途相位（exiting/entering）要与本轮目的地核对——退场未完就切回列表时
-//    state 卡在 exiting，入场 gate（state==='hidden'）不成立、目录动作又占着相位链，
-//    settle 兜底跑不到，搜索框会永久停在 opacity 0（playTransition 开头收口）。
+//    ③ 搜索浮层的在途相位（exiting/entering）要与本轮目的地核对，冲突时从飞行中
+//    位置改向到目的地静止态（playTransition 开头收口，floatCtl.redirect）：退场未完就
+//    切回列表 → 自当前位置归位；入场未完就切进文章 → 自当前位置继续离场、补完退场——
+//    与目录克隆的中断处理同范式（停下、再走完整动效），不静默掐断硬切；否则 state
+//    卡在 exiting/entering，入场 gate（state==='hidden'）不成立、目录动作又占着相位链，
+//    settle 兜底跑不到，搜索框会永久停在 opacity 0
 // e) 搜索框行级常驻：永不被 swup 重建（节点不被摘出/重插，backdrop 层与投影不重建，
 //    切页零闪）。CSS 不写 opacity 过渡（与 motion 关键帧抢写同一属性），只负责
 //    visibility/pointer-events 随行变体类瞬时翻转；opacity/位移/白纱全由本文件驱动。
@@ -493,7 +496,75 @@ import type { AnimationPlaybackControls } from 'motion';
       fade.finished.then(() => this.finish(true, f)).catch(() => {});
     },
 
+    /** 快速连切：在途相位（退场/入场）被新一轮切页打断时，不静默掐断硬切——
+     *  从飞行中位置改向到本轮目的地的静止态（与目录克隆的中断处理同范式：停下、
+     *  再走完整动效）：退场未完就切回列表 → 自当前位置归位（「停下再回去」）；
+     *  入场未完就切进文章 → 自当前位置继续离场，补完退场动画。
+     *  motion 从飞行中位置重新起过渡（与 nav-indicator 快速连点改向同范式），
+     *  时长按剩余位移/剩余渐隐占全程的比例折算（25%–100%） */
+    redirect(show: boolean): AnimationPlaybackControls | null {
+      const f = this.el();
+      if (!f || (this.state !== 'exiting' && this.state !== 'entering')) return this.active;
+      stopFloatAnims(); // cancel 不清内联：最后一帧位姿停在 style 里，读出来做起点
+      const { dx, dy, op } = readFloatPose(f);
+      const mobile = isMobile();
+      const tx = show ? 0 : mobile ? 0 : SEARCH_DX;
+      const ty = show ? 0 : mobile ? -FLOAT_MOVE : 0;
+      // 剩余量：主轴位移余量与透明度余量取大，夹在 25%–100% 全程之间
+      const axisLeft = show
+        ? mobile
+          ? Math.abs(dy)
+          : Math.abs(dx)
+        : mobile
+          ? Math.abs(-FLOAT_MOVE - dy)
+          : Math.abs(SEARCH_DX - dx);
+      const full = mobile ? FLOAT_MOVE : SEARCH_DX;
+      const opLeft = show ? 1 - op : op;
+      const frac = Math.min(1, Math.max(0.25, Math.max(axisLeft / full, opLeft)));
+      // 手机端归位与 enterMobile 同样延迟：等整页推下把栅格顶移过胶囊底边再落回，可见帧不叠卡片
+      const delay = mobile && show ? FLOAT_ENTRY_DELAY_MS / 1000 : 0;
+      const a = trackFloat(
+        animate(
+          f,
+          {
+            x: [`${dx}px`, `${tx}px`],
+            y: [`${dy}px`, `${ty}px`],
+            opacity: [op, show ? 1 : 0],
+            backgroundColor: [f.style.backgroundColor || BG0, show ? BG0 : VEIL],
+          },
+          {
+            duration: (PHASE_MS * frac) / 1000,
+            delay,
+            ease: show ? EASE_ENTRY : EASE_EXIT,
+            reduceMotion: REDUCE_MOTION,
+          },
+        ),
+      );
+      this.state = show ? 'entering' : 'exiting';
+      this.active = a;
+      a.finished.then(() => this.finish(show, f)).catch(() => {});
+      return a;
+    },
+
   };
+
+  /** 读浮层当前内联位姿：motion 的 cancel 不清内联，最后一帧值留在 style 里
+   *  （matrix 第 5/6 分量 = translateX/translateY；opacity 未写时按 1） */
+  function readFloatPose(f: HTMLElement): { dx: number; dy: number; op: number } {
+    let dx = 0;
+    let dy = 0;
+    const t = f.style.transform;
+    if (t && t !== 'none') {
+      const m = /matrix\(([^)]+)\)/.exec(t);
+      if (m) {
+        const p = m[1].split(',');
+        dx = parseFloat(p[4]) || 0;
+        dy = parseFloat(p[5]) || 0;
+      }
+    }
+    const o = parseFloat(f.style.opacity);
+    return { dx, dy, op: Number.isFinite(o) ? o : 1 };
+  }
 
   // ================= 5. 转场编排 =================
   let edgeClone: HTMLElement | null = null;
@@ -552,14 +623,14 @@ import type { AnimationPlaybackControls } from 'motion';
     // 常驻搜索框直接 settle 落位，整页滑入会出现内容滑动而搜索框原地不动的割裂
     const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing);
 
-    // 快速连切收口：浮层带着上一轮的在途相位时，与本轮目的地冲突就先掐断钉回隐藏态——
-    // 退场未完就切回列表：state 卡在 exiting 会让入场 gate（state==='hidden'）不成立，
-    // 目录退场动作又占着相位链使 settle 兜底跑不到，旧退场播完后搜索框就永久停在
-    // opacity 0（快速「开文章→回列表」后列表页搜索框消失）；
-    // 入场未完就切进文章：掐断空跑（行已翻 --post，CSS 已隐藏浮层，无视觉跳变），
-    // 回列表时重新走完整入场而不是直接弹出
-    if (floatCtl.state === 'exiting' && newHadSearch) floatCtl.settle(false);
-    if (floatCtl.state === 'entering' && !newHadSearch) floatCtl.settle(false);
+    // 快速连切收口：浮层带着上一轮的在途相位、与本轮目的地冲突时，不静默掐断硬切
+    // （用户所见「点快了搜索框没有退场动画」）——从飞行中位置改向到本轮目的地的
+    // 静止态（与目录克隆的中断处理同范式：停下、再走完整动效）：退场未完就切回列表 →
+    // 自当前位置归位（「停下再回去」）；入场未完就切进文章 → 自当前位置继续离场、
+    // 补完退场动画。否则 state 卡在 exiting/entering，入场 gate（state==='hidden'）
+    // 不成立、目录动作又占着相位链，settle 兜底跑不到，搜索框会永久停在 opacity 0
+    if (floatCtl.state === 'exiting' && newHadSearch) floatCtl.redirect(true);
+    if (floatCtl.state === 'entering' && !newHadSearch) floatCtl.redirect(false);
 
     // ---- 搜索/目录相位：退出相位走完才播进入相位（先退场再入场）----
     let exitAction: (() => AnimationPlaybackControls | null) | null = null;
@@ -622,9 +693,16 @@ import type { AnimationPlaybackControls } from 'motion';
     // 搜索退场/入场：只在文章区内（列表↔详情）配对播放；
     // 跨区（列表↔普通页）不设动作——走下方 settle 直接消失/出现（用户指定：切到其他界面不渐隐、切到文章界面不渐显）
     if (!mobilePush) {
-      if (oldHadSearch && !newHadSearch && floatCtl.state === 'shown' && newIsPost) {
+      if (
+        oldHadSearch &&
+        !newHadSearch &&
+        newIsPost &&
+        (floatCtl.state === 'shown' || floatCtl.state === 'exiting')
+      ) {
         const withX = tocSlideGate() && hasNewToc; // 与新目录入场配对时才右移
-        exitAction = () => floatCtl.exitDesktop(withX);
+        // 在途退场（redirect 改向「进文章」而来）：相位链等它播完再播目录入场（先退场再入场）
+        exitAction = () =>
+          floatCtl.state === 'exiting' ? floatCtl.active : floatCtl.exitDesktop(withX);
       } else if (newHadSearch && !oldHadSearch && floatCtl.state === 'hidden' && oldIsPost) {
         const withX = tocSlideGate() && !!tocClone; // 与旧目录退场配对时才自右移入
         entryAction = () => floatCtl.enterDesktop(withX);
@@ -639,8 +717,11 @@ import type { AnimationPlaybackControls } from 'motion';
     } else {
       entryAction?.();
     }
-    // 本轮无搜索退场/入场（列表↔列表互切、首屏、**跨区边界**——区内才做淡变）：钉回目标态，零闪
-    if (!exitAction && !entryAction) floatCtl.settle(newHadSearch);
+    // 本轮无搜索退场/入场（列表↔列表互切、首屏、**跨区边界**——区内才做淡变）：钉回目标态，零闪；
+    // 浮层在途（redirect 改向中）不碰——它自己会收尾到目标态
+    if (!exitAction && !entryAction && (floatCtl.state === 'shown' || floatCtl.state === 'hidden')) {
+      floatCtl.settle(newHadSearch);
+    }
 
     // ---- 左缘条带切换（列表页头 ↔ 文章面包屑条）：全部走「模糊变过去」----
     // 旧带原地模糊渐隐、新带原地模糊渐显，无位移（用户指定：电脑端也用模糊；手机端
