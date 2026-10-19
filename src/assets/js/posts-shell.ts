@@ -27,7 +27,13 @@
 //    （退出）→ 目录自屏幕右缘左移渐显（入场）；文章→列表：目录右移移出屏幕渐隐
 //    （退出）→ 搜索自 48px 右偏移左移渐显（入场）。四个动效（搜索/目录 × 出场/退场）
 //    完全统一：同时长（PHASE_MS）、渐显渐隐与位移同步（用户要求四个效果全一样）。
-//    只在电脑端显示目录（≥851px）时带位移；文章↔文章保持 400ms 并行交叉渐隐。
+//    只在电脑端显示目录（≥851px）时带位移。文章↔文章（两侧都有目录）：旧目录克隆
+//    先钉到它当前的**视口**位置（position: fixed，脱离文档坐标）再右移移出屏幕渐隐，
+//    新目录先钉不可见、等它落到 sticky 钉住位（top 到达 82px）才自屏幕右缘左移渐显
+//    ——切页后 SwupScrollPlugin 平滑滚回顶部（时长按距离，长文可达 ~2s），挂在文档坐标
+//    的克隆/元素会被滚动「带走」（退场原地渐隐读起来是「目录向右下漂移」、新目录带着
+//    淡入从视口上方「掉下来」），钉视口/等落位后出入场都是纯水平平移，与滚顶解耦、
+//    滚顶逻辑不动。等待期间新目录恒在视口上方（本就不可见），不露空位。
 // c) 手机端（≤768px）列表↔文章：搜索框**点击即退场**（委托 click 监听，不等内容加载）：
 //    上移 + 渐隐（渐隐比位移快，避免与上方标题视觉冲突）；新内容自下方 48px 滑入
 //    （开文章）/ 新列表自上方 48px 滑下（关文章），搜索框自上方偏移落回渐显。
@@ -60,7 +66,9 @@
 //    keyframes[0] 进内联），cancel 后读内联拿到的是首关键帧不是在途值（读早了会
 //    「退场动画直接消失」）；与 nav-indicator 快速连点改向同范式。否则 state 卡在
 //    exiting/entering，入场 gate（state==='hidden'）不成立、目录动作又占着相位链，
-//    settle 兜底跑不到，搜索框会永久停在 opacity 0
+//    settle 兜底跑不到，搜索框会永久停在 opacity 0；
+//    ④ 文章↔文章新目录入场的落位等待（rAF + 超时双退出条件）也在 captureOld 清掉——
+//    等的那个元素会随旧内容被换走，不清就追一个不存在的节点空转
 // e) 搜索框行级常驻：永不被 swup 重建（节点不被摘出/重插，backdrop 层与投影不重建，
 //    切页零闪）。CSS 不写 opacity 过渡（与 motion 关键帧抢写同一属性），只负责
 //    visibility/pointer-events 随行变体类瞬时翻转；opacity/位移/白纱全由本文件驱动。
@@ -111,6 +119,9 @@ import type { AnimationPlaybackControls } from 'motion';
   const STRIP_BLUR_PX = 4; // 模糊峰值（px）
   // 点击触发的搜索退场：若 1.2s 内切页未提交（swup 忽略 / 目标失效），恢复搜索框
   const FLOAT_RESTORE_MS = 1200;
+  // 文章↔文章新目录入场的「落位等待」上限：滚顶被用户滚动打断/异常停住时不能永久
+  // 藏目录，超时直接播（此时目录若在视口上方，滑入不可见、无副作用）
+  const TOC_SETTLE_TIMEOUT_MS = 2500;
 
   const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
@@ -378,6 +389,37 @@ import type { AnimationPlaybackControls } from 'motion';
     };
   }
 
+  /** 文章↔文章的新目录入场：落位等待 + 标准右缘滑入。
+   *  滚回顶部过程中新目录在视口上方（或正从上方落下）——makeTocEntry 构造时已把它
+   *  钉到屏外右侧 + 透明（等待期不可见，也不露空位：等待期它本来就在视口上方）。
+   *  等它落到 sticky 钉住位再播滑入：落位后视口位置静止（钉在 82px），入场才是纯
+   *  水平平移。落位判定用 scrollY（免逐帧布局读取）：目录文档坐标 yToc 实测一次，
+   *  滚到 scrollY ≤ yToc - 82 即到达钉住位（目录视口 top 恒 ≤ 82px，越过即终态）；
+   *  已在钉住位（短文 / 页面本就在顶部）则下一帧立即播。超时兜底：滚顶被用户滚动
+   *  打断/异常停住时不能永久藏目录——超时直接播（目录若在视口上方，滑入不可见）。
+   *  退出条件：落位或超时触发入场；captureOld（新一轮切页）清 rAF 与定时器 */
+  function startTocEntryWait(newToc: HTMLElement): void {
+    cancelTocEntryWait();
+    const yToc = newToc.getBoundingClientRect().top + window.scrollY;
+    const play = makeTocEntry(newToc);
+    const begin = (): void => {
+      tocEntryWait = null;
+      play();
+    };
+    const timerId = window.setTimeout(begin, TOC_SETTLE_TIMEOUT_MS);
+    const check = (): void => {
+      if (!tocEntryWait) return; // 已被 captureOld 清掉
+      if (window.scrollY <= yToc - 82) {
+        window.clearTimeout(timerId);
+        begin();
+        return;
+      }
+      tocEntryWait.rafId = window.requestAnimationFrame(check);
+    };
+    tocEntryWait = { rafId: 0, timerId };
+    tocEntryWait.rafId = window.requestAnimationFrame(check);
+  }
+
   // ================= 4. 搜索浮层控制（行级常驻单节点） =================
   // CSS 只管 visibility/pointer-events（随变体类瞬时翻转）+ 端点 opacity: 0；
   // opacity / 位移 / 白纱全在这里。白纱规则：**淡出与淡入都用**（容器背景 透明 ↔ VEIL）——
@@ -586,6 +628,15 @@ import type { AnimationPlaybackControls } from 'motion';
   let tocClone: HTMLElement | null = null;
   let oldHadSearch = false; // 旧页是列表系界面（搜索正在显示）——captureOld 时记录
   let oldIsPost = false; // 旧页是文章详情（面包屑条）——区分「区内」与「跨区」搜索处理
+  // 文章↔文章新目录入场的落位等待（rAF + 超时，双退出条件；captureOld 清）
+  let tocEntryWait: { rafId: number; timerId: number } | null = null;
+
+  function cancelTocEntryWait(): void {
+    if (!tocEntryWait) return;
+    window.cancelAnimationFrame(tocEntryWait.rafId);
+    window.clearTimeout(tocEntryWait.timerId);
+    tocEntryWait = null;
+  }
 
   /** 替换前调用（astro:before-swap，content:replace 前一刻）：清场 + 克隆静止暂存 */
   function captureOld(): void {
@@ -597,6 +648,7 @@ import type { AnimationPlaybackControls } from 'motion';
     oldIsPost = false;
     pendingEarlyNav = null; // 切页已提交：早期点击等待结束
     floatCtl.commit(); // 切页已提交：撤销点击退场的恢复定时器
+    cancelTocEntryWait(); // 上一轮文章↔文章新目录的落位等待作废（元素即将被换走）
     const r = row();
     if (!r) return;
     const main = r.querySelector<HTMLElement>('main#swup');
@@ -795,17 +847,38 @@ import type { AnimationPlaybackControls } from 'motion';
       }
     }
 
-    // ---- 目录交叉渐隐（文章↔文章，两侧都有目录）：并行、无位移、不参与相位 ----
+    // ---- 目录出入场（文章↔文章，两侧都有目录）：不参与相位，与滚顶解耦 ----
+    // 切页后 SwupScrollPlugin 平滑滚回顶部（时长按距离，长文可达 ~2s），旧目录克隆
+    // 绝对定位挂在行内（文档坐标）——原地渐隐会被滚顶「带走」：视口 top 从 181px
+    // 一路漂出屏幕（用户所见「目录退场向右下方移动」）。先把克隆钉到它当前的视口
+    // 位置（position: fixed，行及其祖先无 transform，fixed 即视口坐标），脱离页面
+    // 滚动，再右移移出屏幕渐隐（PHASE_MS/EASE_EXIT，与文章→列表目录退场同节奏）
+    // ——退场是纯水平平移、滚顶照常播；新目录钉不可见，落到 sticky 钉住位才自右缘
+    // 滑入（startTocEntryWait），入场同样是纯平移
     if (tocClone && hasNewToc) {
       const fadeEl = tocClone;
-      const fade = track(animate(fadeEl, { opacity: [1, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
-      fade.finished
+      const rect = fadeEl.getBoundingClientRect();
+      fadeEl.style.position = 'fixed';
+      fadeEl.style.top = `${rect.top}px`;
+      fadeEl.style.left = `${rect.left}px`;
+      const slide = tocSlideGate();
+      const dx = slide ? tocOffscreenDx(fadeEl) : 0;
+      const opts = {
+        duration: (slide ? PHASE_MS : EDGE_MS) / 1000,
+        ease: slide ? EASE_EXIT : EASE,
+        reduceMotion: REDUCE_MOTION,
+      };
+      const move = slide ? track(animate(fadeEl, { x: [0, `${dx}px`] }, opts)) : null;
+      const fade = track(animate(fadeEl, { opacity: [1, 0] }, opts));
+      const last = move ?? fade; // 有位移时位移与渐隐同时长、等它走完；无位移（减动效）等渐隐
+      last.finished
         .then(() => {
           fadeEl.remove();
           tocClone = null;
         })
         .catch(() => {});
-      track(animate(newTocEl as HTMLElement, { opacity: [0, 1] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
+      (newTocEl as HTMLElement).style.opacity = '0';
+      startTocEntryWait(newTocEl as HTMLElement);
     }
   }
 
