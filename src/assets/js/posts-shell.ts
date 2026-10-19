@@ -50,7 +50,10 @@
 //    动画残留内联 transform/opacity（cancel 不清内联样式），克隆前必须清零再量盒；
 //    ② 上一轮的克隆/舞台清理必须**查 DOM** 而不是读模块变量——finished 回调在动画结束才跑，
 //    变量可能已为 null，读变量清理是 no-op，旧标题克隆会残留到 5s 兜底（用户看到的
-//    「快速切换时旧残留，过一会儿才消失」）。
+//    「快速切换时旧残留，过一会儿才消失」），条带克隆与目录克隆都带标记类供查 DOM 清除；
+//    ③ 搜索浮层的在途相位（exiting/entering）要与本轮目的地核对——退场未完就切回列表时
+//    state 卡在 exiting，入场 gate（state==='hidden'）不成立、目录动作又占着相位链，
+//    settle 兜底跑不到，搜索框会永久停在 opacity 0（playTransition 开头收口）。
 // e) 搜索框行级常驻：永不被 swup 重建（节点不被摘出/重插，backdrop 层与投影不重建，
 //    切页零闪）。CSS 不写 opacity 过渡（与 motion 关键帧抢写同一属性），只负责
 //    visibility/pointer-events 随行变体类瞬时翻转；opacity/位移/白纱全由本文件驱动。
@@ -320,7 +323,9 @@ import type { AnimationPlaybackControls } from 'motion';
 
   /** 查 DOM 清掉所有残留克隆（不信任模块变量——见文件头 d②） */
   function clearClones(): void {
-    row()?.querySelectorAll<HTMLElement>('.posts-toc-clone').forEach((c) => c.remove());
+    row()
+      ?.querySelectorAll<HTMLElement>('.posts-edge-clone, .posts-toc-clone')
+      .forEach((c) => c.remove());
   }
 
   /** 目录移出屏幕的距离：整体移到视口右缘之外 + 余量（按元素左缘实测） */
@@ -519,7 +524,7 @@ import type { AnimationPlaybackControls } from 'motion';
       old.style.opacity = '';
       oldHadSearch = !!old.querySelector('.posts-header-search');
       oldIsPost = old.classList.contains('posts-breadcrumb');
-      edgeClone = cloneIntoRow(old, r);
+      edgeClone = cloneIntoRow(old, r, 'posts-edge-clone');
     }
     const oldToc = main?.querySelector<HTMLElement>('.post-sidebar');
     if (oldToc && getComputedStyle(oldToc).display !== 'none') {
@@ -546,6 +551,15 @@ import type { AnimationPlaybackControls } from 'motion';
     // opening/closing 均要求旧页在文章区内——跨区（普通页→列表）旧屏无条带可配对、
     // 常驻搜索框直接 settle 落位，整页滑入会出现内容滑动而搜索框原地不动的割裂
     const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing);
+
+    // 快速连切收口：浮层带着上一轮的在途相位时，与本轮目的地冲突就先掐断钉回隐藏态——
+    // 退场未完就切回列表：state 卡在 exiting 会让入场 gate（state==='hidden'）不成立，
+    // 目录退场动作又占着相位链使 settle 兜底跑不到，旧退场播完后搜索框就永久停在
+    // opacity 0（快速「开文章→回列表」后列表页搜索框消失）；
+    // 入场未完就切进文章：掐断空跑（行已翻 --post，CSS 已隐藏浮层，无视觉跳变），
+    // 回列表时重新走完整入场而不是直接弹出
+    if (floatCtl.state === 'exiting' && newHadSearch) floatCtl.settle(false);
+    if (floatCtl.state === 'entering' && !newHadSearch) floatCtl.settle(false);
 
     // ---- 搜索/目录相位：退出相位走完才播进入相位（先退场再入场）----
     let exitAction: (() => AnimationPlaybackControls | null) | null = null;
