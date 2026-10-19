@@ -47,15 +47,19 @@
 //    内容落地又得二次退场）——在途/失败由 window.swup 钩子判定（astro.config.ts
 //    globalInstance: true）。
 // d) 快速连切保护：① 上次转场未播完又切页时，旧条带/旧目录/旧内容根可能带着被 cancel 的
-//    动画残留内联 transform/opacity（cancel 不清内联样式），克隆前必须清零再量盒；
+//    动画残留内联 transform/opacity（motion 的 cancel 不清内联样式——它把元素回退到
+//    **首关键帧**并把 keyframes[0] 重写进内联），克隆前必须清零再量盒；
 //    ② 上一轮的克隆/舞台清理必须**查 DOM** 而不是读模块变量——finished 回调在动画结束才跑，
 //    变量可能已为 null，读变量清理是 no-op，旧标题克隆会残留到 5s 兜底（用户看到的
 //    「快速切换时旧残留，过一会儿才消失」），条带克隆与目录克隆都带标记类供查 DOM 清除；
 //    ③ 搜索浮层的在途相位（exiting/entering）要与本轮目的地核对，冲突时从飞行中
-//    位置改向到目的地静止态（playTransition 开头收口，floatCtl.redirect）：退场未完就
-//    切回列表 → 自当前位置归位；入场未完就切进文章 → 自当前位置继续离场、补完退场——
-//    与目录克隆的中断处理同范式（停下、再走完整动效），不静默掐断硬切；否则 state
-//    卡在 exiting/entering，入场 gate（state==='hidden'）不成立、目录动作又占着相位链，
+//    位姿改向到目的地静止态（playTransition 开头收口，floatCtl.redirect）：退场未完就
+//    切回列表 → 自当前位置归位（「停下再回去」）；入场未完就切进文章 → 自当前位置
+//    继续离场、补完退场；跨区（→ 普通页）仍 settle 直接消失。位姿必须先 cancel 前从
+//    computed style 读再重钉回内联——motion 的 cancel 会把元素回退到首关键帧（重写
+//    keyframes[0] 进内联），cancel 后读内联拿到的是首关键帧不是在途值（读早了会
+//    「退场动画直接消失」）；与 nav-indicator 快速连点改向同范式。否则 state 卡在
+//    exiting/entering，入场 gate（state==='hidden'）不成立、目录动作又占着相位链，
 //    settle 兜底跑不到，搜索框会永久停在 opacity 0
 // e) 搜索框行级常驻：永不被 swup 重建（节点不被摘出/重插，backdrop 层与投影不重建，
 //    切页零闪）。CSS 不写 opacity 过渡（与 motion 关键帧抢写同一属性），只负责
@@ -497,16 +501,24 @@ import type { AnimationPlaybackControls } from 'motion';
     },
 
     /** 快速连切：在途相位（退场/入场）被新一轮切页打断时，不静默掐断硬切——
-     *  从飞行中位置改向到本轮目的地的静止态（与目录克隆的中断处理同范式：停下、
+     *  从飞行中位姿改向到本轮目的地的静止态（与目录克隆的中断处理同范式：停下、
      *  再走完整动效）：退场未完就切回列表 → 自当前位置归位（「停下再回去」）；
      *  入场未完就切进文章 → 自当前位置继续离场，补完退场动画。
-     *  motion 从飞行中位置重新起过渡（与 nav-indicator 快速连点改向同范式），
+     *  飞行中位姿只能从 computed style（最后一帧渲染值）读：motion 的 cancel 会把
+     *  元素回退到首关键帧（把 keyframes[0] 重写进内联），cancel 之后内联里已不是
+     *  在途位姿——与 nav-indicator 快速连点改向同范式（先读 computed 再改向）。
      *  时长按剩余位移/剩余渐隐占全程的比例折算（25%–100%） */
     redirect(show: boolean): AnimationPlaybackControls | null {
       const f = this.el();
       if (!f || (this.state !== 'exiting' && this.state !== 'entering')) return this.active;
-      stopFloatAnims(); // cancel 不清内联：最后一帧位姿停在 style 里，读出来做起点
-      const { dx, dy, op } = readFloatPose(f);
+      const { dx, dy, op, bg } = readFloatPose(f); // 先读：cancel 会把内联改写回首关键帧
+      stopFloatAnims();
+      // 重钉在途位姿：cancel 改写的首关键帧位姿不可暴露——延迟期 motion 不写帧，
+      // 元素会停在内联值上直到动画首帧
+      f.style.transform = `translate(${dx}px, ${dy}px)`;
+      f.style.opacity = `${op}`;
+      f.style.backgroundColor = bg;
+      if (!show) f.style.visibility = 'visible'; // 行变体已翻走隐藏容器——补完退场窗口内强制可见（同 exitDesktop）
       const mobile = isMobile();
       const tx = show ? 0 : mobile ? 0 : SEARCH_DX;
       const ty = show ? 0 : mobile ? -FLOAT_MOVE : 0;
@@ -530,7 +542,7 @@ import type { AnimationPlaybackControls } from 'motion';
             x: [`${dx}px`, `${tx}px`],
             y: [`${dy}px`, `${ty}px`],
             opacity: [op, show ? 1 : 0],
-            backgroundColor: [f.style.backgroundColor || BG0, show ? BG0 : VEIL],
+            backgroundColor: [bg, show ? BG0 : VEIL],
           },
           {
             duration: (PHASE_MS * frac) / 1000,
@@ -548,12 +560,15 @@ import type { AnimationPlaybackControls } from 'motion';
 
   };
 
-  /** 读浮层当前内联位姿：motion 的 cancel 不清内联，最后一帧值留在 style 里
-   *  （matrix 第 5/6 分量 = translateX/translateY；opacity 未写时按 1） */
-  function readFloatPose(f: HTMLElement): { dx: number; dy: number; op: number } {
+  /** 读浮层当前位姿 = 最后一帧渲染值：在途位姿只能从 computed style 读——
+   *  motion 的 cancel 会把元素回退到首关键帧（keyframes[0] 重写进内联），
+   *  cancel 之后内联里已不是在途值（nav-indicator 的 currentX 同口径）。
+   *  transform 按 matrix 第 5/6 分量解析（translateX/translateY）；opacity 取不到按 1 */
+  function readFloatPose(f: HTMLElement): { dx: number; dy: number; op: number; bg: string } {
+    const cs = getComputedStyle(f);
     let dx = 0;
     let dy = 0;
-    const t = f.style.transform;
+    const t = cs.transform;
     if (t && t !== 'none') {
       const m = /matrix\(([^)]+)\)/.exec(t);
       if (m) {
@@ -562,8 +577,8 @@ import type { AnimationPlaybackControls } from 'motion';
         dy = parseFloat(p[5]) || 0;
       }
     }
-    const o = parseFloat(f.style.opacity);
-    return { dx, dy, op: Number.isFinite(o) ? o : 1 };
+    const o = parseFloat(cs.opacity);
+    return { dx, dy, op: Number.isFinite(o) ? o : 1, bg: cs.backgroundColor || BG0 };
   }
 
   // ================= 5. 转场编排 =================
@@ -624,13 +639,18 @@ import type { AnimationPlaybackControls } from 'motion';
     const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing);
 
     // 快速连切收口：浮层带着上一轮的在途相位、与本轮目的地冲突时，不静默掐断硬切
-    // （用户所见「点快了搜索框没有退场动画」）——从飞行中位置改向到本轮目的地的
+    // （用户所见「点快了搜索框没有退场动画」）——从飞行中位姿改向到本轮目的地的
     // 静止态（与目录克隆的中断处理同范式：停下、再走完整动效）：退场未完就切回列表 →
     // 自当前位置归位（「停下再回去」）；入场未完就切进文章 → 自当前位置继续离场、
-    // 补完退场动画。否则 state 卡在 exiting/entering，入场 gate（state==='hidden'）
-    // 不成立、目录动作又占着相位链，settle 兜底跑不到，搜索框会永久停在 opacity 0
+    // 补完退场动画。跨区（→ 普通页）不改向：按「切到其他界面不渐隐」（用户指定）
+    // settle(false) 直接消失。否则 state 卡在 exiting/entering，入场 gate
+    // （state==='hidden'）不成立、目录动作又占着相位链，settle 兜底跑不到，
+    // 搜索框会永久停在 opacity 0
     if (floatCtl.state === 'exiting' && newHadSearch) floatCtl.redirect(true);
-    if (floatCtl.state === 'entering' && !newHadSearch) floatCtl.redirect(false);
+    if (floatCtl.state === 'entering' && !newHadSearch) {
+      if (newIsPost) floatCtl.redirect(false);
+      else floatCtl.settle(false);
+    }
 
     // ---- 搜索/目录相位：退出相位走完才播进入相位（先退场再入场）----
     let exitAction: (() => AnimationPlaybackControls | null) | null = null;
