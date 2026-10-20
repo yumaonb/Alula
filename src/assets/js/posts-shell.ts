@@ -27,9 +27,11 @@
 //    （退出）→ 目录自屏幕右缘左移渐显（入场）；文章→列表：目录右移移出屏幕渐隐
 //    （退出）→ 搜索自 48px 右偏移左移渐显（入场）。四个动效（搜索/目录 × 出场/退场）
 //    完全统一：同时长（PHASE_MS）、渐显渐隐与位移同步（用户要求四个效果全一样）。
-//    只在电脑端显示目录（≥851px）时带位移。文章↔文章（两侧都有目录）：旧目录克隆
-//    先钉到它当前的**视口**位置（position: fixed，脱离文档坐标）再右移移出屏幕渐隐，
-//    新目录先钉不可见、等它落到 sticky 钉住位（top 到达 82px）才自屏幕右缘左移渐显
+//    只在电脑端显示目录（≥851px）时带位移。文章↔文章（两侧都有目录）：同样「先退场
+//    再入场」——旧目录克隆先钉到它当前的**视口**位置（position: fixed，脱离文档坐标）
+//    再右移移出屏幕渐隐（退场 320ms），退场播完才播新目录自屏幕右缘左移渐显（入场
+//    320ms）：并行会两条对滑在途中交叉、同时半透明重叠成「重影」。退场期间新目录钉
+//    不可见（gate 分支构造即钉），落到 sticky 钉住位（top 到达 82px）才真正开始入场
 //    ——切页后 SwupScrollPlugin 平滑滚回顶部（时长按距离，长文可达 ~2s），挂在文档坐标
 //    的克隆/元素会被滚动「带走」（退场原地渐隐读起来是「目录向右下漂移」、新目录带着
 //    淡入从视口上方「掉下来」），钉视口/等落位后出入场都是纯水平平移，与滚顶解耦、
@@ -389,19 +391,19 @@ import type { AnimationPlaybackControls } from 'motion';
     };
   }
 
-  /** 文章↔文章的新目录入场：落位等待 + 标准右缘滑入。
-   *  滚回顶部过程中新目录在视口上方（或正从上方落下）——makeTocEntry 构造时已把它
-   *  钉到屏外右侧 + 透明（等待期不可见，也不露空位：等待期它本来就在视口上方）。
-   *  等它落到 sticky 钉住位再播滑入：落位后视口位置静止（钉在 82px），入场才是纯
-   *  水平平移。落位判定用 scrollY（免逐帧布局读取）：目录文档坐标 yToc 实测一次，
-   *  滚到 scrollY ≤ yToc - 82 即到达钉住位（目录视口 top 恒 ≤ 82px，越过即终态）；
-   *  已在钉住位（短文 / 页面本就在顶部）则下一帧立即播。超时兜底：滚顶被用户滚动
-   *  打断/异常停住时不能永久藏目录——超时直接播（目录若在视口上方，滑入不可见）。
-   *  退出条件：落位或超时触发入场；captureOld（新一轮切页）清 rAF 与定时器 */
-  function startTocEntryWait(newToc: HTMLElement): void {
+  /** 文章↔文章的新目录入场：落位等待 + 标准右缘滑入。在旧目录退场播完后调用
+   *  （先退场再入场）。滚回顶部过程中新目录在视口上方（或正从上方落下）——退场前
+   *  已钉不可见（gate 分支 makeTocEntry 构造即钉、非 gate 分支调用方钉内联 opacity
+   *  0），等待期不可见，也不露空位（等待期它本来就在视口上方）。等它落到 sticky
+   *  钉住位再播滑入：落位后视口位置静止（钉在 82px），入场才是纯水平平移。落位判定
+   *  用 scrollY（免逐帧布局读取）：目录文档坐标 yToc 实测一次，滚到 scrollY ≤ yToc
+   *  - 82 即到达钉住位（目录视口 top 恒 ≤ 82px，越过即终态）；已在钉住位（短文 /
+   *  页面本就在顶部）则下一帧立即播。超时兜底：滚顶被用户滚动打断/异常停住时不能
+   *  永久藏目录——超时直接播（目录若在视口上方，滑入不可见）。退出条件：落位或超时
+   *  触发入场；captureOld（新一轮切页）清 rAF 与定时器 */
+  function startTocEntryWait(newToc: HTMLElement, play: () => void): void {
     cancelTocEntryWait();
     const yToc = newToc.getBoundingClientRect().top + window.scrollY;
-    const play = makeTocEntry(newToc);
     const begin = (): void => {
       tocEntryWait = null;
       play();
@@ -847,16 +849,21 @@ import type { AnimationPlaybackControls } from 'motion';
       }
     }
 
-    // ---- 目录出入场（文章↔文章，两侧都有目录）：不参与相位，与滚顶解耦 ----
+    // ---- 目录出入场（文章↔文章，两侧都有目录）：先退场再入场，与滚顶解耦 ----
     // 切页后 SwupScrollPlugin 平滑滚回顶部（时长按距离，长文可达 ~2s），旧目录克隆
     // 绝对定位挂在行内（文档坐标）——原地渐隐会被滚顶「带走」：视口 top 从 181px
     // 一路漂出屏幕（用户所见「目录退场向右下方移动」）。先把克隆钉到它当前的视口
     // 位置（position: fixed，行及其祖先无 transform，fixed 即视口坐标），脱离页面
-    // 滚动，再右移移出屏幕渐隐（PHASE_MS/EASE_EXIT，与文章→列表目录退场同节奏）
-    // ——退场是纯水平平移、滚顶照常播；新目录钉不可见，落到 sticky 钉住位才自右缘
-    // 滑入（startTocEntryWait），入场同样是纯平移
+    // 滚动，再右移移出屏幕渐隐（PHASE_MS/EASE_EXIT，与文章→列表目录退场同节奏）。
+    // 新目录在退场前就钉不可见（gate 分支构造即钉屏外右 + 透明；非 gate 分支靠显式
+    // 内联 opacity 0 兜住退场 + 等待窗口），退场播完才开始落位等待、落到 sticky 钉
+    // 住位才自右缘滑入（startTocEntryWait）——两拍对滑若并行会在途中交叉重叠成
+    // 「重影」，顺序执行则退场结束时入场还没开始，任何时刻只有一个目录可见
     if (tocClone && hasNewToc) {
       const fadeEl = tocClone;
+      const newToc = newTocEl as HTMLElement;
+      const playEntry = makeTocEntry(newToc);
+      newToc.style.opacity = '0';
       const rect = fadeEl.getBoundingClientRect();
       fadeEl.style.position = 'fixed';
       fadeEl.style.top = `${rect.top}px`;
@@ -875,10 +882,13 @@ import type { AnimationPlaybackControls } from 'motion';
         .then(() => {
           fadeEl.remove();
           tocClone = null;
+          // 先退场再入场：退场播完才启动新目录的落位等待 + 右缘滑入（通常落位已
+          // 到达、下一帧即播）。若退场被 cancel（快速连切，captureOld 已清落位等待
+          // 与动画），这里走 catch、入场不启动——钉不可见的新目录随本轮 DOM 交换被
+          // 换走，不残留
+          startTocEntryWait(newToc, playEntry);
         })
         .catch(() => {});
-      (newTocEl as HTMLElement).style.opacity = '0';
-      startTocEntryWait(newTocEl as HTMLElement);
     }
   }
 
