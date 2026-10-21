@@ -27,15 +27,22 @@
 //    （退出）→ 目录自屏幕右缘左移渐显（入场）；文章→列表：目录右移移出屏幕渐隐
 //    （退出）→ 搜索自 48px 右偏移左移渐显（入场）。四个动效（搜索/目录 × 出场/退场）
 //    完全统一：同时长（PHASE_MS）、渐显渐隐与位移同步（用户要求四个效果全一样）。
-//    只在电脑端显示目录（≥851px）时带位移。文章↔文章（两侧都有目录）：同样「先退场
-//    再入场」——旧目录克隆先钉到它当前的**视口**位置（position: fixed，脱离文档坐标）
-//    再右移移出屏幕渐隐（退场 320ms），退场播完才播新目录自屏幕右缘左移渐显（入场
-//    320ms）：并行会两条对滑在途中交叉、同时半透明重叠成「重影」。退场期间新目录钉
+//    只在电脑端显示目录（≥851px）时带位移。目录克隆**创建即钉视口**（captureOld /
+//    before-swap，position: fixed，脱离文档坐标）——必须赶在「滚顶启动 + 切页文档高度
+//    塌缩致滚动位被浏览器钳制」之前：滚顶排在 content:replace 之后才调度，after-swap
+//    起播晚于它（dev 下 swap 窗口更大），等起播时再钉，克隆可能已被位移（用户所见
+//    「目录先下移一段才停住」，极端钉到屏外）。两套退场分支（文章↔文章 crossfade +
+//    文章→列表 / 普通页）都直接播已钉住的克隆：退场右移移出屏幕渐隐（320ms）；文章↔
+//    文章「先退场再入场」——退场播完才播新目录自屏幕右缘左移渐显（入场 320ms），并行
+//    会两条对滑在途中交叉、同时半透明重叠成「重影」。退场期间新目录钉
 //    不可见（gate 分支构造即钉），落到 sticky 钉住位（top 到达 82px）才真正开始入场
 //    ——切页后 SwupScrollPlugin 平滑滚回顶部（时长按距离，长文可达 ~2s），挂在文档坐标
 //    的克隆/元素会被滚动「带走」（退场原地渐隐读起来是「目录向右下漂移」、新目录带着
 //    淡入从视口上方「掉下来」），钉视口/等落位后出入场都是纯水平平移，与滚顶解耦、
-//    滚顶逻辑不动。等待期间新目录恒在视口上方（本就不可见），不露空位。
+//    滚顶逻辑不动。等待期间新目录恒在视口上方（本就不可见），不露空位。搜索浮层同法：
+//    四个动画方法起播前 pinFloat 钉视口（内联 top/left 转视口坐标）、finish/settle 统一
+//    unpin 还原行相对值——钉住期间 syncSearchPos 让路（fixed 下写行相对值会瞬移），
+//    且占位符查找排除条带克隆里的占位符克隆（首次 RO 回调可能赶在克隆渐隐窗口内）。
 // c) 手机端（≤768px）列表↔文章：搜索框**点击即退场**（委托 click 监听，不等内容加载）：
 //    上移 + 渐隐（渐隐比位移快，避免与上方标题视觉冲突）；新内容自下方 48px 滑入
 //    （开文章）/ 新列表自上方 48px 滑下（关文章），搜索框自上方偏移落回渐显。
@@ -220,7 +227,13 @@ import type { AnimationPlaybackControls } from 'motion';
   function syncSearchPos(): void {
     const r = row();
     const floatEl = r?.querySelector<HTMLElement>('.posts-search-float');
-    const ph = r?.querySelector<HTMLElement>('.posts-header-search');
+    // 占位符只认真实页头的：转场克隆条带（edgeClone）带着占位符克隆且播完才移除，
+    // RO 回调可能在克隆还在时触发，把它当真实占位会量到克隆位置
+    const phs = r ? Array.from(r.querySelectorAll<HTMLElement>('.posts-header-search')) : [];
+    const ph = phs.find((el) => !el.closest('.posts-edge-clone')) ?? null;
+    // 退场/入场动画期间浮层钉在视口（内联 top/left 是视口坐标）：此刻写行相对值
+    // 会把浮层瞬移；unpin 后下一轮重测自然补齐
+    if (floatEl?.style.position === 'fixed') return;
     if (!r || !floatEl || !ph) return;
     const b = r.getBoundingClientRect();
     const slot = ph.closest<HTMLElement>('.posts-edge-slot');
@@ -427,6 +440,31 @@ import type { AnimationPlaybackControls } from 'motion';
   // opacity / 位移 / 白纱全在这里。白纱规则：**淡出与淡入都用**（容器背景 透明 ↔ VEIL）——
   // 移动渐隐的毛玻璃用实体白替代消失的模糊；淡入：入场前先加上半透明白（同任务 pre-pin、无绘制间隙），再随入场全程褪去，见文件头 c
    //（白纱/淡变只用于区内动画；跨区边界直接 settle，无动画、无白纱，见文件头 c 末）
+  // 浮层钉视口期间的原行相对内联 top/left（unpin 时恢复）
+  let floatPinSaved: { top: string; left: string } | null = null;
+
+  /** 浮层钉视口：absolute→fixed 钉到当前视口位置，退场/入场动画期间脱离页面滚动——
+   *  切页后 SwupScrollPlugin 平滑滚回顶部，文档坐标里的浮层会被滚动「带走」，
+   *  退场/入场变成向右下的斜线（目录克隆同病，见文件头 b）。行及其祖先无
+   *  transform/filter，fixed 即视口坐标。动画收尾（finish）或静态归位（settle）时
+   *  恢复原行相对内联（恢复时浮层已不可见：退场播完 opacity 0 / 入场前 opacity 0） */
+  function pinFloat(f: HTMLElement): void {
+    if (f.style.position === 'fixed') return; // 已在钉住态（redirect 中途被改向）
+    floatPinSaved = { top: f.style.top, left: f.style.left };
+    const r = f.getBoundingClientRect();
+    f.style.position = 'fixed';
+    f.style.top = `${r.top}px`;
+    f.style.left = `${r.left}px`;
+  }
+
+  function unpinFloat(f: HTMLElement): void {
+    if (f.style.position !== 'fixed') return;
+    f.style.position = '';
+    f.style.top = floatPinSaved?.top ?? '';
+    f.style.left = floatPinSaved?.left ?? '';
+    floatPinSaved = null;
+  }
+
   const floatCtl = {
     state: 'shown' as 'shown' | 'hidden' | 'exiting' | 'entering',
     active: null as AnimationPlaybackControls | null,
@@ -436,7 +474,7 @@ import type { AnimationPlaybackControls } from 'motion';
       return row()?.querySelector<HTMLElement>('.posts-search-float') ?? null;
     },
 
-    /** 钉到静态目标态：清掉一切内联（transform/opacity/visibility/背景白纱） */
+    /** 钉到静态目标态：清掉一切内联（transform/opacity/visibility/背景白纱 + 视口钉） */
     settle(show: boolean): void {
       window.clearTimeout(this.restoreTimer);
       stopFloatAnims();
@@ -444,6 +482,7 @@ import type { AnimationPlaybackControls } from 'motion';
       this.state = show ? 'shown' : 'hidden';
       const f = this.el();
       if (!f) return;
+      unpinFloat(f);
       f.style.transform = '';
       f.style.visibility = '';
       f.style.backgroundColor = '';
@@ -460,6 +499,7 @@ import type { AnimationPlaybackControls } from 'motion';
     finish(show: boolean, f: HTMLElement): void {
       this.state = show ? 'shown' : 'hidden';
       this.active = null;
+      unpinFloat(f); // 动画播完：脱离视口钉，回到行内绝对定位（此时浮层已不可见）
       f.style.visibility = '';
       f.style.transform = '';
       f.style.backgroundColor = '';
@@ -474,6 +514,7 @@ import type { AnimationPlaybackControls } from 'motion';
       this.settle(true); // 清掉任何残留内联（幂等起点）
       this.state = 'exiting';
       f.style.visibility = 'visible'; // 变体类可能已隐藏容器（swap 先于动画结束）——退出窗口内强制可见
+      pinFloat(f); // 退场动画期间钉视口：滚顶滑行不会把上移+渐隐「带走」成斜线
       const move = trackFloat(
         animate(f, { y: [0, `-${FLOAT_MOVE}px`] }, { duration: FLOAT_EXIT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }),
       );
@@ -494,6 +535,7 @@ import type { AnimationPlaybackControls } from 'motion';
       this.settle(true); // 清掉任何残留内联（幂等起点）
       this.state = 'exiting';
       f.style.visibility = 'visible'; // 变体类已先隐藏容器——退出窗口内强制可见
+      pinFloat(f); // 退场动画期间钉视口：滚顶滑行不会把右移+渐隐「带走」成向右下的斜线
       const opts = { duration: PHASE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION };
       const move = withX ? trackFloat(animate(f, { x: [0, `${SEARCH_DX}px`] }, opts)) : null;
       const fade = trackFloat(animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, opts));
@@ -509,6 +551,7 @@ import type { AnimationPlaybackControls } from 'motion';
       if (!f || this.state !== 'hidden') return;
       this.settle(false);
       this.state = 'entering';
+      pinFloat(f); // 入场动画期间钉视口（先于 pre-pin transform：量盒须取无位移的自然位）
       f.style.transform = `translateY(-${FLOAT_MOVE}px)`;
       f.style.opacity = '0';
       f.style.backgroundColor = VEIL; // 入场前先加上半透明白（见文件头 c），关键帧随入场全程褪去
@@ -534,6 +577,7 @@ import type { AnimationPlaybackControls } from 'motion';
       this.state = 'entering';
       const opts = { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION };
       // 相位开始前先钉住（同任务内无绘制间隙，不闪）
+      pinFloat(f); // 入场动画期间钉视口（先于 pre-pin transform：量盒须取无位移的自然位）
       if (withX) f.style.transform = `translateX(${SEARCH_DX}px)`;
       f.style.opacity = '0';
       f.style.backgroundColor = VEIL; // 入场前先加上半透明白（见文件头 c），关键帧随入场全程褪去
@@ -671,6 +715,14 @@ import type { AnimationPlaybackControls } from 'motion';
       oldToc.style.transform = '';
       oldToc.style.opacity = '';
       tocClone = cloneIntoRow(oldToc, r, 'posts-toc-clone');
+      // 创建即钉视口（机制见文件头 b）：before-swap 早于滚顶启动与切页文档高度塌缩，
+      // 克隆从此 fixed 不被任何布局变化带走；退场/交叉渐隐块里的再钉变为 no-op
+      if (tocClone) {
+        const cr = tocClone.getBoundingClientRect();
+        tocClone.style.position = 'fixed';
+        tocClone.style.top = `${cr.top}px`;
+        tocClone.style.left = `${cr.left}px`;
+      }
     }
   }
 
@@ -728,6 +780,15 @@ import type { AnimationPlaybackControls } from 'motion';
         // 与搜索框移动切换同节奏；其他只渐隐
         exitAction = () => {
           const el = tocClone as HTMLElement;
+          // 先钉到当前视口位置（同文章↔文章分支）：克隆挂行内（文档坐标），深滚动位
+          // 出发时退场窗口内页面正高速回顶（SwupScrollPlugin）——不钉的话右滑 + 渐隐
+          // 会被滚动「带走」（视口 top 随 scrollY 减小而增大，退场读作向右下漂）；
+          // 减动效只渐隐不位移时也钉（原地渐隐同样会被带走）。rect 必须在任何
+          // transform 写入之前量
+          const rect = el.getBoundingClientRect();
+          el.style.position = 'fixed';
+          el.style.top = `${rect.top}px`;
+          el.style.left = `${rect.left}px`;
           const slide = tocSlideGate();
           const dx = slide ? tocOffscreenDx(el) : 0;
           const move = slide
