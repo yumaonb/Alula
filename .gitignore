@@ -17,7 +17,7 @@ pnpm-debug.log*
 .env
 .env.production
 
-# JetBrains 配置文件夹
+# JetBrains 配置
 .idea/
 
 # AI 协作
