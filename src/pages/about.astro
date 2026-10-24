@@ -22,8 +22,8 @@ import avatarImg from '../assets/images/avatar.png';
             src={avatarImg}
             alt={`${nickname}的头像`}
             class="avatar-img"
-            width={200}
-            height={200}
+            width={120}
+            height={120}
             loading="eager"
           />
         </div>
@@ -63,7 +63,7 @@ import avatarImg from '../assets/images/avatar.png';
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 16px;
   }
 
   /* ---- 个人名片 ---- */
@@ -93,7 +93,7 @@ import avatarImg from '../assets/images/avatar.png';
   }
 
   .avatar-ring {
-    --avatar-size: 104px;
+    --avatar-size: 100px;
     width: var(--avatar-size);
     height: var(--avatar-size);
     border-radius: 50%;
@@ -118,16 +118,16 @@ import avatarImg from '../assets/images/avatar.png';
   }
 
   .hero-name {
-    font-size: 2.1rem;
+    font-size: 2rem;
     line-height: 1.15;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     color: var(--white);
     text-shadow: var(--shadow);
   }
 
   .hero-motto {
-    font-size: 0.84rem;
-    letter-spacing: 0.24em;
+    font-size: 0.9rem;
+    letter-spacing: 0.25em;
     color: var(--ink);
   }
 
@@ -175,26 +175,21 @@ import avatarImg from '../assets/images/avatar.png';
 
   /* ---- 手机端适配 ---- */
   @media (max-width: 768px) {
-    .about-page {
-      gap: 22px;
-    }
-
     .hero-inner {
       gap: 16px;
       padding: 22px 18px;
     }
 
     .avatar-ring {
-      --avatar-size: 76px;
+      --avatar-size: 80px;
     }
 
     .hero-name {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
     }
 
     .hero-motto {
-      font-size: 0.7rem;
-      letter-spacing: 0.18em;
+      font-size: 0.75rem;
     }
 
     .about-intro {
