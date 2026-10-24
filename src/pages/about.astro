@@ -114,7 +114,7 @@ import avatarImg from '../assets/images/avatar.png';
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
   }
 
   .hero-name {
@@ -150,13 +150,46 @@ import avatarImg from '../assets/images/avatar.png';
     width: 100%;
   }
 
-  /* ---- 自述卡：占右列，随行高拉伸，内容垂直居中 ---- */
+  /* ---- 自述卡：与左列同高，内容富余时垂直居中，超出时卡内滚动 ---- */
   .about-intro {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     min-width: 0;
     padding: 24px 26px;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hover-line) transparent;
+  }
+
+  /* 有富余空间时上下居中；内容溢出时 auto 归零，从顶部开始滚，开头不会被切掉 */
+  .about-intro :global(.markdown-body) {
+    margin-block: auto;
+  }
+
+  .about-intro::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .about-intro::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .about-intro::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--hover-line);
+  }
+
+  .about-intro::-webkit-scrollbar-thumb:hover {
+    background: var(--ink);
+  }
+
+  @media (min-width: 769px) {
+    .about-intro {
+      /* 高度只跟左列走：卡片内容不参与行高，超出部分在卡内滚动 */
+      contain: size;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+    }
   }
 
   /* 卡片首尾贴边，去掉 markdown 正文的上下默认外边距 */
@@ -190,6 +223,10 @@ import avatarImg from '../assets/images/avatar.png';
 
     .hero-motto {
       font-size: 0.75rem;
+    }
+
+    .hero-title {
+      gap: 8px;
     }
 
     .about-intro {
