@@ -30,6 +30,8 @@ const vars = optimized
   : '';
 ---
 
+<!-- 背景变量同时挂到 :root，供需要复刻背景的局部效果（如时间轴两端渐隐）读取 -->
+{vars && <style is:inline set:html={`:root{${vars}}`}></style>}
 <div
   class:list={['bg', optimized && 'bg--image']}
   style={vars || undefined}

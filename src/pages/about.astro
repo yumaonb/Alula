@@ -1,42 +1,57 @@
 ---
-// about.astro — 关于页面（介绍 / 数据统计 / 技术栈 / 自我介绍）
+// about.astro — 关于页面（个人名片 / 数据统计 / 技术栈 / 自述 / 成长历程）
 // 用法：路由 /about/
-import BaseLayout from '../layouts/BaseLayout.astro';
-import DaysCounter from '../components/widgets/DaysCounter.svelte';
-import TechStack from '../components/widgets/TechStack.astro';
 import { Image } from 'astro:assets';
-import avatarImg from '../assets/images/avatar.png';
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Markdown from '../components/layout/Markdown.astro';
+import TechStack from '../components/widgets/TechStack.astro';
+import Timeline from '../components/widgets/Timeline.svelte';
+import DaysCounter from '../components/widgets/DaysCounter.svelte';
 import { Content } from '../content/about.md';
 import { nickname, motto } from '../data/profile';
-import Markdown from '../components/layout/Markdown.astro';
+import avatarImg from '../assets/images/avatar.png';
 ---
 
 <BaseLayout title="关于">
-  <div class="about-page">
-    <section class="intro-section">
-      <div class="intro-header glass">
+  <div class="about-page page-top-standard">
+    <section class="about-hero glass" aria-label="个人名片">
+      <div class="hero-inner">
         <div class="avatar-ring">
           <Image
             src={avatarImg}
-            alt="头像"
+            alt={`${nickname}的头像`}
             class="avatar-img"
-            width={100}
-            height={100}
+            width={200}
+            height={200}
             loading="eager"
           />
         </div>
-        <div class="intro-info">
-          <h1 class="intro-name">{nickname}</h1>
-          <p class="intro-motto">{motto}</p>
+        <div class="hero-title">
+          <h1 class="hero-name">{nickname}</h1>
+          <p class="hero-motto">{motto}</p>
         </div>
       </div>
-      <DaysCounter client:load />
-      <TechStack />
-      <div class="intro-text glass">
+    </section>
+
+    <div class="about-main">
+      <div class="about-left">
+        <section class="about-stats" aria-label="数据统计">
+          <DaysCounter client:load />
+        </section>
+        <TechStack />
+      </div>
+      <div class="about-intro glass">
         <Markdown>
-          <Content />
+          <div class="markdown-body">
+            <Content />
+          </div>
         </Markdown>
       </div>
+    </div>
+
+    <section class="about-timeline" aria-label="成长历程">
+      <Timeline client:load />
     </section>
   </div>
 </BaseLayout>
@@ -46,55 +61,39 @@ import Markdown from '../components/layout/Markdown.astro';
    * 会按内容尺寸收缩（纯中文内容 max-content 约一个字宽，页面会塌成窄缝） */
   .about-page {
     width: 100%;
-    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 40px;
+    gap: 28px;
   }
 
-  /* ---- 个人介绍区 ---- */
-  .intro-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .intro-header {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    padding: 28px 36px;
-    border-radius: var(--radius);
+  /* ---- 个人名片 ---- */
+  .about-hero {
+    position: relative;
+    overflow: hidden;
     width: 100%;
-  }
-
-  .intro-info {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .intro-text {
-    width: 100%;
-    padding: 24px 28px;
     border-radius: var(--radius);
   }
 
-  .intro-name {
-    font-size: 2rem;
-    color: var(--white);
-    text-shadow: var(--shadow);
+  /* 左上角的一团柔光，让玻璃卡有受光方向 */
+  .about-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 130% at 0% 0%, var(--rest-bg), transparent 62%);
+    pointer-events: none;
   }
 
-  .intro-motto {
-    font-size: 0.9rem;
-    color: var(--ink);
-    letter-spacing: 0.25em;
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 26px 34px;
   }
 
   .avatar-ring {
-    --avatar-size: 100px;
+    --avatar-size: 104px;
     width: var(--avatar-size);
     height: var(--avatar-size);
     border-radius: 50%;
@@ -111,26 +110,92 @@ import Markdown from '../components/layout/Markdown.astro';
     object-fit: cover;
   }
 
+  .hero-title {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .hero-name {
+    font-size: 2.1rem;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    text-shadow: var(--shadow);
+  }
+
+  .hero-motto {
+    font-size: 0.84rem;
+    letter-spacing: 0.24em;
+    color: var(--ink);
+  }
+
+  /* ---- 数据统计 + 技术栈（左列），右侧自述卡与左列同高 ---- */
+  .about-main {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .about-left {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .about-stats {
+    width: 100%;
+  }
+
+  /* ---- 自述卡：占右列，内容自然撑开 ---- */
+  .about-intro {
+    min-width: 0;
+    padding: 24px 26px;
+  }
+
+  /* 卡片首尾贴边，去掉 markdown 正文的上下默认外边距 */
+  .about-intro :global(.markdown-body > :first-child) {
+    margin-top: 0;
+  }
+
+  .about-intro :global(.markdown-body > :last-child) {
+    margin-bottom: 0;
+  }
+
+  /* ---- 历程 ---- */
+  .about-timeline {
+    width: 100%;
+  }
+
   /* ---- 手机端适配 ---- */
   @media (max-width: 768px) {
     .about-page {
-      gap: 28px;
+      gap: 22px;
     }
 
-    .intro-header {
-      padding: 24px 20px;
+    .hero-inner {
+      gap: 16px;
+      padding: 22px 18px;
     }
 
     .avatar-ring {
-      --avatar-size: 80px;
+      --avatar-size: 76px;
     }
 
-    .intro-name {
-      font-size: 1.4rem;
+    .hero-name {
+      font-size: 1.5rem;
     }
 
-    .intro-motto {
-      font-size: 0.75rem;
+    .hero-motto {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+    }
+
+    .about-intro {
+      padding: 20px 18px;
     }
   }
 </style>
