@@ -150,8 +150,11 @@ import avatarImg from '../assets/images/avatar.png';
     width: 100%;
   }
 
-  /* ---- 自述卡：占右列，内容自然撑开 ---- */
+  /* ---- 自述卡：占右列，随行高拉伸，内容垂直居中 ---- */
   .about-intro {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     min-width: 0;
     padding: 24px 26px;
   }
