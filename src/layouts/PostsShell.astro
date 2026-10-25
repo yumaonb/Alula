@@ -176,8 +176,9 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 14px; /* 与列表页 .posts-page 的页头→栅格间隙同一值：两页"锚下方内容"顶边对齐，切换不位移。
-                   14px 与行 padding-top 82px 配平：搜索胶囊（36px）恰好居中于导航底(69)→内容顶(132)窗口 */
+    gap: 14px; /* 桌面端与列表页 .posts-page 的页头→栅格间隙同一值：两页"锚下方内容"顶边对齐，切换不位移。
+                   14px 与行 padding-top 82px 配平：搜索胶囊（36px）恰好居中于导航底(69)→内容顶(132)窗口。
+                   手机端在文件末尾改 10px：正文卡顶与列表页搜索框顶对齐 */
   }
 
   /* 文章变体的槽：断点比列表晚（侧栏 ≥1151px 才显示），负边距断点随侧栏 */
@@ -189,13 +190,14 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 
   /* 面包屑条：宽屏负边距通栏 + z-index 抬升在包裹槽 .posts-edge-slot 上（见列表页注释），
      这里只管条自身：≤1150px 侧栏隐藏时槽无边距、条即卡片正上方。
-     高固定 36px 与列表页头同高、内容垂直居中（左缘元素同位同高，切换才无缝；旧版上下 padding 5px 只撑到 35.75px，切换时顶部留白对不齐） */
+     桌面端高 36px 与列表页头同高、内容垂直居中（左缘元素同位同高，切换才无缝）；
+     手机端高度在末尾覆盖为 28px，给正文卡腾出与搜索框对齐的顶部位置 */
   .posts-breadcrumb {
     overflow: visible;
     white-space: nowrap;
     display: flex;
     align-items: center;
-    height: 36px; /* 与列表页头（36px）同高：左缘元素像素级同位同高，切换滑动无跳变 */
+    height: 36px; /* 与桌面端列表页头（36px）同高：左缘元素像素级同位同高，切换滑动无跳变 */
   }
 
   .post-main {
@@ -231,10 +233,19 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     }
   }
 
-  /* ---- 手机端（≤768px）：面包屑在大框上方（独立 36px 条，与列表页标题同位 73——
-       左缘元素对统一、面包屑↔页头切换走同一套条带模糊交叉渐隐，见 posts-shell.ts 文件头 a）；
-       大框在面包屑条下沿用默认 14px 间隙（73 + 36 + 14 = 123）。
-       文章页上方距离（导航底 57 → 面包屑顶 73）= 16px，与列表标题距导航同一值
-       （与项目等标准页标题上间距 16px 统一，见 global.css 移动端注释）。
+  /* ---- 手机端（≤768px）：面包屑条压到 28px、条下间隙 10px，
+       正文大框顶 = 73 + 28 + 10 = 111 ≈ 列表页搜索框顶（73 + 标题行高 21.6 + 16 = 110.6）——
+       切页时正文卡正好落在搜索框消失的位置。面包屑顶仍与列表标题同为 73
+       （左缘元素对同位，条带模糊交叉渐隐，见 posts-shell.ts 文件头 a）；
+       28px 仍容得下链接行盒（25.76px），压掉的只是上下留白。
        槽保留转场口袋职责（posts-shell.ts 按实测几何自适应） ---- */
+  @media (max-width: 768px) {
+    .posts-article-main {
+      gap: 10px;
+    }
+
+    .posts-breadcrumb {
+      height: 28px;
+    }
+  }
 </style>

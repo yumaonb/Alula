@@ -152,12 +152,19 @@ ol {
  * 导航底 16px 处（57 + 16 = 73，即项目等页 .page-top-standard 标题的同一顶边）。
  * 列表页标题与文章页面包屑条都落在 73（标题上间距 16px，与项目页标题同值）；
  * 列表标题→搜索间隙 16px（同 .page-head 标题下间距，见 posts-listing.css）；
- * 文章大框在面包屑条下沿用默认 14px 间隙（73 + 36 + 14 = 123）。
+ * 面包屑条压到 28px、条下间隙 10px（见 PostsShell.astro 末尾规则），
+ * 正文大框顶 73 + 28 + 10 = 111，与列表页搜索框顶（73 + 标题行高 21.6 + 16 = 110.6）对齐。
  * 桌面端 82/132 几何不变 */
 @media (max-width: 768px) {
   .page-main--listing,
   .page-main--post {
     padding-top: 73px;
+  }
+
+  /* 手机端侧栏不显示，这里只保持「侧栏偏移 = 锚高 + 间隙」的口径一致 */
+  .page-main--post {
+    --posts-offset-gap: 10px;
+    --posts-side-offset: 38px;
   }
 }
 .page-main--listing > .hero,
