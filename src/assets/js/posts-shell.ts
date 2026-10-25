@@ -885,12 +885,9 @@ import type { AnimationPlaybackControls } from 'motion';
             .catch(() => {});
         }
       }
-      const inn = track(animate(newEdge, { opacity: [0, 1], filter: [`blur(${STRIP_BLUR_PX}px)`, 'blur(0px)'] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
-      inn.finished
-        .then(() => {
-          newEdge.style.filter = ''; // 终态 = 无模糊，清内联
-        })
-        .catch(() => {});
+      // 终态保留 blur(0px)：finished 后 motion 还会补写一次终帧，先清会制造
+      // none → blur(0px) 的一帧重栅格闪；条随切页替换，不必在这里清内联
+      track(animate(newEdge, { opacity: [0, 1], filter: [`blur(${STRIP_BLUR_PX}px)`, 'blur(0px)'] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
     } else if (edgeClone) {
       edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
       edgeClone = null;
