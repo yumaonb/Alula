@@ -709,6 +709,9 @@ import type { AnimationPlaybackControls } from 'motion';
       oldHadSearch = !!old.querySelector('.posts-header-search');
       oldIsPost = old.classList.contains('posts-breadcrumb');
       edgeClone = cloneIntoRow(old, r, 'posts-edge-clone');
+      // 上一轮渐显保留的 blur(0px) 不带进克隆：带过滤层的克隆移除时，下方新标题
+      // 会因合成层重栅格闪一下（首次切换旧带本来无 filter，所以只有后续切换出现）
+      edgeClone?.style.removeProperty('filter');
     }
     const oldToc = main?.querySelector<HTMLElement>('.post-sidebar');
     if (oldToc && getComputedStyle(oldToc).display !== 'none') {
