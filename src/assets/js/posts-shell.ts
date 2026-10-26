@@ -20,10 +20,12 @@
 //    opacity 0→1，260ms），两带同位交叉渐隐、无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
 //    开文章 = 整页向上（新内容自下方 48px 滑入）、关文章 = 镜像向下（新列表自上方 48px
 //    滑下）——新带槽另做与推入**等距反向**的 counter 位移，屏幕上原地不动——避免新带
-//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。推入/counter 的
-//    transform 层**延迟拆除**（finished 后 300ms，见 TRANSFORM_CLEAR_DELAY_MS）：立即拆层
-//    会触发整列内容（长列表的十几张玻璃卡）重栅格化，压在新标题入场收尾的提交上，
-//    列表长到一屏放不下时标题会「闪一下」。推拉只在区内
+//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。推入的 transform
+//    层**保活不拆**：motion 端点 0 会解析成 transform: none（恒等省略）拆掉合成层，
+//    finished 后显式写回 translateY(0) 把层保住，随节点下次切页移除一起回收——拆层
+//    会触发整列内容（长列表的十几张玻璃卡）重栅格化，弱内核赶不上帧预算时列表长到
+//    一屏放不下、标题会「闪一下」；counter 槽只是单个条带元素，仍走
+//    TRANSFORM_CLEAR_DELAY_MS 延迟拆除。推拉只在区内
 //    （旧屏为列表或文章详情）播放；跨区（普通页→列表）直接落位不推入——旧屏无条带、
 //    常驻搜索框无入场相位，整页滑入会标题/列表滑动而搜索框原地不动，割裂。
 // b) 搜索/目录退场配对（用户要求「先退场再入场」）：目录出现/消失的切页里，退出相位
@@ -924,9 +926,9 @@ import type { AnimationPlaybackControls } from 'motion';
     }
 
     // ---- 手机端整页推拉：新内容自下方/上方滑入（开=上滑入 / 关=下滑入）----
-    // transform 层的拆除走 scheduleTransformClear 延迟：立即拆层会触发整列内容
-    // （长列表的十几张玻璃卡）重栅格化，压在新标题入场收尾的提交上造成标题闪一下
-    //（见 TRANSFORM_CLEAR_DELAY_MS 注释）
+    // 推入根播完不拆层：motion 把端点 0 解析成 transform: none（恒等被省略）会拆掉
+    // 合成层，拆层触发整列玻璃卡重栅格化（弱内核下标题闪一下）——finished 后显式写回
+    // 非 none 的恒等，层保活到节点随下次切页移除
     if (mobilePush) {
       const root = opening ? (main?.querySelector<HTMLElement>('.posts-article') ?? null) : (main?.querySelector<HTMLElement>('.posts-page') ?? null);
       if (root) {
@@ -934,7 +936,7 @@ import type { AnimationPlaybackControls } from 'motion';
         const a = track(animate(root, { y: [`${y0}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
         a.finished
           .then(() => {
-            scheduleTransformClear(root);
+            if (root.isConnected) root.style.transform = 'translateY(0)';
           })
           .catch(() => {});
       }
