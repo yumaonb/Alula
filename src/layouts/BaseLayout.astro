@@ -199,13 +199,15 @@ const blog = await loadBlogData();
       import '../assets/js/shell-guard';
     </script>
     <script is:inline>
-      // 首载 loading 屏：HTML 到齐 + 背景图就绪即揭幕，不等 load / DOMContentLoaded。
-      // 本脚本在 body 尾部：执行时 HTML 字节已全部到齐、body 已解析完，只剩等背景图。
+      // 首载 loading 屏：HTML 到齐即揭幕（最少展示 500ms），不等 load / DOMContentLoaded。
+      // 本脚本在 body 尾部：执行时 HTML 字节已全部到齐、body 已解析完。
       // 不等 DCL / load：它们被岛脚本的模块图卡着（内联 CSS 后文档更重、模块发现更晚，
       // 等它们反而把揭幕拖得比不内联还晚）；岛脚本晚就绪不影响视觉
       // （首帧本就是水合前的静态标记，交互随水合陆续生效）。
-      // 背景图先用 Image 预热：同一 URL 走缓存，揭幕时背景已就位，不闪。
-      // 兜底：图片卡住 5s 也揭幕，别让 loading 屏永久挂着。
+      // 背景图不再阻塞揭幕：内容（卡片/文字/搜索框）首帧全在 HTML 里，唯一依赖网络的
+      // 是背景图本身——遮罩按时揭开，图就绪后 .bg--image 自行 0.8s 淡入（global.css 的
+      // .is-ready 规则），背景慢到时先见深色底上的完整内容、到位时平滑融入，不 pop。
+      // 图片先用 Image 预热：同一 URL 走缓存，加 .is-ready 时图已就位，不闪。
       (function () {
         const splash = document.getElementById('boot-splash');
         if (!splash) return;
@@ -223,19 +225,16 @@ const blog = await loadBlogData();
             Math.max(0, minShown - (performance.now() - started)),
           );
         };
-        const bgStyle = document.querySelector('.bg')?.style;
+        const bgEl = document.querySelector('.bg--image');
         const bgUrl = /url\(['"]?([^'")]+)/.exec(
-          bgStyle ? bgStyle.getPropertyValue('--bg-image') : '',
+          bgEl ? bgEl.style.getPropertyValue('--bg-image') : '',
         )?.[1];
-        if (bgUrl) {
+        if (bgUrl && bgEl) {
           const warm = new Image();
-          warm.onload = warm.onerror = () => fade();
+          warm.onload = () => bgEl.classList.add('is-ready');
           warm.src = bgUrl;
-        } else {
-          fade();
         }
-        // 兜底：图片卡住 5s 也揭幕
-        setTimeout(fade, 5000);
+        fade();
       })();
     </script>
   </body>

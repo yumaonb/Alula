@@ -52,7 +52,7 @@
 // c) 手机端（≤768px）列表↔文章：搜索框退场/入场统一在 after-swap 驱动（**点击时不动**——
 //    点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失，用户反馈）：
 //    开文章 = after-swap 上移 12px（与整页推入同缓动、时长按距离等比——上移速度即
-//    内容推入速度）+ 300ms 渐隐（上移全程可见；上移途中半透明胶囊逼近上方标题——
+//    内容推入速度）+ 同时长渐隐（边上移边渐隐，100ms；上移途中半透明胶囊逼近上方标题——
 //    列式页头标题↔搜索间隙 16px、位移留 4px 余量）；
 //    关文章 = 自上方偏移落回渐显；新内容自下方 48px 滑入（开文章）/
 //    新列表自上方 48px 滑下（关文章）。
@@ -116,12 +116,13 @@ import type { AnimationPlaybackControls } from 'motion';
   const TOC_OFFSCREEN_PAD = 40; // 目录移出屏幕的额外余量（整体在视口右缘之外）
   // 手机端（≤768px）：新内容滑动距离 / 搜索框小位移 / 搜索位移与渐隐时长
   // （退场上移与整页推入同缓动（EASE）、时长按距离等比（12/48 × EDGE_MS），
-  //  胶囊上移速度即内容推入速度；渐隐 300ms，上移全程可见；位移必须小于
-  //  手机端列式页头的标题↔搜索间隙 16px，否则入场落回会蹭到标题底边闪一下）
+  //  胶囊上移速度即内容推入速度；渐隐与上移同时长——边上移边渐隐、收尾不拖尾
+  //  （用户：渐隐快点）；位移必须小于手机端列式页头的标题↔搜索间隙 16px，
+  //  否则入场落回会蹭到标题底边闪一下）
   const MOBILE_SLIDE = 48;
   const FLOAT_MOVE = 12;
-  const FLOAT_EXIT_MS = 300;
-  const FLOAT_EXIT_MOVE_MS = (EDGE_MS * FLOAT_MOVE) / MOBILE_SLIDE;
+  const FLOAT_EXIT_MOVE_MS = (EDGE_MS * FLOAT_MOVE) / MOBILE_SLIDE; // 退场上移 = 渐隐时长（12/48 × 400ms = 100ms）
+  const FLOAT_ENTRY_MOVE_MS = 300; // 入场落回时长（关文章，搜索自上方落回）
   const FLOAT_ENTRY_FADE_MS = 220;
   // 手机端「关文章」：搜索自上方落回的延迟（用户反馈：下移时叠在文章卡片上）。
   // 整页自上方 48px 推下时，列表栅格顶（160.6-48=112.6）起初在搜索框钉住位底边（146.6）
@@ -543,7 +544,7 @@ import type { AnimationPlaybackControls } from 'motion';
         animate(f, { y: [0, `-${FLOAT_MOVE}px`] }, { duration: FLOAT_EXIT_MOVE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }),
       );
       const fade = trackFloat(
-        animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, { duration: FLOAT_EXIT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }),
+        animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, { duration: FLOAT_EXIT_MOVE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }),
       );
       this.active = move;
       this.allFinished(f, false, [move, fade]);
@@ -581,7 +582,7 @@ import type { AnimationPlaybackControls } from 'motion';
       // 可见帧不叠卡片（钉住位 opacity 0，延迟期不可见）
       const delay = FLOAT_ENTRY_DELAY_MS / 1000;
       const move = trackFloat(
-        animate(f, { y: [`-${FLOAT_MOVE}px`, 0] }, { duration: FLOAT_EXIT_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
+        animate(f, { y: [`-${FLOAT_MOVE}px`, 0] }, { duration: FLOAT_ENTRY_MOVE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
       );
       const fade = trackFloat(
         animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, { duration: FLOAT_ENTRY_FADE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),

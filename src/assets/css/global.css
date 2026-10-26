@@ -100,6 +100,20 @@ ol {
   background-size: max(100%, calc(100lvh * var(--bg-ratio, 1.5))) 100%;
   background-position: center;
   background-repeat: no-repeat;
+  /* 首载从透明起：启动遮罩不再等背景图，图就绪后 .is-ready（BaseLayout 尾部脚本加）
+   * 淡入 0.8s——背景晚到也平滑到位，不在揭幕后「pop」出来 */
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.bg--image.is-ready {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg--image {
+    transition: none; /* 减动效：背景不淡入，图就绪直接显示 */
+  }
 }
 
 .bg--image::before {
