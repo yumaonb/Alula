@@ -14,9 +14,10 @@
 //    （astro:before-swap，即 content:replace 前一刻）克隆旧元素进行内**静止暂存**，
 //    等新界面加载完（astro:after-swap）才播放——过渡绝不先于内容。**全部**左缘条带
 //    切换（桌面端所有 + 手机端列表↔文章 + 手机端列表↔分类/标签；用户指定电脑端也用
-//    模糊，手机端滑动形态随之整体退役）走**模糊变过去**——旧带原地模糊渐隐
-//    （blur 0→4px + opacity 1→0，160ms）、新带原地模糊渐显（blur 4px→0 + opacity 0→1，
-//    260ms），两带同位交叉渐隐、无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
+//    模糊，手机端滑动形态随之整体退役）走**模糊变过去**——旧带原地渐隐
+//    （opacity 1→0，160ms；退出侧全程不带 filter——带过滤层的克隆被移除时，
+//    下方新标题会因合成层重栅格闪一下）、新带原地模糊渐显（blur 4px→0 +
+//    opacity 0→1，260ms），两带同位交叉渐隐、无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
 //    开文章 = 整页向上（新内容自下方 48px 滑入）、关文章 = 镜像向下（新列表自上方 48px
 //    滑下）——新带槽另做与推入**等距反向**的 counter 位移，屏幕上原地不动——避免新带
 //    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。推拉只在区内
@@ -122,8 +123,9 @@ import type { AnimationPlaybackControls } from 'motion';
   const FLOAT_ENTRY_DELAY_MS = 150;
   // 条带交换「模糊变过去」（**全部**左缘条带切换——桌面端所有 + 手机端列表↔文章 + 手机端
   // 列表↔分类/标签；用户指定电脑端也用模糊，滑动形态整体退役）：
-  // 旧带原地模糊渐隐（blur 0→4px + opacity 1→0）、新带原地模糊渐显（blur 4px→0 + opacity 0→1）
-  const STRIP_BLUR_OUT_MS = 160; // 旧条带：模糊渐隐
+  // 旧带原地渐隐（opacity 1→0；退出侧不写 filter 关键帧——带过滤层的克隆被移除时，
+  // 下方新标题会因合成层重栅格闪一下）、新带原地模糊渐显（blur 4px→0 + opacity 0→1）
+  const STRIP_BLUR_OUT_MS = 160; // 旧条带：渐隐时长（只走 opacity）
   const STRIP_BLUR_IN_MS = 260; // 新条带：模糊渐显
   const STRIP_BLUR_PX = 4; // 模糊峰值（px）
   // 点击触发的搜索退场：若 1.2s 内切页未提交（swup 忽略 / 目标失效），恢复搜索框
@@ -709,9 +711,11 @@ import type { AnimationPlaybackControls } from 'motion';
       oldHadSearch = !!old.querySelector('.posts-header-search');
       oldIsPost = old.classList.contains('posts-breadcrumb');
       edgeClone = cloneIntoRow(old, r, 'posts-edge-clone');
-      // 上一轮渐显保留的 blur(0px) 不带进克隆：带过滤层的克隆移除时，下方新标题
-      // 会因合成层重栅格闪一下（首次切换旧带本来无 filter，所以只有后续切换出现）
-      edgeClone?.style.removeProperty('filter');
+      // 克隆全程钉死 filter: none：上一轮渐显保留的 blur(0px) 会随克隆一起复制进来，
+      // 带过滤层的克隆被移除时，下方新标题会因合成层重栅格闪一下（首次切换旧带
+      // 本来无 filter，所以只有后续切换出现）。单靠 removeProperty 不够——退出动画
+      // 若写回 filter 关键帧等于没清（退出侧已随之改为纯 opacity 渐隐，见 playTransition）
+      if (edgeClone) edgeClone.style.filter = 'none';
     }
     const oldToc = main?.querySelector<HTMLElement>('.post-sidebar');
     if (oldToc && getComputedStyle(oldToc).display !== 'none') {
@@ -869,7 +873,15 @@ import type { AnimationPlaybackControls } from 'motion';
     // 面包屑」，不是「面包屑浮上来」
     if (edgeClone && newEdge) {
       const exitEl = edgeClone;
-      const out = track(animate(exitEl, { opacity: [1, 0], filter: ['blur(0px)', `blur(${STRIP_BLUR_PX}px)`] }, { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }));
+      // 退出侧不写 filter 关键帧：blur 会在首帧就把过滤层挂回克隆，渐隐完成移除克隆时
+      // 下方新标题会因合成层重栅格闪一下（与 captureOld 的 filter: none 钉死同因）
+      const out = track(
+        animate(
+          exitEl,
+          { opacity: [1, 0] },
+          { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION },
+        ),
+      );
       out.finished
         .then(() => {
           exitEl.remove();
