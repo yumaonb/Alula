@@ -49,7 +49,9 @@
 //    且占位符查找排除条带克隆里的占位符克隆（首次 RO 回调可能赶在克隆渐隐窗口内）。
 // c) 手机端（≤768px）列表↔文章：搜索框退场/入场统一在 after-swap 驱动（**点击时不动**——
 //    点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失，用户反馈）：
-//    开文章 = after-swap 上移 + 渐隐（渐隐比位移快，避免与上方标题视觉冲突）；
+//    开文章 = after-swap 上移 12px（与整页推入同缓动、时长按距离等比——上移速度即
+//    内容推入速度）+ 300ms 渐隐（上移全程可见；上移途中半透明胶囊逼近上方标题——
+//    列式页头标题↔搜索间隙 16px、位移留 4px 余量）；
 //    关文章 = 自上方偏移落回渐显；新内容自下方 48px 滑入（开文章）/
 //    新列表自上方 48px 滑下（关文章）。
 //    条带交换走模糊变过去（旧带模糊渐隐 + 新带反推后原地模糊渐显，见 a）。
@@ -111,12 +113,13 @@ import type { AnimationPlaybackControls } from 'motion';
   const SEARCH_DX = 48; // 搜索「移一段」的位移距离
   const TOC_OFFSCREEN_PAD = 40; // 目录移出屏幕的额外余量（整体在视口右缘之外）
   // 手机端（≤768px）：新内容滑动距离 / 搜索框小位移 / 搜索位移与渐隐时长
-  // （渐隐比位移快：上移时避免半透明胶囊蹭到上方标题；手机端页头是列式、
-  //  标题↔搜索间隙 16px，位移必须小于它，否则入场落回会蹭到标题底边闪一下）
+  // （退场上移与整页推入同缓动（EASE）、时长按距离等比（12/48 × EDGE_MS），
+  //  胶囊上移速度即内容推入速度；渐隐 300ms，上移全程可见；位移必须小于
+  //  手机端列式页头的标题↔搜索间隙 16px，否则入场落回会蹭到标题底边闪一下）
   const MOBILE_SLIDE = 48;
   const FLOAT_MOVE = 12;
   const FLOAT_EXIT_MS = 300;
-  const FLOAT_EXIT_FADE_MS = 180;
+  const FLOAT_EXIT_MOVE_MS = (EDGE_MS * FLOAT_MOVE) / MOBILE_SLIDE;
   const FLOAT_ENTRY_FADE_MS = 220;
   // 手机端「关文章」：搜索自上方落回的延迟（用户反馈：下移时叠在文章卡片上）。
   // 整页自上方 48px 推下时，列表栅格顶（160.6-48=112.6）起初在搜索框钉住位底边（146.6）
@@ -503,8 +506,9 @@ import type { AnimationPlaybackControls } from 'motion';
       f.style.opacity = show ? '1' : '0';
     },
 
-    /** 幂等收尾：位移与渐隐两个动画各在自己的 finished 跑一次——谁后结束谁负责
-     *  清内联（motion 会把关键帧端点提交成内联样式，只清一次会被后完成的动画重新写回） */
+    /** 幂等收尾：只在所有出入场动画都播完后被调用（allFinished 计数）；
+     *  清掉一切内联回到静态目标态。若让先结束者收尾，它清的 visibility/transform 内联
+     *  会让变体类（如文章页隐藏浮层）提前生效——后结束动画的尾巴就播给用户看漏了（实测） */
     finish(show: boolean, f: HTMLElement): void {
       this.state = show ? 'shown' : 'hidden';
       this.active = null;
@@ -515,7 +519,16 @@ import type { AnimationPlaybackControls } from 'motion';
       f.style.opacity = show ? '1' : '0';
     },
 
-    /** 手机端「开文章」退场：上移 + 渐隐（渐隐比位移快）+ 白纱。after-swap 时触发（见 playTransition） */
+    /** 计数收尾：全部入参动画播完才 finish（被 cancel 的不会计数，收尾交给后续 settle/新动画） */
+    allFinished(f: HTMLElement, show: boolean, anims: AnimationPlaybackControls[]): void {
+      let done = 0;
+      const tick = () => {
+        if (++done === anims.length) this.finish(show, f);
+      };
+      for (const a of anims) a.finished.then(tick).catch(() => {});
+    },
+
+    /** 手机端「开文章」退场：上移（同推入速度）+ 渐隐 + 白纱。after-swap 时触发（见 playTransition） */
     exitMobile(): AnimationPlaybackControls | null {
       if (this.state !== 'shown') return this.active;
       const f = this.el();
@@ -525,14 +538,13 @@ import type { AnimationPlaybackControls } from 'motion';
       f.style.visibility = 'visible'; // 变体类可能已隐藏容器（swap 先于动画结束）——退出窗口内强制可见
       pinFloat(f); // 退场动画期间钉视口：滚顶滑行不会把上移+渐隐「带走」成斜线
       const move = trackFloat(
-        animate(f, { y: [0, `-${FLOAT_MOVE}px`] }, { duration: FLOAT_EXIT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }),
+        animate(f, { y: [0, `-${FLOAT_MOVE}px`] }, { duration: FLOAT_EXIT_MOVE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }),
       );
       const fade = trackFloat(
-        animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, { duration: FLOAT_EXIT_FADE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }),
+        animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, { duration: FLOAT_EXIT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }),
       );
       this.active = move;
-      move.finished.then(() => this.finish(false, f)).catch(() => {});
-      fade.finished.then(() => this.finish(false, f)).catch(() => {});
+      this.allFinished(f, false, [move, fade]);
       return move;
     },
 
@@ -549,8 +561,7 @@ import type { AnimationPlaybackControls } from 'motion';
       const move = withX ? trackFloat(animate(f, { x: [0, `${SEARCH_DX}px`] }, opts)) : null;
       const fade = trackFloat(animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, opts));
       this.active = move ?? fade; // 相位链到整体退场（位移与渐隐同时长，链谁等效）
-      if (move) move.finished.then(() => this.finish(false, f)).catch(() => {});
-      fade.finished.then(() => this.finish(false, f)).catch(() => {});
+      this.allFinished(f, false, move ? [move, fade] : [fade]);
       return move;
     },
 
@@ -574,8 +585,7 @@ import type { AnimationPlaybackControls } from 'motion';
         animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, { duration: FLOAT_ENTRY_FADE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
       );
       this.active = move;
-      move.finished.then(() => this.finish(true, f)).catch(() => {});
-      fade.finished.then(() => this.finish(true, f)).catch(() => {});
+      this.allFinished(f, true, [move, fade]);
     },
 
     /** 桌面端入场：自右偏移 48px 落回（配对目录退场时）+ 渐显 + 白纱（入场前先铺白、随入场全程褪去——见文件头 c）；无配对只渐显 */
@@ -593,8 +603,7 @@ import type { AnimationPlaybackControls } from 'motion';
       const move = withX ? trackFloat(animate(f, { x: [`${SEARCH_DX}px`, 0] }, opts)) : null;
       const fade = trackFloat(animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, opts));
       this.active = move ?? fade;
-      if (move) move.finished.then(() => this.finish(true, f)).catch(() => {});
-      fade.finished.then(() => this.finish(true, f)).catch(() => {});
+      this.allFinished(f, true, move ? [move, fade] : [fade]);
     },
 
     /** 快速连切：在途相位（退场/入场）被新一轮切页打断时，不静默掐断硬切——
