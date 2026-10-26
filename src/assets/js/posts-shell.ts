@@ -23,9 +23,8 @@
 //    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。推入的 transform
 //    层**保活不拆**：motion 端点 0 会解析成 transform: none（恒等省略）拆掉合成层，
 //    finished 后显式写回 translateY(0) 把层保住，随节点下次切页移除一起回收——拆层
-//    会触发整列内容（长列表的十几张玻璃卡）重栅格化，弱内核赶不上帧预算时列表长到
-//    一屏放不下、标题会「闪一下」；counter 槽只是单个条带元素，仍走
-//    TRANSFORM_CLEAR_DELAY_MS 延迟拆除。推拉只在区内
+//    触发重栅格化（推入根 = 整列玻璃卡、counter 槽 = 标题区，槽是标题条的父元素），
+//    弱内核赶不上帧预算时标题会「闪一下」；推入根与 counter 槽都保活不拆。推拉只在区内
 //    （旧屏为列表或文章详情）播放；跨区（普通页→列表）直接落位不推入——旧屏无条带、
 //    常驻搜索框无入场相位，整页滑入会标题/列表滑动而搜索框原地不动，割裂。
 // b) 搜索/目录退场配对（用户要求「先退场再入场」）：目录出现/消失的切页里，退出相位
@@ -137,12 +136,6 @@ import type { AnimationPlaybackControls } from 'motion';
   const STRIP_BLUR_OUT_MS = 160; // 旧条带：渐隐时长（只走 opacity）
   const STRIP_BLUR_IN_MS = 260; // 新条带：模糊渐显
   const STRIP_BLUR_PX = 4; // 模糊峰值（px）
-  // 推入/counter 的 transform 层拆除延迟：finished 微任务里立即清 transform = 当场拆掉
-  // 根/槽的合成层，整列内容（手机端长列表 = 十几张带 backdrop-filter 的玻璃卡）随之
-  // 重栅格化——恰好压在新标题入场收尾的提交上，重栅格赶不上当帧预算时标题「闪一下」
-  // （只有列表长到一屏放不下才够贵、才可见；一屏放得下时重栅格当帧完成、无感）。
-  // 推迟到入场完全落定、合成器已提交若干静止帧后再拆：重栅格输出与屏上像素恒等，拆除不可见
-  const TRANSFORM_CLEAR_DELAY_MS = 300;
   // 文章↔文章新目录入场的「落位等待」上限：滚顶被用户滚动打断/异常停住时不能永久
   // 藏目录，超时直接播（此时目录若在视口上方，滑入不可见、无副作用）
   const TOC_SETTLE_TIMEOUT_MS = 2500;
@@ -177,13 +170,6 @@ import type { AnimationPlaybackControls } from 'motion';
   const trackFloat = (a: AnimationPlaybackControls) => {
     floatAnims.push(a);
     return a;
-  };
-  // 延迟清 transform（见 TRANSFORM_CLEAR_DELAY_MS）；快速连切后元素已随旧 DOM 换走，
-  // isConnected 判掉不写
-  const scheduleTransformClear = (el: HTMLElement) => {
-    setTimeout(() => {
-      if (el.isConnected) el.style.transform = '';
-    }, TRANSFORM_CLEAR_DELAY_MS);
   };
   const stopAnims = () => {
     for (const a of anims) a.cancel();
@@ -913,7 +899,9 @@ import type { AnimationPlaybackControls } from 'motion';
           const cnt = track(animate(newSlot, { y: [`${y0}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
           cnt.finished
             .then(() => {
-              scheduleTransformClear(newSlot);
+              // 与推入根同样保活不拆层：槽是标题条的父元素，拆层会重栅格化标题区
+              // （弱内核下标题闪一帧）——写回非 none 恒等，层随节点下次切页移除回收
+              if (newSlot.isConnected) newSlot.style.transform = 'translateY(0)';
             })
             .catch(() => {});
         }
