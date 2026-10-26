@@ -20,7 +20,10 @@
 //    opacity 0→1，260ms），两带同位交叉渐隐、无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
 //    开文章 = 整页向上（新内容自下方 48px 滑入）、关文章 = 镜像向下（新列表自上方 48px
 //    滑下）——新带槽另做与推入**等距反向**的 counter 位移，屏幕上原地不动——避免新带
-//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。推拉只在区内
+//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。推入/counter 的
+//    transform 层**延迟拆除**（finished 后 300ms，见 TRANSFORM_CLEAR_DELAY_MS）：立即拆层
+//    会触发整列内容（长列表的十几张玻璃卡）重栅格化，压在新标题入场收尾的提交上，
+//    列表长到一屏放不下时标题会「闪一下」。推拉只在区内
 //    （旧屏为列表或文章详情）播放；跨区（普通页→列表）直接落位不推入——旧屏无条带、
 //    常驻搜索框无入场相位，整页滑入会标题/列表滑动而搜索框原地不动，割裂。
 // b) 搜索/目录退场配对（用户要求「先退场再入场」）：目录出现/消失的切页里，退出相位
@@ -128,6 +131,12 @@ import type { AnimationPlaybackControls } from 'motion';
   const STRIP_BLUR_OUT_MS = 160; // 旧条带：渐隐时长（只走 opacity）
   const STRIP_BLUR_IN_MS = 260; // 新条带：模糊渐显
   const STRIP_BLUR_PX = 4; // 模糊峰值（px）
+  // 推入/counter 的 transform 层拆除延迟：finished 微任务里立即清 transform = 当场拆掉
+  // 根/槽的合成层，整列内容（手机端长列表 = 十几张带 backdrop-filter 的玻璃卡）随之
+  // 重栅格化——恰好压在新标题入场收尾的提交上，重栅格赶不上当帧预算时标题「闪一下」
+  // （只有列表长到一屏放不下才够贵、才可见；一屏放得下时重栅格当帧完成、无感）。
+  // 推迟到入场完全落定、合成器已提交若干静止帧后再拆：重栅格输出与屏上像素恒等，拆除不可见
+  const TRANSFORM_CLEAR_DELAY_MS = 300;
   // 点击触发的搜索退场：若 1.2s 内切页未提交（swup 忽略 / 目标失效），恢复搜索框
   const FLOAT_RESTORE_MS = 1200;
   // 文章↔文章新目录入场的「落位等待」上限：滚顶被用户滚动打断/异常停住时不能永久
@@ -164,6 +173,13 @@ import type { AnimationPlaybackControls } from 'motion';
   const trackFloat = (a: AnimationPlaybackControls) => {
     floatAnims.push(a);
     return a;
+  };
+  // 延迟清 transform（见 TRANSFORM_CLEAR_DELAY_MS）；快速连切后元素已随旧 DOM 换走，
+  // isConnected 判掉不写
+  const scheduleTransformClear = (el: HTMLElement) => {
+    setTimeout(() => {
+      if (el.isConnected) el.style.transform = '';
+    }, TRANSFORM_CLEAR_DELAY_MS);
   };
   const stopAnims = () => {
     for (const a of anims) a.cancel();
@@ -895,7 +911,7 @@ import type { AnimationPlaybackControls } from 'motion';
           const cnt = track(animate(newSlot, { y: [`${y0}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
           cnt.finished
             .then(() => {
-              newSlot.style.transform = '';
+              scheduleTransformClear(newSlot);
             })
             .catch(() => {});
         }
@@ -909,6 +925,9 @@ import type { AnimationPlaybackControls } from 'motion';
     }
 
     // ---- 手机端整页推拉：新内容自下方/上方滑入（开=上滑入 / 关=下滑入）----
+    // transform 层的拆除走 scheduleTransformClear 延迟：立即拆层会触发整列内容
+    // （长列表的十几张玻璃卡）重栅格化，压在新标题入场收尾的提交上造成标题闪一下
+    //（见 TRANSFORM_CLEAR_DELAY_MS 注释）
     if (mobilePush) {
       const root = opening ? (main?.querySelector<HTMLElement>('.posts-article') ?? null) : (main?.querySelector<HTMLElement>('.posts-page') ?? null);
       if (root) {
@@ -916,7 +935,7 @@ import type { AnimationPlaybackControls } from 'motion';
         const a = track(animate(root, { y: [`${y0}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
         a.finished
           .then(() => {
-            root.style.transform = '';
+            scheduleTransformClear(root);
           })
           .catch(() => {});
       }
