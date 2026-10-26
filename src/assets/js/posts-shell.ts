@@ -47,11 +47,13 @@
 //    四个动画方法起播前 pinFloat 钉视口（内联 top/left 转视口坐标）、finish/settle 统一
 //    unpin 还原行相对值——钉住期间 syncSearchPos 让路（fixed 下写行相对值会瞬移），
 //    且占位符查找排除条带克隆里的占位符克隆（首次 RO 回调可能赶在克隆渐隐窗口内）。
-// c) 手机端（≤768px）列表↔文章：搜索框**点击即退场**（委托 click 监听，不等内容加载）：
-//    上移 + 渐隐（渐隐比位移快，避免与上方标题视觉冲突）；新内容自下方 48px 滑入
-//    （开文章）/ 新列表自上方 48px 滑下（关文章），搜索框自上方偏移落回渐显。
+// c) 手机端（≤768px）列表↔文章：搜索框退场/入场统一在 after-swap 驱动（**点击时不动**——
+//    点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失，用户反馈）：
+//    开文章 = after-swap 上移 + 渐隐（渐隐比位移快，避免与上方标题视觉冲突）；
+//    关文章 = 自上方偏移落回渐显；新内容自下方 48px 滑入（开文章）/
+//    新列表自上方 48px 滑下（关文章）。
 //    条带交换走模糊变过去（旧带模糊渐隐 + 新带反推后原地模糊渐显，见 a）。
-//    **跨区（列表 ↔ 普通页）不做搜索淡变**：去普通页直接消失（点击即 settle）、
+//    **跨区（列表 ↔ 普通页）不做搜索淡变**：去普通页直接消失（after-swap settle）、
 //    从普通页回来直接出现（after-swap settle）——只有区内（列表↔详情）做退场/入场淡变（用户指定）
 //    白纱规则（移动渐隐的毛玻璃通用，见 CSS.md「玻璃拟态」）：搜索胶囊是磨砂（backdrop
 //    模糊、背景全透明），渐隐时模糊随透明度一起淡掉会「突然变透明」——搜索**淡出**同时
@@ -61,10 +63,8 @@
 //    玻璃浮现」，与淡出对称（用户要求：入场渐显那会儿要在入场前加上半透明白）。
 //    白纱写在容器（.posts-search-float）上而非胶囊上：
 //    胶囊有 :focus-within 的 background 过渡，逐帧内联写入会与之打架。
-//    点击触发的退场若切页未提交（swup 忽略，如纯哈希链接），FLOAT_RESTORE_MS 后恢复；
-//    swup 导航**在途**时不恢复（dev 首次 fetch 可超 1.2s，提前恢复 = 搜索框中途弹回，
-//    内容落地又得二次退场）——在途/失败由 window.swup 钩子判定（astro.config.ts
-//    globalInstance: true）。
+//    fetch 失败（404 / 中断）且仍留在列表系界面时恢复搜索框（window.swup 钩子兜底，
+//    astro.config.ts globalInstance: true）。
 // d) 快速连切保护：① 上次转场未播完又切页时，旧条带/旧目录/旧内容根可能带着被 cancel 的
 //    动画残留内联 transform/opacity（motion 的 cancel 不清内联样式——它把元素回退到
 //    **首关键帧**并把 keyframes[0] 重写进内联），克隆前必须清零再量盒；
@@ -137,8 +137,6 @@ import type { AnimationPlaybackControls } from 'motion';
   // （只有列表长到一屏放不下才够贵、才可见；一屏放得下时重栅格当帧完成、无感）。
   // 推迟到入场完全落定、合成器已提交若干静止帧后再拆：重栅格输出与屏上像素恒等，拆除不可见
   const TRANSFORM_CLEAR_DELAY_MS = 300;
-  // 点击触发的搜索退场：若 1.2s 内切页未提交（swup 忽略 / 目标失效），恢复搜索框
-  const FLOAT_RESTORE_MS = 1200;
   // 文章↔文章新目录入场的「落位等待」上限：滚顶被用户滚动打断/异常停住时不能永久
   // 藏目录，超时直接播（此时目录若在视口上方，滑入不可见、无副作用）
   const TOC_SETTLE_TIMEOUT_MS = 2500;
@@ -162,8 +160,8 @@ import type { AnimationPlaybackControls } from 'motion';
 
   // ================= 1. 动画登记（两套生命周期） =================
   // anims：转场动画——快速二次导航（captureOld）一律 cancel；
-  // floatAnims：搜索浮层动画——独立生命周期（点击即退场可能在 before-swap 之前就开始，
-  // 不能被转场中断连带杀掉；只在浮层自己的 settle/新动画前清理）
+  // floatAnims：搜索浮层动画——独立生命周期（不能被转场中断连带杀掉；
+  // 只在浮层自己的 settle/新动画前清理）
   let anims: AnimationPlaybackControls[] = [];
   let floatAnims: AnimationPlaybackControls[] = [];
   const track = (a: AnimationPlaybackControls) => {
@@ -486,7 +484,6 @@ import type { AnimationPlaybackControls } from 'motion';
   const floatCtl = {
     state: 'shown' as 'shown' | 'hidden' | 'exiting' | 'entering',
     active: null as AnimationPlaybackControls | null,
-    restoreTimer: 0 as number,
 
     el(): HTMLElement | null {
       return row()?.querySelector<HTMLElement>('.posts-search-float') ?? null;
@@ -494,7 +491,6 @@ import type { AnimationPlaybackControls } from 'motion';
 
     /** 钉到静态目标态：清掉一切内联（transform/opacity/visibility/背景白纱 + 视口钉） */
     settle(show: boolean): void {
-      window.clearTimeout(this.restoreTimer);
       stopFloatAnims();
       this.active = null;
       this.state = show ? 'shown' : 'hidden';
@@ -505,11 +501,6 @@ import type { AnimationPlaybackControls } from 'motion';
       f.style.visibility = '';
       f.style.backgroundColor = '';
       f.style.opacity = show ? '1' : '0';
-    },
-
-    /** 切页已提交（before-swap 到来）：撤销点击退场的恢复定时器 */
-    commit(): void {
-      window.clearTimeout(this.restoreTimer);
     },
 
     /** 幂等收尾：位移与渐隐两个动画各在自己的 finished 跑一次——谁后结束谁负责
@@ -524,7 +515,7 @@ import type { AnimationPlaybackControls } from 'motion';
       f.style.opacity = show ? '1' : '0';
     },
 
-    /** 手机端「开文章」退场：上移 + 渐隐（渐隐比位移快）+ 白纱。点击即触发（见 onDocClick） */
+    /** 手机端「开文章」退场：上移 + 渐隐（渐隐比位移快）+ 白纱。after-swap 时触发（见 playTransition） */
     exitMobile(): AnimationPlaybackControls | null {
       if (this.state !== 'shown') return this.active;
       const f = this.el();
@@ -711,7 +702,6 @@ import type { AnimationPlaybackControls } from 'motion';
     oldHadSearch = false;
     oldIsPost = false;
     pendingEarlyNav = null; // 切页已提交：早期点击等待结束
-    floatCtl.commit(); // 切页已提交：撤销点击退场的恢复定时器
     cancelTocEntryWait(); // 上一轮文章↔文章新目录的落位等待作废（元素即将被换走）
     const r = row();
     if (!r) return;
@@ -786,11 +776,11 @@ import type { AnimationPlaybackControls } from 'motion';
     let entryAction: (() => void) | null = null;
 
     if (mobilePush) {
-      // 手机端（≤768px）列表↔文章：搜索走独立的上下位移（开=点击已触发的退场；关=自上方落回渐显）；
+      // 手机端（≤768px）列表↔文章：搜索走独立的上下位移（开=after-swap 启动退场，点击时不动；关=自上方落回渐显）；
       // 目录在 ≤768px 不存在（按钮+抽屉），不参与。
       // 跨区（列表↔普通页）不做搜索淡变：无退场/入场动作，搜索随 after-swap settle 直接消失/出现（用户指定）
       if (opening && newIsPost) {
-        // 区内「开文章」：退场通常已在点击时启动；没启动（非点击导航）就补启动
+        // 区内「开文章」：在这里启动退场（点击时不动，见 onDocClick）；上一轮退场仍在途则沿用
         exitAction = () => (floatCtl.state === 'exiting' ? floatCtl.active : floatCtl.state === 'shown' ? floatCtl.exitMobile() : null);
       } else if (closing && oldIsPost) {
         // 区内「关文章」：自上方落回渐显
@@ -999,17 +989,14 @@ import type { AnimationPlaybackControls } from 'motion';
     return sw.hooks && typeof sw.navigate === 'function' ? (s as SwupLike) : null;
   }
 
-  // swup 实例钩子：区分「真实导航在途」与「swup 忽略了这次点击」。
-  // @swup/astro 只在 document 上桥接 astro:before-swap / after-swap / page-load 三个事件，
-  // 覆盖不了这两个状态，所以用 astro.config.ts globalInstance: true 暴露的 window.swup
-  //（swup 在 onIdleAfterLoad 才初始化，实例可能晚于本模块——钩子按需在首次点击时绑）。
-  // 用途：点击触发的搜索退场后，恢复定时器在「导航在途」时不得触发——dev 首次 fetch
-  // 可超 1.2s，提前恢复 = 搜索框在切换中途弹回、内容落地又得二次退场（用户看到的
-  // 「初次切到文章搜索框渐显」）；fetch 失败（404 / 中断）时在失败回调里恢复。
-  let navInFlight = false;
+  // swup 实例钩子：@swup/astro 只在 document 上桥接 astro:before-swap / after-swap / page-load
+  // 三个事件，覆盖不了「fetch 失败」——用 astro.config.ts globalInstance: true 暴露的
+  // window.swup（swup 在 onIdleAfterLoad 才初始化，实例可能晚于本模块——钩子按需在首次点击时绑）。
+  // 用途：fetch 失败（404 / 中断）且仍留在列表系界面时恢复搜索框（兜底：搜索框点击时
+  // 不动，失败时通常尚未退场，本回调只覆盖在途被打断的少数情形）。
   let swupHooksBound = false;
   // 首屏实例未就绪时点区内链接：拦截原生全页跳转，等实例就绪后 navigate() 转正场，
-  // 超时回退原生跳转（保持 pending 到 before-swap，覆盖 fetch 在途的恢复定时器窗口）
+  // 超时回退原生跳转（此变量是该轮询的在途状态）
   let pendingEarlyNav: { url: string; timer: number } | null = null;
   // 实例在 load+idle 才创建：慢网/冷缓存下 load 可超 5s（首载场景），时限要覆盖它
   const EARLY_NAV_TIMEOUT_MS = 10000;
@@ -1019,14 +1006,7 @@ import type { AnimationPlaybackControls } from 'motion';
     const swup = realSwup();
     if (!swup) return; // 实例未就绪（取到的是 <main> 元素回退）——不打污染标记，下次点击再绑
     swupHooksBound = true;
-    swup.hooks.on('visit:start', () => {
-      navInFlight = true;
-    });
-    swup.hooks.on('content:replace', () => {
-      navInFlight = false;
-    });
     const restoreAfterFail = () => {
-      navInFlight = false;
       pendingEarlyNav = null; // 导航已失败：早期等待随之作废，走原生兜底结果
       // 只在「仍停在列表系界面」时恢复——失败后内容未换，若此刻在详情页，
       // 搜索不该出现
@@ -1064,7 +1044,7 @@ import type { AnimationPlaybackControls } from 'motion';
     const poll = (): void => {
       const s = realSwup();
       if (s) {
-        // 保持 pendingEarlyNav 到 captureOld（before-swap）：fetch 在途期间压制搜索恢复定时器
+        // 导航已正式发起：早期点击等待结束（before-swap 时统一清掉）
         try {
           s.navigate(href);
         } catch {
@@ -1083,45 +1063,13 @@ import type { AnimationPlaybackControls } from 'motion';
     pendingEarlyNav = { url: href, timer: window.setTimeout(poll, 100) };
   }
 
-  /** 手机端列表页出发：/posts/ 内导航点击即退场（用户要求——不等内容加载）；
-   *  跨区（→ 普通页）点击即直接消失（不渐隐，用户指定）。
-   *  委托 click 监听（只观察、不拦截，swup 自己的点击处理不受影响）；
-   *  切页未提交（swup 忽略，如纯哈希链接）FLOAT_RESTORE_MS 后恢复；导航在途则不恢复 */
-  function onDocClick(e: MouseEvent): void {
+  /** 手机端：点击只绑 swup 钩子（fetch 失败兜底）。搜索框显隐不在点击时动——
+   *  点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失（用户反馈）；
+   *  退场/入场/settle 全部由 playTransition 在 after-swap 统一驱动
+   *  （区内「开文章」在那里启动退场、跨区 settle 直接消失/出现） */
+  function onDocClick(): void {
     if (REDUCE_MOTION || !isMobile()) return;
     bindSwupHooks();
-    const t = e.target;
-    if (!(t instanceof Element)) return;
-    const a = t.closest('a[href]');
-    if (!(a instanceof HTMLAnchorElement)) return;
-    const href = a.getAttribute('href') ?? '';
-    if (!href.startsWith('/') || a.target === '_blank') return;
-    if (a.hasAttribute('data-no-swup') || t.closest('[data-no-swup]')) return;
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    if (floatCtl.state !== 'shown') return; // 只处理「搜索正在显示」（列表系）出发的导航
-    if (!row()?.classList.contains('page-main--listing')) return;
-    if (href.replace(/\/+$/, '') === location.pathname.replace(/\/+$/, '')) return; // 同页
-    window.clearTimeout(floatCtl.restoreTimer);
-    if (href.startsWith('/posts')) {
-      // 区内（→ 详情/其他列表）：点击即退场（上移 + 渐隐 + 白纱，不等内容加载）
-      floatCtl.exitMobile();
-    } else {
-      // 跨区（→ 普通页）：直接消失，不渐隐（用户指定）
-      floatCtl.settle(false);
-    }
-    floatCtl.restoreTimer = window.setTimeout(() => {
-      // 只在「切页确实没发生」时恢复：导航在途（visit:start 已报、content:replace 未到）
-      // 时不动——dev 首次 fetch 常超 1.2s，提前恢复 = 搜索框中途弹回；
-      // 导航真没发生（swup 忽略 / fetch 失败未回调）就钉回——退场可能早已播完
-      //（state 已是 'hidden'），只查 'exiting' 会让搜索框永远消失
-      if (
-        floatCtl.state !== 'shown' &&
-        !navInFlight &&
-        !pendingEarlyNav &&
-        row()?.classList.contains('page-main--listing')
-      )
-        floatCtl.settle(true);
-    }, FLOAT_RESTORE_MS);
   }
 
   // ---- category-tree 脚本守卫：侧栏常驻，模块只需加载一次 ----
