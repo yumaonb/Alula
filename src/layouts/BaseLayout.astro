@@ -7,9 +7,11 @@
 // 搜索若是 #swup 内容里带 data-swup-persist 的岛，每次切页节点都会被摘出再插回，
 // .glass 胶囊（backdrop-filter + 投影）的层每次重建，用户看到「阴影一闪一闪」；
 // 行级常驻后节点终生不移动、不参与位移动画，阴影/磨砂恒定，切页零闪。
-// 非文章页搜索靠 global.css 的 .page-main--* 变体类隐藏（opacity + visibility 过渡）；
+// 非文章页搜索靠 global.css 的 .page-main--* 变体类隐藏（visibility + opacity）；
 // 变体类首屏由 shellVariant 决定，切页后由 posts-shell.ts 按内容同步。
-// 位置由 posts-shell.ts 实测页头占位符（.posts-header-search）写入内联 top/left/width。
+// 位置按页头占位符（.posts-header-search）实测写内联 top/left/width：首帧由 body 尾
+// is:inline 脚本先写（无网络依赖，慢网下搜索框不等 JS 包即可见），posts-shell.ts
+// 加载后重测接管。
 import '../assets/css/global.css';
 import '../assets/css/shared/skeleton.css';
 import '../assets/css/posts/image-fallback.css';
@@ -197,6 +199,33 @@ const blog = await loadBlogData();
     </script>
     <script>
       import '../assets/js/shell-guard';
+    </script>
+    <script is:inline>
+      // 搜索框首帧可见：浮层叠放位置平时由 posts-shell.ts（JS 包加载后）实测写入，此前
+      // 被 CSS opacity: 0 隐着——慢网下搜索框要等 JS 包加载完才出现（观感像延迟水合）。
+      // 本脚本随文档执行（无网络依赖），在首帧绘制前按页头占位符实测叠放并显出搜索框；
+      // posts-shell.ts 加载后重测接管（值一致，无跳变）。仅列表页有占位符，其余页面跳过。
+      (function () {
+        const ph = document.querySelector('.page-main .posts-header-search');
+        if (!ph) return;
+        const row = ph.closest('.page-main');
+        const f = row ? row.querySelector('.posts-search-float') : null;
+        if (!f) return;
+        const r = row.getBoundingClientRect();
+        const slot = ph.closest('.posts-edge-slot');
+        if (slot) {
+          const s = slot.getBoundingClientRect();
+          f.style.top = s.top - r.top + ph.offsetTop + 'px';
+          f.style.left = s.left - r.left + ph.offsetLeft + 'px';
+        } else {
+          const a = ph.getBoundingClientRect();
+          f.style.top = a.top - r.top + 'px';
+          f.style.left = a.left - r.left + 'px';
+        }
+        f.style.width = ph.offsetWidth + 'px';
+        f.style.opacity = '1';
+        f.style.visibility = 'visible';
+      })();
     </script>
     <script is:inline>
       // 首载 loading 屏：HTML 到齐即揭幕（最少展示 500ms），不等 load / DOMContentLoaded。

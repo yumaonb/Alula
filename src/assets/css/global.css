@@ -214,7 +214,8 @@ ol {
 /* 搜索框行级常驻（BaseLayout 渲染在行内、main#swup 之外）：
  * swup 切页永不重建——节点不被 swup 移动，.glass 胶囊（backdrop-filter + 投影）
  * 的层不重建，切页零闪零重建。
- * 位置由 posts-shell.ts 实测页头占位符写内联 top/left/width（叠在占位上，各宽适配）；
+ * 位置按页头占位符实测写内联 top/left/width（叠在占位上，各宽适配）：首帧由
+ * BaseLayout body 尾 is:inline 脚本先写（无网络依赖），posts-shell.ts 加载后重测接管。
  * visibility/pointer-events 随行变体类**瞬时**翻转（列表变体显示、其他隐藏），
  * opacity 与退场/入场位移（右移渐隐 ↔ 自右渐显，与目录滑动配对、先退场再入场）
  * 全部由 posts-shell.ts 用 motion 驱动（见 ARCHITECTURE.md「搜索/目录退场配对」）——
