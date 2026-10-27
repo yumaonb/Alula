@@ -16,8 +16,10 @@
 //    切换（桌面端所有 + 手机端列表↔文章 + 手机端列表↔分类/标签；用户指定电脑端也用
 //    模糊，手机端滑动形态随之整体退役）走**模糊变过去**——旧带原地渐隐
 //    （opacity 1→0，160ms；退出侧全程不带 filter——带过滤层的克隆被移除时，
-//    下方新标题会因合成层重栅格闪一下）、新带原地模糊渐显（blur 4px→0 +
-//    opacity 0→1，260ms），两带同位交叉渐隐、无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
+//    下方新标题会因合成层重栅格闪一下）、新带 = 真带钉静态 blur(0px) 原地渐显 +
+//    静态 blur(4px) 模糊副本原地渐隐（纯 alpha 交叉，260ms——逐帧 blur 动画改一次性
+//    模糊纹理，收尾帧不再抢栅格预算，见 TROUBLESHOOTING 第 51 条），两带同位交叉渐隐、
+//    无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
 //    开文章 = 整页向上（新内容自下方 48px 滑入）、关文章 = 镜像向下（新列表自上方 48px
 //    滑下）——新带槽另做与推入**等距反向**的 counter 位移，屏幕上原地不动——避免新带
 //    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。推入的 transform
@@ -132,10 +134,12 @@ import type { AnimationPlaybackControls } from 'motion';
   // 条带交换「模糊变过去」（**全部**左缘条带切换——桌面端所有 + 手机端列表↔文章 + 手机端
   // 列表↔分类/标签；用户指定电脑端也用模糊，滑动形态整体退役）：
   // 旧带原地渐隐（opacity 1→0；退出侧不写 filter 关键帧——带过滤层的克隆被移除时，
-  // 下方新标题会因合成层重栅格闪一下）、新带原地模糊渐显（blur 4px→0 + opacity 0→1）
+  // 下方新标题会因合成层重栅格闪一下）；新带 = 真带钉静态 blur(0px) 原地渐显 + 静态
+  // blur(4px) 模糊副本原地渐隐（纯 alpha 交叉——逐帧 blur 动画会让收尾帧与 N 张玻璃卡
+  // 的 backdrop 突发抢栅格预算、弱内核下标题闪一帧，见 TROUBLESHOOTING 第 51 条）
   const STRIP_BLUR_OUT_MS = 160; // 旧条带：渐隐时长（只走 opacity）
-  const STRIP_BLUR_IN_MS = 260; // 新条带：模糊渐显
-  const STRIP_BLUR_PX = 4; // 模糊峰值（px）
+  const STRIP_BLUR_IN_MS = 260; // 新条带：模糊交叉渐显时长（真带渐显 + 模糊副本渐隐，同时长）
+  const STRIP_BLUR_PX = 4; // 模糊峰值（px，模糊副本的静态 blur）
   // 文章↔文章新目录入场的「落位等待」上限：滚顶被用户滚动打断/异常停住时不能永久
   // 藏目录，超时直接播（此时目录若在视口上方，滑入不可见、无副作用）
   const TOC_SETTLE_TIMEOUT_MS = 2500;
@@ -892,6 +896,17 @@ import type { AnimationPlaybackControls } from 'motion';
           edgeClone = null;
         })
         .catch(() => {});
+      // 进入侧「模糊变过去」：逐帧 blur 动画 → 一次性模糊纹理 + 纯 alpha 交叉（TROUBLESHOOTING 51）：
+      // 受限内核的 filter/backdrop 栅格串行且每帧预算小，逐帧模糊让新条带收尾帧与 N 张玻璃卡
+      // 的 backdrop 突发抢预算、标题闪一帧。改法：真条带起播前钉静态 blur(0px)（保自身合成层，
+      // 层随切页替换回收，收尾帧同现状），只渐显 alpha；再克隆一份静态 blur(4px) 的模糊副本
+      // 盖在同位只渐隐 alpha——全程合成器只改 alpha、收尾帧无需新栅格，观感仍是「模糊里变过去、
+      // 收尾变清晰」。副本必须在 counter/推入启动前量盒（槽与根都还无位移，量到的是终位）。
+      // 减动效下不建模糊副本，退化为纯 alpha 交叉渐显。
+      newEdge.style.filter = 'blur(0px)';
+      const rowEl = row();
+      const blurClone = !REDUCE_MOTION && rowEl ? cloneIntoRow(newEdge, rowEl, 'posts-edge-clone') : null;
+      if (blurClone) blurClone.style.filter = `blur(${STRIP_BLUR_PX}px)`;
       if (mobilePush) {
         const newSlot = newEdge.parentElement;
         if (newSlot) {
@@ -906,9 +921,11 @@ import type { AnimationPlaybackControls } from 'motion';
             .catch(() => {});
         }
       }
-      // 终态保留 blur(0px)：finished 后 motion 还会补写一次终帧，先清会制造
-      // none → blur(0px) 的一帧重栅格闪；条随切页替换，不必在这里清内联
-      track(animate(newEdge, { opacity: [0, 1], filter: [`blur(${STRIP_BLUR_PX}px)`, 'blur(0px)'] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+      if (blurClone) {
+        // 收尾不拆层：淡到 0 后保留（不可见），随下次切页 clearClones / 5s 兜底移除
+        track(animate(blurClone, { opacity: [1, 0] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+      }
+      track(animate(newEdge, { opacity: [0, 1] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
     } else if (edgeClone) {
       edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
       edgeClone = null;
