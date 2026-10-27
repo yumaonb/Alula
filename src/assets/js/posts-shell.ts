@@ -1,5 +1,7 @@
 // posts-shell.ts — 文章区常驻壳（.page-main 行）的运行时控制器
 // 用法：由 BaseLayout 引入：import "../assets/js/posts-shell"
+// 真机二分调试（临时）：URL 带 ?debug=nopush|solid|nostrip|nokeep 开启，session 内持续生效，
+// 定位「文章→列表标题闪一帧」的触发源后整组移除
 //
 // 侧边栏（GlobalSidebar）与搜索框（PostSearch）都在 #swup 之外、切页不重建，
 // 所以每次切页后五件事要自己跟上：
@@ -148,6 +150,28 @@ import type { AnimationPlaybackControls } from 'motion';
   const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
   // 目录滑动只在电脑端显示目录（≥851px；更窄目录是按钮+抽屉，只走普通渐隐）
   const tocSlideGate = () => !REDUCE_MOTION && window.matchMedia('(min-width: 851px)').matches;
+  // ---- 真机二分调试开关（临时，定位「文章→列表标题闪一帧」后整组移除）----
+  // ?debug=<模式> 开启（sessionStorage 持久到本次会话，swup 切页后仍生效），未带参数零开销：
+  // nopush = 手机端关整页推拉（transform 层根本不建） | solid = 手机列表卡去磨砂实底（N 个 backdrop 消失）
+  // nostrip = 关条带交叉渐显（新条带直接出现） | nokeep = 收尾不写保活 transform（收尾拆层）
+  const DEBUG_MODE = (() => {
+    const p = new URLSearchParams(location.search).get('debug');
+    if (p) sessionStorage.setItem('__debugMode', p);
+    return sessionStorage.getItem('__debugMode') || '';
+  })();
+  if (DEBUG_MODE) {
+    const tag = document.createElement('div');
+    tag.textContent = 'debug:' + DEBUG_MODE;
+    tag.style.cssText =
+      'position:fixed;left:8px;bottom:8px;z-index:99999;background:rgba(0,0,0,0.7);color:#7fff7f;font:12px/1.4 monospace;padding:2px 6px;border-radius:4px;pointer-events:none';
+    document.body.appendChild(tag);
+  }
+  if (DEBUG_MODE === 'solid') {
+    const st = document.createElement('style');
+    st.textContent =
+      '@media (max-width: 768px) { .posts-grid .post-card.glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(13, 14, 20, 0.88); } }';
+    document.head.appendChild(st);
+  }
   const BG0 = 'rgba(255, 255, 255, 0)'; // 白纱关键帧的透明端（与 .glass 的 transparent 等价）
   const VEIL = (() => {
     try {
@@ -342,7 +366,7 @@ import type { AnimationPlaybackControls } from 'motion';
    *  克隆是纯静态展示（左缘条与目录里没有 island）。
    *  清除时机：正常转场由 finished 回调移除；快速二次导航由 captureOld 查 DOM 清掉；
    *  5s 兜底只覆盖「visit 被中断、after-swap 永不来」的孤儿 */
-  function cloneIntoRow(src: HTMLElement, container: HTMLElement, markerClass?: string): HTMLElement | null {
+  function cloneIntoRow(src: HTMLElement, container: HTMLElement, markerClass?: string, noFallback = false): HTMLElement | null {
     const clone = src.cloneNode(true) as HTMLElement;
     clone.removeAttribute('data-posts-anchor');
     if (markerClass) clone.classList.add(markerClass);
@@ -361,8 +385,10 @@ import type { AnimationPlaybackControls } from 'motion';
     clone.style.pointerEvents = 'none';
     clone.setAttribute('aria-hidden', 'true');
     container.appendChild(clone);
-    // 兜底：孤儿克隆 5s 后移除（visit 被中断、after-swap 永不来）
-    window.setTimeout(() => clone.remove(), 5000);
+    // 兜底：孤儿克隆 5s 后移除（visit 被中断、after-swap 永不来）；after-swap 之后才建的克隆
+    // （条带模糊副本）不挂兜底——它淡出后恒不可见、随下次 before-swap 的 clearClones 清除，
+    // 而 5s 定时移除 = 随机静止时刻拆过滤层，弱内核下标题区会闪
+    if (!noFallback) window.setTimeout(() => clone.remove(), 5000);
     return clone;
   }
 
@@ -757,7 +783,7 @@ import type { AnimationPlaybackControls } from 'motion';
     // 手机端（≤768px）列表↔文章：固定方向整页推拉（开=上 / 关=下）；
     // opening/closing 均要求旧页在文章区内——跨区（普通页→列表）旧屏无条带可配对、
     // 常驻搜索框直接 settle 落位，整页滑入会出现内容滑动而搜索框原地不动的割裂
-    const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing);
+    const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing) && DEBUG_MODE !== 'nopush';
 
     // 快速连切收口：浮层带着上一轮的在途相位、与本轮目的地冲突时，不静默掐断硬切
     // （用户所见「点快了搜索框没有退场动画」）——从飞行中位姿改向到本轮目的地的
@@ -880,33 +906,40 @@ import type { AnimationPlaybackControls } from 'motion';
     // 同时长同缓动，见下方推拉块），新条带在屏幕上原地不动——读起来是「标题模糊成
     // 面包屑」，不是「面包屑浮上来」
     if (edgeClone && newEdge) {
-      const exitEl = edgeClone;
-      // 退出侧不写 filter 关键帧：blur 会在首帧就把过滤层挂回克隆，渐隐完成移除克隆时
-      // 下方新标题会因合成层重栅格闪一下（与 captureOld 的 filter: none 钉死同因）
-      const out = track(
-        animate(
-          exitEl,
-          { opacity: [1, 0] },
-          { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION },
-        ),
-      );
-      out.finished
-        .then(() => {
-          exitEl.remove();
-          edgeClone = null;
-        })
-        .catch(() => {});
-      // 进入侧「模糊变过去」：逐帧 blur 动画 → 一次性模糊纹理 + 纯 alpha 交叉（TROUBLESHOOTING 51）：
-      // 受限内核的 filter/backdrop 栅格串行且每帧预算小，逐帧模糊让新条带收尾帧与 N 张玻璃卡
-      // 的 backdrop 突发抢预算、标题闪一帧。改法：真条带起播前钉静态 blur(0px)（保自身合成层，
-      // 层随切页替换回收，收尾帧同现状），只渐显 alpha；再克隆一份静态 blur(4px) 的模糊副本
-      // 盖在同位只渐隐 alpha——全程合成器只改 alpha、收尾帧无需新栅格，观感仍是「模糊里变过去、
-      // 收尾变清晰」。副本必须在 counter/推入启动前量盒（槽与根都还无位移，量到的是终位）。
-      // 减动效下不建模糊副本，退化为纯 alpha 交叉渐显。
-      newEdge.style.filter = 'blur(0px)';
-      const rowEl = row();
-      const blurClone = !REDUCE_MOTION && rowEl ? cloneIntoRow(newEdge, rowEl, 'posts-edge-clone') : null;
-      if (blurClone) blurClone.style.filter = `blur(${STRIP_BLUR_PX}px)`;
+      const stripFx = DEBUG_MODE !== 'nostrip'; // 真机二分：关条带交叉渐显时新条带直接出现（counter/推拉不受影响）
+      let blurClone: HTMLElement | null = null;
+      if (stripFx) {
+        const exitEl = edgeClone;
+        // 退出侧不写 filter 关键帧：blur 会在首帧就把过滤层挂回克隆，渐隐完成移除克隆时
+        // 下方新标题会因合成层重栅格闪一下（与 captureOld 的 filter: none 钉死同因）
+        const out = track(
+          animate(
+            exitEl,
+            { opacity: [1, 0] },
+            { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION },
+          ),
+        );
+        out.finished
+          .then(() => {
+            exitEl.remove();
+            edgeClone = null;
+          })
+          .catch(() => {});
+        // 进入侧「模糊变过去」：逐帧 blur 动画 → 一次性模糊纹理 + 纯 alpha 交叉（TROUBLESHOOTING 51）：
+        // 受限内核的 filter/backdrop 栅格串行且每帧预算小，逐帧模糊让新条带收尾帧与 N 张玻璃卡
+        // 的 backdrop 突发抢预算、标题闪一帧。改法：真条带起播前钉静态 blur(0px)（保自身合成层，
+        // 层随切页替换回收，收尾帧同现状），只渐显 alpha；再克隆一份静态 blur(4px) 的模糊副本
+        // 盖在同位只渐隐 alpha——全程合成器只改 alpha、收尾帧无需新栅格，观感仍是「模糊里变过去、
+        // 收尾变清晰」。副本必须在 counter/推入启动前量盒（槽与根都还无位移，量到的是终位）。
+        // 减动效下不建模糊副本，退化为纯 alpha 交叉渐显。
+        newEdge.style.filter = 'blur(0px)';
+        const rowEl = row();
+        blurClone = !REDUCE_MOTION && rowEl ? cloneIntoRow(newEdge, rowEl, 'posts-edge-clone', true) : null;
+        if (blurClone) blurClone.style.filter = `blur(${STRIP_BLUR_PX}px)`;
+      } else {
+        edgeClone.remove();
+        edgeClone = null;
+      }
       if (mobilePush) {
         const newSlot = newEdge.parentElement;
         if (newSlot) {
@@ -916,16 +949,19 @@ import type { AnimationPlaybackControls } from 'motion';
             .then(() => {
               // 与推入根同样保活不拆层：槽是标题条的父元素，拆层会重栅格化标题区
               // （弱内核下标题闪一帧）——写回非 none 恒等，层随节点下次切页移除回收
-              if (newSlot.isConnected) newSlot.style.transform = 'translateY(0)';
+              if (DEBUG_MODE !== 'nokeep' && newSlot.isConnected) newSlot.style.transform = 'translateY(0)';
             })
             .catch(() => {});
         }
       }
-      if (blurClone) {
-        // 收尾不拆层：淡到 0 后保留（不可见），随下次切页 clearClones / 5s 兜底移除
-        track(animate(blurClone, { opacity: [1, 0] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+      if (stripFx) {
+        if (blurClone) {
+          // 收尾不拆层：淡到 0 后保留（不可见），随下次切页 clearClones 移除（不挂 5s 兜底，
+          // 避免随机静止时刻拆过滤层）
+          track(animate(blurClone, { opacity: [1, 0] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+        }
+        track(animate(newEdge, { opacity: [0, 1] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
       }
-      track(animate(newEdge, { opacity: [0, 1] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
     } else if (edgeClone) {
       edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
       edgeClone = null;
@@ -942,7 +978,7 @@ import type { AnimationPlaybackControls } from 'motion';
         const a = track(animate(root, { y: [`${y0}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
         a.finished
           .then(() => {
-            if (root.isConnected) root.style.transform = 'translateY(0)';
+            if (DEBUG_MODE !== 'nokeep' && root.isConnected) root.style.transform = 'translateY(0)';
           })
           .catch(() => {});
       }
