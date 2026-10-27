@@ -25,7 +25,7 @@ import { quotes } from '../../data/quotes';
   .quote-body {
     display: flex;
     flex-direction: column;
-    height: 90px;
+    min-height: 90px;
     justify-content: center;
     overflow: hidden;
   }
@@ -35,8 +35,8 @@ import { quotes } from '../../data/quotes';
     color: var(--ink);
     font-style: italic;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
