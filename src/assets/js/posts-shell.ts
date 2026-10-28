@@ -47,12 +47,18 @@
 //    ——切页后 SwupScrollPlugin 平滑滚回顶部（时长按距离，长文可达 ~2s），挂在文档坐标
 //    的克隆/元素会被滚动「带走」（退场原地渐隐读起来是「目录向右下漂移」、新目录带着
 //    淡入从视口上方「掉下来」），钉视口/等落位后出入场都是纯水平平移，与滚顶解耦、
-//    滚顶逻辑不动。等待期间新目录恒在视口上方（本就不可见），不露空位。搜索浮层同法：
-//    四个动画方法起播前 pinFloat 钉视口（内联 top/left 转视口坐标）；入场在落回延迟结束
-//    （渐显中、近不可见）即解除钉——落回期间行内绝对定位、跟着内容走，unpin 重合成
-//    挤到的栅格预算被渐显掩盖（见 TROUBLESHOOTING 51），
-//    退场/静态归位统一 unpin 还原行相对值——钉住期间 syncSearchPos 让路（fixed 下写行相对值会瞬移），
+//    滚顶逻辑不动。等待期间新目录恒在视口上方（本就不可见），不露空位。搜索浮层：
+//    退场（桌面/移动）起播前 pinFloat 钉视口（内联 top/left 转视口坐标）——退场以
+//    opacity 0 收尾，unpin 还原行相对值不可见；桌面端入场**不钉**，落回全程跟随内容
+//    （行内绝对定位，与移动端入场落回同范式）——入场期间滚顶滑行可能仍在途，钉视口
+//    会把胶囊冻结在钉住时刻的视口位、动画收尾还原行相对位置时跳一次；移动端入场先钉、
+//    落回延迟结束（渐显中、近不可见）即解除钉——落回期间行内绝对定位、跟着内容走，
+//    unpin 重合成挤到的栅格预算被渐显掩盖（见 TROUBLESHOOTING 51），退场/静态归位
+//    统一 unpin 还原行相对值——钉住期间 syncSearchPos 让路（fixed 下写行相对值会瞬移），
 //    且占位符查找排除条带克隆里的占位符克隆（首次 RO 回调可能赶在克隆渐隐窗口内）。
+//    切页时浮层的显隐与位置只由本文件驱动：BaseLayout 的搜索框首帧叠放脚本带
+//    data-swup-ignore-script（swup 的脚本重跑插件默认重跑全 document 脚本，不忽略
+//    会在转场起播前强制显出浮层，见 TROUBLESHOOTING 52）。
 // c) 手机端（≤768px）列表↔文章：搜索框退场/入场统一在 after-swap 驱动（**点击时不动**——
 //    点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失，用户反馈）：
 //    开文章 = after-swap 上移 12px + 同时长渐隐（退场 100ms——用户反馈 50ms 快得失真、
@@ -462,12 +468,13 @@ import type { AnimationPlaybackControls } from 'motion';
   // 浮层钉视口期间的原行相对内联 top/left（unpin 时恢复）
   let floatPinSaved: { top: string; left: string } | null = null;
 
-  /** 浮层钉视口：absolute→fixed 钉到当前视口位置，退场/入场动画期间脱离页面滚动——
+  /** 浮层钉视口：absolute→fixed 钉到当前视口位置，退场动画期间脱离页面滚动——
    *  切页后 SwupScrollPlugin 平滑滚回顶部，文档坐标里的浮层会被滚动「带走」，
-   *  退场/入场变成向右下的斜线（目录克隆同病，见文件头 b）。行及其祖先无
-   *  transform/filter，fixed 即视口坐标。恢复时机：入场在落回延迟结束（渐显刚起、
-   *  近不可见）即 unpin——避开与推入收尾同窗口（见 enterMobile）；退场在动画播完
-   *  （opacity 0）或静态归位（settle）时恢复原行相对内联，恢复时浮层不可见或近不可见 */
+   *  退场变成向右下的斜线（目录克隆同病，见文件头 b）。行及其祖先无
+   *  transform/filter，fixed 即视口坐标。用途：退场（桌面/移动）起播前钉、动画播完
+   *  （opacity 0）或静态归位（settle）时恢复，恢复不可见；移动端入场先钉、落回延迟
+   *  结束（渐显刚起、近不可见）即 unpin（见 enterMobile）。桌面端入场不钉——落回
+   *  跟随内容，钉了会在滚顶在途时于动画收尾还原行相对位置处跳一次（见 enterDesktop） */
   function pinFloat(f: HTMLElement): void {
     if (f.style.position === 'fixed') return; // 已在钉住态（redirect 中途被改向）
     floatPinSaved = { top: f.style.top, left: f.style.left };
@@ -513,7 +520,7 @@ import type { AnimationPlaybackControls } from 'motion';
     finish(show: boolean, f: HTMLElement): void {
       this.state = show ? 'shown' : 'hidden';
       this.active = null;
-      unpinFloat(f); // 动画播完：脱离视口钉，回到行内绝对定位（此时浮层已不可见；入场已提前解除，此处 no-op）
+      unpinFloat(f); // 动画播完：脱离视口钉，回到行内绝对定位（两条入场路径此处均 no-op：移动端入场落回延迟中已解除、桌面端入场从不钉；退场以 opacity 0 收尾，还原不可见）
       f.style.visibility = '';
       f.style.transform = '';
       f.style.backgroundColor = '';
@@ -595,15 +602,17 @@ import type { AnimationPlaybackControls } from 'motion';
       this.allFinished(f, true, [move, fade]);
     },
 
-    /** 桌面端入场：自右偏移 48px 落回（配对目录退场时）+ 渐显 + 白纱（入场前先铺白、随入场全程褪去——见文件头 c）；无配对只渐显 */
+    /** 桌面端入场：自右偏移 48px 落回（配对目录退场时）+ 渐显 + 白纱（入场前先铺白、随入场全程褪去——见文件头 c）；无配对只渐显。
+     *  不钉视口：落回跟随内容（行内绝对定位，与移动端入场落回同范式）——切页后滚顶滑行可能
+     *  仍在途，钉视口会把胶囊冻结在钉住时刻的视口位、页头随页面落定在视口下移，动画收尾
+     *  行相对位置时胶囊会跳一次 */
     enterDesktop(withX: boolean): void {
       const f = this.el();
       if (!f || this.state !== 'hidden') return;
       this.settle(false); // 清掉任何残留内联（幂等起点）
       this.state = 'entering';
       const opts = { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION };
-      // 相位开始前先钉住（同任务内无绘制间隙，不闪）
-      pinFloat(f); // 入场动画期间钉视口（先于 pre-pin transform：量盒须取无位移的自然位）
+      // 位姿先内联写好再起播（同任务内无绘制间隙，不闪）
       if (withX) f.style.transform = `translateX(${SEARCH_DX}px)`;
       f.style.opacity = '0';
       f.style.backgroundColor = VEIL; // 入场前先加上半透明白（见文件头 c），关键帧随入场全程褪去

@@ -11,7 +11,8 @@
 // 变体类首屏由 shellVariant 决定，切页后由 posts-shell.ts 按内容同步。
 // 位置按页头占位符（.posts-header-search）实测写内联 top/left/width：首帧由 body 尾
 // is:inline 脚本先写（无网络依赖，慢网下搜索框不等 JS 包即可见），posts-shell.ts
-// 加载后重测接管。
+// 加载后重测接管。该脚本带 data-swup-ignore-script——swup 切页不重跑，否则切到列表页
+// 会在转场编排前强制显出搜索框（「移两次 / 闪一下」，见 TROUBLESHOOTING 52）。
 import '../assets/css/global.css';
 import '../assets/css/shared/skeleton.css';
 import '../assets/css/posts/image-fallback.css';
@@ -200,11 +201,17 @@ const blog = await loadBlogData();
     <script>
       import '../assets/js/shell-guard';
     </script>
-    <script is:inline>
+    <!-- data-swup-ignore-script：@swup/scripts-plugin（@swup/astro 默认启用）每次切页
+      （content:replace）会重跑全 document 的脚本——切到列表页时本脚本会强制把浮层
+      opacity 写 1，搜索框先直接出现在终位，入场动画起播时再渐隐+右移+滑回（用户所见
+      「移两次 / 闪一下」，见 TROUBLESHOOTING 52）。本脚本只服务整页首帧，切页由
+      posts-shell.ts 全权负责 -->
+    <script is:inline data-swup-ignore-script>
       // 搜索框首帧可见：浮层叠放位置平时由 posts-shell.ts（JS 包加载后）实测写入，此前
       // 被 CSS opacity: 0 隐着——慢网下搜索框要等 JS 包加载完才出现（观感像延迟水合）。
       // 本脚本随文档执行（无网络依赖），在首帧绘制前按页头占位符实测叠放并显出搜索框；
       // posts-shell.ts 加载后重测接管（值一致，无跳变）。仅列表页有占位符，其余页面跳过。
+      // 带 data-swup-ignore-script：swup 切页不重跑（重跑会抢在转场编排前显出搜索框）。
       (function () {
         const ph = document.querySelector('.page-main .posts-header-search');
         if (!ph) return;
