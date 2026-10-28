@@ -82,7 +82,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
   /* ---- 主赞助卡片 ---- */
   .hero-card {
-    margin-bottom: 12px; /* 卡间距（标题→卡的 16px 由 .page-head 定） */
+    margin-bottom: var(--card-gap); /* 卡间距（标题→卡的 16px 由 .page-head 定） */
     width: 100%;
     text-decoration: none;
     color: inherit;
@@ -162,7 +162,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   .action-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: var(--card-gap);
   }
 
   .grid-card {
@@ -265,7 +265,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   /* ---- 手机端适配 ---- */
   @media (max-width: 768px) {
     .hero-card {
-      margin-bottom: 10px; /* 手机端卡间距 */
+      margin-bottom: var(--card-gap); /* 手机端卡间距 */
     }
 
     .hero-card-inner {
@@ -289,7 +289,7 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
     .action-grid {
       grid-template-columns: 1fr;
-      gap: 10px;
+      gap: var(--card-gap);
     }
 
     .grid-card {

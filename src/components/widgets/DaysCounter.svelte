@@ -96,7 +96,7 @@
 <style>
   .stats-row {
     display: flex;
-    gap: 12px;
+    gap: var(--card-gap);
     width: 100%;
   }
 

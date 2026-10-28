@@ -67,7 +67,7 @@ const { prev = null, next = null } = Astro.props;
   .post-nav {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: var(--card-gap);
     margin-top: 24px;
   }
 
@@ -126,7 +126,7 @@ const { prev = null, next = null } = Astro.props;
     @media (max-width: 768px) {
     .post-nav {
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: var(--card-gap);
     }
 
     .post-nav-item {

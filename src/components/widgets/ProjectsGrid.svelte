@@ -213,7 +213,7 @@
     display: grid;
     /* 列数由容器宽度决定（单卡最窄 300px），不设上限：宽屏 / 超宽屏自动多列 */
     grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-    gap: 20px;
+    gap: var(--card-gap);
   }
 
   .project-card {
@@ -380,7 +380,7 @@
   @media (max-width: 768px) {
     .projects-grid {
       grid-template-columns: 1fr;
-      gap: 16px;
+      gap: var(--card-gap);
     }
   }
 </style>

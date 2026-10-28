@@ -61,7 +61,7 @@ const pageNav = navItem('friends');
     display: grid;
     /* 列数由容器宽度决定（单卡最窄 300px），不设上限：宽屏 / 超宽屏自动多列 */
     grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-    gap: 12px;
+    gap: var(--card-gap);
     margin-bottom: 24px; /* 网格→「申请友链」字距，与字→申请卡间距（.apply-section gap）相等（标题→网格由页头 margin-bottom 16px 定） */
   }
 

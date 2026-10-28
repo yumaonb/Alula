@@ -72,7 +72,7 @@ if (catSegments[0] === 'tag' && catSegments.length === 2) {
     align-self: stretch;
     margin: 0;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--card-gap);
     z-index: 10;
   }
 
@@ -82,7 +82,7 @@ if (catSegments[0] === 'tag' && catSegments.length === 2) {
     top: 84px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--card-gap);
     max-height: calc(100vh - 104px);
     overflow-y: auto;
     scrollbar-width: thin;

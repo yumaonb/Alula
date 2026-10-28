@@ -63,7 +63,7 @@ import avatarImg from '../assets/images/avatar.png';
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--card-gap);
   }
 
   /* ---- 个人名片 ---- */
@@ -136,13 +136,13 @@ import avatarImg from '../assets/images/avatar.png';
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
     align-items: stretch;
-    gap: 16px;
+    gap: var(--card-gap);
   }
 
   .about-left {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--card-gap);
     min-width: 0;
   }
 
