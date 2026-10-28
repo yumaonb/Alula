@@ -241,7 +241,7 @@
 }
 
 /* 提交编号做成链接：等宽字体；颜色与下划线走 global.css 的全站链接规则
- * （静止无下划线，悬停/聚焦淡入），所以这里只留字体，不挂 .link-plain */
+ * （静止下划线默认显示，悬停/聚焦淡出并提亮），所以这里只留字体，不挂 .link-plain */
 .admin-status-link {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }

@@ -42,24 +42,26 @@ a {
   text-decoration: none;
 }
 
-/* 全站链接：正文里那种「纯文字链接」——静止就是白色加粗文字（--white 比正文 --ink 亮一档，
- * 再加 600 字重，双重区分于正文）；悬停 / 聚焦时下划线 var(--t-hover) 淡入，不直接跳变。
+/* 全站链接：正文里那种「纯文字链接」——静止与正文同色（--ink），下划线默认显示
+ * （颜色取 currentColor，与文字同步）；悬停 / 聚焦时文字提亮到 --white，
+ * 下划线 var(--t-hover) 淡出，不直接跳变。
  * 按钮、卡片、导航项、标签这类自带样式的链接，在标记里挂 .link-plain 即可退出，
  * 不用再到这个选择器里追加 :not(.xxx)——加一个类，下面两条规则同时失效。
  * .link-plain 只是个标记类，本身不产生样式。 */
 a:not(.link-plain) {
-  color: var(--white);
-  font-weight: 600;
+  color: var(--ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
-  text-decoration-color: transparent;
-  transition: text-decoration-color var(--t-hover);
+  transition:
+    color var(--t-hover),
+    text-decoration-color var(--t-hover);
 }
 
 a:not(.link-plain):hover,
 a:not(.link-plain):focus-visible {
-  text-decoration-color: currentColor;
+  color: var(--white);
+  text-decoration-color: transparent;
 }
 
 ul,
