@@ -133,7 +133,7 @@ ol {
  * 要收窄内容列就写 width: 100% + max-width。 */
 .page-main {
   --posts-side-w: 260px; /* 侧栏宽（面包屑负边距共用同一令牌） */
-  --posts-side-gap: 24px; /* 侧栏与内容列的横向间隙（即行 gap） */
+  --posts-side-gap: 16px; /* 侧栏与内容列的横向间隙（即行 gap） */
   --posts-offset-gap: 0px; /* 页锚（页头/面包屑）与下方内容的纵向间隙，供测侧栏顶偏移 */
   --posts-side-offset: 0px; /* 侧栏顶偏移 = 锚高 + 间隙；posts-shell.ts 实测写内联值覆盖 */
   flex: 1;

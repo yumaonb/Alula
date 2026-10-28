@@ -146,7 +146,7 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
   }
   @media (min-width: 769px) {
     .posts-page > .posts-edge-slot {
-      margin-left: calc(-1 * (var(--posts-side-w, 260px) + var(--posts-side-gap, 24px)));
+      margin-left: calc(-1 * (var(--posts-side-w, 260px) + var(--posts-side-gap, 16px)));
     }
   }
 
@@ -167,7 +167,7 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     width: 100%;
     min-width: 0;
     display: flex;
-    gap: 32px;
+    gap: var(--card-gap);
     align-items: flex-start;
   }
 
@@ -184,7 +184,7 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
   /* 文章变体的槽：断点比列表晚（侧栏 ≥1151px 才显示），负边距断点随侧栏 */
   @media (min-width: 1151px) {
     .posts-article-main > .posts-edge-slot {
-      margin-left: calc(-1 * (var(--posts-side-w, 260px) + var(--posts-side-gap, 24px)));
+      margin-left: calc(-1 * (var(--posts-side-w, 260px) + var(--posts-side-gap, 16px)));
     }
   }
 
