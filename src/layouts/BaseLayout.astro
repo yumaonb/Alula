@@ -228,15 +228,11 @@ const blog = await loadBlogData();
       })();
     </script>
     <script is:inline>
-      // 首载 loading 屏：HTML 到齐即揭幕（最少展示 500ms），不等 load / DOMContentLoaded。
-      // 本脚本在 body 尾部：执行时 HTML 字节已全部到齐、body 已解析完。
-      // 不等 DCL / load：它们被岛脚本的模块图卡着（内联 CSS 后文档更重、模块发现更晚，
-      // 等它们反而把揭幕拖得比不内联还晚）；岛脚本晚就绪不影响视觉
-      // （首帧本就是水合前的静态标记，交互随水合陆续生效）。
-      // 背景图不再阻塞揭幕：内容（卡片/文字/搜索框）首帧全在 HTML 里，唯一依赖网络的
-      // 是背景图本身——遮罩按时揭开，图就绪后 .bg--image 自行 0.8s 淡入（global.css 的
-      // .is-ready 规则），背景慢到时先见深色底上的完整内容、到位时平滑融入，不 pop。
-      // 图片先用 Image 预热：同一 URL 走缓存，加 .is-ready 时图已就位，不闪。
+      // 首载 loading 屏：等页面资源（window load：CSS 背景图、首屏图片、脚本包）就绪才揭幕，
+      // 揭开后第一帧就是加载完整的页面；最少展示 500ms 防快网闪屏。
+      // 6s 超时兜底：个别资源卡死时遮罩不永久盖住页面。
+      // load 后再等一帧 rAF：揭幕画在已绘制的一帧上，不揭开到未绘制的帧。
+      // 背景图用 Image 预热：同一 URL 走缓存，加 .is-ready 时图已就位，不闪。
       (function () {
         const splash = document.getElementById('boot-splash');
         if (!splash) return;
@@ -263,7 +259,13 @@ const blog = await loadBlogData();
           warm.onload = () => bgEl.classList.add('is-ready');
           warm.src = bgUrl;
         }
-        fade();
+        const reveal = () => requestAnimationFrame(fade);
+        if (document.readyState === 'complete') {
+          reveal();
+        } else {
+          window.addEventListener('load', reveal, { once: true });
+          setTimeout(reveal, 6000); // 兜底：最多遮 6s 也揭幕
+        }
       })();
     </script>
   </body>
