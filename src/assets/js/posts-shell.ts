@@ -1,7 +1,5 @@
 // posts-shell.ts — 文章区常驻壳（.page-main 行）的运行时控制器
 // 用法：由 BaseLayout 引入：import "../assets/js/posts-shell"
-// 真机二分调试（临时）：URL 带 ?debug=nopush|solid|nostrip|nokeep 开启，session 内持续生效，
-// 定位「文章→列表标题闪一帧」的触发源后整组移除
 //
 // 侧边栏（GlobalSidebar）与搜索框（PostSearch）都在 #swup 之外、切页不重建，
 // 所以每次切页后五件事要自己跟上：
@@ -18,17 +16,18 @@
 //    切换（桌面端所有 + 手机端列表↔文章 + 手机端列表↔分类/标签；用户指定电脑端也用
 //    模糊，手机端滑动形态随之整体退役）走**模糊变过去**——旧带原地渐隐
 //    （opacity 1→0，160ms；退出侧全程不带 filter——带过滤层的克隆被移除时，
-//    下方新标题会因合成层重栅格闪一下）、新带 = 真带钉静态 blur(0px) 原地渐显 +
-//    静态 blur(4px) 模糊副本原地渐隐（纯 alpha 交叉，260ms——逐帧 blur 动画改一次性
-//    模糊纹理，收尾帧不再抢栅格预算，见 TROUBLESHOOTING 第 51 条），两带同位交叉渐隐、
-//    无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
+//    下方新标题会因合成层重栅格闪一下）、新带原地渐显（**不挂任何 filter**——
+//    标题行挂过滤层会在推入收尾 N 卡 backdrop 重采样挤占栅格预算时丢一帧，
+//    见 TROUBLESHOOTING 第 51 条）+ 静态 blur(4px) 模糊副本原地渐隐、淡尽后移除
+//    （纯 alpha 交叉，260ms），两带同位交叉渐隐、无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
 //    开文章 = 整页向上（新内容自下方 48px 滑入）、关文章 = 镜像向下（新列表自上方 48px
 //    滑下）——新带槽另做与推入**等距反向**的 counter 位移，屏幕上原地不动——避免新带
-//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。推入的 transform
-//    层**保活不拆**：motion 端点 0 会解析成 transform: none（恒等省略）拆掉合成层，
-//    finished 后显式写回 translateY(0) 把层保住，随节点下次切页移除一起回收——拆层
-//    触发重栅格化（推入根 = 整列玻璃卡、counter 槽 = 标题区，槽是标题条的父元素），
-//    弱内核赶不上帧预算时标题会「闪一下」；推入根与 counter 槽都保活不拆。推拉只在区内
+//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。**位移 200ms 达 0
+//    并钉住**（动画仍在 400ms 结束）：终帧位移（N 卡 backdrop 最终重采样）不得落在标题
+//    渐显收尾之后，否则弱内核下标题闪一帧（真机判定，见 TROUBLESHOOTING 第 51 条）。
+//    推入的 transform 层**保活不拆**：finished 后显式写回非 none 恒等 translateY(0)
+//    防合成层被拆（拆层触发重栅格化：推入根 = 整列玻璃卡、counter 槽 = 标题区，槽是
+//    标题条的父元素），随节点下次切页移除回收；推入根与 counter 槽都保活不拆。推拉只在区内
 //    （旧屏为列表或文章详情）播放；跨区（普通页→列表）直接落位不推入——旧屏无条带、
 //    常驻搜索框无入场相位，整页滑入会标题/列表滑动而搜索框原地不动，割裂。
 // b) 搜索/目录退场配对（用户要求「先退场再入场」）：目录出现/消失的切页里，退出相位
@@ -49,14 +48,16 @@
 //    的克隆/元素会被滚动「带走」（退场原地渐隐读起来是「目录向右下漂移」、新目录带着
 //    淡入从视口上方「掉下来」），钉视口/等落位后出入场都是纯水平平移，与滚顶解耦、
 //    滚顶逻辑不动。等待期间新目录恒在视口上方（本就不可见），不露空位。搜索浮层同法：
-//    四个动画方法起播前 pinFloat 钉视口（内联 top/left 转视口坐标）、finish/settle 统一
-//    unpin 还原行相对值——钉住期间 syncSearchPos 让路（fixed 下写行相对值会瞬移），
+//    四个动画方法起播前 pinFloat 钉视口（内联 top/left 转视口坐标）；入场在落回延迟结束
+//    （渐显中、近不可见）即解除钉——落回期间行内绝对定位、跟着内容走，unpin 重合成
+//    挤到的栅格预算被渐显掩盖（见 TROUBLESHOOTING 51），
+//    退场/静态归位统一 unpin 还原行相对值——钉住期间 syncSearchPos 让路（fixed 下写行相对值会瞬移），
 //    且占位符查找排除条带克隆里的占位符克隆（首次 RO 回调可能赶在克隆渐隐窗口内）。
 // c) 手机端（≤768px）列表↔文章：搜索框退场/入场统一在 after-swap 驱动（**点击时不动**——
 //    点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失，用户反馈）：
-//    开文章 = after-swap 上移 12px（与整页推入同缓动、时长按距离等比——上移速度即
-//    内容推入速度）+ 同时长渐隐（边上移边渐隐，100ms；上移途中半透明胶囊逼近上方标题——
-//    列式页头标题↔搜索间隙 16px、位移留 4px 余量）；
+//    开文章 = after-swap 上移 12px + 同时长渐隐（退场 100ms——用户反馈 50ms 快得失真、
+//    观感「无退场动画」；上移途中半透明胶囊逼近上方标题——列式页头标题↔搜索间隙 16px、
+//    位移留 4px 余量）；
 //    关文章 = 自上方偏移落回渐显；新内容自下方 48px 滑入（开文章）/
 //    新列表自上方 48px 滑下（关文章）。
 //    条带交换走模糊变过去（旧带模糊渐隐 + 新带反推后原地模糊渐显，见 a）。
@@ -118,27 +119,29 @@ import type { AnimationPlaybackControls } from 'motion';
   const SEARCH_DX = 48; // 搜索「移一段」的位移距离
   const TOC_OFFSCREEN_PAD = 40; // 目录移出屏幕的额外余量（整体在视口右缘之外）
   // 手机端（≤768px）：新内容滑动距离 / 搜索框小位移 / 搜索位移与渐隐时长
-  // （退场上移与整页推入同缓动（EASE）、时长按距离等比（12/48 × EDGE_MS），
-  //  胶囊上移速度即内容推入速度；渐隐与上移同时长——边上移边渐隐、收尾不拖尾
-  //  （用户：渐隐快点）；位移必须小于手机端列式页头的标题↔搜索间隙 16px，
+  // （退场上移与整页推入同缓动（EASE）、时长按位移时长距离等比，
+  //  位移必须小于手机端列式页头的标题↔搜索间隙 16px，
   //  否则入场落回会蹭到标题底边闪一下）
   const MOBILE_SLIDE = 48;
   const FLOAT_MOVE = 12;
-  const FLOAT_EXIT_MOVE_MS = (EDGE_MS * FLOAT_MOVE) / MOBILE_SLIDE; // 退场上移 = 渐隐时长（12/48 × 400ms = 100ms）
-  const FLOAT_ENTRY_MOVE_MS = 300; // 入场落回时长（关文章，搜索自上方落回）
-  const FLOAT_ENTRY_FADE_MS = 220;
+  // 推入位移 200ms 完成并钉住（后半静止、动画仍 400ms 结束，见 TROUBLESHOOTING 51）：
+  // 入场落回时长按位移时长距离等比（12/48 × 200ms = 50ms）——同归一时刻胶囊速度 = 内容
+  // 速度，跟着文章上下移；退场 100ms（用户反馈 50ms 快得失真、观感「无退场动画」）
+  const FLOAT_EXIT_MOVE_MS = 100; // 退场上移 = 渐隐时长
+  const FLOAT_ENTRY_MOVE_MS = 50; // 入场落回时长（关文章，搜索自上方落回，与位移完成同时落定）
+  const FLOAT_ENTRY_FADE_MS = 110; // 入场渐显（110+110=220ms 收尾）
   // 手机端「关文章」：搜索自上方落回的延迟（用户反馈：下移时叠在文章卡片上）。
   // 整页自上方 48px 推下时，列表栅格顶（160.6-48=112.6）起初在搜索框钉住位底边（146.6）
-  // 之上；搜索框落回（12px）若与推下同帧起步，渐显前段的半透明胶囊会压在栅格顶。
-  // 推迟到栅格顶已下移越过胶囊在途底边（≈150ms 时栅格顶 ≈140 > 胶囊底 135）再落回，
-  // 可见帧全程无叠压；150+300=450ms，比 400ms 推入仅晚 50ms 收尾
-  const FLOAT_ENTRY_DELAY_MS = 150;
+  // 之上；新曲线（200ms 位移）栅格顶 ≈95ms 即越过胶囊底边，保留 110ms 作安全余量
+  // （用户反馈 150ms 稍慢）；110+50=160ms，先于推入位移完成落定
+  const FLOAT_ENTRY_DELAY_MS = 110;
   // 条带交换「模糊变过去」（**全部**左缘条带切换——桌面端所有 + 手机端列表↔文章 + 手机端
   // 列表↔分类/标签；用户指定电脑端也用模糊，滑动形态整体退役）：
   // 旧带原地渐隐（opacity 1→0；退出侧不写 filter 关键帧——带过滤层的克隆被移除时，
-  // 下方新标题会因合成层重栅格闪一下）；新带 = 真带钉静态 blur(0px) 原地渐显 + 静态
-  // blur(4px) 模糊副本原地渐隐（纯 alpha 交叉——逐帧 blur 动画会让收尾帧与 N 张玻璃卡
-  // 的 backdrop 突发抢栅格预算、弱内核下标题闪一帧，见 TROUBLESHOOTING 第 51 条）
+  // 下方新标题会因合成层重栅格闪一下）；新带原地渐显（**不挂 filter**——标题行的
+  // 过滤层是受害者：推入收尾 N 张玻璃卡的 backdrop 最终重采样挤占栅格预算时，
+  // 过滤层重提交丢一帧 = 标题闪一帧，见 TROUBLESHOOTING 第 51 条）+ 静态 blur(4px)
+  // 模糊副本原地渐隐、淡尽后移除（纯 alpha 交叉）
   const STRIP_BLUR_OUT_MS = 160; // 旧条带：渐隐时长（只走 opacity）
   const STRIP_BLUR_IN_MS = 260; // 新条带：模糊交叉渐显时长（真带渐显 + 模糊副本渐隐，同时长）
   const STRIP_BLUR_PX = 4; // 模糊峰值（px，模糊副本的静态 blur）
@@ -150,28 +153,6 @@ import type { AnimationPlaybackControls } from 'motion';
   const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
   // 目录滑动只在电脑端显示目录（≥851px；更窄目录是按钮+抽屉，只走普通渐隐）
   const tocSlideGate = () => !REDUCE_MOTION && window.matchMedia('(min-width: 851px)').matches;
-  // ---- 真机二分调试开关（临时，定位「文章→列表标题闪一帧」后整组移除）----
-  // ?debug=<模式> 开启（sessionStorage 持久到本次会话，swup 切页后仍生效），未带参数零开销：
-  // nopush = 手机端关整页推拉（transform 层根本不建） | solid = 手机列表卡去磨砂实底（N 个 backdrop 消失）
-  // nostrip = 关条带交叉渐显（新条带直接出现） | nokeep = 收尾不写保活 transform（收尾拆层）
-  const DEBUG_MODE = (() => {
-    const p = new URLSearchParams(location.search).get('debug');
-    if (p) sessionStorage.setItem('__debugMode', p);
-    return sessionStorage.getItem('__debugMode') || '';
-  })();
-  if (DEBUG_MODE) {
-    const tag = document.createElement('div');
-    tag.textContent = 'debug:' + DEBUG_MODE;
-    tag.style.cssText =
-      'position:fixed;left:8px;bottom:8px;z-index:99999;background:rgba(0,0,0,0.7);color:#7fff7f;font:12px/1.4 monospace;padding:2px 6px;border-radius:4px;pointer-events:none';
-    document.body.appendChild(tag);
-  }
-  if (DEBUG_MODE === 'solid') {
-    const st = document.createElement('style');
-    st.textContent =
-      '@media (max-width: 768px) { .posts-grid .post-card.glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(13, 14, 20, 0.88); } }';
-    document.head.appendChild(st);
-  }
   const BG0 = 'rgba(255, 255, 255, 0)'; // 白纱关键帧的透明端（与 .glass 的 transparent 等价）
   const VEIL = (() => {
     try {
@@ -484,8 +465,9 @@ import type { AnimationPlaybackControls } from 'motion';
   /** 浮层钉视口：absolute→fixed 钉到当前视口位置，退场/入场动画期间脱离页面滚动——
    *  切页后 SwupScrollPlugin 平滑滚回顶部，文档坐标里的浮层会被滚动「带走」，
    *  退场/入场变成向右下的斜线（目录克隆同病，见文件头 b）。行及其祖先无
-   *  transform/filter，fixed 即视口坐标。动画收尾（finish）或静态归位（settle）时
-   *  恢复原行相对内联（恢复时浮层已不可见：退场播完 opacity 0 / 入场前 opacity 0） */
+   *  transform/filter，fixed 即视口坐标。恢复时机：入场在落回延迟结束（渐显刚起、
+   *  近不可见）即 unpin——避开与推入收尾同窗口（见 enterMobile）；退场在动画播完
+   *  （opacity 0）或静态归位（settle）时恢复原行相对内联，恢复时浮层不可见或近不可见 */
   function pinFloat(f: HTMLElement): void {
     if (f.style.position === 'fixed') return; // 已在钉住态（redirect 中途被改向）
     floatPinSaved = { top: f.style.top, left: f.style.left };
@@ -531,7 +513,7 @@ import type { AnimationPlaybackControls } from 'motion';
     finish(show: boolean, f: HTMLElement): void {
       this.state = show ? 'shown' : 'hidden';
       this.active = null;
-      unpinFloat(f); // 动画播完：脱离视口钉，回到行内绝对定位（此时浮层已不可见）
+      unpinFloat(f); // 动画播完：脱离视口钉，回到行内绝对定位（此时浮层已不可见；入场已提前解除，此处 no-op）
       f.style.visibility = '';
       f.style.transform = '';
       f.style.backgroundColor = '';
@@ -594,9 +576,15 @@ import type { AnimationPlaybackControls } from 'motion';
       f.style.transform = `translateY(-${FLOAT_MOVE}px)`;
       f.style.opacity = '0';
       f.style.backgroundColor = VEIL; // 入场前先加上半透明白（见文件头 c），关键帧随入场全程褪去
-      // 落回延迟（FLOAT_ENTRY_DELAY_MS）：等整页推下把文章卡顶移过胶囊底边再下移，
+      // 落回延迟（FLOAT_ENTRY_DELAY_MS）：等整页推下把栅格顶移过胶囊底边再下移，
       // 可见帧不叠卡片（钉住位 opacity 0，延迟期不可见）
       const delay = FLOAT_ENTRY_DELAY_MS / 1000;
+      // 延迟一结束即解除视口钉：落回期间浮层行内绝对定位、真正跟着内容走（fixed 钉
+      // 不随推入移动，内容快而浮层慢会显得「不跟着文章走」）；unpin 的胶囊重合成落在
+      // 渐显进行中，即使挤栅格预算单帧也被 alpha 覆盖（真机验证，TROUBLESHOOTING 51）
+      window.setTimeout(() => {
+        if (this.state === 'entering') unpinFloat(f);
+      }, FLOAT_ENTRY_DELAY_MS);
       const move = trackFloat(
         animate(f, { y: [`-${FLOAT_MOVE}px`, 0] }, { duration: FLOAT_ENTRY_MOVE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
       );
@@ -745,10 +733,8 @@ import type { AnimationPlaybackControls } from 'motion';
       oldHadSearch = !!old.querySelector('.posts-header-search');
       oldIsPost = old.classList.contains('posts-breadcrumb');
       edgeClone = cloneIntoRow(old, r, 'posts-edge-clone');
-      // 克隆全程钉死 filter: none：上一轮渐显保留的 blur(0px) 会随克隆一起复制进来，
-      // 带过滤层的克隆被移除时，下方新标题会因合成层重栅格闪一下（首次切换旧带
-      // 本来无 filter，所以只有后续切换出现）。单靠 removeProperty 不够——退出动画
-      // 若写回 filter 关键帧等于没清（退出侧已随之改为纯 opacity 渐隐，见 playTransition）
+      // 克隆全程钉死 filter: none：带过滤层的克隆被移除时，下方新标题会因合成层重栅格
+      // 闪一下（新条带本身已不挂 filter，此为防御性钉死）
       if (edgeClone) edgeClone.style.filter = 'none';
     }
     const oldToc = main?.querySelector<HTMLElement>('.post-sidebar');
@@ -783,7 +769,7 @@ import type { AnimationPlaybackControls } from 'motion';
     // 手机端（≤768px）列表↔文章：固定方向整页推拉（开=上 / 关=下）；
     // opening/closing 均要求旧页在文章区内——跨区（普通页→列表）旧屏无条带可配对、
     // 常驻搜索框直接 settle 落位，整页滑入会出现内容滑动而搜索框原地不动的割裂
-    const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing) && DEBUG_MODE !== 'nopush';
+    const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing);
 
     // 快速连切收口：浮层带着上一轮的在途相位、与本轮目的地冲突时，不静默掐断硬切
     // （用户所见「点快了搜索框没有退场动画」）——从飞行中位姿改向到本轮目的地的
@@ -906,79 +892,88 @@ import type { AnimationPlaybackControls } from 'motion';
     // 同时长同缓动，见下方推拉块），新条带在屏幕上原地不动——读起来是「标题模糊成
     // 面包屑」，不是「面包屑浮上来」
     if (edgeClone && newEdge) {
-      const stripFx = DEBUG_MODE !== 'nostrip'; // 真机二分：关条带交叉渐显时新条带直接出现（counter/推拉不受影响）
       let blurClone: HTMLElement | null = null;
-      if (stripFx) {
-        const exitEl = edgeClone;
-        // 退出侧不写 filter 关键帧：blur 会在首帧就把过滤层挂回克隆，渐隐完成移除克隆时
-        // 下方新标题会因合成层重栅格闪一下（与 captureOld 的 filter: none 钉死同因）
-        const out = track(
-          animate(
-            exitEl,
-            { opacity: [1, 0] },
-            { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION },
-          ),
-        );
-        out.finished
-          .then(() => {
-            exitEl.remove();
-            edgeClone = null;
-          })
-          .catch(() => {});
-        // 进入侧「模糊变过去」：逐帧 blur 动画 → 一次性模糊纹理 + 纯 alpha 交叉（TROUBLESHOOTING 51）：
-        // 受限内核的 filter/backdrop 栅格串行且每帧预算小，逐帧模糊让新条带收尾帧与 N 张玻璃卡
-        // 的 backdrop 突发抢预算、标题闪一帧。改法：真条带起播前钉静态 blur(0px)（保自身合成层，
-        // 层随切页替换回收，收尾帧同现状），只渐显 alpha；再克隆一份静态 blur(4px) 的模糊副本
-        // 盖在同位只渐隐 alpha——全程合成器只改 alpha、收尾帧无需新栅格，观感仍是「模糊里变过去、
-        // 收尾变清晰」。副本必须在 counter/推入启动前量盒（槽与根都还无位移，量到的是终位）。
-        // 减动效下不建模糊副本，退化为纯 alpha 交叉渐显。
-        newEdge.style.filter = 'blur(0px)';
-        const rowEl = row();
-        blurClone = !REDUCE_MOTION && rowEl ? cloneIntoRow(newEdge, rowEl, 'posts-edge-clone', true) : null;
-        if (blurClone) blurClone.style.filter = `blur(${STRIP_BLUR_PX}px)`;
-      } else {
-        edgeClone.remove();
-        edgeClone = null;
-      }
+      const exitEl = edgeClone;
+      // 退出侧不写 filter 关键帧：blur 会在首帧就把过滤层挂回克隆，渐隐完成移除克隆时
+      // 下方新标题会因合成层重栅格闪一下（与 captureOld 的 filter: none 钉死同因）
+      const out = track(
+        animate(
+          exitEl,
+          { opacity: [1, 0] },
+          { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION },
+        ),
+      );
+      out.finished
+        .then(() => {
+          exitEl.remove();
+          edgeClone = null;
+        })
+        .catch(() => {});
+      // 进入侧「模糊变过去」：纯 alpha 交叉（TROUBLESHOOTING 51 完整机制）：
+      // 新条带**不挂 filter**（防御性钉死：标题行多一层过滤层会增加栅格压力，真机二分见 51）；
+      // 静态 blur(4px) 模糊副本盖在同位只渐隐 alpha，260ms 淡尽后**移除**（渐显收尾处
+      // 移除不可见层，单帧异动被渐变本身掩盖）——「模糊里变过去、收尾变清晰」观感全保留。
+      // 副本必须在 counter/推入启动前量盒（槽与根都还无位移，量到的是终位）。
+      // 减动效下不建模糊副本，退化为纯 alpha 交叉渐显。
+      const rowEl = row();
+      blurClone = !REDUCE_MOTION && rowEl ? cloneIntoRow(newEdge, rowEl, 'posts-edge-clone', true) : null;
+      if (blurClone) blurClone.style.filter = `blur(${STRIP_BLUR_PX}px)`;
       if (mobilePush) {
         const newSlot = newEdge.parentElement;
         if (newSlot) {
           const y0 = opening ? -MOBILE_SLIDE : MOBILE_SLIDE;
-          const cnt = track(animate(newSlot, { y: [`${y0}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
+          // 与推入根同步：位移 200ms 达 0 并钉住（终帧位移不得晚于标题渐显收尾，见 TROUBLESHOOTING 51）
+          const cnt = track(
+            animate(
+              newSlot,
+              { y: [`${y0}px`, '0px', '0px'] },
+              { duration: EDGE_MS / 1000, ease: EASE, times: [0, 0.5, 1], reduceMotion: REDUCE_MOTION },
+            ),
+          );
           cnt.finished
             .then(() => {
               // 与推入根同样保活不拆层：槽是标题条的父元素，拆层会重栅格化标题区
               // （弱内核下标题闪一帧）——写回非 none 恒等，层随节点下次切页移除回收
-              if (DEBUG_MODE !== 'nokeep' && newSlot.isConnected) newSlot.style.transform = 'translateY(0)';
+              if (newSlot.isConnected) newSlot.style.transform = 'translateY(0)';
             })
             .catch(() => {});
         }
       }
-      if (stripFx) {
-        if (blurClone) {
-          // 收尾不拆层：淡到 0 后保留（不可见），随下次切页 clearClones 移除（不挂 5s 兜底，
-          // 避免随机静止时刻拆过滤层）
-          track(animate(blurClone, { opacity: [1, 0] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
-        }
-        track(animate(newEdge, { opacity: [0, 1] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+      if (blurClone) {
+        // 淡尽即移除（~260ms，渐显收尾处、不可见）：移除不可见层，单帧异动被渐变本身掩盖
+        const bc = track(animate(blurClone, { opacity: [1, 0] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+        bc.finished
+          .then(() => {
+            blurClone.remove();
+          })
+          .catch(() => {});
       }
+      track(animate(newEdge, { opacity: [0, 1] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
     } else if (edgeClone) {
       edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
       edgeClone = null;
     }
 
     // ---- 手机端整页推拉：新内容自下方/上方滑入（开=上滑入 / 关=下滑入）----
-    // 推入根播完不拆层：motion 把端点 0 解析成 transform: none（恒等被省略）会拆掉
-    // 合成层，拆层触发整列玻璃卡重栅格化（弱内核下标题闪一下）——finished 后显式写回
+    // 推入根播完不拆合成层：拆层触发整列玻璃卡重栅格化（弱内核下标题闪一下）——finished 后显式写回
     // 非 none 的恒等，层保活到节点随下次切页移除
     if (mobilePush) {
       const root = opening ? (main?.querySelector<HTMLElement>('.posts-article') ?? null) : (main?.querySelector<HTMLElement>('.posts-page') ?? null);
       if (root) {
         const y0 = opening ? MOBILE_SLIDE : -MOBILE_SLIDE;
-        const a = track(animate(root, { y: [`${y0}px`, 0] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
+        // 位移必须赶在渐显收尾（260ms）前完成：终帧位移（N 卡 backdrop 最终重采样）落在
+        // 标题定格之后会让标题闪一帧（真机判定，见 TROUBLESHOOTING 51）——关键帧 200ms 达 0
+        // 并钉住（ease-out 前段已走完 ~90% 路程，观感不变），动画仍在 400ms 结束
+        const a = track(
+          animate(
+            root,
+            { y: [`${y0}px`, '0px', '0px'] },
+            { duration: EDGE_MS / 1000, ease: EASE, times: [0, 0.5, 1], reduceMotion: REDUCE_MOTION },
+          ),
+        );
         a.finished
           .then(() => {
-            if (DEBUG_MODE !== 'nokeep' && root.isConnected) root.style.transform = 'translateY(0)';
+            if (root.isConnected) root.style.transform = 'translateY(0)';
           })
           .catch(() => {});
       }
