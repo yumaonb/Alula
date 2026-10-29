@@ -1,0 +1,128 @@
+---
+// tools.astro — 实用工具页（分类工具集合，数据来自 src/data/tools.ts）
+// 用法：路由 /tools/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { toolCategories } from '../data/tools';
+---
+
+<BaseLayout title="实用工具">
+  <div class="tools-page page-top-standard">
+    {
+      toolCategories.map((category) => (
+        <>
+          <h2 class="tool-group-title">{category.title}</h2>
+          <div class="tools-grid">
+            {
+              category.tools.map((tool) => (
+                <a
+                  href={tool.url}
+                  class="tool-card glass hoverable link-plain"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <span class="tool-info">
+                    <span class="tool-name">{tool.title}</span>
+                    <span class="tool-desc">{tool.desc}</span>
+                  </span>
+                </a>
+              ))
+            }
+          </div>
+        </>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  /* width: 100% 必须有：.hero 是 flex 容器，只写 max-width 会塌成窄缝（见 about 页注释）
+     本页不设页头，第一个分类标题落在 .page-top-standard 的标准页顶位置（见 utilities.css）；
+     分类标题与卡片网格直接平铺（无分组容器） */
+  .tools-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 标题上下各留 12px；第一个标题顶距归零，保持标准页顶位置 */
+  .tool-group-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .tools-page > .tool-group-title:first-child {
+    margin-top: 0;
+  }
+
+  /* 标题前的竖条，给分类一个视觉起点 */
+  .tool-group-title::before {
+    content: '';
+    width: 4px;
+    height: 0.95em;
+    border-radius: 2px;
+    background: var(--white);
+  }
+
+  /* ---- 工具卡片网格 ----
+     列数由容器宽度决定（单卡最窄 210px）：1200px 内容宽时 5 列封顶，窄屏自动减列 */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr));
+    gap: var(--card-gap);
+  }
+
+  .tool-card {
+    padding: 16px 18px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .tool-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .tool-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color var(--t-hover);
+  }
+
+  .tool-desc {
+    font-size: 0.8rem;
+    color: var(--ink);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 悬停提亮走子元素（.hoverable 自身不写 transition，见 utilities.css） */
+  .tool-card:hover .tool-name {
+    color: var(--white);
+  }
+
+  /* ---- 小屏适配 ---- */
+  @media (max-width: 768px) {
+    /* 手机端固定一行俩 */
+    .tools-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tool-card {
+      padding: 14px 16px;
+    }
+  }
+</style>

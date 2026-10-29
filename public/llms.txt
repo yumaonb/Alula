@@ -7,6 +7,7 @@
 - [首页](https://yumaonb.github.io/jieshaoye/): 展示个人头像、昵称「羽毛」、签名「阅己 越己 悦己」、技术栈介绍和联系方式，右侧栏包含实时时钟、入坑全栈天数统计和随机一言
 - [关于](https://yumaonb.github.io/jieshaoye/about/): 个人介绍页，包含头像、技术栈展示（前端/后端/数据库/运维/工具）和 Markdown 自述内容
 - [项目](https://yumaonb.github.io/jieshaoye/projects/): 开源项目展示页，以卡片网格形式展示项目列表
+- [实用工具](https://yumaonb.github.io/jieshaoye/tools/): 实用工具页，按分类展示常用网址集合，每条工具含标题与介绍
 - [友情链接](https://yumaonb.github.io/jieshaoye/friends/): 友情链接页，以双列网格展示友链卡片，支持申请友链
 - [赞助](https://yumaonb.github.io/jieshaoye/sponsor/): 赞助支持页，可通过「爱发电」进行赞助，也可 Star 仓库、分享或收藏本站
 

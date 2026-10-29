@@ -1,7 +1,7 @@
 ---
 // NavBar.astro — 导航栏（桌面链接 + 移动端汉堡菜单）
 // 用法：<NavBar />（BaseLayout 引入）
-// 六个导航项来自唯一来源 src/data/nav.ts（桌面 / 手机共用，各界面页头标题图标也从这取）
+// 七个导航项来自唯一来源 src/data/nav.ts（桌面 / 手机共用，各界面页头标题图标也从这取）
 import { Icon } from 'astro-icon/components';
 import { site } from '../../data/site';
 import { navItems } from '../../data/nav';
@@ -130,7 +130,8 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
 
   /* 与 .page-main 完全同一宽度公式（全站唯一宽度机制）：最宽 --content-width、
      视口不足时两侧各空 --page-gutter，左右边缘与页面内容在任何宽度下对齐。
-     导航内容约 600px，最窄桌面视口（769px）的内容盒 657px 放得下，链接不折行 */
+     导航内容（logo + 七个链接）约 640px，最窄桌面视口（769px）的内容盒 657px 放得下，
+     链接不折行——链接 padding 10px、gap 2px 是为七个链接收窄的 */
   .nav-inner {
     width: min(100% - var(--page-gutter) * 2, var(--content-width));
     margin: 0 auto;
@@ -157,15 +158,16 @@ const items = navItems.map((item) => ({ ...item, active: navMatch(item.href, Ast
     color: var(--white);
   }
 
+  /* gap 2px、padding 10px：七个链接收窄后的值（最窄桌面视口 657px 放得下，见 .nav-inner 注释） */
   .nav-links {
     position: relative;
     display: flex;
-    gap: 4px;
+    gap: 2px;
   }
 
   .nav-links a {
     display: block;
-    padding: 8px 12px;
+    padding: 8px 10px;
     font-size: 0.95rem;
     font-weight: 500;
     color: var(--ink);
