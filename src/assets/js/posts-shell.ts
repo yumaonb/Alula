@@ -10,6 +10,14 @@
 // ⑤ 切页转场（motion 驱动，只在文章区界面之间生效；涉及普通屏不播）。
 //
 // ---- 转场机制 ----
+// 本文件所有 motion 动画一律**延迟起播**：以 autoplay: false 创建（时钟冻在首关键帧，
+// 起播前位姿由调用方在同任务内先同步 pre-pin），再等下一个真正出帧的 rAF 才 play()
+// （deferPlay，见登记段注释）。after-swap 任务里同步起播时，首次切进文章区的主线程
+// 还在忙（dev 按需编译 + 岛屿水合，生产冷首载同样）：动画墙钟在卡顿里「空转」，
+// rAF 恢复后 motion 一次性跳到终帧——用户所见「出场动画没播、一瞬间直接消失」，
+// 等 finished 的相位链也一并卡死（入场相位跟着不启动）。rAF 回调只在合成器真正
+// 出帧时运行，在那里起播保证动画每一帧都被画出来；cancel() 之后 state 不再是
+// paused，延迟 play 自然跳过、不会复活已取消的动画。
 // a) 左缘元素条带切换（列表页头 ↔ 文章面包屑条）：swup 替换瞬间丢弃旧 DOM，替换前
 //    （astro:before-swap，即 content:replace 前一刻）克隆旧元素进行内**静止暂存**，
 //    等新界面加载完（astro:after-swap）才播放——过渡绝不先于内容。**全部**左缘条带
@@ -178,12 +186,26 @@ import type { AnimationPlaybackControls } from 'motion';
   // 只在浮层自己的 settle/新动画前清理）
   let anims: AnimationPlaybackControls[] = [];
   let floatAnims: AnimationPlaybackControls[] = [];
+  /** 延迟起播（见文件头「转场机制」首段）：autoplay: false 创建后时钟冻在首关键帧，
+   *  在这里等下一个真正出帧的 rAF 才 play()。rAF 回调只在合成器出帧时运行——首次
+   *  切进文章区时 after-swap 后主线程还忙几百 ms（dev 按需编译 + 岛屿水合），此刻
+   *  同步起播会让墙钟在卡顿里空转、恢复后一次跳到终帧（「出场没播、直接消失」）；
+   *  出帧时才起播，动画的每一帧都会被画出来。起播前元素停在首关键帧，调用方必须
+   *  已同任务 pre-pin 起播前位姿（无绘制间隙、不闪）。cancel() 后 state 不再是
+   *  paused，延迟 play 自然跳过——不会复活已取消的动画 */
+  const deferPlay = (a: AnimationPlaybackControls) => {
+    window.requestAnimationFrame(() => {
+      if (a.state === 'paused') a.play();
+    });
+  };
   const track = (a: AnimationPlaybackControls) => {
     anims.push(a);
+    deferPlay(a);
     return a;
   };
   const trackFloat = (a: AnimationPlaybackControls) => {
     floatAnims.push(a);
+    deferPlay(a);
     return a;
   };
   const stopAnims = () => {
@@ -406,14 +428,14 @@ import type { AnimationPlaybackControls } from 'motion';
           animate(
             newToc,
             { x: [`${dx}px`, 0] },
-            { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION },
+            { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false },
           ),
         );
         const fade = track(
           animate(
             newToc,
             { opacity: [0, 1] },
-            { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION },
+            { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false },
           ),
         );
         const cleanup = () => {
@@ -424,8 +446,13 @@ import type { AnimationPlaybackControls } from 'motion';
         fade.finished.then(cleanup).catch(() => {});
       };
     }
+    // 非 gate 只渐显：首关键帧是 opacity 0、元素自然态是 1——延迟起播的空窗帧先
+    // 同步钉不可见（同任务、无绘制间隙），出帧后渐显
+    newToc.style.opacity = '0';
     return () => {
-      track(animate(newToc, { opacity: [0, 1] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }));
+      track(
+        animate(newToc, { opacity: [0, 1] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION, autoplay: false }),
+      );
     };
   }
 
@@ -546,10 +573,10 @@ import type { AnimationPlaybackControls } from 'motion';
       f.style.visibility = 'visible'; // 变体类可能已隐藏容器（swap 先于动画结束）——退出窗口内强制可见
       pinFloat(f); // 退场动画期间钉视口：滚顶滑行不会把上移+渐隐「带走」成斜线
       const move = trackFloat(
-        animate(f, { y: [0, `-${FLOAT_MOVE}px`] }, { duration: FLOAT_EXIT_MOVE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }),
+        animate(f, { y: [0, `-${FLOAT_MOVE}px`] }, { duration: FLOAT_EXIT_MOVE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION, autoplay: false }),
       );
       const fade = trackFloat(
-        animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, { duration: FLOAT_EXIT_MOVE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION }),
+        animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, { duration: FLOAT_EXIT_MOVE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION, autoplay: false }),
       );
       this.active = move;
       this.allFinished(f, false, [move, fade]);
@@ -565,7 +592,7 @@ import type { AnimationPlaybackControls } from 'motion';
       this.state = 'exiting';
       f.style.visibility = 'visible'; // 变体类已先隐藏容器——退出窗口内强制可见
       pinFloat(f); // 退场动画期间钉视口：滚顶滑行不会把右移+渐隐「带走」成向右下的斜线
-      const opts = { duration: PHASE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION };
+      const opts = { duration: PHASE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION, autoplay: false };
       const move = withX ? trackFloat(animate(f, { x: [0, `${SEARCH_DX}px`] }, opts)) : null;
       const fade = trackFloat(animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, opts));
       this.active = move ?? fade; // 相位链到整体退场（位移与渐隐同时长，链谁等效）
@@ -593,10 +620,10 @@ import type { AnimationPlaybackControls } from 'motion';
         if (this.state === 'entering') unpinFloat(f);
       }, FLOAT_ENTRY_DELAY_MS);
       const move = trackFloat(
-        animate(f, { y: [`-${FLOAT_MOVE}px`, 0] }, { duration: FLOAT_ENTRY_MOVE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
+        animate(f, { y: [`-${FLOAT_MOVE}px`, 0] }, { duration: FLOAT_ENTRY_MOVE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false }),
       );
       const fade = trackFloat(
-        animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, { duration: FLOAT_ENTRY_FADE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }),
+        animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, { duration: FLOAT_ENTRY_FADE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false }),
       );
       this.active = move;
       this.allFinished(f, true, [move, fade]);
@@ -611,7 +638,7 @@ import type { AnimationPlaybackControls } from 'motion';
       if (!f || this.state !== 'hidden') return;
       this.settle(false); // 清掉任何残留内联（幂等起点）
       this.state = 'entering';
-      const opts = { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION };
+      const opts = { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false };
       // 位姿先内联写好再起播（同任务内无绘制间隙，不闪）
       if (withX) f.style.transform = `translateX(${SEARCH_DX}px)`;
       f.style.opacity = '0';
@@ -671,6 +698,7 @@ import type { AnimationPlaybackControls } from 'motion';
             delay,
             ease: show ? EASE_ENTRY : EASE_EXIT,
             reduceMotion: REDUCE_MOTION,
+            autoplay: false,
           },
         ),
       );
@@ -739,6 +767,9 @@ import type { AnimationPlaybackControls } from 'motion';
     if (old) {
       old.style.transform = '';
       old.style.opacity = '';
+      // 手机端整页推入的反推 pre-pin 位移可能残留在槽上（未及 finished 写回）——量克隆前清零
+      const slot = old.parentElement;
+      if (slot?.classList.contains('posts-edge-slot')) slot.style.transform = '';
       oldHadSearch = !!old.querySelector('.posts-header-search');
       oldIsPost = old.classList.contains('posts-breadcrumb');
       edgeClone = cloneIntoRow(old, r, 'posts-edge-clone');
@@ -832,7 +863,7 @@ import type { AnimationPlaybackControls } from 'motion';
                 animate(
                   el,
                   { x: [0, `${dx}px`] },
-                  { duration: PHASE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION },
+                  { duration: PHASE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION, autoplay: false },
                 ),
               )
             : null;
@@ -844,6 +875,7 @@ import type { AnimationPlaybackControls } from 'motion';
                 duration: (slide ? PHASE_MS : EDGE_MS) / 1000,
                 ease: slide ? EASE_EXIT : EASE,
                 reduceMotion: REDUCE_MOTION,
+                autoplay: false,
               },
             ),
           );
@@ -909,7 +941,7 @@ import type { AnimationPlaybackControls } from 'motion';
         animate(
           exitEl,
           { opacity: [1, 0] },
-          { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION },
+          { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION, autoplay: false },
         ),
       );
       out.finished
@@ -931,12 +963,14 @@ import type { AnimationPlaybackControls } from 'motion';
         const newSlot = newEdge.parentElement;
         if (newSlot) {
           const y0 = opening ? -MOBILE_SLIDE : MOBILE_SLIDE;
+          // 延迟起播的空窗帧先同步钉到起始位移（同任务、无绘制间隙），出帧后反推回位
+          newSlot.style.transform = `translateY(${y0}px)`;
           // 与推入根同步：位移 200ms 达 0 并钉住（终帧位移不得晚于标题渐显收尾，见 TROUBLESHOOTING 51）
           const cnt = track(
             animate(
               newSlot,
               { y: [`${y0}px`, '0px', '0px'] },
-              { duration: EDGE_MS / 1000, ease: EASE, times: [0, 0.5, 1], reduceMotion: REDUCE_MOTION },
+              { duration: EDGE_MS / 1000, ease: EASE, times: [0, 0.5, 1], reduceMotion: REDUCE_MOTION, autoplay: false },
             ),
           );
           cnt.finished
@@ -950,14 +984,16 @@ import type { AnimationPlaybackControls } from 'motion';
       }
       if (blurClone) {
         // 淡尽即移除（~260ms，渐显收尾处、不可见）：移除不可见层，单帧异动被渐变本身掩盖
-        const bc = track(animate(blurClone, { opacity: [1, 0] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+        const bc = track(animate(blurClone, { opacity: [1, 0] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false }));
         bc.finished
           .then(() => {
             blurClone.remove();
           })
           .catch(() => {});
       }
-      track(animate(newEdge, { opacity: [0, 1] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION }));
+      // 延迟起播的空窗帧先同步钉不可见（同位模糊副本盖着），出帧后渐显
+      newEdge.style.opacity = '0';
+      track(animate(newEdge, { opacity: [0, 1] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false }));
     } else if (edgeClone) {
       edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
       edgeClone = null;
@@ -970,6 +1006,8 @@ import type { AnimationPlaybackControls } from 'motion';
       const root = opening ? (main?.querySelector<HTMLElement>('.posts-article') ?? null) : (main?.querySelector<HTMLElement>('.posts-page') ?? null);
       if (root) {
         const y0 = opening ? MOBILE_SLIDE : -MOBILE_SLIDE;
+        // 延迟起播的空窗帧先同步钉到起始位移（同任务、无绘制间隙），出帧后推入
+        root.style.transform = `translateY(${y0}px)`;
         // 位移必须赶在渐显收尾（260ms）前完成：终帧位移（N 卡 backdrop 最终重采样）落在
         // 标题定格之后会让标题闪一帧（真机判定，见 TROUBLESHOOTING 51）——关键帧 200ms 达 0
         // 并钉住（ease-out 前段已走完 ~90% 路程，观感不变），动画仍在 400ms 结束
@@ -977,7 +1015,7 @@ import type { AnimationPlaybackControls } from 'motion';
           animate(
             root,
             { y: [`${y0}px`, '0px', '0px'] },
-            { duration: EDGE_MS / 1000, ease: EASE, times: [0, 0.5, 1], reduceMotion: REDUCE_MOTION },
+            { duration: EDGE_MS / 1000, ease: EASE, times: [0, 0.5, 1], reduceMotion: REDUCE_MOTION, autoplay: false },
           ),
         );
         a.finished
@@ -1013,6 +1051,7 @@ import type { AnimationPlaybackControls } from 'motion';
         duration: (slide ? PHASE_MS : EDGE_MS) / 1000,
         ease: slide ? EASE_EXIT : EASE,
         reduceMotion: REDUCE_MOTION,
+        autoplay: false,
       };
       const move = slide ? track(animate(fadeEl, { x: [0, `${dx}px`] }, opts)) : null;
       const fade = track(animate(fadeEl, { opacity: [1, 0] }, opts));
