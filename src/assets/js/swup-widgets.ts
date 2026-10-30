@@ -34,7 +34,6 @@ function initSideWidgets(container: HTMLElement): void {
     if (btn) btn.classList.toggle('unavailable', !!flag);
   }
 
-  /** 探测当前页面类型（文章详情 / 文章列表·分类 / 普通页） */
   function pageContext() {
     return {
       detail: !!document.querySelector('.post-content'),
@@ -44,7 +43,6 @@ function initSideWidgets(container: HTMLElement): void {
     };
   }
 
-  /** 按页面类型 + 视口宽度重估每个按钮的可用性 */
   function probe(): void {
     const { detail, list, toc, comments } = pageContext();
     const w = window.innerWidth;
@@ -62,7 +60,6 @@ function initSideWidgets(container: HTMLElement): void {
     buttons['filter']?.classList.toggle('compact', filterMode === 'list');
   }
 
-  /** 挂起结束：恢复由滚动驱动的正常显隐 */
   function release(): void {
     busy = false;
     scrolling = false;
@@ -74,7 +71,6 @@ function initSideWidgets(container: HTMLElement): void {
     render(); // 立即按当前滚动位置刷新显隐，避免兜底放行后按钮状态滞后
   }
 
-  /** 渲染滚动位置相关的状态：按钮显隐 + 阅读进度环 */
   function render(scrollY?: number): void {
     const y = typeof scrollY === 'number' ? scrollY : window.scrollY;
 
@@ -108,7 +104,7 @@ function initSideWidgets(container: HTMLElement): void {
     render();
   }
 
-  // ---- 点击：目录 / 筛选由抽屉组件监听，这里只处理直接跳转类 ----
+  /* ---- 点击：目录 / 筛选由抽屉组件监听，这里只处理直接跳转类 ---- */
   container.addEventListener('click', (e: MouseEvent) => {
     const btn = e.target instanceof Element ? e.target.closest('.back-to-widget') : null;
     if (!btn || btn.classList.contains('unavailable')) return;
@@ -144,7 +140,7 @@ function initSideWidgets(container: HTMLElement): void {
     render();
   }
 
-  // ---- swup 切页：开始即压制，等页面真正回到顶部后再交还 ----
+  /* ---- swup 切页：开始即压制，等页面真正回到顶部后再交还 ---- */
   document.addEventListener('swup:visit:start', () => {
     busy = true;
     scrolling = false;

@@ -2,17 +2,11 @@
 // 用法：import { site } from "../../data/site"
 
 export interface SiteConfig {
-  /** 站点名称 */
   name: string;
-  /** 站点域名 */
   domain: string;
-  /** 站点描述（SEO） */
   description: string;
-  /** 页脚版权文字 */
   footerCopyright: string;
-  /** 页脚备注 */
   footerNote: string;
-  /** 语言 */
   lang: string;
 }
 

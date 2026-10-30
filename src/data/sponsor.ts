@@ -24,7 +24,6 @@ export interface SupportAction {
   target?: string;
 }
 
-/** 主赞助卡片（爱发电） */
 export const sponsorLink: SponsorLink = {
   name: '爱发电',
   href: 'https://www.ifdian.net/a/yumaonb',
@@ -32,7 +31,6 @@ export const sponsorLink: SponsorLink = {
   icon: 'la:heart',
 };
 
-/** 赞助名单入口 */
 export const sponsorList: SponsorList = {
   icon: 'la:users',
   title: '爱发电赞助名单',
@@ -41,7 +39,6 @@ export const sponsorList: SponsorList = {
   target: '_blank',
 };
 
-/** 其他支持方式 */
 export const supportActions: SupportAction[] = [
   {
     icon: 'la:star',

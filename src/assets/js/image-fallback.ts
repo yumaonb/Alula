@@ -56,7 +56,6 @@
     else img.classList.add('img-loaded');
   }
 
-  /** 扫描当前页面所有图片（初始化 / swup 切页后调用） */
   function scan(): void {
     document.querySelectorAll<HTMLImageElement>('img').forEach(initImg);
   }

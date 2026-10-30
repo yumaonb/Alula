@@ -16,8 +16,7 @@ import {
 
 const contentRoot = 'content/posts';
 
-// ---- 分类元数据 ----
-
+/* ---- 分类元数据 ---- */
 function metaKeyOf(fileKey: string): string | null {
   const key = fileKey.replace(/\\/g, '/');
   const marker = `/${contentRoot}/`;
@@ -47,8 +46,7 @@ export function buildCategoryMeta(): Record<string, CategoryMeta> {
   return meta;
 }
 
-// ---- 文章数据 ----
-
+/* ---- 文章数据 ---- */
 export type PostEntry = CollectionEntry<'posts'>;
 
 export interface BlogData {

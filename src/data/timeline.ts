@@ -3,15 +3,11 @@
 // 条目顺序随意，组件按 date 升序排列；date 用 YYYY-MM-DD。
 
 export interface TimelineEntry {
-  /** 事件开始日期 YYYY-MM-DD */
   date: string;
-  /** 事件标题 */
   title: string;
-  /** 一句话说明 */
   description: string;
 }
 
-/** 时间轴条目：顺序随意，按日期升序渲染 */
 export const timeline: TimelineEntry[] = [
   {
     "date": "2024-03-23",

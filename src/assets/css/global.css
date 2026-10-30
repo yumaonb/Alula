@@ -135,7 +135,7 @@ ol {
   --posts-side-w: 260px; /* 侧栏宽（面包屑负边距共用同一令牌） */
   --posts-side-gap: 16px; /* 侧栏与内容列的横向间隙（即行 gap） */
   --posts-offset-gap: 0px; /* 页锚（页头/面包屑）与下方内容的纵向间隙，供测侧栏顶偏移 */
-  --posts-side-offset: 0px; /* 侧栏顶偏移 = 锚高 + 间隙；posts-shell.ts 实测写内联值覆盖 */
+  --posts-side-offset: 0px; /* 侧栏顶偏移 = 锚高 + 间隙；posts-shell.ts 计算后写内联值覆盖 */
   flex: 1;
   display: flex;
   align-items: flex-start;
@@ -168,7 +168,7 @@ ol {
  * 导航底 16px 处（57 + 16 = 73，即项目等页 .page-top-standard 标题的同一顶边）。
  * 列表页标题落 73（标题上间距 16px，与项目页标题同值）；
  * 列表标题→搜索间隙 16px（同 .page-head 标题下间距，见 posts-listing.css）；
- * 文章页面包屑在「导航底(57)→正文卡顶(111)」的 54px 空窗内垂直居中（用户指定）：
+ * 文章页面包屑在「导航底(57)→正文卡顶(111)」的 54px 空窗内垂直居中：
  * 行留白 73→70px、面包屑条压到 28px、条下间隙 10→13px（见 PostsShell.astro 末尾规则），
  * 条上下各留 13px；正文大框顶 70 + 28 + 13 = 111 不变，仍与列表页搜索框顶
  * （73 + 标题行高 21.6 + 16 = 110.6）对齐。面包屑顶（70）与列表标题（73）仅差 3px，
@@ -209,7 +209,7 @@ ol {
 
 /* 侧栏顶偏移：作者卡与锚下方的内容顶边对齐（列表页=页头下，文章页=面包屑条下）。
  * 两变体偏移同为 50px（36px 锚 + 14px 间隙），列表↔文章切换作者卡不再位移；
- * padding-top 仍带过渡：仅剩"锚高实测变化"（标题换行 / 窗口缩放）时平滑补差 */
+ * padding-top 仍带过渡：仅剩"锚高变化"（标题换行 / 窗口缩放）时平滑补差 */
 .page-main--listing > .global-sidebar,
 .page-main--post > .global-sidebar {
   padding-top: var(--posts-side-offset, 0);
@@ -219,7 +219,7 @@ ol {
 /* 搜索框行级常驻（BaseLayout 渲染在行内、main#swup 之外）：
  * swup 切页永不重建——节点不被 swup 移动，.glass 胶囊（backdrop-filter + 投影）
  * 的层不重建，切页零闪零重建。
- * 位置按页头占位符实测写内联 top/left/width（叠在占位上，各宽适配）：首帧由
+ * 位置按页头占位符计算写内联 top/left/width（叠在占位上，各宽适配）：首帧由
  * BaseLayout body 尾 is:inline 脚本先写（无网络依赖；带 data-swup-ignore-script，
  * swup 切页不重跑——重跑会抢在转场编排前显出搜索框，见 TROUBLESHOOTING 52），
  * posts-shell.ts 加载后重测接管。

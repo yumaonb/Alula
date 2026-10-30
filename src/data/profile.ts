@@ -7,10 +7,8 @@ export interface SocialLink {
   url: string;
 }
 
-/** 昵称 */
 export const nickname = '羽毛';
 
-/** 签名 / 座右铭 */
 export const motto = '阅己 越己 悦己';
 
 /** 首页自我介绍（支持 HTML） */

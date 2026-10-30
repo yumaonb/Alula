@@ -1,4 +1,4 @@
-// pages.ts — 后台页面控制器（仪表盘 / 文章列表 / 文章编辑）
+// pages.ts — 后台页面控制器（仪表盘 / 文章列表 / 文章编辑 / 分类管理 / 网站设置占位）
 // 用法：由 AdminLayout 引入：import "../assets/js/admin/pages"
 // 模块只在首次加载求值一次；swup 换掉 #swup 里的内容后由 boot() 重新绑定当前页面。
 
@@ -59,8 +59,7 @@ function whenConnected(run: () => Promise<void>): Cleanup {
   });
 }
 
-// ---- 仪表盘 ----
-
+/* ---- 仪表盘 ---- */
 /** 首页「仓库状态」卡从 adminStore 取数；未连接 / 已连接的显隐由外壳的 .is-connected 类负责，这里只填值 */
 function initDashboard(): Cleanup {
   function render(): void {
@@ -74,8 +73,7 @@ function initDashboard(): Cleanup {
   return adminStore.subscribe(render);
 }
 
-// ---- 文章列表 ----
-
+/* ---- 文章列表 ---- */
 function initPostsList(): Cleanup {
   const cleanups: Cleanup[] = [];
   const list = byId<HTMLUListElement>('admin-posts-list');
@@ -150,8 +148,7 @@ function initPostsList(): Cleanup {
   return () => cleanups.forEach((fn) => fn());
 }
 
-// ---- 分类管理 ----
-
+/* ---- 分类管理 ---- */
 /**
  * 分类树由目录推出来：文章所在的每一层目录都是一个分类，有 index.json 但暂无文章的目录也算。
  * 单靠 index.json 推导会漏掉没配元数据的分类；index.json 存在与否只决定「有没有配显示名」。
@@ -231,8 +228,7 @@ function initCategories(): Cleanup {
   return () => cleanups.forEach((fn) => fn());
 }
 
-// ---- 文章编辑 ----
-
+/* ---- 文章编辑 ---- */
 function initEditor(): Cleanup {
   const cleanups: Cleanup[] = [];
   const textarea = byId<HTMLTextAreaElement>('admin-editor-text');
@@ -384,8 +380,7 @@ function initEditor(): Cleanup {
   return () => cleanups.forEach((fn) => fn());
 }
 
-// ---- 装配 ----
-
+/* ---- 装配 ---- */
 let activeCleanup: Cleanup | null = null;
 
 /** 侧栏在 #swup 之外，切页时不会重渲染，高亮与展开态都得自己跟上 */
@@ -422,12 +417,11 @@ function syncNavActive(): void {
   }
 }
 
-// ---- 网站设置 ----
-
+/* ---- 网站设置 ---- */
 /**
  * 网站设置下的八页目前只有表单骨架，还没有读写逻辑：
  * 它们要改的是 src/data/*.ts，而那是 TS 源码不是 JSON，写回去需要先把数据换成 JSON
- * 再让 .ts 只做 import + 类型断言。在此之前故意不接 adminStore，避免改坏仓库里的源文件。
+ * 再让 .ts 只做 import + 类型断言。因此暂不接 adminStore，避免改坏仓库里的源文件。
  *
  * 这里留一个共用的占位实现：只把计数类状态文案改成「待接入」，
  * 不注册任何监听，返回空 cleanup 让 boot() 的契约保持一致。

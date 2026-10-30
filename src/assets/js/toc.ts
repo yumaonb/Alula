@@ -51,9 +51,9 @@
     window.scrollTo({ top: top, behavior: 'smooth' });
   }
 
-  // ---- 缓存：标题文档绝对位 + 目录项 offsetTop/height。页面滚动不改变它
-  // 们；只在 init / 重测时重建（重测频率低：init / 切页 / 图片 / 字体 /
-  // resize / 哨兵命中）。 ----
+  /* ---- 缓存 ---- */
+  // 标题文档绝对位 + 目录项 offsetTop/height。页面滚动不改变它们；
+  // 只在 init / 重测时重建（重测频率低：init / 切页 / 图片 / 字体 / resize / 哨兵命中）。
   let slugs: string[] = [];
   let headingTops: number[] = [];
   let itemTops: number[] = [];
@@ -89,7 +89,7 @@
     return Math.max(0, Math.min(desired, maxScroll));
   }
 
-  // ---- 共用过渡：单进度 p 同时驱动竖线静止目标与轨道滚动 ----
+  /* ---- 共用过渡：单进度 p 同时驱动竖线静止目标与轨道滚动 ---- */
   let p = 1; // 过渡进度（1 = 完成）
   let dur = 0.12; // 过渡时长（s，按位移成比例）
   let barFrom = 0;
@@ -151,7 +151,6 @@
     lastT = performance.now();
   }
 
-  /** 切项：高亮类 + 竖线高度 + 共用过渡重定向 */
   function activate(idx: number): void {
     if (idx === lastActiveIdx) return;
     document.querySelectorAll('.toc-item').forEach((item, i) => {
@@ -167,7 +166,7 @@
     ensureLoop();
   }
 
-  // ---- 段标记 + IntersectionObserver（检测层） ----
+  /* ---- 段标记 + IntersectionObserver（检测层） ---- */
   let marks: (HTMLElement | null)[] = [];
   let markOf = new WeakMap<Element, number>();
   let io: IntersectionObserver | null = null;
@@ -285,9 +284,9 @@
     targets.forEach((t) => observer.observe(t));
   }
 
-  // ---- 布局平移重测：图片 load/error（捕获阶段）、字体 ready、resize 都
-  // 会平移标题、打穿标记的显式位置；重测放 rAF（等布局落定），重测 + 重写
-  // 标记 + 重定向一次共用过渡（目录几何若变化则顺势修正，否则空操作） ----
+  /* ---- 布局平移重测 ---- */
+  // 图片 load/error（捕获阶段）、字体 ready、resize 都会平移标题、打穿标记的显式位置；
+  // 重测放 rAF（等布局落定），重测 + 重写标记 + 重定向一次共用过渡（目录几何若变化则顺势修正，否则空操作）
   let remeasurePending = false;
   function requestRemeasure(): void {
     if (remeasurePending) return;
@@ -312,8 +311,8 @@
   document.fonts?.ready.then(requestRemeasure).catch(() => {});
   window.addEventListener('resize', requestRemeasure, { passive: true });
 
-  // ---- 单帧推进：哨兵（保标记位置新鲜）→ 共用过渡推进。检测本身由 IO 事
-  // 件驱动，此循环只在滚动时跑（哨兵需要逐帧看），静止且过渡收敛后停摆。 ----
+  /* ---- 单帧推进：哨兵 + 共用过渡 ---- */
+  // 检测由 IO 事件驱动，此循环只在滚动时跑（哨兵需要逐帧看），静止且过渡收敛后停摆。
   function frame(now: number): boolean {
     if (slugs.length === 0) return false;
 
@@ -361,7 +360,7 @@
     rafId = requestAnimationFrame(tick);
   }
 
-  // ---- 点击：页面平滑滚动 + 800ms 窗口（窗口内轨道不动）----
+  /* ---- 点击：页面平滑滚动 + 800ms 窗口（窗口内轨道不动） ---- */
   document.addEventListener('click', (e: MouseEvent) => {
     const link = e.target instanceof Element ? e.target.closest('.toc-link') : null;
     if (!link) return;

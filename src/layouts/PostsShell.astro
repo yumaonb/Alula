@@ -10,7 +10,7 @@
 //       <Comments slot="comments" />
 //     </PostsShell>
 // 搜索框不在这里：它是 BaseLayout 行级常驻的（swup 永不重建，切页零闪），
-// 页头里只留 .posts-header-search 空占位供 posts-shell.ts 实测叠放位置。
+// 页头里只留 .posts-header-search 空占位供 posts-shell.ts 计算叠放位置。
 import { Icon } from 'astro-icon/components';
 import { navItem } from '../data/nav';
 
@@ -78,7 +78,7 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
             <span class="posts-count">共 {count} 篇文章</span>
           </h1>
           <!-- 搜索框占位：真实搜索框在 BaseLayout 行级常驻（.posts-search-float，swup 永不重建），
-               posts-shell.ts 按此占位的实测位置把常驻搜索框叠上来。占位只留布局空间，无视觉 -->
+               posts-shell.ts 按此占位的实际位置把常驻搜索框叠上来。占位只留布局空间，无视觉 -->
           <div class="posts-header-search" aria-hidden="true"></div>
         </div>
       </div>
@@ -234,13 +234,13 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
   }
 
   /* ---- 手机端（≤768px）：面包屑条压到 28px，并在「导航底(57)→正文卡顶(111)」的 54px
-       空窗内垂直居中（用户指定：上面减小、下面增大）——行留白 70px（global.css 末尾规则）
+       空窗内垂直居中（上面减小、下面增大）——行留白 70px（global.css 末尾规则）
        + 条 28px + 条下间隙 13px，条上下各留 13px；正文大框顶 70 + 28 + 13 = 111 不变，
        仍 ≈ 列表页搜索框顶（73 + 标题行高 21.6 + 16 = 110.6），切页时正文卡正好落在
        搜索框消失的位置。面包屑顶（70）与列表标题（73）仅差 3px，条带模糊交叉渐隐
-       按同位处理（见 posts-shell.ts 文件头 a）；
+       按同位处理；
        28px 仍容得下链接行盒（25.76px），压掉的只是上下留白。
-       槽保留转场口袋职责（posts-shell.ts 按实测几何自适应） ---- */
+       槽保留转场口袋职责（posts-shell.ts 按实际几何自适应） ---- */
   @media (max-width: 768px) {
     .posts-article-main {
       gap: 13px;

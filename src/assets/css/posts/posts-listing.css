@@ -21,7 +21,7 @@
 }
 
 /* 搜索框占位：真实搜索框是 BaseLayout 行级常驻（.posts-search-float），
-   这里只留布局空间（宽/高与原胶囊一致），posts-shell.ts 按实测位置把常驻搜索框叠上来 */
+   这里只留布局空间（宽/高与原胶囊一致），posts-shell.ts 按实际位置把常驻搜索框叠上来 */
 .posts-header-search {
   width: min(360px, 100%);
   height: 36px;

@@ -68,7 +68,6 @@ function setState(patch: Partial<AdminState>): void {
   for (const fn of listeners) fn(state);
 }
 
-/** 标记连接成功，写入配置与登录身份 */
 function connect(config: AdminConfig, viewer: AdminViewer | null): void {
   setState({ config, connected: true, viewer });
 }
@@ -127,7 +126,6 @@ function settle(paths: string[]): void {
   setState({ changes, committing: false });
 }
 
-/** 进入 / 退出提交流程 */
 function setCommitting(value: boolean): void {
   if (state.committing !== value) setState({ committing: value });
 }

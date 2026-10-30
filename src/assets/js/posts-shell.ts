@@ -1,119 +1,17 @@
 // posts-shell.ts — 文章区常驻壳（.page-main 行）的运行时控制器
 // 用法：由 BaseLayout 引入：import "../assets/js/posts-shell"
 //
-// 侧边栏（GlobalSidebar）与搜索框（PostSearch）都在 #swup 之外、切页不重建，
-// 所以每次切页后五件事要自己跟上：
-// ① 行的变体类（--plain/--listing/--post，驱动侧栏/搜索显隐与内容列 1000px 收窄）；
-// ② 侧栏顶偏移 --posts-side-offset（实测「页锚高度 + 间隙」，页锚 = 页头 / 面包屑条）；
-// ③ 侧栏高亮态（当前分类高亮 + 其路径补展开、当前标签高亮）；
-// ④ 行级常驻搜索框的叠放位置（实测页头占位符 .posts-header-search 的行内坐标）；
-// ⑤ 切页转场（motion 驱动，只在文章区界面之间生效；涉及普通屏不播）。
+// 侧边栏与搜索框都在 #swup 之外、切页不重建，每次切页后本文件负责：
+// ① 行变体类（--plain / --listing / --post，驱动侧栏与搜索显隐、内容列收窄）；
+// ② 侧栏顶偏移 --posts-side-offset（页锚高度 + 间隙）；
+// ③ 侧栏高亮（当前分类路径补展开、当前标签高亮）；
+// ④ 搜索浮层按页头占位符的行内坐标定位；
+// ⑤ 文章区切页转场（motion 驱动：条带模糊交叉、搜索/目录退场配对、手机端整页推拉）。
 //
-// ---- 转场机制 ----
-// 本文件所有 motion 动画一律**延迟起播**：以 autoplay: false 创建（时钟冻在首关键帧，
-// 起播前位姿由调用方在同任务内先同步 pre-pin），再等下一个真正出帧的 rAF 才 play()
-// （deferPlay，见登记段注释）。after-swap 任务里同步起播时，首次切进文章区的主线程
-// 还在忙（dev 按需编译 + 岛屿水合，生产冷首载同样）：动画墙钟在卡顿里「空转」，
-// rAF 恢复后 motion 一次性跳到终帧——用户所见「出场动画没播、一瞬间直接消失」，
-// 等 finished 的相位链也一并卡死（入场相位跟着不启动）。rAF 回调只在合成器真正
-// 出帧时运行，在那里起播保证动画每一帧都被画出来；cancel() 之后 state 不再是
-// paused，延迟 play 自然跳过、不会复活已取消的动画。
-// a) 左缘元素条带切换（列表页头 ↔ 文章面包屑条）：swup 替换瞬间丢弃旧 DOM，替换前
-//    （astro:before-swap，即 content:replace 前一刻）克隆旧元素进行内**静止暂存**，
-//    等新界面加载完（astro:after-swap）才播放——过渡绝不先于内容。**全部**左缘条带
-//    切换（桌面端所有 + 手机端列表↔文章 + 手机端列表↔分类/标签；用户指定电脑端也用
-//    模糊，手机端滑动形态随之整体退役）走**模糊变过去**——旧带原地渐隐
-//    （opacity 1→0，160ms；退出侧全程不带 filter——带过滤层的克隆被移除时，
-//    下方新标题会因合成层重栅格闪一下）、新带原地渐显（**不挂任何 filter**——
-//    标题行挂过滤层会在推入收尾 N 卡 backdrop 重采样挤占栅格预算时丢一帧，
-//    见 TROUBLESHOOTING 第 51 条）+ 静态 blur(4px) 模糊副本原地渐隐、淡尽后移除
-//    （纯 alpha 交叉，260ms），两带同位交叉渐隐、无双重曝光。手机端列表↔文章另做**固定方向**整页推拉：
-//    开文章 = 整页向上（新内容自下方 48px 滑入）、关文章 = 镜像向下（新列表自上方 48px
-//    滑下）——新带槽另做与推入**等距反向**的 counter 位移，屏幕上原地不动——避免新带
-//    跟随推入上滑显得「面包屑浮上去」，读起来是「标题模糊成面包屑」。**位移 200ms 达 0
-//    并钉住**（动画仍在 400ms 结束）：终帧位移（N 卡 backdrop 最终重采样）不得落在标题
-//    渐显收尾之后，否则弱内核下标题闪一帧（真机判定，见 TROUBLESHOOTING 第 51 条）。
-//    推入的 transform 层**保活不拆**：finished 后显式写回非 none 恒等 translateY(0)
-//    防合成层被拆（拆层触发重栅格化：推入根 = 整列玻璃卡、counter 槽 = 标题区，槽是
-//    标题条的父元素），随节点下次切页移除回收；推入根与 counter 槽都保活不拆。推拉只在区内
-//    （旧屏为列表或文章详情）播放；跨区（普通页→列表）直接落位不推入——旧屏无条带、
-//    常驻搜索框无入场相位，整页滑入会标题/列表滑动而搜索框原地不动，割裂。
-// b) 搜索/目录退场配对（用户要求「先退场再入场」）：目录出现/消失的切页里，退出相位
-//    （320ms）走完才播进入相位（320ms）——列表→文章：搜索右移 48px「移一段」渐隐
-//    （退出）→ 目录自屏幕右缘左移渐显（入场）；文章→列表：目录右移移出屏幕渐隐
-//    （退出）→ 搜索自 48px 右偏移左移渐显（入场）。四个动效（搜索/目录 × 出场/退场）
-//    完全统一：同时长（PHASE_MS）、渐显渐隐与位移同步（用户要求四个效果全一样）。
-//    只在电脑端显示目录（≥851px）时带位移。目录克隆**创建即钉视口**（captureOld /
-//    before-swap，position: fixed，脱离文档坐标）——必须赶在「滚顶启动 + 切页文档高度
-//    塌缩致滚动位被浏览器钳制」之前：滚顶排在 content:replace 之后才调度，after-swap
-//    起播晚于它（dev 下 swap 窗口更大），等起播时再钉，克隆可能已被位移（用户所见
-//    「目录先下移一段才停住」，极端钉到屏外）。两套退场分支（文章↔文章 crossfade +
-//    文章→列表 / 普通页）都直接播已钉住的克隆：退场右移移出屏幕渐隐（320ms）；文章↔
-//    文章「先退场再入场」——退场播完才播新目录自屏幕右缘左移渐显（入场 320ms），并行
-//    会两条对滑在途中交叉、同时半透明重叠成「重影」。退场期间新目录钉
-//    不可见（gate 分支构造即钉），落到 sticky 钉住位（top 到达 82px）才真正开始入场
-//    ——切页后 SwupScrollPlugin 平滑滚回顶部（时长按距离，长文可达 ~2s），挂在文档坐标
-//    的克隆/元素会被滚动「带走」（退场原地渐隐读起来是「目录向右下漂移」、新目录带着
-//    淡入从视口上方「掉下来」），钉视口/等落位后出入场都是纯水平平移，与滚顶解耦、
-//    滚顶逻辑不动。等待期间新目录恒在视口上方（本就不可见），不露空位。搜索浮层：
-//    退场（桌面/移动）起播前 pinFloat 钉视口（内联 top/left 转视口坐标）——退场以
-//    opacity 0 收尾，unpin 还原行相对值不可见；桌面端入场**不钉**，落回全程跟随内容
-//    （行内绝对定位，与移动端入场落回同范式）——入场期间滚顶滑行可能仍在途，钉视口
-//    会把胶囊冻结在钉住时刻的视口位、动画收尾还原行相对位置时跳一次；移动端入场先钉、
-//    落回延迟结束（渐显中、近不可见）即解除钉——落回期间行内绝对定位、跟着内容走，
-//    unpin 重合成挤到的栅格预算被渐显掩盖（见 TROUBLESHOOTING 51），退场/静态归位
-//    统一 unpin 还原行相对值——钉住期间 syncSearchPos 让路（fixed 下写行相对值会瞬移），
-//    且占位符查找排除条带克隆里的占位符克隆（首次 RO 回调可能赶在克隆渐隐窗口内）。
-//    切页时浮层的显隐与位置只由本文件驱动：BaseLayout 的搜索框首帧叠放脚本带
-//    data-swup-ignore-script（swup 的脚本重跑插件默认重跑全 document 脚本，不忽略
-//    会在转场起播前强制显出浮层，见 TROUBLESHOOTING 52）。
-// c) 手机端（≤768px）列表↔文章：搜索框退场/入场统一在 after-swap 驱动（**点击时不动**——
-//    点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失，用户反馈）：
-//    开文章 = after-swap 上移 12px + 同时长渐隐（退场 100ms——用户反馈 50ms 快得失真、
-//    观感「无退场动画」；上移途中半透明胶囊逼近上方标题——列式页头标题↔搜索间隙 16px、
-//    位移留 4px 余量）；
-//    关文章 = 自上方偏移落回渐显；新内容自下方 48px 滑入（开文章）/
-//    新列表自上方 48px 滑下（关文章）。
-//    条带交换走模糊变过去（旧带模糊渐隐 + 新带反推后原地模糊渐显，见 a）。
-//    **跨区（列表 ↔ 普通页）不做搜索淡变**：去普通页直接消失（after-swap settle）、
-//    从普通页回来直接出现（after-swap settle）——只有区内（列表↔详情）做退场/入场淡变（用户指定）
-//    白纱规则（移动渐隐的毛玻璃通用，见 CSS.md「玻璃拟态」）：搜索胶囊是磨砂（backdrop
-//    模糊、背景全透明），渐隐时模糊随透明度一起淡掉会「突然变透明」——搜索**淡出**同时
-//    把**容器**背景在 透明 ↔ --glass-veil（半透明白纱，variables.css 令牌）之间过渡，
-//    用实体白替代消失的模糊。**淡入也铺白纱**：入场**前**先加上半透明白（入场动画启动的
-//    同任务里 pre-pin VEIL，之间无绘制间隙），再随入场全程褪去（VEIL→透明）——「白纱褪去、
-//    玻璃浮现」，与淡出对称（用户要求：入场渐显那会儿要在入场前加上半透明白）。
-//    白纱写在容器（.posts-search-float）上而非胶囊上：
-//    胶囊有 :focus-within 的 background 过渡，逐帧内联写入会与之打架。
-//    fetch 失败（404 / 中断）且仍留在列表系界面时恢复搜索框（window.swup 钩子兜底，
-//    astro.config.ts globalInstance: true）。
-// d) 快速连切保护：① 上次转场未播完又切页时，旧条带/旧目录/旧内容根可能带着被 cancel 的
-//    动画残留内联 transform/opacity（motion 的 cancel 不清内联样式——它把元素回退到
-//    **首关键帧**并把 keyframes[0] 重写进内联），克隆前必须清零再量盒；
-//    ② 上一轮的克隆/舞台清理必须**查 DOM** 而不是读模块变量——finished 回调在动画结束才跑，
-//    变量可能已为 null，读变量清理是 no-op，旧标题克隆会残留到 5s 兜底（用户看到的
-//    「快速切换时旧残留，过一会儿才消失」），条带克隆与目录克隆都带标记类供查 DOM 清除；
-//    ③ 搜索浮层的在途相位（exiting/entering）要与本轮目的地核对，冲突时从飞行中
-//    位姿改向到目的地静止态（playTransition 开头收口，floatCtl.redirect）：退场未完就
-//    切回列表 → 自当前位置归位（「停下再回去」）；入场未完就切进文章 → 自当前位置
-//    继续离场、补完退场；跨区（→ 普通页）仍 settle 直接消失。位姿必须先 cancel 前从
-//    computed style 读再重钉回内联——motion 的 cancel 会把元素回退到首关键帧（重写
-//    keyframes[0] 进内联），cancel 后读内联拿到的是首关键帧不是在途值（读早了会
-//    「退场动画直接消失」）；与 nav-indicator 快速连点改向同范式。否则 state 卡在
-//    exiting/entering，入场 gate（state==='hidden'）不成立、目录动作又占着相位链，
-//    settle 兜底跑不到，搜索框会永久停在 opacity 0；
-//    ④ 文章↔文章新目录入场的落位等待（rAF + 超时双退出条件）也在 captureOld 清掉——
-//    等的那个元素会随旧内容被换走，不清就追一个不存在的节点空转
-// e) 搜索框行级常驻：永不被 swup 重建（节点不被摘出/重插，backdrop 层与投影不重建，
-//    切页零闪）。CSS 不写 opacity 过渡（与 motion 关键帧抢写同一属性），只负责
-//    visibility/pointer-events 随行变体类瞬时翻转；opacity/位移/白纱全由本文件驱动。
-// f) 首屏早期点击：实例未就绪时点区内链接（swup 委托未挂载，原生 = 整页跳转，
-//    落地首屏不播转场）——拦截点击、等实例就绪后 navigate() 转正常切页、转场照常播，
-//    超时回退原生跳转（onEarlyClick）。实例赋值前 window.swup 会被 DOM id 回退解析成
-//    <main id="swup"> 元素，就绪判定必须走 realSwup() 特征甄别。
-//
-// category-tree 脚本守卫：从非文章页 swup 进文章区时，壳里脚本不在首屏 HTML，
-// 这里按需懒加载（模块单例，加载后自身的 document 委托与 after-swap 监听长期存活）。
+// 转场只在文章区界面之间播放，跨区直接落位；所有动画延迟到下一个出帧的 rAF 起播，
+// 避免主线程繁忙时墙钟空转、动画直接跳到终帧。
+// category-tree 脚本按需懒加载（从非文章页进入文章区时），模块单例。
+// 完整机制与取舍见 .dsh/docs/ARCHITECTURE.md 与 .dsh/docs/TROUBLESHOOTING.md 第 51–53 条。
 import { animate } from 'motion';
 import type { AnimationPlaybackControls } from 'motion';
 
@@ -121,12 +19,12 @@ import type { AnimationPlaybackControls } from 'motion';
   if (window.__postsShellInit) return;
   window.__postsShellInit = true;
 
-  // ================= 0. 常量与环境 =================
+  /* ---- 0. 常量与环境 ---- */
 
   const EDGE_MS = 400; // 左缘滑动 / 内容滑动 / 普通渐隐时长
   const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1]; // 平滑进出
   // 桌面端搜索/目录配对相位：四个动效（搜索/目录 × 出场/退场）完全统一——同时长、
-  // 渐显渐隐与位移同步（用户要求四个效果全一样）；入场减速落位、退场加速离场
+  // 渐显渐隐与位移同步（四个效果完全一致）；入场减速落位、退场加速离场
   const PHASE_MS = 320;
   const EASE_EXIT: [number, number, number, number] = [0.4, 0, 1, 1];
   const EASE_ENTRY: [number, number, number, number] = [0, 0, 0.2, 1];
@@ -140,17 +38,17 @@ import type { AnimationPlaybackControls } from 'motion';
   const FLOAT_MOVE = 12;
   // 推入位移 200ms 完成并钉住（后半静止、动画仍 400ms 结束，见 TROUBLESHOOTING 51）：
   // 入场落回时长按位移时长距离等比（12/48 × 200ms = 50ms）——同归一时刻胶囊速度 = 内容
-  // 速度，跟着文章上下移；退场 100ms（用户反馈 50ms 快得失真、观感「无退场动画」）
+  // 速度，跟着文章上下移；退场 100ms（更短会快得失真、观感「无退场动画」）
   const FLOAT_EXIT_MOVE_MS = 100; // 退场上移 = 渐隐时长
   const FLOAT_ENTRY_MOVE_MS = 50; // 入场落回时长（关文章，搜索自上方落回，与位移完成同时落定）
   const FLOAT_ENTRY_FADE_MS = 110; // 入场渐显（110+110=220ms 收尾）
-  // 手机端「关文章」：搜索自上方落回的延迟（用户反馈：下移时叠在文章卡片上）。
+  // 手机端「关文章」：搜索自上方落回的延迟（避免下移时叠在文章卡片上）。
   // 整页自上方 48px 推下时，列表栅格顶（160.6-48=112.6）起初在搜索框钉住位底边（146.6）
   // 之上；新曲线（200ms 位移）栅格顶 ≈95ms 即越过胶囊底边，保留 110ms 作安全余量
-  // （用户反馈 150ms 稍慢）；110+50=160ms，先于推入位移完成落定
+  // （150ms 明显偏慢）；110+50=160ms，先于推入位移完成落定
   const FLOAT_ENTRY_DELAY_MS = 110;
   // 条带交换「模糊变过去」（**全部**左缘条带切换——桌面端所有 + 手机端列表↔文章 + 手机端
-  // 列表↔分类/标签；用户指定电脑端也用模糊，滑动形态整体退役）：
+  // 列表↔分类/标签；桌面端同样用模糊，不再滑动）：
   // 旧带原地渐隐（opacity 1→0；退出侧不写 filter 关键帧——带过滤层的克隆被移除时，
   // 下方新标题会因合成层重栅格闪一下）；新带原地渐显（**不挂 filter**——标题行的
   // 过滤层是受害者：推入收尾 N 张玻璃卡的 backdrop 最终重采样挤占栅格预算时，
@@ -180,13 +78,13 @@ import type { AnimationPlaybackControls } from 'motion';
     return document.querySelector<HTMLElement>('.page-main');
   }
 
-  // ================= 1. 动画登记（两套生命周期） =================
+  /* ---- 1. 动画登记（两套生命周期） ---- */
   // anims：转场动画——快速二次导航（captureOld）一律 cancel；
   // floatAnims：搜索浮层动画——独立生命周期（不能被转场中断连带杀掉；
   // 只在浮层自己的 settle/新动画前清理）
   let anims: AnimationPlaybackControls[] = [];
   let floatAnims: AnimationPlaybackControls[] = [];
-  /** 延迟起播（见文件头「转场机制」首段）：autoplay: false 创建后时钟冻在首关键帧，
+  /** 延迟起播：autoplay: false 创建后时钟冻在首关键帧，
    *  在这里等下一个真正出帧的 rAF 才 play()。rAF 回调只在合成器出帧时运行——首次
    *  切进文章区时 after-swap 后主线程还忙几百 ms（dev 按需编译 + 岛屿水合），此刻
    *  同步起播会让墙钟在卡顿里空转、恢复后一次跳到终帧（「出场没播、直接消失」）；
@@ -217,7 +115,7 @@ import type { AnimationPlaybackControls } from 'motion';
     floatAnims = [];
   };
 
-  // ================= 2. 行变体 / 侧栏偏移 / 搜索叠放 / 侧栏高亮 =================
+  /* ---- 2. 行变体 / 侧栏偏移 / 搜索叠放 / 侧栏高亮 ---- */
 
   /** ① 行变体：按内容标记推导（与 swup-widgets.ts 的页面类型探测同一口径） */
   function syncVariant(): void {
@@ -246,7 +144,7 @@ import type { AnimationPlaybackControls } from 'motion';
     r.style.setProperty('--posts-side-offset', `${Math.round(anchor.offsetHeight + gap)}px`);
   }
 
-  /** ④ 行级常驻搜索框的叠放位置：实测页头占位符（.posts-header-search）的行内坐标，
+  /** ④ 行级常驻搜索框的叠放位置：读取页头占位符（.posts-header-search）的行内坐标，
    *  写 .posts-search-float 的内联 top/left/width——占位随标题换行/窗口变，跟着重测。
    *  占位不存在（文章页/普通页）时不动：浮动搜索已被行变体类隐藏。
    *  必须用与 transform 无关的布局坐标：锚的 ResizeObserver 首次回调可能赶在推入/反推动画
@@ -368,10 +266,10 @@ import type { AnimationPlaybackControls } from 'motion';
     }
   }
 
-  // ================= 3. 克隆 =================
+  /* ---- 3. 克隆 ---- */
 
   /** 把元素的视觉副本贴进容器内（过场用：不参与测量、不可交互、不进可访问性树）。
-   *  container = 行（左缘条克隆与目录克隆都直接挂行内，绝对定位按实测 top/left 摆位）。
+   *  container = 行（左缘条克隆与目录克隆都直接挂行内，绝对定位按量出的 top/left 摆位）。
    *  克隆是纯静态展示（左缘条与目录里没有 island）。
    *  清除时机：正常转场由 finished 回调移除；快速二次导航由 captureOld 查 DOM 清掉；
    *  5s 兜底只覆盖「visit 被中断、after-swap 永不来」的孤儿 */
@@ -379,7 +277,7 @@ import type { AnimationPlaybackControls } from 'motion';
     const clone = src.cloneNode(true) as HTMLElement;
     clone.removeAttribute('data-posts-anchor');
     if (markerClass) clone.classList.add(markerClass);
-    // 克隆按实测 top/left/width 绝对定位，必须把类继承的 margin 清零：
+    // 克隆按量出的 top/left/width 绝对定位，必须把类继承的 margin 清零：
     // .posts-header / .posts-breadcrumb 宽屏带负 margin-left 压过侧栏区（流内布局手段），
     // 对绝对定位元素这个 margin 仍会生效（left+width+margin-left 过约束时 margin-left 被保留），
     // 不清零整条克隆向左偏 284px，转场时标题「跑到左侧最前面」
@@ -401,14 +299,14 @@ import type { AnimationPlaybackControls } from 'motion';
     return clone;
   }
 
-  /** 查 DOM 清掉所有残留克隆（不信任模块变量——见文件头 d②） */
+  /** 查 DOM 清掉所有残留克隆（模块变量可能已被 finished 清空，查 DOM 最可靠） */
   function clearClones(): void {
     row()
       ?.querySelectorAll<HTMLElement>('.posts-edge-clone, .posts-toc-clone')
       .forEach((c) => c.remove());
   }
 
-  /** 目录移出屏幕的距离：整体移到视口右缘之外 + 余量（按元素左缘实测） */
+  /** 目录移出屏幕的距离：整体移到视口右缘之外 + 余量（按元素左缘计算） */
   function tocOffscreenDx(el: HTMLElement): number {
     return Math.max(120, Math.ceil(window.innerWidth - el.getBoundingClientRect().left + TOC_OFFSCREEN_PAD));
   }
@@ -461,7 +359,7 @@ import type { AnimationPlaybackControls } from 'motion';
    *  已钉不可见（gate 分支 makeTocEntry 构造即钉、非 gate 分支调用方钉内联 opacity
    *  0），等待期不可见，也不露空位（等待期它本来就在视口上方）。等它落到 sticky
    *  钉住位再播滑入：落位后视口位置静止（钉在 82px），入场才是纯水平平移。落位判定
-   *  用 scrollY（免逐帧布局读取）：目录文档坐标 yToc 实测一次，滚到 scrollY ≤ yToc
+   *  用 scrollY（免逐帧布局读取）：目录文档坐标 yToc 只读一次，滚到 scrollY ≤ yToc
    *  - 82 即到达钉住位（目录视口 top 恒 ≤ 82px，越过即终态）；已在钉住位（短文 /
    *  页面本就在顶部）则下一帧立即播。超时兜底：滚顶被用户滚动打断/异常停住时不能
    *  永久藏目录——超时直接播（目录若在视口上方，滑入不可见）。退出条件：落位或超时
@@ -487,17 +385,17 @@ import type { AnimationPlaybackControls } from 'motion';
     tocEntryWait.rafId = window.requestAnimationFrame(check);
   }
 
-  // ================= 4. 搜索浮层控制（行级常驻单节点） =================
+  /* ---- 4. 搜索浮层控制（行级常驻单节点） ---- */
   // CSS 只管 visibility/pointer-events（随变体类瞬时翻转）+ 端点 opacity: 0；
   // opacity / 位移 / 白纱全在这里。白纱规则：**淡出与淡入都用**（容器背景 透明 ↔ VEIL）——
-  // 移动渐隐的毛玻璃用实体白替代消失的模糊；淡入：入场前先加上半透明白（同任务 pre-pin、无绘制间隙），再随入场全程褪去，见文件头 c
-   //（白纱/淡变只用于区内动画；跨区边界直接 settle，无动画、无白纱，见文件头 c 末）
+  // 移动渐隐的毛玻璃用实体白替代消失的模糊；淡入：入场前先加上半透明白（同任务 pre-pin、无绘制间隙），再随入场全程褪去
+  // （白纱/淡变只用于区内动画；跨区边界直接 settle，无动画、无白纱）
   // 浮层钉视口期间的原行相对内联 top/left（unpin 时恢复）
   let floatPinSaved: { top: string; left: string } | null = null;
 
   /** 浮层钉视口：absolute→fixed 钉到当前视口位置，退场动画期间脱离页面滚动——
    *  切页后 SwupScrollPlugin 平滑滚回顶部，文档坐标里的浮层会被滚动「带走」，
-   *  退场变成向右下的斜线（目录克隆同病，见文件头 b）。行及其祖先无
+   *  退场变成向右下的斜线（目录克隆也要钉视口）。行及其祖先无
    *  transform/filter，fixed 即视口坐标。用途：退场（桌面/移动）起播前钉、动画播完
    *  （opacity 0）或静态归位（settle）时恢复，恢复不可见；移动端入场先钉、落回延迟
    *  结束（渐显刚起、近不可见）即 unpin（见 enterMobile）。桌面端入场不钉——落回
@@ -543,7 +441,7 @@ import type { AnimationPlaybackControls } from 'motion';
 
     /** 幂等收尾：只在所有出入场动画都播完后被调用（allFinished 计数）；
      *  清掉一切内联回到静态目标态。若让先结束者收尾，它清的 visibility/transform 内联
-     *  会让变体类（如文章页隐藏浮层）提前生效——后结束动画的尾巴就播给用户看漏了（实测） */
+     *  会让变体类（如文章页隐藏浮层）提前生效——后结束动画的尾巴就播给用户看漏了 */
     finish(show: boolean, f: HTMLElement): void {
       this.state = show ? 'shown' : 'hidden';
       this.active = null;
@@ -600,7 +498,7 @@ import type { AnimationPlaybackControls } from 'motion';
       return move;
     },
 
-    /** 手机端「关文章」入场：自上方偏移落回 + 渐显 + 白纱（入场前先铺白、随入场全程褪去——见文件头 c） */
+    /** 手机端「关文章」入场：自上方偏移落回 + 渐显 + 白纱（入场前先铺白、随入场全程褪去） */
     enterMobile(): void {
       const f = this.el();
       if (!f || this.state !== 'hidden') return;
@@ -609,13 +507,13 @@ import type { AnimationPlaybackControls } from 'motion';
       pinFloat(f); // 入场动画期间钉视口（先于 pre-pin transform：量盒须取无位移的自然位）
       f.style.transform = `translateY(-${FLOAT_MOVE}px)`;
       f.style.opacity = '0';
-      f.style.backgroundColor = VEIL; // 入场前先加上半透明白（见文件头 c），关键帧随入场全程褪去
+      f.style.backgroundColor = VEIL; // 入场前先加上半透明白，关键帧随入场全程褪去
       // 落回延迟（FLOAT_ENTRY_DELAY_MS）：等整页推下把栅格顶移过胶囊底边再下移，
       // 可见帧不叠卡片（钉住位 opacity 0，延迟期不可见）
       const delay = FLOAT_ENTRY_DELAY_MS / 1000;
       // 延迟一结束即解除视口钉：落回期间浮层行内绝对定位、真正跟着内容走（fixed 钉
       // 不随推入移动，内容快而浮层慢会显得「不跟着文章走」）；unpin 的胶囊重合成落在
-      // 渐显进行中，即使挤栅格预算单帧也被 alpha 覆盖（真机验证，TROUBLESHOOTING 51）
+      // 渐显进行中，即使挤栅格预算单帧也被 alpha 覆盖（TROUBLESHOOTING 51）
       window.setTimeout(() => {
         if (this.state === 'entering') unpinFloat(f);
       }, FLOAT_ENTRY_DELAY_MS);
@@ -629,7 +527,7 @@ import type { AnimationPlaybackControls } from 'motion';
       this.allFinished(f, true, [move, fade]);
     },
 
-    /** 桌面端入场：自右偏移 48px 落回（配对目录退场时）+ 渐显 + 白纱（入场前先铺白、随入场全程褪去——见文件头 c）；无配对只渐显。
+    /** 桌面端入场：自右偏移 48px 落回（配对目录退场时）+ 渐显 + 白纱（入场前先铺白、随入场全程褪去）；无配对只渐显。
      *  不钉视口：落回跟随内容（行内绝对定位，与移动端入场落回同范式）——切页后滚顶滑行可能
      *  仍在途，钉视口会把胶囊冻结在钉住时刻的视口位、页头随页面落定在视口下移，动画收尾
      *  行相对位置时胶囊会跳一次 */
@@ -642,7 +540,7 @@ import type { AnimationPlaybackControls } from 'motion';
       // 位姿先内联写好再起播（同任务内无绘制间隙，不闪）
       if (withX) f.style.transform = `translateX(${SEARCH_DX}px)`;
       f.style.opacity = '0';
-      f.style.backgroundColor = VEIL; // 入场前先加上半透明白（见文件头 c），关键帧随入场全程褪去
+      f.style.backgroundColor = VEIL; // 入场前先加上半透明白，关键帧随入场全程褪去
       const move = withX ? trackFloat(animate(f, { x: [`${SEARCH_DX}px`, 0] }, opts)) : null;
       const fade = trackFloat(animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, opts));
       this.active = move ?? fade;
@@ -731,7 +629,7 @@ import type { AnimationPlaybackControls } from 'motion';
     return { dx, dy, op: Number.isFinite(o) ? o : 1, bg: cs.backgroundColor || BG0 };
   }
 
-  // ================= 5. 转场编排 =================
+  /* ---- 5. 转场编排 ---- */
   let edgeClone: HTMLElement | null = null;
   let tocClone: HTMLElement | null = null;
   let oldHadSearch = false; // 旧页是列表系界面（搜索正在显示）——captureOld 时记录
@@ -782,7 +680,7 @@ import type { AnimationPlaybackControls } from 'motion';
       oldToc.style.transform = '';
       oldToc.style.opacity = '';
       tocClone = cloneIntoRow(oldToc, r, 'posts-toc-clone');
-      // 创建即钉视口（机制见文件头 b）：before-swap 早于滚顶启动与切页文档高度塌缩，
+      // 创建即钉视口：before-swap 早于滚顶启动与切页文档高度塌缩，
       // 克隆从此 fixed 不被任何布局变化带走；退场/交叉渐隐块里的再钉变为 no-op
       if (tocClone) {
         const cr = tocClone.getBoundingClientRect();
@@ -812,10 +710,10 @@ import type { AnimationPlaybackControls } from 'motion';
     const mobilePush = isMobile() && !REDUCE_MOTION && (opening || closing);
 
     // 快速连切收口：浮层带着上一轮的在途相位、与本轮目的地冲突时，不静默掐断硬切
-    // （用户所见「点快了搜索框没有退场动画」）——从飞行中位姿改向到本轮目的地的
+    // 直接硬切会表现为「点快了搜索框没有退场动画」——从飞行中位姿改向到本轮目的地的
     // 静止态（与目录克隆的中断处理同范式：停下、再走完整动效）：退场未完就切回列表 →
     // 自当前位置归位（「停下再回去」）；入场未完就切进文章 → 自当前位置继续离场、
-    // 补完退场动画。跨区（→ 普通页）不改向：按「切到其他界面不渐隐」（用户指定）
+    // 补完退场动画。跨区（→ 普通页）不改向：按「切到其他界面不渐隐」
     // settle(false) 直接消失。否则 state 卡在 exiting/entering，入场 gate
     // （state==='hidden'）不成立、目录动作又占着相位链，settle 兜底跑不到，
     // 搜索框会永久停在 opacity 0
@@ -825,14 +723,14 @@ import type { AnimationPlaybackControls } from 'motion';
       else floatCtl.settle(false);
     }
 
-    // ---- 搜索/目录相位：退出相位走完才播进入相位（先退场再入场）----
+    /* ---- 搜索/目录相位：退出相位走完才播进入相位（先退场再入场） ---- */
     let exitAction: (() => AnimationPlaybackControls | null) | null = null;
     let entryAction: (() => void) | null = null;
 
     if (mobilePush) {
       // 手机端（≤768px）列表↔文章：搜索走独立的上下位移（开=after-swap 启动退场，点击时不动；关=自上方落回渐显）；
       // 目录在 ≤768px 不存在（按钮+抽屉），不参与。
-      // 跨区（列表↔普通页）不做搜索淡变：无退场/入场动作，搜索随 after-swap settle 直接消失/出现（用户指定）
+      // 跨区（列表↔普通页）不做搜索淡变：无退场/入场动作，搜索随 after-swap settle 直接消失/出现
       if (opening && newIsPost) {
         // 区内「开文章」：在这里启动退场（点击时不动，见 onDocClick）；上一轮退场仍在途则沿用
         exitAction = () => (floatCtl.state === 'exiting' ? floatCtl.active : floatCtl.state === 'shown' ? floatCtl.exitMobile() : null);
@@ -894,7 +792,7 @@ import type { AnimationPlaybackControls } from 'motion';
       entryAction = makeTocEntry(newTocEl as HTMLElement);
     }
     // 搜索退场/入场：只在文章区内（列表↔详情）配对播放；
-    // 跨区（列表↔普通页）不设动作——走下方 settle 直接消失/出现（用户指定：切到其他界面不渐隐、切到文章界面不渐显）
+    // 跨区（列表↔普通页）不设动作——走下方 settle 直接消失/出现（跨区不渐隐、不渐显）
     if (!mobilePush) {
       if (
         oldHadSearch &&
@@ -912,7 +810,7 @@ import type { AnimationPlaybackControls } from 'motion';
       }
     }
 
-    // ---- 相位调度：退出相位走完才播进入相位（cancel = 快速二次导航，进入不启动）----
+    /* ---- 相位调度：退出相位走完才播进入相位（cancel = 快速二次导航，进入不启动） ---- */
     if (exitAction) {
       const a = exitAction();
       if (a) a.finished.then(() => entryAction?.()).catch(() => {});
@@ -926,9 +824,9 @@ import type { AnimationPlaybackControls } from 'motion';
       floatCtl.settle(newHadSearch);
     }
 
-    // ---- 左缘条带切换（列表页头 ↔ 文章面包屑条）：全部走「模糊变过去」----
-    // 旧带原地模糊渐隐、新带原地模糊渐显，无位移（用户指定：电脑端也用模糊；手机端
-    // 列表↔分类/标签的「一张纸」滑动形态随之整体退役）。手机端列表↔文章另做整页推入的
+    /* ---- 左缘条带切换（列表页头 ↔ 文章面包屑条）：全部走「模糊变过去」 ---- */
+    // 旧带原地模糊渐隐、新带原地模糊渐显，无位移（电脑端同样用模糊；手机端
+    // 列表↔分类/标签也不再滑动）。手机端列表↔文章另做整页推入的
     // 反向抵消（counter）：根自 ±MOBILE_SLIDE 推到 0 时槽走反方向同距离（同任务启动、
     // 同时长同缓动，见下方推拉块），新条带在屏幕上原地不动——读起来是「标题模糊成
     // 面包屑」，不是「面包屑浮上来」
@@ -951,7 +849,7 @@ import type { AnimationPlaybackControls } from 'motion';
         })
         .catch(() => {});
       // 进入侧「模糊变过去」：纯 alpha 交叉（TROUBLESHOOTING 51 完整机制）：
-      // 新条带**不挂 filter**（防御性钉死：标题行多一层过滤层会增加栅格压力，真机二分见 51）；
+      // 新条带**不挂 filter**（防御性钉死：标题行多一层过滤层会增加栅格压力，见 TROUBLESHOOTING 51）；
       // 静态 blur(4px) 模糊副本盖在同位只渐隐 alpha，260ms 淡尽后**移除**（渐显收尾处
       // 移除不可见层，单帧异动被渐变本身掩盖）——「模糊里变过去、收尾变清晰」观感全保留。
       // 副本必须在 counter/推入启动前量盒（槽与根都还无位移，量到的是终位）。
@@ -999,7 +897,7 @@ import type { AnimationPlaybackControls } from 'motion';
       edgeClone = null;
     }
 
-    // ---- 手机端整页推拉：新内容自下方/上方滑入（开=上滑入 / 关=下滑入）----
+    /* ---- 手机端整页推拉：新内容自下方/上方滑入（开=上滑入 / 关=下滑入） ---- */
     // 推入根播完不拆合成层：拆层触发整列玻璃卡重栅格化（弱内核下标题闪一下）——finished 后显式写回
     // 非 none 的恒等，层保活到节点随下次切页移除
     if (mobilePush) {
@@ -1009,7 +907,7 @@ import type { AnimationPlaybackControls } from 'motion';
         // 延迟起播的空窗帧先同步钉到起始位移（同任务、无绘制间隙），出帧后推入
         root.style.transform = `translateY(${y0}px)`;
         // 位移必须赶在渐显收尾（260ms）前完成：终帧位移（N 卡 backdrop 最终重采样）落在
-        // 标题定格之后会让标题闪一帧（真机判定，见 TROUBLESHOOTING 51）——关键帧 200ms 达 0
+        // 标题定格之后会让标题闪一帧（见 TROUBLESHOOTING 51）——关键帧 200ms 达 0
         // 并钉住（ease-out 前段已走完 ~90% 路程，观感不变），动画仍在 400ms 结束
         const a = track(
           animate(
@@ -1026,10 +924,10 @@ import type { AnimationPlaybackControls } from 'motion';
       }
     }
 
-    // ---- 目录出入场（文章↔文章，两侧都有目录）：先退场再入场，与滚顶解耦 ----
+    /* ---- 目录出入场（文章↔文章，两侧都有目录）：先退场再入场，与滚顶解耦 ---- */
     // 切页后 SwupScrollPlugin 平滑滚回顶部（时长按距离，长文可达 ~2s），旧目录克隆
     // 绝对定位挂在行内（文档坐标）——原地渐隐会被滚顶「带走」：视口 top 从 181px
-    // 一路漂出屏幕（用户所见「目录退场向右下方移动」）。先把克隆钉到它当前的视口
+    // 一路漂出屏幕，退场读作向右下漂移。先把克隆钉到它当前的视口
     // 位置（position: fixed，行及其祖先无 transform，fixed 即视口坐标），脱离页面
     // 滚动，再右移移出屏幕渐隐（PHASE_MS/EASE_EXIT，与文章→列表目录退场同节奏）。
     // 新目录在退场前就钉不可见（gate 分支构造即钉屏外右 + 透明；非 gate 分支靠显式
@@ -1070,7 +968,7 @@ import type { AnimationPlaybackControls } from 'motion';
     }
   }
 
-  // ================= 6. 事件与初始化 =================
+  /* ---- 6. 事件与初始化 ---- */
 
   // window.swup 在实例赋值前会被 DOM id 回退解析成 <main id="swup"> 元素（truthy），
   // !!window.swup 判不出就绪，必须按实例自身特征甄别
@@ -1114,7 +1012,7 @@ import type { AnimationPlaybackControls } from 'motion';
   }
 
   /** 首屏实例未就绪时点区内链接：swup 点击委托还没挂载，原生跳转 = 整页加载，
-   *  落地首屏不播转场（用户所见「首次访问没预加载好就点卡片、动效不播」）。
+   *  落地首屏不播转场（首次访问时点卡片，动效不播）。
    *  拦截点击、等实例就绪后 navigate() 转成正常切页——转场照常播；
    *  超时回退原生跳转（整页加载，与现状一致）。跨区目的地本就无转场，不拦截 */
   function onEarlyClick(e: MouseEvent): void {
@@ -1160,7 +1058,7 @@ import type { AnimationPlaybackControls } from 'motion';
   }
 
   /** 手机端：点击只绑 swup 钩子（fetch 失败兜底）。搜索框显隐不在点击时动——
-   *  点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失（用户反馈）；
+   *  点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失；
    *  退场/入场/settle 全部由 playTransition 在 after-swap 统一驱动
    *  （区内「开文章」在那里启动退场、跨区 settle 直接消失/出现） */
   function onDocClick(): void {
@@ -1168,7 +1066,7 @@ import type { AnimationPlaybackControls } from 'motion';
     bindSwupHooks();
   }
 
-  // ---- category-tree 脚本守卫：侧栏常驻，模块只需加载一次 ----
+  /* ---- category-tree 脚本守卫：侧栏常驻，模块只需加载一次 ---- */
   let importing = false;
   function ensureCategoryTree(): void {
     if (window.__postCatTreeBound || importing) return;

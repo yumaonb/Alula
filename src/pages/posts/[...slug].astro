@@ -45,7 +45,7 @@ export async function getStaticPaths() {
 
 const { type } = Astro.props;
 
-// ---- 文章页数据 ----
+/* ---- 文章页数据 ---- */
 let post = undefined as (typeof data.allPosts)[number] | undefined;
 let entry = undefined as (typeof data.entries)[number] | undefined;
 type RenderedPost = Awaited<ReturnType<typeof renderPost>>;
@@ -72,7 +72,7 @@ if (type === 'post') {
   }
 }
 
-// ---- 分类页数据 ----
+/* ---- 分类页数据 ---- */
 let catPath: string[] = [];
 let catName = '';
 let catPosts = [] as typeof data.posts;

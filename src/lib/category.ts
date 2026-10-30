@@ -5,8 +5,7 @@
 /** 分类路由前缀（对应 src/pages/posts 目录），URL 形如 /posts/{slug}/ */
 export const postRoute = 'posts';
 
-// ---- 类型 ----
-
+/* ---- 类型 ---- */
 /** 分类元数据（来自各分类目录下的 index.json） */
 export interface CategoryMeta {
   /** 分类显示名（不填则用目录名） */
@@ -65,8 +64,7 @@ export interface BreadcrumbItem {
   icon?: string; // astro-icon name，如 "la:home"
 }
 
-// ---- 工具 ----
-
+/* ---- 工具 ---- */
 export function formatDate(value: string | Date): string {
   const d = typeof value === 'string' ? new Date(value) : value;
   if (!d || isNaN(d.getTime())) return '';
@@ -104,8 +102,7 @@ export function buildCategoryTrail(
   return trail;
 }
 
-// ---- 分类树 ----
-
+/* ---- 分类树 ---- */
 export function buildCategoryTree(
   posts: PostItem[],
   categoryMeta: Record<string, CategoryMeta>,

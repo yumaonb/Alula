@@ -72,7 +72,6 @@ export interface RateLimit {
 /** 最近一次请求的速率限制；还没发过请求时为 null */
 let lastRateLimit: RateLimit | null = null;
 
-/** 读取最近一次请求带回来的速率限制 */
 export function getRateLimit(): RateLimit | null {
   return lastRateLimit;
 }
@@ -113,7 +112,7 @@ async function gh<T>(path: string, options: RequestOptions = {}): Promise<T> {
   return (await res.json()) as T;
 }
 
-// ---- base64 ↔ UTF-8 ----
+/* ---- base64 ↔ UTF-8 ---- */
 // atob/btoa 只认 Latin-1，直接喂中文会乱码，必须自己过一遍字节。
 
 function encodeBase64(text: string): string {
@@ -133,8 +132,7 @@ function decodeBase64(value: string): string {
   return new TextDecoder().decode(bytes);
 }
 
-// ---- 读取 ----
-
+/* ---- 读取 ---- */
 export interface RepoInfo {
   fullName: string;
   defaultBranch: string;
@@ -300,8 +298,7 @@ export async function getFileTextOrNull(path: string, branch: string): Promise<F
   }
 }
 
-// ---- 一次性打包提交 ----
-
+/* ---- 一次性打包提交 ---- */
 export interface CommitResult {
   commitSha: string;
   commitUrl: string;

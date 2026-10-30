@@ -29,7 +29,7 @@
  * 【完全静止】本预设没有任何动画：背景一次性画好，滚动时不重绘、不合成，
  *   是开销最低的状态。纵深靠色斑层次与顶光、压暗的明暗关系做，不靠运动。
  *   不要再往这里加动画：逐帧重绘的属性（background-position / background-size /
- *   filter / mask / box-shadow）都会让整块背景每帧重新光栅化，实测是滚动发卡的主因。
+ *   filter / mask / box-shadow）都会让整块背景每帧重新光栅化，是滚动发卡的主因。
  *   真要动，只动 transform 与 opacity，且只放在低频层上。
  *
  * 【兜底色】本预设的底色在 :root 声明成 --bg-base，global.css 的 html 读它，

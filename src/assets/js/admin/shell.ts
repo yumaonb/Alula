@@ -233,7 +233,6 @@ async function refreshHead(): Promise<void> {
   }
 }
 
-/** 某个提交在 GitHub 上的页面地址 */
 function commitUrl(owner: string, repo: string, sha: string): string {
   return `https://github.com/${owner}/${repo}/commit/${sha}`;
 }

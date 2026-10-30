@@ -1,4 +1,4 @@
-// scrollbar.ts — 自定义悬浮滚动条（鼠标拖动 / 点击轨道 / hover 定位）
+// scrollbar.ts — 自定义悬浮滚动条（鼠标拖动 / 点击轨道 / 悬停定位）
 // 用法：由 CustomScrollbar.astro 引入：import "../../assets/js/scrollbar"
 (() => {
   const container = document.getElementById('custom-scrollbar');
