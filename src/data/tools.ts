@@ -67,9 +67,19 @@ export const toolCategories: ToolCategory[] = [
         url: 'https://ip.skk.moe/',
       },
       {
-        title: '域名信息（WHOIS）查询',
-        desc: '腾讯云的，个人感觉这个算是用起来最舒服的一个了',
+        title: 'WHOIS查询',
+        desc: '腾讯云的，查域名信息的，个人感觉这个算是用起来最舒服的一个了',
         url: 'https://whois.cloud.tencent.com/',
+      },
+      {
+        title: 'crt.sh',
+        desc: '可以查某个域名（包括其子域名）申请过的ssl证书，可以起到一个查某个域名的子域名的作用',
+        url: 'https://crt.sh/',
+      },
+      {
+        title: 'DNS Checker',
+        desc: '全球多节点DNS解析查询工具，查域名解析到了哪挺好用的',
+        url: 'https://dnschecker.org/',
       },
     ],
   },

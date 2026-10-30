@@ -80,6 +80,8 @@ import { toolCategories } from '../data/tools';
     padding: 16px 18px;
     text-decoration: none;
     color: inherit;
+    /* 网格项默认 min-width:auto，长标题会把列撑宽；置 0 让标题走省略号 */
+    min-width: 0;
   }
 
   .tool-info {
@@ -104,7 +106,7 @@ import { toolCategories } from '../data/tools';
     color: var(--ink);
     line-height: 1.6;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
