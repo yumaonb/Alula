@@ -161,7 +161,9 @@
     document.addEventListener('click', onOutsideClick);
     // 空闲预取：首查只付查询成本（wasm + 索引拉取提前完成），
     // 避免第一次搜索等 1–3s 看起来像没反应
-    const idleCb = () => { void loadPagefind().catch(() => {}); };
+    const idleCb = () => {
+      void loadPagefind().catch(() => {});
+    };
     if ('requestIdleCallback' in window) window.requestIdleCallback(idleCb);
     else setTimeout(idleCb, 1000);
     return () => document.removeEventListener('click', onOutsideClick);
@@ -341,7 +343,8 @@
     display: flex;
     flex-direction: column;
     max-height: min(520px, 62vh);
-    padding: 8px 2px 8px 6px; /* 上下留空把滚动条顶进容器，右侧靠紧 */
+    /* 上下留空把滚动条顶进容器，右侧靠紧 */
+    padding: 8px 2px 8px 6px;
   }
 
   .post-search-scroll {

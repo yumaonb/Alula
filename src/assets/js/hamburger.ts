@@ -68,7 +68,7 @@ function getEls() {
 function runChoreography(
   opening: boolean,
   mode: MenuMode,
-  from: { maxHeight: number; overlay: number }
+  from: { maxHeight: number; overlay: number },
 ): void {
   const { dropdown, overlay } = getEls();
   if (!dropdown || !overlay) return;
@@ -83,35 +83,55 @@ function runChoreography(
     // 展开前把内层实高写进 --dd-h，CSS 端点状态用它（窗口上限贴实高，大字体缩放不截断）
     dropdown.style.setProperty('--dd-h', `${inner?.scrollHeight ?? 380}px`);
     controls.push(
-      animate(dropdown, { maxHeight: [from.maxHeight, height] }, {
-        ...RM,
-        duration: OPEN_TIMING.dropdown,
-        ease: EASE_OUT,
-      }),
-      animate(dropdown, { borderTopColor: LINE_OPEN }, {
-        ...RM,
-        duration: OPEN_TIMING.border,
-        ease: EASE,
-      }),
-      animate(overlay, { opacity: [from.overlay, 1] }, {
-        ...RM,
-        duration: OPEN_TIMING.overlay,
-        ease: EASE,
-      }),
-      animate(inner, { opacity: [0, 1], y: [-8, 0] }, {
-        ...RM,
-        duration: OPEN_TIMING.inner,
-        ease: EASE_OUT,
-      })
+      animate(
+        dropdown,
+        { maxHeight: [from.maxHeight, height] },
+        {
+          ...RM,
+          duration: OPEN_TIMING.dropdown,
+          ease: EASE_OUT,
+        },
+      ),
+      animate(
+        dropdown,
+        { borderTopColor: LINE_OPEN },
+        {
+          ...RM,
+          duration: OPEN_TIMING.border,
+          ease: EASE,
+        },
+      ),
+      animate(
+        overlay,
+        { opacity: [from.overlay, 1] },
+        {
+          ...RM,
+          duration: OPEN_TIMING.overlay,
+          ease: EASE,
+        },
+      ),
+      animate(
+        inner,
+        { opacity: [0, 1], y: [-8, 0] },
+        {
+          ...RM,
+          duration: OPEN_TIMING.inner,
+          ease: EASE_OUT,
+        },
+      ),
     );
     if (items.length) {
       controls.push(
-        animate(items, { opacity: [0, 1], y: [-12, 0] }, {
-          ...RM,
-          duration: OPEN_TIMING.items,
-          delay: stagger(OPEN_TIMING.itemsStagger, { startDelay: OPEN_TIMING.itemsStagger }),
-          ease: EASE,
-        })
+        animate(
+          items,
+          { opacity: [0, 1], y: [-12, 0] },
+          {
+            ...RM,
+            duration: OPEN_TIMING.items,
+            delay: stagger(OPEN_TIMING.itemsStagger, { startDelay: OPEN_TIMING.itemsStagger }),
+            ease: EASE,
+          },
+        ),
       );
     }
     return;
@@ -119,22 +139,34 @@ function runChoreography(
 
   const timing = CLOSE_TIMING[mode];
   controls.push(
-    animate(dropdown, { maxHeight: [from.maxHeight, 0] }, {
-      ...RM,
-      duration: timing.dropdown,
-      ease: mode === 'nav' ? EASE : EASE_OUT,
-    }),
-    animate(dropdown, { borderTopColor: LINE_CLOSED }, {
-      ...RM,
-      duration: timing.border.duration,
-      delay: timing.border.delay,
-      ease: EASE,
-    }),
-    animate(overlay, { opacity: [from.overlay, 0] }, {
-      ...RM,
-      duration: timing.overlay,
-      ease: EASE,
-    })
+    animate(
+      dropdown,
+      { maxHeight: [from.maxHeight, 0] },
+      {
+        ...RM,
+        duration: timing.dropdown,
+        ease: mode === 'nav' ? EASE : EASE_OUT,
+      },
+    ),
+    animate(
+      dropdown,
+      { borderTopColor: LINE_CLOSED },
+      {
+        ...RM,
+        duration: timing.border.duration,
+        delay: timing.border.delay,
+        ease: EASE,
+      },
+    ),
+    animate(
+      overlay,
+      { opacity: [from.overlay, 0] },
+      {
+        ...RM,
+        duration: timing.overlay,
+        ease: EASE,
+      },
+    ),
   );
 }
 
@@ -182,7 +214,7 @@ function closeIfOpen(mode: MenuMode = 'normal'): void {
 function onClick(e: Event): void {
   // e.target 可能是文本节点（点正踩在菜单项文字上），它没有 closest，直接调会抛错
   const raw = e.target as Node | null;
-  const target = raw instanceof Element ? raw : raw?.parentElement ?? null;
+  const target = raw instanceof Element ? raw : (raw?.parentElement ?? null);
   if (!target) return;
   if (target.closest('.hamburger-btn') || target.closest('.mobile-overlay')) {
     toggle();

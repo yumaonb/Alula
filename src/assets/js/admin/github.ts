@@ -118,7 +118,8 @@ async function gh<T>(path: string, options: RequestOptions = {}): Promise<T> {
 function encodeBase64(text: string): string {
   const bytes = new TextEncoder().encode(text);
   let binary = '';
-  const CHUNK = 0x8000; // 一次转太多字符会爆栈
+  // 一次转太多字符会爆栈
+  const CHUNK = 0x8000;
   for (let i = 0; i < bytes.length; i += CHUNK) {
     binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
   }
@@ -154,11 +155,16 @@ export interface RepoInput {
 export function parseRepoInput(value: string): RepoInput | null {
   const text = value
     .trim()
-    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '') // 去掉 https://
-    .replace(/^[^/@\s]+@[^/:\s]+:/, '') // 去掉 git@github.com:
-    .replace(/^(www\.)?github\.com\//i, '') // 去掉 github.com/
-    .replace(/\.git$/i, '') // 去掉 .git 后缀
-    .replace(/^\/+|\/+$/g, ''); // 去掉首尾斜杠
+    // 去掉 https://
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')
+    // 去掉 git@github.com:
+    .replace(/^[^/@\s]+@[^/:\s]+:/, '')
+    // 去掉 github.com/
+    .replace(/^(www\.)?github\.com\//i, '')
+    // 去掉 .git 后缀
+    .replace(/\.git$/i, '')
+    // 去掉首尾斜杠
+    .replace(/^\/+|\/+$/g, '');
 
   const [owner, repo] = text.split('/').filter(Boolean);
   if (!owner || !repo) return null;

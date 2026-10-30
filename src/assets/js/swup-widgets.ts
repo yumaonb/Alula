@@ -9,8 +9,10 @@ const container = document.getElementById('side-widgets');
 if (container) initSideWidgets(container);
 
 function initSideWidgets(container: HTMLElement): void {
-  const SHOW_AT = 100; // 滚动超过该值才显示按钮
-  const IDLE_RELEASE_MS = 250; // 新内容就绪后等滚动动画启动的窗口，超时按当前位置放行
+  // 滚动超过该值才显示按钮
+  const SHOW_AT = 100;
+  // 新内容就绪后等滚动动画启动的窗口，超时按当前位置放行
+  const IDLE_RELEASE_MS = 250;
   const WIDGET_ORDER = ['top', 'toc', 'filter', 'progress', 'comments', 'bottom'];
 
   const buttons: Record<string, HTMLElement> = {};
@@ -24,9 +26,12 @@ function initSideWidgets(container: HTMLElement): void {
   const progressText = progressBtn ? progressBtn.querySelector('.progress-text') : null;
   const available = WIDGET_ORDER.map((k) => buttons[k]).filter((btn): btn is HTMLElement => !!btn);
 
-  let busy = false; // swup 切页挂起：切页开始 → 页面回到顶部/滚动结束 期间为 true
-  let scrolling = false; // swup 平滑滚动（scroll plugin）进行中
-  let settleTimer: ReturnType<typeof setTimeout> | null = null; // 兜底定时器：新内容就绪后平滑滚动若迟迟不开始，按当前位置放行
+  // swup 切页挂起：切页开始 → 页面回到顶部/滚动结束 期间为 true
+  let busy = false;
+  // swup 平滑滚动（scroll plugin）进行中
+  let scrolling = false;
+  // 兜底定时器：新内容就绪后平滑滚动若迟迟不开始，按当前位置放行
+  let settleTimer: ReturnType<typeof setTimeout> | null = null;
   let rafId = 0;
 
   function markUnavailable(key: string, flag: boolean): void {
@@ -68,7 +73,8 @@ function initSideWidgets(container: HTMLElement): void {
       settleTimer = null;
     }
     container.classList.remove('navigating');
-    render(); // 立即按当前滚动位置刷新显隐，避免兜底放行后按钮状态滞后
+    // 立即按当前滚动位置刷新显隐，避免兜底放行后按钮状态滞后
+    render();
   }
 
   function render(scrollY?: number): void {
@@ -157,10 +163,11 @@ function initSideWidgets(container: HTMLElement): void {
   document.addEventListener('swup:scroll:start', () => {
     if (!busy) return;
     scrolling = true;
+    // 已有滚动动画，取消兜底
     if (settleTimer) {
       clearTimeout(settleTimer);
       settleTimer = null;
-    } // 已有滚动动画，取消兜底
+    }
   });
 
   document.addEventListener('swup:scroll:end', () => {

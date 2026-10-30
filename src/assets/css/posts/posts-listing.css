@@ -8,8 +8,9 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px; /* 页头→栅格间隙；与文章页 .posts-article-main 同值（两界面内容顶同位）。
-                与文章区行 padding-top 82px 配平：胶囊（36px）恰好居中于导航底(69)→内容顶(132)窗口 */
+  /* 页头→栅格间隙；与文章页 .posts-article-main 同值（两界面内容顶同位）。
+   * 与文章区行 padding-top 82px 配平：胶囊（36px）恰好居中于导航底(69)→内容顶(132)窗口 */
+  gap: 14px;
 }
 
 .posts-header {

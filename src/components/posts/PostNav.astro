@@ -9,8 +9,10 @@ interface NavPost {
 }
 
 interface Props {
-  prev?: NavPost | null; // 上一篇（较新）
-  next?: NavPost | null; // 下一篇（较旧）
+  // 上一篇（较新）
+  prev?: NavPost | null;
+  // 下一篇（较旧）
+  next?: NavPost | null;
 }
 
 const { prev = null, next = null } = Astro.props;
@@ -19,11 +21,7 @@ const { prev = null, next = null } = Astro.props;
 {(prev || next) && (
   <nav class="post-nav" aria-label="文章导航">
     {prev ? (
-      <a
-        href={prev.url}
-        class="post-nav-item post-nav-prev glass hoverable link-plain"
-        rel="prev"
-      >
+      <a href={prev.url} class="post-nav-item post-nav-prev glass hoverable link-plain" rel="prev">
         <span class="post-nav-label">
           <Icon is:inline name="la:arrow-left" class="post-nav-icon" />
           上一篇
@@ -40,11 +38,7 @@ const { prev = null, next = null } = Astro.props;
       </span>
     )}
     {next ? (
-      <a
-        href={next.url}
-        class="post-nav-item post-nav-next glass hoverable link-plain"
-        rel="next"
-      >
+      <a href={next.url} class="post-nav-item post-nav-next glass hoverable link-plain" rel="next">
         <span class="post-nav-label">
           下一篇
           <Icon is:inline name="la:arrow-right" class="post-nav-icon" />
@@ -123,7 +117,7 @@ const { prev = null, next = null } = Astro.props;
     transition: color var(--t-hover);
   }
 
-    @media (max-width: 768px) {
+  @media (max-width: 768px) {
     .post-nav {
       grid-template-columns: 1fr;
       gap: var(--card-gap);

@@ -248,7 +248,8 @@ const blog = await loadBlogData();
         const fade = () => {
           if (finished) return;
           finished = true;
-          const minShown = 500; // 快网下防闪：至少展示 500ms
+          // 快网下防闪：至少展示 500ms
+          const minShown = 500;
           setTimeout(
             () => {
               splash.classList.add('is-done');
@@ -271,7 +272,8 @@ const blog = await loadBlogData();
           reveal();
         } else {
           window.addEventListener('load', reveal, { once: true });
-          setTimeout(reveal, 6000); // 兜底：最多遮 6s 也揭幕
+          // 兜底：最多遮 6s 也揭幕
+          setTimeout(reveal, 6000);
         }
       })();
     </script>

@@ -7,30 +7,26 @@ import { toolCategories } from '../data/tools';
 
 <BaseLayout title="实用工具">
   <div class="tools-page page-top-standard">
-    {
-      toolCategories.map((category) => (
-        <>
-          <h2 class="tool-group-title">{category.title}</h2>
-          <div class="tools-grid">
-            {
-              category.tools.map((tool) => (
-                <a
-                  href={tool.url}
-                  class="tool-card glass hoverable link-plain"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <span class="tool-info">
-                    <span class="tool-name">{tool.title}</span>
-                    <span class="tool-desc">{tool.desc}</span>
-                  </span>
-                </a>
-              ))
-            }
-          </div>
-        </>
-      ))
-    }
+    {toolCategories.map((category) => (
+      <>
+        <h2 class="tool-group-title">{category.title}</h2>
+        <div class="tools-grid">
+          {category.tools.map((tool) => (
+            <a
+              href={tool.url}
+              class="tool-card glass hoverable link-plain"
+              target="_blank"
+              rel="noopener"
+            >
+              <span class="tool-info">
+                <span class="tool-name">{tool.title}</span>
+                <span class="tool-desc">{tool.desc}</span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </>
+    ))}
   </div>
 </BaseLayout>
 

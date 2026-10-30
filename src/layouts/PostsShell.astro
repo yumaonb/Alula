@@ -176,9 +176,10 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 14px; /* 桌面端与列表页 .posts-page 的页头→栅格间隙同一值：两页"锚下方内容"顶边对齐，切换不位移。
-                   14px 与行 padding-top 82px 配平：搜索胶囊（36px）恰好居中于导航底(69)→内容顶(132)窗口。
-                   手机端在文件末尾改 13px：面包屑在「导航底→正文卡顶」空窗内垂直居中，正文卡顶仍与列表页搜索框顶对齐 */
+    /* 桌面端与列表页 .posts-page 的页头→栅格间隙同一值：两页"锚下方内容"顶边对齐，切换不位移。
+     * 14px 与行 padding-top 82px 配平：搜索胶囊（36px）恰好居中于导航底(69)→内容顶(132)窗口。
+     * 手机端在文件末尾改 13px：面包屑在「导航底→正文卡顶」空窗内垂直居中，正文卡顶仍与列表页搜索框顶对齐 */
+    gap: 14px;
   }
 
   /* 文章变体的槽：断点比列表晚（侧栏 ≥1151px 才显示），负边距断点随侧栏 */
@@ -197,7 +198,8 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     white-space: nowrap;
     display: flex;
     align-items: center;
-    height: 36px; /* 与桌面端列表页头（36px）同高：左缘元素像素级同位同高，切换滑动无跳变 */
+    /* 与桌面端列表页头（36px）同高：左缘元素像素级同位同高，切换滑动无跳变 */
+    height: 36px;
   }
 
   .post-main {

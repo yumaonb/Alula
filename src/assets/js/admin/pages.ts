@@ -213,7 +213,8 @@ function initCategories(): Cleanup {
         for (let i = 1; i < parts.length; i++) set.add(parts.slice(0, i).join('/'));
       }
       // 只有 index.json、目录下暂时没文章的，也算一个分类
-      for (const path of meta.keys()) set.add(path.slice(POSTS_PREFIX.length, -'/index.json'.length));
+      for (const path of meta.keys())
+        set.add(path.slice(POSTS_PREFIX.length, -'/index.json'.length));
 
       dirs = [...set].sort((a, b) => a.localeCompare(b));
       withMeta = new Set(
@@ -395,8 +396,7 @@ function syncNavActive(): void {
   let bestLen = -1;
   for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-nav-path]')) {
     const target = (link.dataset.navPath ?? '').replace(/\/+$/, '') || '/';
-    const hit =
-      target === path || (target !== '/admin' && path.startsWith(`${target}/`));
+    const hit = target === path || (target !== '/admin' && path.startsWith(`${target}/`));
     if (hit && target.length > bestLen) {
       best = link;
       bestLen = target.length;

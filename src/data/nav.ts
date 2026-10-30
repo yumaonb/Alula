@@ -23,5 +23,4 @@ export const navItems: NavItem[] = [
 ];
 
 // 按 key 取导航项（各界面页头用：图标与访问路径都与导航同源，页面不再写死自己的路径）
-export const navItem = (key: NavKey): NavItem =>
-  navItems.find((item) => item.key === key)!;
+export const navItem = (key: NavKey): NavItem => navItems.find((item) => item.key === key)!;

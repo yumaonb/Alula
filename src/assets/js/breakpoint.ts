@@ -6,7 +6,8 @@ const subscribers = new Set<() => void>();
 let listening = false;
 
 function handleChange(e: MediaQueryListEvent): void {
-  if (!e.matches) return; // 只关心"进入桌面端"
+  // 只关心"进入桌面端"
+  if (!e.matches) return;
   subscribers.forEach((fn) => fn());
 }
 

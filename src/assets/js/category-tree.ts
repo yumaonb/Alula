@@ -15,7 +15,8 @@ import { animate } from 'motion';
   if (window.__postCatTreeBound) return;
   window.__postCatTreeBound = true;
 
-  const ANIM_MS = 340; // 开合时长（ms）；开合后的窗口期内不重测，避免量到半程高度
+  // 开合时长（ms）；开合后的窗口期内不重测，避免量到半程高度
+  const ANIM_MS = 340;
   const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
   const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const RM = { reduceMotion: REDUCE_MOTION };

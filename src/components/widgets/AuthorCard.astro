@@ -111,10 +111,11 @@ const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, wid
     width: 30px;
     height: 30px;
     border-radius: 8px;
-    color: var(--ink); /* 悬停/聚焦由 .hoverable 统一提亮到 --white */
+    /* 悬停/聚焦由 .hoverable 统一提亮到 --white */
+    color: var(--ink);
   }
 
-    .social-icon {
+  .social-icon {
     width: 16px;
     height: 16px;
   }

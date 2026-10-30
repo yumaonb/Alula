@@ -136,18 +136,15 @@
         </div>
       </div>
     {/each}
-
   {:else if error}
     <div class="error-state glass">
       <p class="error-text">{error}</p>
       <button class="retry-btn" onclick={load}>重试</button>
     </div>
-
   {:else if repos.length === 0}
     <div class="empty-state glass">
       <p class="empty-text">暂无公开仓库</p>
     </div>
-
   {:else}
     {#each repos as repo (repo.name)}
       <a

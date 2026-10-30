@@ -69,7 +69,8 @@ const activeHref = allHrefs
   .sort((a, b) => b.length - a.length)[0];
 
 const isActive = (href: string) => href === activeHref;
-const isBranchActive = (item: NavItem) => (item.children ?? []).some((child) => isActive(child.href));
+const isBranchActive = (item: NavItem) =>
+  (item.children ?? []).some((child) => isActive(child.href));
 ---
 
 <aside class="admin-nav glass" id="admin-nav">
@@ -81,60 +82,58 @@ const isBranchActive = (item: NavItem) => (item.children ?? []).some((child) => 
   </div>
 
   <nav class="admin-nav-list" aria-label="后台分区">
-    {
-      items.map((item) =>
-        item.children?.length ? (
-          <div
-            class:list={['admin-nav-group', { 'is-open': isBranchActive(item) }]}
-            data-nav-accordion
-            data-nav-init
-          >
-            <button
-              class="admin-nav-link admin-nav-parent"
-              type="button"
-              data-nav-toggle
-              aria-expanded={isBranchActive(item) ? 'true' : 'false'}
-            >
-              {item.icon && <Icon is:inline name={item.icon} class="admin-nav-icon" />}
-              <span class="admin-nav-text">{item.label}</span>
-              <Icon is:inline name="la:angle-right" class="admin-nav-arrow" />
-            </button>
-            <div class="admin-nav-sub">
-              <div class="admin-nav-sub-clip">
-                {item.children.map((child) => (
-                  <a
-                    class:list={[
-                      'admin-nav-link',
-                      'admin-nav-child',
-                      'link-plain',
-                      isActive(child.href) && 'is-active',
-                    ]}
-                    href={child.href}
-                    data-nav-path={child.href}
-                  >
-                    {child.icon && <Icon is:inline name={child.icon} class="admin-nav-icon" />}
-                    <span class="admin-nav-text">{child.label}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <a
-            class:list={[
-              'admin-nav-link',
-              'link-plain',
-              item.href && isActive(item.href) && 'is-active',
-            ]}
-            href={item.href}
-            data-nav-path={item.href}
+    {items.map((item) =>
+      item.children?.length ? (
+        <div
+          class:list={['admin-nav-group', { 'is-open': isBranchActive(item) }]}
+          data-nav-accordion
+          data-nav-init
+        >
+          <button
+            class="admin-nav-link admin-nav-parent"
+            type="button"
+            data-nav-toggle
+            aria-expanded={isBranchActive(item) ? 'true' : 'false'}
           >
             {item.icon && <Icon is:inline name={item.icon} class="admin-nav-icon" />}
             <span class="admin-nav-text">{item.label}</span>
-          </a>
-        ),
-      )
-    }
+            <Icon is:inline name="la:angle-right" class="admin-nav-arrow" />
+          </button>
+          <div class="admin-nav-sub">
+            <div class="admin-nav-sub-clip">
+              {item.children.map((child) => (
+                <a
+                  class:list={[
+                    'admin-nav-link',
+                    'admin-nav-child',
+                    'link-plain',
+                    isActive(child.href) && 'is-active',
+                  ]}
+                  href={child.href}
+                  data-nav-path={child.href}
+                >
+                  {child.icon && <Icon is:inline name={child.icon} class="admin-nav-icon" />}
+                  <span class="admin-nav-text">{child.label}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <a
+          class:list={[
+            'admin-nav-link',
+            'link-plain',
+            item.href && isActive(item.href) && 'is-active',
+          ]}
+          href={item.href}
+          data-nav-path={item.href}
+        >
+          {item.icon && <Icon is:inline name={item.icon} class="admin-nav-icon" />}
+          <span class="admin-nav-text">{item.label}</span>
+        </a>
+      ),
+    )}
   </nav>
 
   <a class="admin-nav-link admin-nav-back link-plain" href="/" data-no-swup>

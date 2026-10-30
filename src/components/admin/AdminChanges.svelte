@@ -230,7 +230,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    direction: rtl; /* 路径太长时优先保留文件名 */
+    /* 路径太长时优先保留文件名 */
+    direction: rtl;
     text-align: left;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 0.74rem;

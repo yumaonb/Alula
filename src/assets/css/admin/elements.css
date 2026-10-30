@@ -35,7 +35,9 @@
 .btn:hover:not(:disabled),
 .btn:focus-visible {
   background: var(--hover-bg);
-  box-shadow: var(--shadow), inset 0 0 0 1px var(--hover-line);
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 1px var(--hover-line);
 }
 
 .btn:active:not(:disabled) {

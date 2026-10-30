@@ -32,7 +32,8 @@ const mimeByExt: Record<string, string> = {
  */
 function absolutize(html: string, pageUrl: string): string {
   const resolve = (value: string): string => {
-    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(value)) return value; // 已是绝对地址 / 协议相对 / 锚点
+    // 已是绝对地址 / 协议相对 / 锚点
+    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(value)) return value;
     try {
       return new URL(value, pageUrl).href;
     } catch {

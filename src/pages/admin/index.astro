@@ -72,19 +72,27 @@ const quickLinks = [
       <dl class="admin-stats admin-dash-on">
         <div class="admin-stat">
           <dt class="admin-stat-label">仓库</dt>
-          <dd class="admin-stat-value" id="admin-dash-repo">—</dd>
+          <dd class="admin-stat-value" id="admin-dash-repo">
+            —
+          </dd>
         </div>
         <div class="admin-stat">
           <dt class="admin-stat-label">分支</dt>
-          <dd class="admin-stat-value" id="admin-dash-branch">—</dd>
+          <dd class="admin-stat-value" id="admin-dash-branch">
+            —
+          </dd>
         </div>
         <div class="admin-stat">
           <dt class="admin-stat-label">最新提交</dt>
-          <dd class="admin-stat-value" id="admin-dash-head">—</dd>
+          <dd class="admin-stat-value" id="admin-dash-head">
+            —
+          </dd>
         </div>
         <div class="admin-stat">
           <dt class="admin-stat-label">待提交</dt>
-          <dd class="admin-stat-value" id="admin-dash-staged">0</dd>
+          <dd class="admin-stat-value" id="admin-dash-staged">
+            0
+          </dd>
         </div>
       </dl>
     </section>
@@ -94,20 +102,18 @@ const quickLinks = [
         <h2 class="card-title">快捷入口</h2>
       </div>
       <ul class="admin-quick">
-        {
-          quickLinks.map((link) => (
-            <li>
-              <a class="admin-quick-item link-plain" href={link.href}>
-                <Icon is:inline name={link.icon} class="admin-quick-icon" />
-                <span class="admin-quick-text">
-                  <span class="admin-quick-name">{link.name}</span>
-                  <span class="admin-quick-desc">{link.desc}</span>
-                </span>
-                <Icon is:inline name="mdi:chevron-right" class="admin-quick-arrow" />
-              </a>
-            </li>
-          ))
-        }
+        {quickLinks.map((link) => (
+          <li>
+            <a class="admin-quick-item link-plain" href={link.href}>
+              <Icon is:inline name={link.icon} class="admin-quick-icon" />
+              <span class="admin-quick-text">
+                <span class="admin-quick-name">{link.name}</span>
+                <span class="admin-quick-desc">{link.desc}</span>
+              </span>
+              <Icon is:inline name="mdi:chevron-right" class="admin-quick-arrow" />
+            </a>
+          </li>
+        ))}
       </ul>
     </section>
   </div>

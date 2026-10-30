@@ -70,13 +70,13 @@ importers:
         specifier: ^1.5.2
         version: 1.5.2
       prettier:
-        specifier: ^3.9.6
+        specifier: 3.9.6
         version: 3.9.6
       prettier-plugin-astro:
-        specifier: ^1.0.0
+        specifier: 1.0.0
         version: 1.0.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(prettier@3.9.6)
       prettier-plugin-svelte:
-        specifier: ^4.1.1
+        specifier: 4.1.1
         version: 4.1.1(prettier@3.9.6)(svelte@5.56.10)
       typescript:
         specifier: ^5.3.3

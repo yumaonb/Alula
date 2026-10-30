@@ -50,12 +50,18 @@ export function buildCategoryMeta(): Record<string, CategoryMeta> {
 export type PostEntry = CollectionEntry<'posts'>;
 
 export interface BlogData {
-  meta: Record<string, CategoryMeta>; // 分类元数据：目录路径 → 配置
-  posts: PostItem[]; // 可列出的文章（隐藏文章已排除）：置顶优先、日期倒序
-  allPosts: PostItem[]; // 全部文章（含隐藏）：仅供文章页生成路由与取用，不要直接列表渲染
-  entries: PostEntry[]; // 全量条目，供文章详情页渲染
-  categoryTree: CategoryTreeNode[]; // 侧栏分类树（只统计可列出的文章）
-  tags: { name: string; count: number }[]; // 侧栏标签计数（只统计可列出的文章）：数量倒序
+  // 分类元数据：目录路径 → 配置
+  meta: Record<string, CategoryMeta>;
+  // 可列出的文章（隐藏文章已排除）：置顶优先、日期倒序
+  posts: PostItem[];
+  // 全部文章（含隐藏）：仅供文章页生成路由与取用，不要直接列表渲染
+  allPosts: PostItem[];
+  // 全量条目，供文章详情页渲染
+  entries: PostEntry[];
+  // 侧栏分类树（只统计可列出的文章）
+  categoryTree: CategoryTreeNode[];
+  // 侧栏标签计数（只统计可列出的文章）：数量倒序
+  tags: { name: string; count: number }[];
 }
 
 let cache: Promise<BlogData> | null = null;

@@ -21,15 +21,19 @@ import type { AnimationPlaybackControls } from 'motion';
 
   /* ---- 0. 常量与环境 ---- */
 
-  const EDGE_MS = 400; // 左缘滑动 / 内容滑动 / 普通渐隐时长
-  const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1]; // 平滑进出
+  // 左缘滑动 / 内容滑动 / 普通渐隐时长
+  const EDGE_MS = 400;
+  // 平滑进出
+  const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
   // 桌面端搜索/目录配对相位：四个动效（搜索/目录 × 出场/退场）完全统一——同时长、
   // 渐显渐隐与位移同步（四个效果完全一致）；入场减速落位、退场加速离场
   const PHASE_MS = 320;
   const EASE_EXIT: [number, number, number, number] = [0.4, 0, 1, 1];
   const EASE_ENTRY: [number, number, number, number] = [0, 0, 0.2, 1];
-  const SEARCH_DX = 48; // 搜索「移一段」的位移距离
-  const TOC_OFFSCREEN_PAD = 40; // 目录移出屏幕的额外余量（整体在视口右缘之外）
+  // 搜索「移一段」的位移距离
+  const SEARCH_DX = 48;
+  // 目录移出屏幕的额外余量（整体在视口右缘之外）
+  const TOC_OFFSCREEN_PAD = 40;
   // 手机端（≤768px）：新内容滑动距离 / 搜索框小位移 / 搜索位移与渐隐时长
   // （退场上移与整页推入同缓动（EASE）、时长按位移时长距离等比，
   //  位移必须小于手机端列式页头的标题↔搜索间隙 16px，
@@ -39,9 +43,12 @@ import type { AnimationPlaybackControls } from 'motion';
   // 推入位移 200ms 完成并钉住（后半静止、动画仍 400ms 结束，见 TROUBLESHOOTING 51）：
   // 入场落回时长按位移时长距离等比（12/48 × 200ms = 50ms）——同归一时刻胶囊速度 = 内容
   // 速度，跟着文章上下移；退场 100ms（更短会快得失真、观感「无退场动画」）
-  const FLOAT_EXIT_MOVE_MS = 100; // 退场上移 = 渐隐时长
-  const FLOAT_ENTRY_MOVE_MS = 50; // 入场落回时长（关文章，搜索自上方落回，与位移完成同时落定）
-  const FLOAT_ENTRY_FADE_MS = 110; // 入场渐显（110+110=220ms 收尾）
+  // 退场上移 = 渐隐时长
+  const FLOAT_EXIT_MOVE_MS = 100;
+  // 入场落回时长（关文章，搜索自上方落回，与位移完成同时落定）
+  const FLOAT_ENTRY_MOVE_MS = 50;
+  // 入场渐显（110+110=220ms 收尾）
+  const FLOAT_ENTRY_FADE_MS = 110;
   // 手机端「关文章」：搜索自上方落回的延迟（避免下移时叠在文章卡片上）。
   // 整页自上方 48px 推下时，列表栅格顶（160.6-48=112.6）起初在搜索框钉住位底边（146.6）
   // 之上；新曲线（200ms 位移）栅格顶 ≈95ms 即越过胶囊底边，保留 110ms 作安全余量
@@ -54,9 +61,12 @@ import type { AnimationPlaybackControls } from 'motion';
   // 过滤层是受害者：推入收尾 N 张玻璃卡的 backdrop 最终重采样挤占栅格预算时，
   // 过滤层重提交丢一帧 = 标题闪一帧，见 TROUBLESHOOTING 第 51 条）+ 静态 blur(4px)
   // 模糊副本原地渐隐、淡尽后移除（纯 alpha 交叉）
-  const STRIP_BLUR_OUT_MS = 160; // 旧条带：渐隐时长（只走 opacity）
-  const STRIP_BLUR_IN_MS = 260; // 新条带：模糊交叉渐显时长（真带渐显 + 模糊副本渐隐，同时长）
-  const STRIP_BLUR_PX = 4; // 模糊峰值（px，模糊副本的静态 blur）
+  // 旧条带：渐隐时长（只走 opacity）
+  const STRIP_BLUR_OUT_MS = 160;
+  // 新条带：模糊交叉渐显时长（真带渐显 + 模糊副本渐隐，同时长）
+  const STRIP_BLUR_IN_MS = 260;
+  // 模糊峰值（px，模糊副本的静态 blur）
+  const STRIP_BLUR_PX = 4;
   // 文章↔文章新目录入场的「落位等待」上限：滚顶被用户滚动打断/异常停住时不能永久
   // 藏目录，超时直接播（此时目录若在视口上方，滑入不可见、无副作用）
   const TOC_SETTLE_TIMEOUT_MS = 2500;
@@ -65,14 +75,19 @@ import type { AnimationPlaybackControls } from 'motion';
   const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
   // 目录滑动只在电脑端显示目录（≥851px；更窄目录是按钮+抽屉，只走普通渐隐）
   const tocSlideGate = () => !REDUCE_MOTION && window.matchMedia('(min-width: 851px)').matches;
-  const BG0 = 'rgba(255, 255, 255, 0)'; // 白纱关键帧的透明端（与 .glass 的 transparent 等价）
+  // 白纱关键帧的透明端（与 .glass 的 transparent 等价）
+  const BG0 = 'rgba(255, 255, 255, 0)';
   const VEIL = (() => {
     try {
-      return getComputedStyle(document.documentElement).getPropertyValue('--glass-veil').trim() || 'rgba(255, 255, 255, 0.15)';
+      return (
+        getComputedStyle(document.documentElement).getPropertyValue('--glass-veil').trim() ||
+        'rgba(255, 255, 255, 0.15)'
+      );
     } catch {
       return 'rgba(255, 255, 255, 0.15)';
     }
-  })(); // 白纱令牌（variables.css --glass-veil）：移动渐隐的毛玻璃用它替代模糊
+    // 白纱令牌（variables.css --glass-veil）：移动渐隐的毛玻璃用它替代模糊
+  })();
 
   function row(): HTMLElement | null {
     return document.querySelector<HTMLElement>('.page-main');
@@ -211,7 +226,10 @@ import type { AnimationPlaybackControls } from 'motion';
    *  浮层内联值还没重量的帧（断点跨界时搜索框「跳一下/宽度旧值闪一下」）。
    *  MQL 的 change 回调在样式重算翻转的那一刻同步触发，此时重测与布局翻转同帧写入，
    *  消灭错位帧；RO 继续负责跨界后的连续缩放（标题换行 / 宽度变化） */
-  for (const mq of [window.matchMedia('(max-width: 768px)'), window.matchMedia('(min-width: 1151px)')]) {
+  for (const mq of [
+    window.matchMedia('(max-width: 768px)'),
+    window.matchMedia('(min-width: 1151px)'),
+  ]) {
     mq.addEventListener('change', () => {
       syncOffset();
       syncSearchPos();
@@ -273,7 +291,12 @@ import type { AnimationPlaybackControls } from 'motion';
    *  克隆是纯静态展示（左缘条与目录里没有 island）。
    *  清除时机：正常转场由 finished 回调移除；快速二次导航由 captureOld 查 DOM 清掉；
    *  5s 兜底只覆盖「visit 被中断、after-swap 永不来」的孤儿 */
-  function cloneIntoRow(src: HTMLElement, container: HTMLElement, markerClass?: string, noFallback = false): HTMLElement | null {
+  function cloneIntoRow(
+    src: HTMLElement,
+    container: HTMLElement,
+    markerClass?: string,
+    noFallback = false,
+  ): HTMLElement | null {
     const clone = src.cloneNode(true) as HTMLElement;
     clone.removeAttribute('data-posts-anchor');
     if (markerClass) clone.classList.add(markerClass);
@@ -308,7 +331,10 @@ import type { AnimationPlaybackControls } from 'motion';
 
   /** 目录移出屏幕的距离：整体移到视口右缘之外 + 余量（按元素左缘计算） */
   function tocOffscreenDx(el: HTMLElement): number {
-    return Math.max(120, Math.ceil(window.innerWidth - el.getBoundingClientRect().left + TOC_OFFSCREEN_PAD));
+    return Math.max(
+      120,
+      Math.ceil(window.innerWidth - el.getBoundingClientRect().left + TOC_OFFSCREEN_PAD),
+    );
   }
 
   /** 目录入场动作的构造（相位开始前先钉在屏外/透明，同任务内无绘制间隙、不闪）：
@@ -326,14 +352,24 @@ import type { AnimationPlaybackControls } from 'motion';
           animate(
             newToc,
             { x: [`${dx}px`, 0] },
-            { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false },
+            {
+              duration: PHASE_MS / 1000,
+              ease: EASE_ENTRY,
+              reduceMotion: REDUCE_MOTION,
+              autoplay: false,
+            },
           ),
         );
         const fade = track(
           animate(
             newToc,
             { opacity: [0, 1] },
-            { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false },
+            {
+              duration: PHASE_MS / 1000,
+              ease: EASE_ENTRY,
+              reduceMotion: REDUCE_MOTION,
+              autoplay: false,
+            },
           ),
         );
         const cleanup = () => {
@@ -349,7 +385,11 @@ import type { AnimationPlaybackControls } from 'motion';
     newToc.style.opacity = '0';
     return () => {
       track(
-        animate(newToc, { opacity: [0, 1] }, { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION, autoplay: false }),
+        animate(
+          newToc,
+          { opacity: [0, 1] },
+          { duration: EDGE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION, autoplay: false },
+        ),
       );
     };
   }
@@ -373,7 +413,8 @@ import type { AnimationPlaybackControls } from 'motion';
     };
     const timerId = window.setTimeout(begin, TOC_SETTLE_TIMEOUT_MS);
     const check = (): void => {
-      if (!tocEntryWait) return; // 已被 captureOld 清掉
+      // 已被 captureOld 清掉
+      if (!tocEntryWait) return;
       if (window.scrollY <= yToc - 82) {
         window.clearTimeout(timerId);
         begin();
@@ -401,7 +442,8 @@ import type { AnimationPlaybackControls } from 'motion';
    *  结束（渐显刚起、近不可见）即 unpin（见 enterMobile）。桌面端入场不钉——落回
    *  跟随内容，钉了会在滚顶在途时于动画收尾还原行相对位置处跳一次（见 enterDesktop） */
   function pinFloat(f: HTMLElement): void {
-    if (f.style.position === 'fixed') return; // 已在钉住态（redirect 中途被改向）
+    // 已在钉住态（redirect 中途被改向）
+    if (f.style.position === 'fixed') return;
     floatPinSaved = { top: f.style.top, left: f.style.left };
     const r = f.getBoundingClientRect();
     f.style.position = 'fixed';
@@ -445,7 +487,8 @@ import type { AnimationPlaybackControls } from 'motion';
     finish(show: boolean, f: HTMLElement): void {
       this.state = show ? 'shown' : 'hidden';
       this.active = null;
-      unpinFloat(f); // 动画播完：脱离视口钉，回到行内绝对定位（两条入场路径此处均 no-op：移动端入场落回延迟中已解除、桌面端入场从不钉；退场以 opacity 0 收尾，还原不可见）
+      // 动画播完：脱离视口钉，回到行内绝对定位（两条入场路径此处均 no-op：移动端入场落回延迟中已解除、桌面端入场从不钉；退场以 opacity 0 收尾，还原不可见）
+      unpinFloat(f);
       f.style.visibility = '';
       f.style.transform = '';
       f.style.backgroundColor = '';
@@ -466,15 +509,36 @@ import type { AnimationPlaybackControls } from 'motion';
       if (this.state !== 'shown') return this.active;
       const f = this.el();
       if (!f) return null;
-      this.settle(true); // 清掉任何残留内联（幂等起点）
+      // 清掉任何残留内联（幂等起点）
+      this.settle(true);
       this.state = 'exiting';
-      f.style.visibility = 'visible'; // 变体类可能已隐藏容器（swap 先于动画结束）——退出窗口内强制可见
-      pinFloat(f); // 退场动画期间钉视口：滚顶滑行不会把上移+渐隐「带走」成斜线
+      // 变体类可能已隐藏容器（swap 先于动画结束）——退出窗口内强制可见
+      f.style.visibility = 'visible';
+      // 退场动画期间钉视口：滚顶滑行不会把上移+渐隐「带走」成斜线
+      pinFloat(f);
       const move = trackFloat(
-        animate(f, { y: [0, `-${FLOAT_MOVE}px`] }, { duration: FLOAT_EXIT_MOVE_MS / 1000, ease: EASE, reduceMotion: REDUCE_MOTION, autoplay: false }),
+        animate(
+          f,
+          { y: [0, `-${FLOAT_MOVE}px`] },
+          {
+            duration: FLOAT_EXIT_MOVE_MS / 1000,
+            ease: EASE,
+            reduceMotion: REDUCE_MOTION,
+            autoplay: false,
+          },
+        ),
       );
       const fade = trackFloat(
-        animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, { duration: FLOAT_EXIT_MOVE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION, autoplay: false }),
+        animate(
+          f,
+          { opacity: [1, 0], backgroundColor: [BG0, VEIL] },
+          {
+            duration: FLOAT_EXIT_MOVE_MS / 1000,
+            ease: EASE_EXIT,
+            reduceMotion: REDUCE_MOTION,
+            autoplay: false,
+          },
+        ),
       );
       this.active = move;
       this.allFinished(f, false, [move, fade]);
@@ -486,14 +550,23 @@ import type { AnimationPlaybackControls } from 'motion';
       if (this.state !== 'shown') return this.active;
       const f = this.el();
       if (!f) return null;
-      this.settle(true); // 清掉任何残留内联（幂等起点）
+      // 清掉任何残留内联（幂等起点）
+      this.settle(true);
       this.state = 'exiting';
-      f.style.visibility = 'visible'; // 变体类已先隐藏容器——退出窗口内强制可见
-      pinFloat(f); // 退场动画期间钉视口：滚顶滑行不会把右移+渐隐「带走」成向右下的斜线
-      const opts = { duration: PHASE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION, autoplay: false };
+      // 变体类已先隐藏容器——退出窗口内强制可见
+      f.style.visibility = 'visible';
+      // 退场动画期间钉视口：滚顶滑行不会把右移+渐隐「带走」成向右下的斜线
+      pinFloat(f);
+      const opts = {
+        duration: PHASE_MS / 1000,
+        ease: EASE_EXIT,
+        reduceMotion: REDUCE_MOTION,
+        autoplay: false,
+      };
       const move = withX ? trackFloat(animate(f, { x: [0, `${SEARCH_DX}px`] }, opts)) : null;
       const fade = trackFloat(animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, opts));
-      this.active = move ?? fade; // 相位链到整体退场（位移与渐隐同时长，链谁等效）
+      // 相位链到整体退场（位移与渐隐同时长，链谁等效）
+      this.active = move ?? fade;
       this.allFinished(f, false, move ? [move, fade] : [fade]);
       return move;
     },
@@ -504,10 +577,12 @@ import type { AnimationPlaybackControls } from 'motion';
       if (!f || this.state !== 'hidden') return;
       this.settle(false);
       this.state = 'entering';
-      pinFloat(f); // 入场动画期间钉视口（先于 pre-pin transform：量盒须取无位移的自然位）
+      // 入场动画期间钉视口（先于 pre-pin transform：量盒须取无位移的自然位）
+      pinFloat(f);
       f.style.transform = `translateY(-${FLOAT_MOVE}px)`;
       f.style.opacity = '0';
-      f.style.backgroundColor = VEIL; // 入场前先加上半透明白，关键帧随入场全程褪去
+      // 入场前先加上半透明白，关键帧随入场全程褪去
+      f.style.backgroundColor = VEIL;
       // 落回延迟（FLOAT_ENTRY_DELAY_MS）：等整页推下把栅格顶移过胶囊底边再下移，
       // 可见帧不叠卡片（钉住位 opacity 0，延迟期不可见）
       const delay = FLOAT_ENTRY_DELAY_MS / 1000;
@@ -518,10 +593,30 @@ import type { AnimationPlaybackControls } from 'motion';
         if (this.state === 'entering') unpinFloat(f);
       }, FLOAT_ENTRY_DELAY_MS);
       const move = trackFloat(
-        animate(f, { y: [`-${FLOAT_MOVE}px`, 0] }, { duration: FLOAT_ENTRY_MOVE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false }),
+        animate(
+          f,
+          { y: [`-${FLOAT_MOVE}px`, 0] },
+          {
+            duration: FLOAT_ENTRY_MOVE_MS / 1000,
+            delay,
+            ease: EASE_ENTRY,
+            reduceMotion: REDUCE_MOTION,
+            autoplay: false,
+          },
+        ),
       );
       const fade = trackFloat(
-        animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, { duration: FLOAT_ENTRY_FADE_MS / 1000, delay, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false }),
+        animate(
+          f,
+          { opacity: [0, 1], backgroundColor: [VEIL, BG0] },
+          {
+            duration: FLOAT_ENTRY_FADE_MS / 1000,
+            delay,
+            ease: EASE_ENTRY,
+            reduceMotion: REDUCE_MOTION,
+            autoplay: false,
+          },
+        ),
       );
       this.active = move;
       this.allFinished(f, true, [move, fade]);
@@ -534,13 +629,20 @@ import type { AnimationPlaybackControls } from 'motion';
     enterDesktop(withX: boolean): void {
       const f = this.el();
       if (!f || this.state !== 'hidden') return;
-      this.settle(false); // 清掉任何残留内联（幂等起点）
+      // 清掉任何残留内联（幂等起点）
+      this.settle(false);
       this.state = 'entering';
-      const opts = { duration: PHASE_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false };
+      const opts = {
+        duration: PHASE_MS / 1000,
+        ease: EASE_ENTRY,
+        reduceMotion: REDUCE_MOTION,
+        autoplay: false,
+      };
       // 位姿先内联写好再起播（同任务内无绘制间隙，不闪）
       if (withX) f.style.transform = `translateX(${SEARCH_DX}px)`;
       f.style.opacity = '0';
-      f.style.backgroundColor = VEIL; // 入场前先加上半透明白，关键帧随入场全程褪去
+      // 入场前先加上半透明白，关键帧随入场全程褪去
+      f.style.backgroundColor = VEIL;
       const move = withX ? trackFloat(animate(f, { x: [`${SEARCH_DX}px`, 0] }, opts)) : null;
       const fade = trackFloat(animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, opts));
       this.active = move ?? fade;
@@ -558,14 +660,16 @@ import type { AnimationPlaybackControls } from 'motion';
     redirect(show: boolean): AnimationPlaybackControls | null {
       const f = this.el();
       if (!f || (this.state !== 'exiting' && this.state !== 'entering')) return this.active;
-      const { dx, dy, op, bg } = readFloatPose(f); // 先读：cancel 会把内联改写回首关键帧
+      // 先读：cancel 会把内联改写回首关键帧
+      const { dx, dy, op, bg } = readFloatPose(f);
       stopFloatAnims();
       // 重钉在途位姿：cancel 改写的首关键帧位姿不可暴露——延迟期 motion 不写帧，
       // 元素会停在内联值上直到动画首帧
       f.style.transform = `translate(${dx}px, ${dy}px)`;
       f.style.opacity = `${op}`;
       f.style.backgroundColor = bg;
-      if (!show) f.style.visibility = 'visible'; // 行变体已翻走隐藏容器——补完退场窗口内强制可见（同 exitDesktop）
+      // 行变体已翻走隐藏容器——补完退场窗口内强制可见（同 exitDesktop）
+      if (!show) f.style.visibility = 'visible';
       const mobile = isMobile();
       const tx = show ? 0 : mobile ? 0 : SEARCH_DX;
       const ty = show ? 0 : mobile ? -FLOAT_MOVE : 0;
@@ -605,7 +709,6 @@ import type { AnimationPlaybackControls } from 'motion';
       a.finished.then(() => this.finish(show, f)).catch(() => {});
       return a;
     },
-
   };
 
   /** 读浮层当前位姿 = 最后一帧渲染值：在途位姿只能从 computed style 读——
@@ -632,8 +735,10 @@ import type { AnimationPlaybackControls } from 'motion';
   /* ---- 5. 转场编排 ---- */
   let edgeClone: HTMLElement | null = null;
   let tocClone: HTMLElement | null = null;
-  let oldHadSearch = false; // 旧页是列表系界面（搜索正在显示）——captureOld 时记录
-  let oldIsPost = false; // 旧页是文章详情（面包屑条）——区分「区内」与「跨区」搜索处理
+  // 旧页是列表系界面（搜索正在显示）——captureOld 时记录
+  let oldHadSearch = false;
+  // 旧页是文章详情（面包屑条）——区分「区内」与「跨区」搜索处理
+  let oldIsPost = false;
   // 文章↔文章新目录入场的落位等待（rAF + 超时，双退出条件；captureOld 清）
   let tocEntryWait: { rafId: number; timerId: number } | null = null;
 
@@ -646,21 +751,26 @@ import type { AnimationPlaybackControls } from 'motion';
 
   /** 替换前调用（astro:before-swap，content:replace 前一刻）：清场 + 克隆静止暂存 */
   function captureOld(): void {
-    stopAnims(); // 只停转场动画；搜索浮层的点击退场独立生命周期，不连带
+    // 只停转场动画；搜索浮层的点击退场独立生命周期，不连带
+    stopAnims();
     clearClones();
     edgeClone = null;
     tocClone = null;
     oldHadSearch = false;
     oldIsPost = false;
-    pendingEarlyNav = null; // 切页已提交：早期点击等待结束
-    cancelTocEntryWait(); // 上一轮文章↔文章新目录的落位等待作废（元素即将被换走）
+    // 切页已提交：早期点击等待结束
+    pendingEarlyNav = null;
+    // 上一轮文章↔文章新目录的落位等待作废（元素即将被换走）
+    cancelTocEntryWait();
     const r = row();
     if (!r) return;
     const main = r.querySelector<HTMLElement>('main#swup');
     // 快速连切保护：上次转场未播完时，旧内容根 / 旧条带 / 旧目录可能带着被 cancel 的
     // 动画残留内联 transform/opacity（cancel 不清内联样式）——克隆的量盒必须按
     // 自然位置来，先清零。这些元素马上就要被 swup 换掉，清零的这一帧不会被看见
-    main?.querySelector<HTMLElement>('.posts-article, .posts-page')?.style.removeProperty('transform');
+    main
+      ?.querySelector<HTMLElement>('.posts-article, .posts-page')
+      ?.style.removeProperty('transform');
     const old = main?.querySelector<HTMLElement>('.posts-header, .posts-breadcrumb');
     if (old) {
       old.style.transform = '';
@@ -699,11 +809,15 @@ import type { AnimationPlaybackControls } from 'motion';
     const main = r?.querySelector<HTMLElement>('main#swup');
     const newEdge = main?.querySelector<HTMLElement>('.posts-header, .posts-breadcrumb') ?? null;
     const newTocEl = main?.querySelector<HTMLElement>('.post-sidebar') ?? null;
-    const hasNewToc = !!newTocEl && getComputedStyle(newTocEl).display !== 'none'; // ≤850px 目录 display:none，不参与
+    // ≤850px 目录 display:none，不参与
+    const hasNewToc = !!newTocEl && getComputedStyle(newTocEl).display !== 'none';
     const newHadSearch = !!newEdge?.querySelector('.posts-header-search');
-    const newIsPost = !!main?.querySelector<HTMLElement>('.post-content'); // 新页是文章详情（区分区内/跨区）
-    const opening = oldHadSearch && !newHadSearch; // 列表→文章（旧页必为列表系）
-    const closing = !oldHadSearch && newHadSearch && oldIsPost; // 文章→列表（旧页必为文章详情）
+    // 新页是文章详情（区分区内/跨区）
+    const newIsPost = !!main?.querySelector<HTMLElement>('.post-content');
+    // 列表→文章（旧页必为列表系）
+    const opening = oldHadSearch && !newHadSearch;
+    // 文章→列表（旧页必为文章详情）
+    const closing = !oldHadSearch && newHadSearch && oldIsPost;
     // 手机端（≤768px）列表↔文章：固定方向整页推拉（开=上 / 关=下）；
     // opening/closing 均要求旧页在文章区内——跨区（普通页→列表）旧屏无条带可配对、
     // 常驻搜索框直接 settle 落位，整页滑入会出现内容滑动而搜索框原地不动的割裂
@@ -733,13 +847,19 @@ import type { AnimationPlaybackControls } from 'motion';
       // 跨区（列表↔普通页）不做搜索淡变：无退场/入场动作，搜索随 after-swap settle 直接消失/出现
       if (opening && newIsPost) {
         // 区内「开文章」：在这里启动退场（点击时不动，见 onDocClick）；上一轮退场仍在途则沿用
-        exitAction = () => (floatCtl.state === 'exiting' ? floatCtl.active : floatCtl.state === 'shown' ? floatCtl.exitMobile() : null);
+        exitAction = () =>
+          floatCtl.state === 'exiting'
+            ? floatCtl.active
+            : floatCtl.state === 'shown'
+              ? floatCtl.exitMobile()
+              : null;
       } else if (closing && oldIsPost) {
         // 区内「关文章」：自上方落回渐显
         entryAction = () => floatCtl.enterMobile();
       }
     } else if (tocClone) {
-      const crossfade = hasNewToc; // 文章↔文章：两侧都有目录 → 并行交叉渐隐（不参与相位，见下）
+      // 文章↔文章：两侧都有目录 → 并行交叉渐隐（不参与相位，见下）
+      const crossfade = hasNewToc;
       if (!crossfade) {
         // 目录退场：电脑端右移移出屏渐隐——位移与渐隐同步（PHASE_MS/EASE_EXIT），
         // 与搜索框移动切换同节奏；其他只渐隐
@@ -761,7 +881,12 @@ import type { AnimationPlaybackControls } from 'motion';
                 animate(
                   el,
                   { x: [0, `${dx}px`] },
-                  { duration: PHASE_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION, autoplay: false },
+                  {
+                    duration: PHASE_MS / 1000,
+                    ease: EASE_EXIT,
+                    reduceMotion: REDUCE_MOTION,
+                    autoplay: false,
+                  },
                 ),
               )
             : null;
@@ -777,7 +902,8 @@ import type { AnimationPlaybackControls } from 'motion';
               },
             ),
           );
-          const last = move ?? fade; // 相位链：有位移时位移与渐隐同时长、等它走完；无位移时等渐隐
+          // 相位链：有位移时位移与渐隐同时长、等它走完；无位移时等渐隐
+          const last = move ?? fade;
           last.finished
             .then(() => {
               el.remove();
@@ -800,12 +926,14 @@ import type { AnimationPlaybackControls } from 'motion';
         newIsPost &&
         (floatCtl.state === 'shown' || floatCtl.state === 'exiting')
       ) {
-        const withX = tocSlideGate() && hasNewToc; // 与新目录入场配对时才右移
+        // 与新目录入场配对时才右移
+        const withX = tocSlideGate() && hasNewToc;
         // 在途退场（redirect 改向「进文章」而来）：相位链等它播完再播目录入场（先退场再入场）
         exitAction = () =>
           floatCtl.state === 'exiting' ? floatCtl.active : floatCtl.exitDesktop(withX);
       } else if (newHadSearch && !oldHadSearch && floatCtl.state === 'hidden' && oldIsPost) {
-        const withX = tocSlideGate() && !!tocClone; // 与旧目录退场配对时才自右移入
+        // 与旧目录退场配对时才自右移入
+        const withX = tocSlideGate() && !!tocClone;
         entryAction = () => floatCtl.enterDesktop(withX);
       }
     }
@@ -814,13 +942,18 @@ import type { AnimationPlaybackControls } from 'motion';
     if (exitAction) {
       const a = exitAction();
       if (a) a.finished.then(() => entryAction?.()).catch(() => {});
-      else entryAction?.(); // 已在终态（如手机端点击退场已播完）→ 直接进入相位
+      // 已在终态（如手机端点击退场已播完）→ 直接进入相位
+      else entryAction?.();
     } else {
       entryAction?.();
     }
     // 本轮无搜索退场/入场（列表↔列表互切、首屏、**跨区边界**——区内才做淡变）：钉回目标态，零闪；
     // 浮层在途（redirect 改向中）不碰——它自己会收尾到目标态
-    if (!exitAction && !entryAction && (floatCtl.state === 'shown' || floatCtl.state === 'hidden')) {
+    if (
+      !exitAction &&
+      !entryAction &&
+      (floatCtl.state === 'shown' || floatCtl.state === 'hidden')
+    ) {
       floatCtl.settle(newHadSearch);
     }
 
@@ -839,7 +972,12 @@ import type { AnimationPlaybackControls } from 'motion';
         animate(
           exitEl,
           { opacity: [1, 0] },
-          { duration: STRIP_BLUR_OUT_MS / 1000, ease: EASE_EXIT, reduceMotion: REDUCE_MOTION, autoplay: false },
+          {
+            duration: STRIP_BLUR_OUT_MS / 1000,
+            ease: EASE_EXIT,
+            reduceMotion: REDUCE_MOTION,
+            autoplay: false,
+          },
         ),
       );
       out.finished
@@ -855,7 +993,8 @@ import type { AnimationPlaybackControls } from 'motion';
       // 副本必须在 counter/推入启动前量盒（槽与根都还无位移，量到的是终位）。
       // 减动效下不建模糊副本，退化为纯 alpha 交叉渐显。
       const rowEl = row();
-      blurClone = !REDUCE_MOTION && rowEl ? cloneIntoRow(newEdge, rowEl, 'posts-edge-clone', true) : null;
+      blurClone =
+        !REDUCE_MOTION && rowEl ? cloneIntoRow(newEdge, rowEl, 'posts-edge-clone', true) : null;
       if (blurClone) blurClone.style.filter = `blur(${STRIP_BLUR_PX}px)`;
       if (mobilePush) {
         const newSlot = newEdge.parentElement;
@@ -868,7 +1007,13 @@ import type { AnimationPlaybackControls } from 'motion';
             animate(
               newSlot,
               { y: [`${y0}px`, '0px', '0px'] },
-              { duration: EDGE_MS / 1000, ease: EASE, times: [0, 0.5, 1], reduceMotion: REDUCE_MOTION, autoplay: false },
+              {
+                duration: EDGE_MS / 1000,
+                ease: EASE,
+                times: [0, 0.5, 1],
+                reduceMotion: REDUCE_MOTION,
+                autoplay: false,
+              },
             ),
           );
           cnt.finished
@@ -882,7 +1027,18 @@ import type { AnimationPlaybackControls } from 'motion';
       }
       if (blurClone) {
         // 淡尽即移除（~260ms，渐显收尾处、不可见）：移除不可见层，单帧异动被渐变本身掩盖
-        const bc = track(animate(blurClone, { opacity: [1, 0] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false }));
+        const bc = track(
+          animate(
+            blurClone,
+            { opacity: [1, 0] },
+            {
+              duration: STRIP_BLUR_IN_MS / 1000,
+              ease: EASE_ENTRY,
+              reduceMotion: REDUCE_MOTION,
+              autoplay: false,
+            },
+          ),
+        );
         bc.finished
           .then(() => {
             blurClone.remove();
@@ -891,9 +1047,21 @@ import type { AnimationPlaybackControls } from 'motion';
       }
       // 延迟起播的空窗帧先同步钉不可见（同位模糊副本盖着），出帧后渐显
       newEdge.style.opacity = '0';
-      track(animate(newEdge, { opacity: [0, 1] }, { duration: STRIP_BLUR_IN_MS / 1000, ease: EASE_ENTRY, reduceMotion: REDUCE_MOTION, autoplay: false }));
+      track(
+        animate(
+          newEdge,
+          { opacity: [0, 1] },
+          {
+            duration: STRIP_BLUR_IN_MS / 1000,
+            ease: EASE_ENTRY,
+            reduceMotion: REDUCE_MOTION,
+            autoplay: false,
+          },
+        ),
+      );
     } else if (edgeClone) {
-      edgeClone.remove(); // 新界面是普通屏：不播，直接随替换消失
+      // 新界面是普通屏：不播，直接随替换消失
+      edgeClone.remove();
       edgeClone = null;
     }
 
@@ -901,7 +1069,9 @@ import type { AnimationPlaybackControls } from 'motion';
     // 推入根播完不拆合成层：拆层触发整列玻璃卡重栅格化（弱内核下标题闪一下）——finished 后显式写回
     // 非 none 的恒等，层保活到节点随下次切页移除
     if (mobilePush) {
-      const root = opening ? (main?.querySelector<HTMLElement>('.posts-article') ?? null) : (main?.querySelector<HTMLElement>('.posts-page') ?? null);
+      const root = opening
+        ? (main?.querySelector<HTMLElement>('.posts-article') ?? null)
+        : (main?.querySelector<HTMLElement>('.posts-page') ?? null);
       if (root) {
         const y0 = opening ? MOBILE_SLIDE : -MOBILE_SLIDE;
         // 延迟起播的空窗帧先同步钉到起始位移（同任务、无绘制间隙），出帧后推入
@@ -913,7 +1083,13 @@ import type { AnimationPlaybackControls } from 'motion';
           animate(
             root,
             { y: [`${y0}px`, '0px', '0px'] },
-            { duration: EDGE_MS / 1000, ease: EASE, times: [0, 0.5, 1], reduceMotion: REDUCE_MOTION, autoplay: false },
+            {
+              duration: EDGE_MS / 1000,
+              ease: EASE,
+              times: [0, 0.5, 1],
+              reduceMotion: REDUCE_MOTION,
+              autoplay: false,
+            },
           ),
         );
         a.finished
@@ -953,7 +1129,8 @@ import type { AnimationPlaybackControls } from 'motion';
       };
       const move = slide ? track(animate(fadeEl, { x: [0, `${dx}px`] }, opts)) : null;
       const fade = track(animate(fadeEl, { opacity: [1, 0] }, opts));
-      const last = move ?? fade; // 有位移时位移与渐隐同时长、等它走完；无位移（减动效）等渐隐
+      // 有位移时位移与渐隐同时长、等它走完；无位移（减动效）等渐隐
+      const last = move ?? fade;
       last.finished
         .then(() => {
           fadeEl.remove();
@@ -998,10 +1175,12 @@ import type { AnimationPlaybackControls } from 'motion';
   function bindSwupHooks(): void {
     if (swupHooksBound) return;
     const swup = realSwup();
-    if (!swup) return; // 实例未就绪（取到的是 <main> 元素回退）——不打污染标记，下次点击再绑
+    // 实例未就绪（取到的是 <main> 元素回退）——不打污染标记，下次点击再绑
+    if (!swup) return;
     swupHooksBound = true;
     const restoreAfterFail = () => {
-      pendingEarlyNav = null; // 导航已失败：早期等待随之作废，走原生兜底结果
+      // 导航已失败：早期等待随之作废，走原生兜底结果
+      pendingEarlyNav = null;
       // 只在「仍停在列表系界面」时恢复——失败后内容未换，若此刻在详情页，
       // 搜索不该出现
       if (floatCtl.state !== 'shown' && row()?.classList.contains('page-main--listing'))
@@ -1016,7 +1195,8 @@ import type { AnimationPlaybackControls } from 'motion';
    *  拦截点击、等实例就绪后 navigate() 转成正常切页——转场照常播；
    *  超时回退原生跳转（整页加载，与现状一致）。跨区目的地本就无转场，不拦截 */
   function onEarlyClick(e: MouseEvent): void {
-    if (REDUCE_MOTION || realSwup()) return; // 实例已就绪：swup 自己的委托接管
+    // 实例已就绪：swup 自己的委托接管
+    if (REDUCE_MOTION || realSwup()) return;
     const t = e.target;
     if (!(t instanceof Element)) return;
     const a = t.closest('a[href]');
@@ -1031,7 +1211,8 @@ import type { AnimationPlaybackControls } from 'motion';
       (!r.classList.contains('page-main--listing') && !r.classList.contains('page-main--post'))
     )
       return;
-    if (href.replace(/\/+$/, '') === location.pathname.replace(/\/+$/, '')) return; // 同页
+    // 同页
+    if (href.replace(/\/+$/, '') === location.pathname.replace(/\/+$/, '')) return;
     e.preventDefault();
     if (pendingEarlyNav) window.clearTimeout(pendingEarlyNav.timer);
     const started = Date.now();

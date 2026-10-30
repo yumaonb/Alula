@@ -22,7 +22,8 @@ import { navMatch } from '../../lib/nav-match';
   const ACTIVE = 'is-active';
   const READY = 'js-ready';
   const ON = 'is-on';
-  const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1]; // 快起缓收（与后台侧栏一致）
+  // 快起缓收（与后台侧栏一致）
+  const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
   const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let takenOver = false;
@@ -94,14 +95,20 @@ import { navMatch } from '../../lib/nav-match';
     }
     const fromX = currentX(indicator);
     const dx = Math.abs(targetX - fromX);
-    if (dx < 1) return; // 已在目标位（如 resize 重对齐时），不跑过渡
+    // 已在目标位（如 resize 重对齐时），不跑过渡
+    if (dx < 1) return;
     const ms = Math.max(450, Math.min(700, dx * 3.4));
     controls = animate(
       indicator,
       { x: [fromX, targetX], width: [indicator.offsetWidth, text.offsetWidth] },
-      { duration: ms / 1000, ease: EASE, reduceMotion: REDUCE_MOTION }
+      { duration: ms / 1000, ease: EASE, reduceMotion: REDUCE_MOTION },
     );
-    trace('move', `x ${Math.round(fromX)}→${Math.round(targetX)}`, `dx=${Math.round(dx)}px`, `${ms}ms`);
+    trace(
+      'move',
+      `x ${Math.round(fromX)}→${Math.round(targetX)}`,
+      `dx=${Math.round(dx)}px`,
+      `${ms}ms`,
+    );
   }
 
   /**
@@ -115,14 +122,14 @@ import { navMatch } from '../../lib/nav-match';
     const els = getEls();
     if (!els) return;
     if (getComputedStyle(els.navLinks).display !== 'flex') return;
-    const active =
-      pickTarget(els.anchors, window.location.pathname) ?? currentActive(els.anchors);
+    const active = pickTarget(els.anchors, window.location.pathname) ?? currentActive(els.anchors);
     if (!active) return;
     takenOver = true;
     setActive(els.anchors, active);
     place(els.indicator, active, false);
     els.indicator.classList.add(ON);
-    els.navLinks.classList.add(READY); // 静态线从此让位
+    // 静态线从此让位
+    els.navLinks.classList.add(READY);
     trace('takeover', textOf(active).textContent ?? '');
   }
 
@@ -158,13 +165,14 @@ import { navMatch } from '../../lib/nav-match';
     // e.target 可能是文本节点（点正踩在文字上），它没有 closest，直接调会抛错
     // 让整个监听器中断——swup 的 delegate-it 同样先做了这道守卫
     const raw = e.target as Node | null;
-    const el = raw instanceof Element ? raw : raw?.parentElement ?? null;
+    const el = raw instanceof Element ? raw : (raw?.parentElement ?? null);
     const anchor = el?.closest<HTMLAnchorElement>('.nav-links a') ?? null;
     if (!anchor) return;
     trace('click', textOf(anchor).textContent ?? '');
     pendingTarget = anchor;
     recentClicks.push(anchor);
-    if (recentClicks.length > 3) recentClicks.shift(); // 只会有一个被取代的旧访问产生迟到换页，留 3 个足够
+    // 只会有一个被取代的旧访问产生迟到换页，留 3 个足够
+    if (recentClicks.length > 3) recentClicks.shift();
     moveTo(anchor);
   });
 
@@ -192,7 +200,8 @@ import { navMatch } from '../../lib/nav-match';
       clearIntent();
     } else if (recentClicks.includes(target)) {
       trace('after-swap', window.location.pathname, 'stale, ignored');
-      return; // 迟到的旧换页：线保持在最新点击处
+      // 迟到的旧换页：线保持在最新点击处
+      return;
     } else {
       trace('after-swap', window.location.pathname, 'external, follow');
       clearIntent();
@@ -209,7 +218,8 @@ import { navMatch } from '../../lib/nav-match';
     raf = requestAnimationFrame(() => {
       raf = 0;
       const els = getEls();
-      if (!els || els.navLinks.offsetParent === null) return; // 切到移动端被隐藏，跳过
+      // 切到移动端被隐藏，跳过
+      if (!els || els.navLinks.offsetParent === null) return;
       const active = currentActive(els.anchors);
       if (active) {
         trace('resize');

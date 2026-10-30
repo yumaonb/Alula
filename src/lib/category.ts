@@ -61,7 +61,8 @@ export interface PostItem {
 export interface BreadcrumbItem {
   label: string;
   href?: string;
-  icon?: string; // astro-icon name，如 "la:home"
+  // astro-icon name，如 "la:home"
+  icon?: string;
 }
 
 /* ---- 工具 ---- */

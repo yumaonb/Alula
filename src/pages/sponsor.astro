@@ -15,7 +15,12 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       </h1>
     </header>
 
-    <a href={sponsorLink.href} class="hero-card glass hoverable link-plain" target="_blank" rel="noopener">
+    <a
+      href={sponsorLink.href}
+      class="hero-card glass hoverable link-plain"
+      target="_blank"
+      rel="noopener"
+    >
       <div class="hero-card-inner">
         <div class="hero-text">
           <span class="hero-label">推荐支持</span>
@@ -25,7 +30,12 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
       </div>
     </a>
 
-    <a href={sponsorList.href} class="action-card glass hoverable link-plain" target={sponsorList.target} rel="noopener">
+    <a
+      href={sponsorList.href}
+      class="action-card glass hoverable link-plain"
+      target={sponsorList.target}
+      rel="noopener"
+    >
       <Icon is:inline name={sponsorList.icon} class="action-icon" />
       <div class="action-body">
         <span class="action-title">{sponsorList.title}</span>
@@ -82,7 +92,8 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
   /* ---- 主赞助卡片 ---- */
   .hero-card {
-    margin-bottom: var(--card-gap); /* 卡间距（标题→卡的 16px 由 .page-head 定） */
+    /* 卡间距（标题→卡的 16px 由 .page-head 定） */
+    margin-bottom: var(--card-gap);
     width: 100%;
     text-decoration: none;
     color: inherit;
@@ -127,11 +138,13 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
 
   /* ---- 其他支持方式 ---- */
   .other-section {
-    margin-top: 12px; /* 12 + .action-card 的 12px = 24px，与「其他方式」字→栅格间距（下方）相等 */
+    /* 12 + .action-card 的 12px = 24px，与「其他方式」字→栅格间距（下方）相等 */
+    margin-top: 12px;
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 24px; /* 「其他方式」字→栅格间距，与字→上方 action-card 间距（上方）相等 */
+    /* 「其他方式」字→栅格间距，与字→上方 action-card 间距（上方）相等 */
+    gap: 24px;
   }
 
   .other-header {
@@ -265,7 +278,8 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
   /* ---- 手机端适配 ---- */
   @media (max-width: 768px) {
     .hero-card {
-      margin-bottom: var(--card-gap); /* 手机端卡间距 */
+      /* 手机端卡间距 */
+      margin-bottom: var(--card-gap);
     }
 
     .hero-card-inner {
@@ -277,7 +291,8 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     }
 
     .action-card {
-      margin-bottom: 10px; /* 手机端卡间距 */
+      /* 手机端卡间距 */
+      margin-bottom: 10px;
       padding: 15px 16px;
       gap: 14px;
     }
@@ -309,7 +324,8 @@ import { sponsorLink, sponsorList, supportActions } from '../data/sponsor';
     }
 
     .other-section {
-      margin-top: 6px; /* 10 + 6 = 16px，与手机端「其他方式」字→栅格间距（下方）相等 */
+      /* 10 + 6 = 16px，与手机端「其他方式」字→栅格间距（下方）相等 */
+      margin-top: 6px;
       gap: 16px;
     }
   }

@@ -114,7 +114,8 @@ ol {
 
 @media (prefers-reduced-motion: reduce) {
   .bg--image {
-    transition: none; /* 减动效：背景不淡入，图就绪直接显示 */
+    /* 减动效：背景不淡入，图就绪直接显示 */
+    transition: none;
   }
 }
 
@@ -132,10 +133,14 @@ ol {
  * 页面自己的外层元素不要再声明宽度规则（会覆盖/绕过这里），
  * 要收窄内容列就写 width: 100% + max-width。 */
 .page-main {
-  --posts-side-w: 260px; /* 侧栏宽（面包屑负边距共用同一令牌） */
-  --posts-side-gap: 16px; /* 侧栏与内容列的横向间隙（即行 gap） */
-  --posts-offset-gap: 0px; /* 页锚（页头/面包屑）与下方内容的纵向间隙，供测侧栏顶偏移 */
-  --posts-side-offset: 0px; /* 侧栏顶偏移 = 锚高 + 间隙；posts-shell.ts 计算后写内联值覆盖 */
+  /* 侧栏宽（面包屑负边距共用同一令牌） */
+  --posts-side-w: 260px;
+  /* 侧栏与内容列的横向间隙（即行 gap） */
+  --posts-side-gap: 16px;
+  /* 页锚（页头/面包屑）与下方内容的纵向间隙，供测侧栏顶偏移 */
+  --posts-offset-gap: 0px;
+  /* 侧栏顶偏移 = 锚高 + 间隙；posts-shell.ts 计算后写内联值覆盖 */
+  --posts-side-offset: 0px;
   flex: 1;
   display: flex;
   align-items: flex-start;
@@ -213,7 +218,8 @@ ol {
 .page-main--listing > .global-sidebar,
 .page-main--post > .global-sidebar {
   padding-top: var(--posts-side-offset, 0);
-  transition: padding-top 0.4s ease; /* 与 posts-shell.ts 的 EDGE_MS（400ms）同步 */
+  /* 与 posts-shell.ts 的 EDGE_MS（400ms）同步 */
+  transition: padding-top 0.4s ease;
 }
 
 /* 搜索框行级常驻（BaseLayout 渲染在行内、main#swup 之外）：
@@ -268,7 +274,8 @@ ol {
 .side-widgets {
   position: fixed;
   right: 10px;
-  bottom: 100px; /* 锚点：调这一个值即可整体升降 */
+  /* 锚点：调这一个值即可整体升降 */
+  bottom: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;

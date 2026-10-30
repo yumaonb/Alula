@@ -33,7 +33,8 @@
   window.__tocInit = true;
 
   const NAV_HEIGHT = 80;
-  const MARK_CLASS = 'toc-io-mark'; // 段标记（toc.ts 创建/销毁的不可见元素）
+  // 段标记（toc.ts 创建/销毁的不可见元素）
+  const MARK_CLASS = 'toc-io-mark';
   let isClickMode = false;
   // 大距离阈值：只用于「首次落位」——状态矫正（深链进入 / 切页后），瞬移就位
   const SNAP_MAX_PX = 120;
@@ -90,17 +91,24 @@
   }
 
   /* ---- 共用过渡：单进度 p 同时驱动竖线静止目标与轨道滚动 ---- */
-  let p = 1; // 过渡进度（1 = 完成）
-  let dur = 0.12; // 过渡时长（s，按位移成比例）
+  // 过渡进度（1 = 完成）
+  let p = 1;
+  // 过渡时长（s，按位移成比例）
+  let dur = 0.12;
   let barFrom = 0;
   let barTo = 0;
   let trackFrom = 0;
   let trackTo = 0;
-  let lastT = 0; // 上一帧时间戳
-  let barPos = 0; // 竖线当前轨道坐标位
-  let barPlaced = false; // 竖线是否完成首次落位
-  let trackPlaced = false; // 轨道是否完成首次落位
-  let trackFollow = true; // 轨道居中是否生效（手动滚轮关闭，切项恢复）
+  // 上一帧时间戳
+  let lastT = 0;
+  // 竖线当前轨道坐标位
+  let barPos = 0;
+  // 竖线是否完成首次落位
+  let barPlaced = false;
+  // 轨道是否完成首次落位
+  let trackPlaced = false;
+  // 轨道居中是否生效（手动滚轮关闭，切项恢复）
+  let trackFollow = true;
   let lastActiveIdx = -1;
   let rafId = 0;
 
@@ -143,7 +151,8 @@
       return;
     }
     if (dist < 0.5) {
-      p = 1; // 已在位，无过渡
+      // 已在位，无过渡
+      p = 1;
       return;
     }
     dur = Math.min(0.35, Math.max(0.12, 0.1 + dist * 0.0006));
@@ -186,7 +195,8 @@
       return;
     }
     if (getComputedStyle(container).position === 'static') {
-      container.style.position = 'relative'; // 段标记绝对定位的锚
+      // 段标记绝对定位的锚
+      container.style.position = 'relative';
     }
     // 容器 padding-box 原点（文档绝对位）：标记的 top 相对 padding-box
     const cTop = container.getBoundingClientRect().top + window.scrollY - container.clientTop;
@@ -245,7 +255,8 @@
         for (const e of entries) {
           const idx = markOf.get(e.target);
           if (idx === undefined) continue;
-          const top = e.boundingClientRect.top; // 视口坐标，实时几何
+          // 视口坐标，实时几何
+          const top = e.boundingClientRect.top;
           if (e.isIntersecting) {
             if (top >= hitTop) {
               hitTop = top;
@@ -272,7 +283,8 @@
         }
         for (;;) {
           const h = document.getElementById(slugs[idx]);
-          if (!h || idx === 0) break; // 线在首标题之上 → 首项即答案
+          // 线在首标题之上 → 首项即答案
+          if (!h || idx === 0) break;
           if (h.getBoundingClientRect().top > ly) idx -= 1;
           else break;
         }
@@ -372,7 +384,8 @@
     const el = document.getElementById(id);
     if (!el) return;
     isClickMode = true;
-    trackFollow = false; // 窗口内轨道不居中，不抢页面平滑滚动
+    // 窗口内轨道不居中，不抢页面平滑滚动
+    trackFollow = false;
     smoothScrollTo(el);
     setTimeout(() => {
       isClickMode = false;
@@ -415,7 +428,8 @@
 
   const initToc = (): void => {
     measure();
-    layoutMarks(); // 观察器首次回调即落位初始活动项（深链时触发状态矫正瞬移）
+    // 观察器首次回调即落位初始活动项（深链时触发状态矫正瞬移）
+    layoutMarks();
     // 触摸等原生滚动不产生 wheel 事件：轨道 scroll 监听里同样让竖线贴住
     // 活动项；过渡自己驱动轨道时（p < 1）不接管
     const track = document.getElementById('toc-list');
@@ -430,7 +444,8 @@
 
   document.addEventListener('swup:content:replace', () => {
     lastActiveIdx = -1;
-    barPlaced = false; // 目录整块重建，竖线是全新元素
+    // 目录整块重建，竖线是全新元素
+    barPlaced = false;
     trackPlaced = false;
     trackFollow = true;
     p = 1;
@@ -443,7 +458,8 @@
    * 抽屉新高度流向居中 */
   window.__tocSnap = () => {
     if (lastActiveIdx < 0 || lastActiveIdx >= slugs.length) return;
-    measure(); // 抽屉已把 .toc-nav 移入新容器：目录项 offsetTop/高度需重测
+    // 抽屉已把 .toc-nav 移入新容器：目录项 offsetTop/高度需重测
+    measure();
     const track = document.getElementById('toc-list');
     const bar = document.getElementById('toc-bar');
     if (!track || !bar) return;

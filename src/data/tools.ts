@@ -33,7 +33,7 @@ export const toolCategories: ToolCategory[] = [
       },
     ],
   },
-    {
+  {
     title: '速查文档',
     tools: [
       {
@@ -41,7 +41,7 @@ export const toolCategories: ToolCategory[] = [
         desc: '覆盖的编程语言很多，就是查起来有些费劲，但至少全啊',
         url: 'https://www.runoob.com',
       },
-            {
+      {
         title: 'MDN',
         desc: '不必多言，前端相关的很全',
         url: 'https://developer.mozilla.org/zh-CN/',
