@@ -120,11 +120,18 @@ import { toolCategories } from '../data/tools';
   @media (max-width: 768px) {
     /* 手机端固定一行俩 */
     .tools-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .tool-card {
       padding: 14px 16px;
+    }
+  }
+
+  /* 再窄（小屏手机）一行俩会挤成碎行，退回一行一个 */
+  @media (max-width: 400px) {
+    .tools-grid {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>
