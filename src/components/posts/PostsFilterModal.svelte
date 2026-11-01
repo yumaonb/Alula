@@ -4,62 +4,47 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  import { lockBodyScroll, unlockBodyScroll } from '../../assets/js/util/body-scroll-lock';
-  import { mountDrawer } from '../../assets/js/ui/drawer';
+  import { createDrawer, mountDrawer } from '../../assets/js/ui/drawer';
 
   import '../../assets/css/shared/drawer.css';
 
   let isOpen = $state(false);
-  let lastFocus: HTMLElement | null = null;
   let filterRoot: Element | null = null;
   let sidebar: HTMLElement | null = null;
   let modalEl: HTMLDivElement | null = null;
 
-  function close(): void {
-    if (!isOpen) return;
-    isOpen = false;
-    unlockBodyScroll();
-    if (sidebar && filterRoot) sidebar.appendChild(filterRoot);
-    lastFocus?.focus();
-  }
-
-  function open(): void {
-    if (isOpen) return;
-    sidebar = document.querySelector<HTMLElement>('.posts-sidebar');
-    filterRoot = sidebar?.querySelector('.sidebar-filter') || sidebar;
-    if (!filterRoot?.children.length) return;
-
-    isOpen = true;
-    lastFocus = document.activeElement as HTMLElement | null;
-    const body = modalEl?.querySelector('.pfilter-modal-body');
-    if (body && filterRoot) body.appendChild(filterRoot);
-    lockBodyScroll();
-    requestAnimationFrame(() => {
-      const closeBtn = modalEl?.querySelector('.pfilter-modal-close');
-      closeBtn?.focus();
-    });
-  }
-
-  function onMaskClick(e: MouseEvent): void {
-    const target = e.target as HTMLElement | null;
-    if (!target) return;
-    if (target.closest('[data-pfilter-close]')) {
-      close();
-      return;
-    }
-    if (target.closest('.cat-item') || target.closest('.chip')) close();
-  }
-
-  function onKeydown(e: KeyboardEvent): void {
-    if (e.key === 'Escape' && isOpen) close();
-  }
+  const drawer = createDrawer({
+    modalEl: () => modalEl,
+    isOpen: () => isOpen,
+    setOpen: (open) => {
+      isOpen = open;
+    },
+    fabId: 'posts-filter-fab',
+    canOpen: () => {
+      sidebar = document.querySelector<HTMLElement>('.posts-sidebar');
+      filterRoot = sidebar?.querySelector('.sidebar-filter') || sidebar;
+      return !!filterRoot?.children.length;
+    },
+    onBeforeOpen: () => {
+      // 抽屉展示的是侧栏里的筛选面板，打开时把它搬进来
+      const body = modalEl?.querySelector('.pfilter-modal-body');
+      if (body && filterRoot) body.appendChild(filterRoot);
+    },
+    onClosed: () => {
+      // 关闭后放回侧栏原位
+      if (sidebar && filterRoot) sidebar.appendChild(filterRoot);
+    },
+    // 点分类 / 标签跳走前先关抽屉
+    closeOn: ['[data-pfilter-close]', '.cat-item', '.chip'],
+    focusOn: '.pfilter-modal-close',
+  });
 
   onMount(() =>
     mountDrawer({
       modalEl,
       isOpen: () => isOpen,
-      open,
-      close,
+      open: drawer.open,
+      close: drawer.close,
       bindEntry: (openDrawer) => {
         const fab = document.getElementById('posts-filter-fab');
         if (!fab) return () => {};
@@ -70,7 +55,7 @@
   );
 </script>
 
-<svelte:window onkeydown={onKeydown} />
+<svelte:window onkeydown={drawer.onKeydown} />
 
 <div
   bind:this={modalEl}
@@ -80,8 +65,7 @@
   aria-modal="true"
   aria-label="分类与标签"
   tabindex="-1"
-  onclick={onMaskClick}
-  onkeydown={onKeydown}
+  onclick={drawer.onPanelClick}
 >
   <div class="pfilter-modal-mask drawer-mask" data-pfilter-close></div>
   <div class="pfilter-modal-panel drawer-panel glass">
@@ -103,7 +87,7 @@
         class="pfilter-modal-close drawer-close hoverable"
         data-pfilter-close
         aria-label="关闭筛选"
-        onclick={close}
+        onclick={drawer.close}
       >
         <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
           <path

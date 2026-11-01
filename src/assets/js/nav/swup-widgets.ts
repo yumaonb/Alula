@@ -6,6 +6,7 @@
 // 切页放行：切页开始即压制按钮，新内容就绪后保持压制，直到页面滚回顶部、
 //       平滑滚动结束（swup:scroll:end），或新内容渲染后 250ms 兜底超时为止。
 import { detectPageKind } from '../util/page-kind';
+import { queryTocNav } from '../posts/post-sidebar';
 
 const container = document.getElementById('side-widgets');
 if (container) initSideWidgets(container);
@@ -44,7 +45,7 @@ function initSideWidgets(container: HTMLElement): void {
   function pageContext() {
     return {
       ...detectPageKind(),
-      toc: !!document.querySelector('.toc-nav .toc-link'),
+      toc: !!queryTocNav()?.querySelector('.toc-link'),
       comments: !!document.getElementById('comments-section'),
     };
   }

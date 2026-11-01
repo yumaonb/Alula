@@ -128,7 +128,15 @@ async function buildData(): Promise<BlogData> {
 }
 
 export async function loadBlogData(): Promise<BlogData> {
-  cache ??= buildData();
+  if (!cache) {
+    const pending = buildData();
+    cache = pending;
+    // 失败的那次不能留在缓存里：缓存的是 Promise，rejected 的 Promise 会被永久复用，
+    // 之后每次调用都拿到同一个错误、再也重试不了（dev 里表现为「一直报错、刷新也不好了」）
+    pending.catch(() => {
+      if (cache === pending) cache = null;
+    });
+  }
   return cache;
 }
 

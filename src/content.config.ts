@@ -15,7 +15,9 @@ const posts = defineCollection({
       pinned: z.boolean().optional(),
       hidden: z.boolean().optional(),
     })
-    .passthrough()
+    // 只认上面这 7 个字段：写错的字段名（description 少个 s、hide 之类）直接构建失败。
+    // 放行未知字段等于让拼写错误静默生效，字段看着写了、页面拿不到
+    .strict()
     .transform((fm) => {
       if (fm.title == null) fm.title = '无标题';
       if (fm.tags == null) fm.tags = [];

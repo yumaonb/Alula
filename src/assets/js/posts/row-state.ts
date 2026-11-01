@@ -4,6 +4,7 @@
 // 三件事的共同点：都只读当前 DOM 的标记与实测尺寸、只写行上的类与内联变量，
 // 不碰动画。切页后必须整体重跑一次（行是常驻壳，内容却是新的）。
 import { detectPageKind } from '../util/page-kind';
+import { activeCategoryOf, activeTagOf, postPathSegments } from '../../../lib/category';
 
 export interface RowStateEnv {
   /** 当前文章区行（`.page-main`） */
@@ -51,20 +52,11 @@ export function createRowState(env: RowStateEnv): RowState {
     const sidebar = env.row()?.querySelector<HTMLElement>('.global-sidebar');
     if (!sidebar) return;
 
-    const segments = location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
-    const rp = segments.indexOf('posts');
-    const rest = rp >= 0 ? segments.slice(rp + 1) : [];
+    const rest = postPathSegments(location.pathname);
 
     const items = Array.from(sidebar.querySelectorAll<HTMLElement>('.cat-item[data-category]'));
-    const paths = new Set(items.map((el) => el.dataset.category));
-    let activeCategory = '';
-    for (let i = rest.length; i > 0; i--) {
-      const candidate = decodeURIComponent(rest.slice(0, i).join('/'));
-      if (paths.has(candidate)) {
-        activeCategory = candidate;
-        break;
-      }
-    }
+    const paths = new Set(items.map((el) => el.dataset.category ?? ''));
+    const activeCategory = activeCategoryOf(rest, paths);
 
     for (const el of items) {
       if (el.dataset.category !== activeCategory) {
@@ -94,7 +86,7 @@ export function createRowState(env: RowStateEnv): RowState {
     // 标签页 /posts/tag/<tag>/：chip 只渲染真实标签，按文本匹配即可。
     // 必须"每次"都跑 toggle（含 activeTag 为空）：否则从标签页切走时旧 chip 的
     // chip--active 不会被摘掉，高亮残留到其他界面
-    const activeTag = rest[0] === 'tag' && rest.length === 2 ? decodeURIComponent(rest[1]) : '';
+    const activeTag = activeTagOf(rest);
     for (const chip of sidebar.querySelectorAll<HTMLElement>('.chip')) {
       chip.classList.toggle('chip--active', chip.textContent?.trim() === activeTag);
     }

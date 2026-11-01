@@ -11,13 +11,19 @@
   let days = $state(0);
   let projectsCount = $state(0);
   let projectsLoaded = $state(false);
+  // 拉取失败时显示占位，别把「拿不到」渲染成 0 个项目
+  let projectsFailed = $state(false);
   let midnightTimer: ReturnType<typeof setTimeout> | undefined;
   let isAlive = false;
 
+  /** 起始日按本地日历日算，天数走自然日差：不受时区把 UTC 零点挪成前一天/后一天影响 */
   function computeDays(): number {
-    const start = new Date(startDate);
+    const [y, m, d] = startDate.split('-').map(Number);
+    const start = new Date(y, m - 1, d);
+    if (Number.isNaN(start.getTime())) return 0;
     const now = new Date();
-    return Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   let yearsLabel = $derived.by(() => {
@@ -40,9 +46,10 @@
       const count = await fetchRepoCount();
       if (!isAlive) return;
       projectsCount = count;
-    } catch {
+    } catch (err) {
       if (!isAlive) return;
-      projectsCount = 0;
+      projectsFailed = true;
+      console.error('[DaysCounter] 仓库数量拉取失败', err);
     } finally {
       if (isAlive) projectsLoaded = true;
     }
@@ -92,7 +99,7 @@
   <div class="stat-card glass">
     <span class="stat-label">项目数量</span>
     {#if projectsLoaded}
-      <span class="stat-value">{projectsCount}个</span>
+      <span class="stat-value">{projectsFailed ? '—' : `${projectsCount}个`}</span>
     {:else}
       <span class="stat-value">
         <span

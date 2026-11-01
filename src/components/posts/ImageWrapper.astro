@@ -45,7 +45,9 @@ if (isLocal) {
   }
 }
 
-const imageClass = className || 'w-full h-full object-cover';
+// 尺寸不在这里定：由各调用处的容器规则负责（`.post-cover img` / `.post-card-cover img`），
+// 传了 class 才透传，避免组件自带一套和容器打架的默认尺寸
+const imageClass = className;
 ---
 
 {isLocal && img && (

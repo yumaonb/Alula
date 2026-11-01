@@ -1,5 +1,5 @@
 // tools.ts — 实用工具数据（按分类组织，每个分类含标题与工具列表）
-// 用法：import { toolCategories } from "../../data/tools"
+// 用法：import { toolCategories } from "../data/tools"
 
 export interface ToolItem {
   title: string;

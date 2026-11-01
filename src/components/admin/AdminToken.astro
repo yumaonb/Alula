@@ -11,7 +11,7 @@
 // 正因为依赖密码管理器，表单只留「仓库 + 令牌」两栏：字段一多，部分浏览器就不提示保存了。
 // 仓库一栏同时接受 owner/repo 与完整仓库链接，由 shell.ts 用 parseRepoInput 拆开。
 import { Icon } from 'astro-icon/components';
-import { githubRepo, githubUsername } from '../../data/github';
+import { adminRepo } from '../../data/github';
 
 interface Props {
   part: 'trigger' | 'modal';
@@ -62,8 +62,8 @@ const { part } = Astro.props;
             name="username"
             type="text"
             autocomplete="username"
-            placeholder="yumaonb/Alula"
-            value={`${githubUsername}/${githubRepo}`}
+            placeholder={adminRepo}
+            value={adminRepo}
             required
           />
         </label>

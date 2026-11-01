@@ -86,12 +86,16 @@
   let loading = $state(true);
   let error = $state('');
 
-  function formatDate(iso: string): string {
+  /** 仓库日期按 UTC 渲染：GitHub 返回的是 UTC 时间戳，不按本机时区挪一天 */
+  function formatRepoDate(iso: string): string {
     if (!iso) return '';
-    return new Date(iso).toLocaleDateString('zh-CN', {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      timeZone: 'UTC',
     });
   }
 
@@ -198,7 +202,7 @@
             </svg>
             {repo.forks_count}
           </span>
-          <span class="stat update-time">{formatDate(repo.created_at)}</span>
+          <span class="stat update-time">{formatRepoDate(repo.created_at)}</span>
         </div>
       </a>
     {/each}

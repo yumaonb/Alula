@@ -61,26 +61,4 @@ const { tags, tagUrl, activeTag = '' } = Astro.props;
     flex-wrap: wrap;
     gap: 6px;
   }
-
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 10px;
-    border: none;
-    border-radius: var(--radius-sm);
-    background: var(--rest-bg);
-    box-shadow: inset 0 0 0 1px var(--ring);
-    color: var(--ink);
-    font: inherit;
-    font-size: 0.74rem;
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  .chip--active {
-    color: var(--white);
-    background: var(--active-bg);
-    box-shadow: inset 0 0 0 1px var(--hover-line);
-  }
 </style>

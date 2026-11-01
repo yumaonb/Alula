@@ -43,7 +43,7 @@ if (hasH1 && hasH2) {
               class:list={['toc-item', { 'toc-sub': heading.depth > tocItems[0].depth }]}
               data-target={heading.slug}
             >
-              <a class="toc-link link-plain" data-target={heading.slug}>
+              <a class="toc-link link-plain" href={`#${heading.slug}`} data-target={heading.slug}>
                 {heading.text.replace(/\s*#$/, '')}
               </a>
             </li>

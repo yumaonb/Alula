@@ -8,7 +8,7 @@ import Comments from '../../components/widgets/Comments.astro';
 import ImageWrapper from '../../components/posts/ImageWrapper.astro';
 import { Icon } from 'astro-icon/components';
 import { loadBlogData, renderPost, postBreadcrumbs } from '../../lib/posts-data';
-import { buildCategoryUrl, buildTagUrl, postRoute, postMatchesCategory } from '../../lib/category';
+import { buildCategoryUrl, buildTagUrl, postMatchesCategory } from '../../lib/category';
 import '../../assets/css/posts/markdown.css';
 
 const data = await loadBlogData();
@@ -132,10 +132,7 @@ if (type === 'category') {
         {post.category && (
           <span class="post-meta-item">
             <Icon is:inline name="la:layer-group" class="meta-icon" />
-            <a
-              href={buildCategoryUrl(post.category.split('/'), postRoute)}
-              class="post-meta-link link-plain"
-            >
+            <a href={buildCategoryUrl(post.category.split('/'))} class="post-meta-link link-plain">
               {post.categoryTrail[post.categoryTrail.length - 1].name}
             </a>
           </span>
@@ -163,7 +160,6 @@ if (type === 'category') {
             src={post.image}
             basePath={post.basePath}
             alt={post.title}
-            class="w-full"
             style="width: 100%; height: auto; display: block;"
             sizes="(max-width: 768px) 100vw, 920px"
             widths={[1280, 1920]}

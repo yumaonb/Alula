@@ -66,10 +66,11 @@ export interface BreadcrumbItem {
 }
 
 /* ---- 工具 ---- */
+/** 日期统一输出 YYYY-MM-DD：按 UTC 取值，构建机时区再靠西也不会把日期挪前一天 */
 export function formatDate(value: string | Date): string {
   const d = typeof value === 'string' ? new Date(value) : value;
   if (!d || isNaN(d.getTime())) return '';
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return d.toISOString().slice(0, 10);
 }
 
 export function postMatchesCategory(post: PostItem, target: string): boolean {
@@ -81,8 +82,8 @@ export function visiblePosts(posts: PostItem[]): PostItem[] {
   return posts.filter((post) => !post.hidden);
 }
 
-export function buildCategoryUrl(categoryPath: string[], routePrefix: string = postRoute): string {
-  return '/' + [routePrefix, ...categoryPath].join('/') + '/';
+export function buildCategoryUrl(categoryPath: string[]): string {
+  return '/' + [postRoute, ...categoryPath].join('/') + '/';
 }
 
 /** 标签页 URL。标签里可能有空格 / 中文 / `#`，必须编码，否则链接与构建出的静态路径对不上 */
@@ -90,10 +91,41 @@ export function buildTagUrl(tag: string): string {
   return `/${postRoute}/tag/${encodeURIComponent(tag)}/`;
 }
 
+/* ---- 从 URL 反查当前分类 / 标签（构建期首屏与客户端切页共用这一份） ---- */
+
+/** 解码单个路径段。畸形编码（孤立的 `%`）原样返回，不让一个坏链接把整个侧栏搞崩 */
+function decodeSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return segment;
+  }
+}
+
+/** 取出 URL 里文章区之后的部分；不在文章区下时返回空数组 */
+export function postPathSegments(pathname: string): string[] {
+  const segments = pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+  const at = segments.indexOf(postRoute);
+  return at >= 0 ? segments.slice(at + 1) : [];
+}
+
+/** 在已知分类路径里找 URL 对应的最长前缀，即「当前所在分类」；找不到返回空串 */
+export function activeCategoryOf(segments: string[], known: Set<string>): string {
+  for (let i = segments.length; i > 0; i--) {
+    const candidate = decodeSegment(segments.slice(0, i).join('/'));
+    if (known.has(candidate)) return candidate;
+  }
+  return '';
+}
+
+/** 标签页 `/posts/tag/<tag>/` 里的标签名；不是标签页返回空串 */
+export function activeTagOf(segments: string[]): string {
+  return segments[0] === 'tag' && segments.length === 2 ? decodeSegment(segments[1]) : '';
+}
+
 export function buildCategoryTrail(
   category: string,
   meta: Record<string, CategoryMeta>,
-  routePrefix: string = postRoute,
 ): CategoryTrailItem[] {
   const parts = category.split('/').filter(Boolean);
   const trail: CategoryTrailItem[] = [];
@@ -102,7 +134,7 @@ export function buildCategoryTrail(
     current.push(seg);
     trail.push({
       name: meta[current.join('/')]?.name || seg,
-      url: buildCategoryUrl(current, routePrefix),
+      url: buildCategoryUrl(current),
     });
   }
   return trail;

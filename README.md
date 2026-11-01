@@ -1,6 +1,6 @@
 # Alula
 
-![Node.js >= 18](https://img.shields.io/badge/node.js->=18-339933?logo=node.js&logoColor=white)
+![Node.js 18.20.8+](https://img.shields.io/badge/node.js-18.20.8%20%7C%20%5E20.3.0%20%7C%20%3E%3D22-339933?logo=node.js&logoColor=white)
 ![pnpm >= 11](https://img.shields.io/badge/pnpm->=11-F69220?logo=pnpm&logoColor=white)
 
 > 以羽之轻，驭速之行
@@ -23,14 +23,15 @@
 
 ## 命令
 
-| 命令           | 说明                               |
-| -------------- | ---------------------------------- |
-| `pnpm install` | 安装依赖                           |
-| `pnpm dev`     | 启动本地开发服务器                 |
-| `pnpm build`   | 构建生产版本到 `./dist/`           |
-| `pnpm preview` | 本地预览构建结果                   |
-| `pnpm check`   | 运行 astro check（类型与模板诊断） |
-| `pnpm format`  | 用 Prettier 全量格式化             |
+| 命令                | 说明                               |
+| ------------------- | ---------------------------------- |
+| `pnpm install`      | 安装依赖                           |
+| `pnpm dev`          | 启动本地开发服务器                 |
+| `pnpm build`        | 构建生产版本到 `./dist/`           |
+| `pnpm preview`      | 本地预览构建结果                   |
+| `pnpm check`        | 运行 astro check（类型与模板诊断） |
+| `pnpm format`       | 用 Prettier 全量格式化             |
+| `pnpm format:check` | 只检查格式，不改文件               |
 
 > pnpm 11 起，除认证与源（`.npmrc`）以外的配置一律写在 `pnpm-workspace.yaml`；
 > 根 `package.json` 的 `"pnpm"` 字段不再被读取。允许执行安装脚本的依赖在 `allowBuilds` 里声明。
@@ -40,21 +41,28 @@
 ```
 src/
 ├── assets/
-│   ├── css/          # 全局样式、工具类、变量
-│   ├── images/       # 头像、背景图
-│   └── js/           # 汉堡菜单等脚本
+│   ├── backgrounds/     # 全站背景预设（css/ 绘制方案 + images/ 图片）
+│   ├── css/             # 全局样式：variables/global/utilities + shared/ + posts/ + admin/
+│   ├── images/          # 头像
+│   └── js/              # 客户端脚本：nav/ posts/ ui/ util/ data/ admin/
 ├── components/
-│   ├── layout/       # NavBar、Footer
-│   └── widgets/      # Clock、Quote、DaysCounter、TechStack、ProjectsGrid
-├── content/          # Markdown 内容（关于页）
-├── data/             # 一言数据
-├── layouts/          # BaseLayout
-└── pages/            # 页面路由
+│   ├── layout/          # NavBar、Footer、SideWidgets、Background
+│   ├── posts/           # 文章区：卡片、目录、分类树、搜索、筛选抽屉
+│   └── widgets/         # Clock、Quote、DaysCounter、TechStack、ProjectsGrid
+├── content/
+│   ├── about.md         # 关于页正文
+│   └── posts/           # 文章（目录结构即分类）
+├── data/                # 站点配置与数据（site / nav / profile / github …）
+├── layouts/             # BaseLayout（全站壳）、PostsShell（文章区）、AdminLayout（后台）
+├── lib/                 # 构建期纯函数：category / posts-data / nav-match / content-image
+└── pages/               # 页面路由
     ├── index.astro       # 首页
     ├── about.astro       # 关于
     ├── projects.astro    # 项目
+    ├── tools.astro       # 实用工具
     ├── friends.astro     # 友情链接
-    └── sponsor.astro     # 赞助
+    ├── sponsor.astro     # 赞助
+    └── posts/            # 文章列表 / 详情 / 分类 / 标签 / rss.xml
 ```
 
 ## 许可证

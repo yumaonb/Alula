@@ -1,6 +1,8 @@
 // image-fallback.ts — 图片加载失败降级：正文图替换为占位块、封面图隐藏
 // 用法：由 BaseLayout 引入：import "../assets/js/ui/image-fallback"
 // 扫尾：图片可能在监听器挂上前已出结果，初始化 / swup 切页时都重扫一次
+import { imageKindOf } from './image-kind';
+
 (() => {
   if (window.__alula_image_fallback_bound) return;
   window.__alula_image_fallback_bound = true;
@@ -45,11 +47,12 @@
    * 仍在加载中的图片不在此处理，由下面的捕获监听接管；因此本函数幂等，可重复调用。
    */
   function initImg(img: HTMLImageElement): void {
-    if (img.closest('.post-cover, .post-card-cover')) {
+    const kind = imageKindOf(img);
+    if (kind === 'cover' || kind === 'card-cover') {
       if (img.complete && img.naturalWidth === 0) img.classList.add('img-failed');
       return;
     }
-    if (!img.closest('.markdown-body')) return;
+    if (kind !== 'body') return;
     if (!img.complete) return;
 
     if (img.naturalWidth === 0) replaceWithPlaceholder(img);
@@ -67,7 +70,7 @@
     (e) => {
       const target = e.target;
       if (!(target instanceof HTMLImageElement)) return;
-      if (target.closest('.markdown-body')) target.classList.add('img-loaded');
+      if (imageKindOf(target) === 'body') target.classList.add('img-loaded');
     },
     true,
   );
@@ -79,14 +82,15 @@
       const target = e.target;
       if (!(target instanceof HTMLImageElement)) return;
 
+      const kind = imageKindOf(target);
       // 文章详情封面 / 列表卡片封面：隐藏，露出占位背景
-      if (target.closest('.post-cover, .post-card-cover')) {
+      if (kind === 'cover' || kind === 'card-cover') {
         target.classList.add('img-failed');
         return;
       }
 
       // 文章正文图片：替换为占位块
-      if (target.closest('.markdown-body')) {
+      if (kind === 'body') {
         replaceWithPlaceholder(target);
       }
     },

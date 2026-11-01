@@ -1,6 +1,12 @@
-// drawer.ts — 抽屉组件的公共挂载流程（打开入口 / 切页关闭 / 进桌面端关闭 / 销毁归还滚动锁）
-// 用法：在组件的 onMount 里 return mountDrawer({ ... })，各组件只保留自己的开关细节
-import { unlockBodyScroll } from '../util/body-scroll-lock';
+// drawer.ts — 抽屉公共流程：开合状态、滚动锁、焦点归还、关闭来源、切页与跨界关闭
+// 用法：在组件的 onMount 里 return mountDrawer({ ... })；开合逻辑用 createDrawer({ ... }) 建
+//
+// 目录抽屉与筛选抽屉的外壳不同（一个常驻目录节点、一个把侧栏筛选搬进抽屉），
+// 但「怎么算打开」「打开时锁滚动 / 记住焦点并聚焦关闭按钮」「Esc 与遮罩关闭」
+// 「关闭时解锁并归还焦点」这套流程完全一致，改一处忘另一处就会出现
+// 锁了滚动没解锁、焦点丢到 body、Esc 在某个抽屉里不响应之类的不对称问题，
+// 所以只在这里写一份。组件只提供差异：入口按钮 id、打开前的准备、搬节点的时机。
+import { lockBodyScroll, unlockBodyScroll } from '../util/body-scroll-lock';
 
 export interface DrawerHooks {
   /** 抽屉根节点，挂到 body 上避免被浮层的层叠上下文压住 */
@@ -44,4 +50,89 @@ export function mountDrawer({ modalEl, isOpen, open, close, bindEntry }: DrawerH
     unbindDesktop();
     document.removeEventListener('swup:visit:start', closeIfOpen);
   };
+}
+
+export interface DrawerControllerHooks {
+  modalEl: () => HTMLElement | null;
+  isOpen: () => boolean;
+  setOpen: (open: boolean) => void;
+  /** 入口按钮 id：开合时同步它的 aria-expanded */
+  fabId: string;
+  /** 打开前的准备与检查，返回 false 放弃本次打开（如抽屉里没有内容可展示） */
+  canOpen?: () => boolean;
+  /** 锁滚动之前执行（把要展示的节点搬进抽屉） */
+  onBeforeOpen?: () => void;
+  /** 锁滚动之后、聚焦关闭按钮之前执行（重测几何） */
+  onOpened?: () => void;
+  /** 解锁滚动之后、归还焦点之前执行（把搬进来的节点放回原位） */
+  onClosed?: () => void;
+  /** 点中这些选择器也关闭抽屉（遮罩、关闭按钮、抽屉里的跳转链接） */
+  closeOn: string[];
+  /** 打开后要聚焦的元素 */
+  focusOn: string;
+}
+
+export interface DrawerController {
+  open: () => void;
+  close: () => void;
+  /** 挂到 <svelte:window onkeydown> */
+  onKeydown: (e: KeyboardEvent) => void;
+  /** 挂到抽屉根节点的 onclick */
+  onPanelClick: (e: Event) => void;
+}
+
+export function createDrawer({
+  modalEl,
+  isOpen,
+  setOpen,
+  fabId,
+  canOpen,
+  onBeforeOpen,
+  onOpened,
+  onClosed,
+  closeOn,
+  focusOn,
+}: DrawerControllerHooks): DrawerController {
+  let lastFocus: HTMLElement | null = null;
+
+  function syncFabExpanded(open: boolean): void {
+    document.getElementById(fabId)?.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  function open(): void {
+    if (isOpen()) return;
+    if (canOpen && !canOpen()) return;
+    onBeforeOpen?.();
+    setOpen(true);
+    syncFabExpanded(true);
+    lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    lockBodyScroll();
+    onOpened?.();
+    // 等抽屉过渡开始后聚焦：立刻聚焦会让浏览器把焦点滚进面板，抢掉开合动画
+    requestAnimationFrame(() => {
+      modalEl()?.querySelector<HTMLElement>(focusOn)?.focus();
+    });
+  }
+
+  function close(): void {
+    if (!isOpen()) return;
+    setOpen(false);
+    syncFabExpanded(false);
+    unlockBodyScroll();
+    onClosed?.();
+    lastFocus?.focus();
+    lastFocus = null;
+  }
+
+  function onKeydown(e: KeyboardEvent): void {
+    if (e.key === 'Escape' && isOpen()) close();
+  }
+
+  function onPanelClick(e: Event): void {
+    const target = e.target;
+    if (!(target instanceof Element)) return;
+    if (closeOn.some((selector) => target.closest(selector))) close();
+  }
+
+  return { open, close, onKeydown, onPanelClick };
 }

@@ -28,6 +28,8 @@
 // 切页后）且距离 > SNAP_MAX_PX 才是状态矫正、瞬移就位。
 // 帧循环：单 rAF、滚动驱动（哨兵与过渡同通道）、收敛后自动停摆（静止零开
 // 销）。竖线位移走 translateY（合成器通道）而非 top（布局通道）。
+import { queryPostSidebar, queryTocNav } from './post-sidebar';
+
 (() => {
   if (window.__tocInit) return;
   window.__tocInit = true;
@@ -452,7 +454,7 @@
   let navEl: HTMLElement | null = null;
 
   function sidebarHost(): HTMLElement | null {
-    return document.querySelector<HTMLElement>('.post-sidebar');
+    return queryPostSidebar();
   }
 
   /** 目录节点该在的宿主：手机端抽屉容器、桌面端侧栏 */
@@ -470,7 +472,7 @@
   }
 
   const initToc = (): void => {
-    if (!navEl || !navEl.isConnected) navEl = document.querySelector<HTMLElement>('.toc-nav');
+    if (!navEl || !navEl.isConnected) navEl = queryTocNav();
     measure();
     // 观察器首次回调即落位初始活动项（深链时触发状态矫正瞬移）
     layoutMarks();
@@ -489,7 +491,7 @@
   document.addEventListener('swup:content:replace', () => {
     // 目录整块重建：新页侧栏里是新节点，抽屉里可能还留着上一页那份——只留新的
     const main = document.getElementById('swup');
-    const fresh = main?.querySelector<HTMLElement>('.toc-nav') ?? null;
+    const fresh = main ? queryTocNav(main) : null;
     document.querySelectorAll<HTMLElement>('.toc-modal-body .toc-nav').forEach((n) => n.remove());
     navEl = fresh;
     lastActiveIdx = -1;

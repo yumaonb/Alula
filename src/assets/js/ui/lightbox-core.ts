@@ -4,6 +4,9 @@ import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import PhotoSwipe from 'photoswipe';
 import type { SlideData } from 'photoswipe';
 import 'photoswipe/style.css';
+
+import { zoomableImages } from './image-kind';
+
 import '../../css/shared/lightbox.css';
 
 // 复用同一个 Lightbox 实例（不会重复绑定任何 DOM，仅暴露 loadAndOpen 动态打开）
@@ -22,11 +25,10 @@ const lightbox = new PhotoSwipeLightbox({
  * 收集当前页面可放大的图片，构造 photoswipe 数据源。
  * 顺序：文章详情页封面图（若有）排在第一位，其后为正文图片（按出现顺序）。
  * 每项带 element（用于从缩略图放大的动画）与宽高（photoswipe 布局必需）。
+ * 哪些图参与见 image-kind.ts，与点击入口用的是同一份判断。
  */
 function buildDataSource(): SlideData[] {
-  const coverImg = document.querySelector<HTMLImageElement>('.post-cover img');
-  const imgs: HTMLImageElement[] = coverImg ? [coverImg] : [];
-  imgs.push(...document.querySelectorAll<HTMLImageElement>('.markdown-body img'));
+  const imgs = zoomableImages(document);
 
   return imgs.map((img) => {
     const w = parseInt(img.getAttribute('width') ?? '0', 10);

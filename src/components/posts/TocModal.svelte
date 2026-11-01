@@ -4,58 +4,33 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  import { lockBodyScroll, unlockBodyScroll } from '../../assets/js/util/body-scroll-lock';
-  import { mountDrawer } from '../../assets/js/ui/drawer';
+  import { queryTocNav } from '../../assets/js/posts/post-sidebar';
+  import { createDrawer, mountDrawer } from '../../assets/js/ui/drawer';
 
   import '../../assets/css/shared/drawer.css';
 
   let isOpen = $state(false);
-  let lastFocus: HTMLElement | null = null;
   let modalEl: HTMLDivElement | null = null;
   let bodyEl: HTMLDivElement | null = null;
 
-  function setFabExpanded(v: boolean): void {
-    const fab = document.getElementById('toc-fab');
-    if (fab) fab.setAttribute('aria-expanded', v ? 'true' : 'false');
-  }
-
-  function open(): void {
-    if (isOpen) return;
-    if (!bodyEl || !window.__toc || !document.querySelector('.toc-nav')) return;
-    isOpen = true;
-    setFabExpanded(true);
-    lastFocus = document.activeElement as HTMLElement | null;
-    lockBodyScroll();
-    // 先确保节点在位（版面跨界 / 切页漏了一次也不会开出空抽屉），
-    // 再重测：锁滚动后滚动条消失、整页重排，目录几何要重来
-    window.__toc?.ensure();
-    window.__toc?.remeasure();
-    requestAnimationFrame(() => {
-      modalEl?.querySelector('.toc-modal-close')?.focus();
-    });
-  }
-
-  function close(): void {
-    if (!isOpen) return;
-    isOpen = false;
-    setFabExpanded(false);
-    unlockBodyScroll();
-    lastFocus?.focus();
-  }
-
-  function onKeydown(e: KeyboardEvent): void {
-    if (e.key === 'Escape' && isOpen) close();
-  }
-
-  function onModalClick(e: MouseEvent): void {
-    const target = e.target as HTMLElement | null;
-    if (!target) return;
-    if (target.closest('[data-toc-close]')) {
-      close();
-      return;
-    }
-    if (target.closest('.toc-link')) close();
-  }
+  const drawer = createDrawer({
+    modalEl: () => modalEl,
+    isOpen: () => isOpen,
+    setOpen: (open) => {
+      isOpen = open;
+    },
+    fabId: 'toc-fab',
+    canOpen: () => !!bodyEl && !!window.__toc && !!queryTocNav(),
+    onOpened: () => {
+      // 先确保节点在位（版面跨界 / 切页漏了一次也不会开出空抽屉），
+      // 再重测：锁滚动后滚动条消失、整页重排，目录几何要重来
+      window.__toc?.ensure();
+      window.__toc?.remeasure();
+    },
+    // 点目录项跳转前先关抽屉
+    closeOn: ['[data-toc-close]', '.toc-link'],
+    focusOn: '.toc-modal-close',
+  });
 
   /** 入口按钮在 SideWidgets 容器内，容器级事件委托即可（与挂载顺序无关） */
   onMount(() => {
@@ -67,8 +42,8 @@
     const unmount = mountDrawer({
       modalEl,
       isOpen: () => isOpen,
-      open,
-      close,
+      open: drawer.open,
+      close: drawer.close,
       bindEntry: (openDrawer) => {
         const widgets = document.getElementById('side-widgets');
         if (!widgets) return () => {};
@@ -87,7 +62,7 @@
   });
 </script>
 
-<svelte:window onkeydown={onKeydown} />
+<svelte:window onkeydown={drawer.onKeydown} />
 
 <div
   bind:this={modalEl}
@@ -97,8 +72,7 @@
   aria-modal="true"
   aria-label="文章目录"
   tabindex="-1"
-  onclick={onModalClick}
-  onkeydown={onKeydown}
+  onclick={drawer.onPanelClick}
 >
   <div class="toc-modal-mask drawer-mask" data-toc-close></div>
   <div class="toc-modal-panel drawer-panel glass">
@@ -111,7 +85,7 @@
           aria-hidden="true"
         >
           <path
-            d="M4 5v6h6V5zm2 2h2v2H6zm6 0v2h15V7zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2z"
+            d="M4 5v6h6V5zm2 2v2H6V7zm6 0v2h15V7zm-8 6v6h6v-6zm2 2v2H6v-2zm6 0v2h15v-2zm-8 6v6h6v-6zm2 2v2H6v-2zm6 0v2h15v-2z"
           />
         </svg>
         文章目录
@@ -120,7 +94,7 @@
         class="toc-modal-close drawer-close hoverable"
         data-toc-close
         aria-label="关闭目录"
-        onclick={close}
+        onclick={drawer.close}
       >
         <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
           <path

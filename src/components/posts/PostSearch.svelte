@@ -22,6 +22,9 @@
     search: (query: string) => Promise<{ results: Array<{ data: () => Promise<PagefindResult> }> }>;
   }
 
+  // 关键词不随切页清空（刻意设计）：搜索框行级常驻、切页不重建，读者搜到一篇文章点进去读完，
+  // 搜索里还留着关键词，回列表或再搜一次都不用重打。同理结果下拉也保留——能从列表里继续翻下一篇。
+  // 所以本组件不监听 swup / astro 的切页事件去重置状态。
   let kw = $state('');
   let results = $state<PagefindResult[]>([]);
   let activeIndex = $state(-1);

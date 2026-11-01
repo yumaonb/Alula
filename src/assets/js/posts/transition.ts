@@ -9,7 +9,9 @@ import type { AnimationPlaybackControls } from 'motion';
 
 import type { SearchFloatCtl } from './search-float';
 import type { Strip } from './strip';
+import { queryPostSidebar } from './post-sidebar';
 import { EASE, EASE_ENTRY, EASE_EXIT, EDGE_MS, PHASE_MS } from './transition-tokens';
+import { detectPageKind } from '../util/page-kind';
 
 // 手机端（≤768px）：新内容滑动距离（退场上移与整页推入同缓动（EASE）、时长按位移
 // 距离等比，位移必须小于手机端列式页头的标题↔搜索间隙 16px，否则入场落回会蹭到
@@ -91,13 +93,13 @@ export function createTransition(env: TransitionEnv): Transition {
       const slot = old.parentElement;
       if (slot?.classList.contains('posts-edge-slot')) slot.style.transform = '';
       oldHadSearch = !!old.querySelector('.posts-header-search');
-      oldIsPost = old.classList.contains('posts-breadcrumb');
+      oldIsPost = main ? detectPageKind(main).detail : false;
       edgeClone = strip.cloneIntoRow(old, r, 'posts-edge-clone');
       // 克隆全程钉死 filter: none：带过滤层的克隆被移除时，下方新标题会因合成层重栅格
       // 闪一下（新条带本身已不挂 filter，此为防御性钉死）
       if (edgeClone) edgeClone.style.filter = 'none';
     }
-    const oldToc = main?.querySelector<HTMLElement>('.post-sidebar');
+    const oldToc = main ? queryPostSidebar(main) : null;
     if (oldToc && getComputedStyle(oldToc).display !== 'none') {
       oldToc.style.transform = '';
       oldToc.style.opacity = '';
@@ -120,12 +122,12 @@ export function createTransition(env: TransitionEnv): Transition {
     // 离开文章区时唯一命中的会是克隆自己（两个动画加到同一节点互相覆盖）
     const main = r?.querySelector<HTMLElement>('main#swup');
     const newEdge = main?.querySelector<HTMLElement>('.posts-header, .posts-breadcrumb') ?? null;
-    const newTocEl = main?.querySelector<HTMLElement>('.post-sidebar') ?? null;
-    // ≤850px 目录 display:none，不参与
+    // ≤850px 目录 display:none，不参与；克隆不算（见 post-sidebar.ts）
+    const newTocEl = main ? queryPostSidebar(main) : null;
     const hasNewToc = !!newTocEl && getComputedStyle(newTocEl).display !== 'none';
     const newHadSearch = !!newEdge?.querySelector('.posts-header-search');
     // 新页是文章详情（区分区内/跨区）
-    const newIsPost = !!main?.querySelector<HTMLElement>('.post-content');
+    const newIsPost = main ? detectPageKind(main).detail : false;
     // 列表→文章（旧页必为列表系）
     const opening = oldHadSearch && !newHadSearch;
     // 文章→列表（旧页必为文章详情）
@@ -170,14 +172,14 @@ export function createTransition(env: TransitionEnv): Transition {
         entryAction = () => floatCtl.enterMobile();
       }
     } else if (tocClone) {
-      // 文章↔文章：两侧都有目录 → 并行交叉渐隐（不参与相位，见下）
-      const crossfade = hasNewToc;
-      if (!crossfade) {
+      // 旧页有目录：新页也有目录时交给下方「先退场再入场」，这里只管新页没目录（文章→列表）
+      const bothHaveToc = hasNewToc;
+      if (!bothHaveToc) {
         // 目录退场：电脑端右移移出屏渐隐——位移与渐隐同步（PHASE_MS/EASE_EXIT），
         // 与搜索框移动切换同节奏；其他只渐隐
         exitAction = () => {
           const el = tocClone as HTMLElement;
-          // 先钉到当前视口位置（同文章↔文章分支）：克隆挂行内（文档坐标），深滚动位
+          // 先钉到当前视口位置（同下方两侧都有目录的退场）：克隆挂行内（文档坐标），深滚动位
           // 出发时退场窗口内页面正高速回顶（SwupScrollPlugin）——不钉的话右滑 + 渐隐
           // 会被滚动「带走」（视口 top 随 scrollY 减小而增大，退场读作向右下漂）；
           // 减动效只渐隐不位移时也钉（原地渐隐同样会被带走）。rect 必须在任何

@@ -1,14 +1,11 @@
 // posts-shell.ts — 文章区常驻壳（.page-main 行）的运行时控制器
 // 用法：由 BaseLayout 引入：import "../assets/js/posts/posts-shell"
 //
-// 侧边栏与搜索框都在 #swup 之外、切页不重建，每次切页后本文件负责：
-// ① 行变体类（--plain / --listing / --post，驱动侧栏与搜索显隐、内容列收窄）；
-// ② 侧栏顶偏移 --posts-side-offset（页锚高度 + 间隙）；
-// ③ 侧栏高亮（当前分类路径补展开、当前标签高亮）；
-// ④ 搜索浮层按页头占位符的行内坐标定位；
-// ⑤ 文章区切页转场（motion 驱动：条带模糊交叉、搜索/目录退场配对、手机端整页推拉）。
-// ①–③ 在 posts/row-state.ts，④ 的摆位与浮层状态机在 posts/search-float.ts，⑤ 在
-// posts/transition.ts（过场件在 posts/strip.ts）；本文件只做环境探测、动画登记与接线。
+// 侧边栏与搜索框都在 #swup 之外、切页不重建，切页后要据此重跑一遍。具体实现在各分件：
+// 行变体类 / 侧栏顶偏移 / 侧栏高亮 → posts/row-state.ts
+// 搜索浮层摆位与状态机 → posts/search-float.ts
+// 转场编排 → posts/transition.ts（过场件在 posts/strip.ts）
+// 本文件只做环境探测、动画登记与接线。
 //
 // 转场只在文章区界面之间播放，跨区直接落位；所有动画延迟到下一个出帧的 rAF 起播，
 // 避免主线程繁忙时墙钟空转、动画直接跳到终帧。
@@ -145,9 +142,13 @@ import { createTransition } from './transition';
     if (!r || r.classList.contains('page-main--plain')) return;
     if (!document.getElementById('category-tree')) return;
     importing = true;
-    import('./category-tree').finally(() => {
-      importing = false;
-    });
+    import('./category-tree')
+      .catch((err: unknown) => {
+        console.error('[posts-shell] category-tree 懒加载失败，分类树将无交互', err);
+      })
+      .finally(() => {
+        importing = false;
+      });
   }
 
   function onReady(isSwap = false): void {
@@ -174,6 +175,3 @@ import { createTransition } from './transition';
   document.addEventListener('astro:after-swap', () => onReady(true));
   onReady();
 })();
-
-// 标记为模块：文件顶层有 import，TS 模块检查要求显式模块语义
-export {};

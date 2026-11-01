@@ -1,5 +1,5 @@
 // breakpoint.ts — 共享的移动端/桌面端断点监听器
-// 用法：import { onEnterDesktop } from "../../assets/js/nav/breakpoint"
+// 用法：import { onEnterDesktop } from "./breakpoint"
 // 769 与全站 @media (max-width: 768px) 互补；改这里要同步 CSS 里所有 768 断点
 const mq = window.matchMedia('(min-width: 769px)');
 const subscribers = new Set<() => void>();

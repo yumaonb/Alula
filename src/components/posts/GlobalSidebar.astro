@@ -7,7 +7,14 @@
 import AuthorCard from '../widgets/AuthorCard.astro';
 import PostCategoryTree from './PostCategoryTree.astro';
 import PostTagCloud from './PostTagCloud.astro';
-import { buildTagUrl, postRoute, type CategoryTreeNode } from '../../lib/category';
+import {
+  activeCategoryOf,
+  activeTagOf,
+  buildCategoryUrl,
+  buildTagUrl,
+  postPathSegments,
+  type CategoryTreeNode,
+} from '../../lib/category';
 
 interface Props {
   /** 分类树（来自 loadBlogData()） */
@@ -20,7 +27,7 @@ const { tree = [], tags = [] } = Astro.props;
 
 const categoryTree = tree;
 
-const catUrl = (path: string) => `/${[postRoute, ...path.split('/')].join('/')}/`;
+const catUrl = (path: string) => buildCategoryUrl(path.split('/'));
 
 /* ---- 当前页对应的分类与标签（高亮 + 自动展开祖先） ---- */
 // 收集分类树中全部分类路径，从 URL 解析出能匹配到分类的最长前缀
@@ -33,23 +40,12 @@ const collect = (nodes: CategoryTreeNode[]) => {
 };
 collect(categoryTree);
 
-const segments = Astro.url.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
-const rpIdx = segments.indexOf(postRoute);
-const catSegments = rpIdx >= 0 ? segments.slice(rpIdx + 1) : segments;
-let activeCategory = '';
-for (let i = catSegments.length; i > 0; i--) {
-  const candidate = decodeURIComponent(catSegments.slice(0, i).join('/'));
-  if (allCatPaths.has(candidate)) {
-    activeCategory = candidate;
-    break;
-  }
-}
-// /posts/tag/<tag>/ 且标签真实存在（排除恰好叫 "tag" 的分类目录）
-let activeTag = '';
-if (catSegments[0] === 'tag' && catSegments.length === 2) {
-  const candidate = decodeURIComponent(catSegments[1]);
-  if (tags.some((t) => t.name === candidate)) activeTag = candidate;
-}
+const catSegments = postPathSegments(Astro.url.pathname);
+const activeCategory = activeCategoryOf(catSegments, allCatPaths);
+
+// 标签页还要确认标签真实存在（排除恰好叫 "tag" 的分类目录）
+const tagCandidate = activeTagOf(catSegments);
+const activeTag = tags.some((t) => t.name === tagCandidate) ? tagCandidate : '';
 ---
 
 <aside class="global-sidebar posts-sidebar">

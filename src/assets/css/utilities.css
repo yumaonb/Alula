@@ -40,7 +40,7 @@
     color var(--t-hover);
 }
 
-/* 已选中的元素（chip / psd-item / cat-item 的 --active 态）不被悬停盖回未选中观感 */
+/* 指针悬停与键盘聚焦同一观感 */
 .hoverable.hoverable:hover,
 .hoverable.hoverable:focus-visible {
   --ring: var(--hover-line);
@@ -49,19 +49,46 @@
   border-color: var(--hover-line);
 }
 
-.hoverable.hoverable.chip--active,
-.hoverable.hoverable.psd-item--active,
-.hoverable.hoverable.cat-item--active {
-  color: var(--white);
-  background: var(--active-bg);
-  border-color: var(--hover-line);
-}
-
 /* 卡片本身是容器、点击目标在内层时，整卡跟着亮 */
 .hoverable.hoverable:has(:hover) {
   --ring: var(--hover-line);
   background: var(--hover-bg);
   border-color: var(--hover-line);
+}
+
+/* 已选中的元素（chip / psd-item 的 --active 态）不被悬停盖回未选中观感。
+ * 必须排在上面两条悬停规则之后：三条特异性同为 (0,3,0)，靠顺序决定谁赢 */
+.hoverable.hoverable.chip--active,
+.hoverable.hoverable.psd-item--active {
+  color: var(--white);
+  background: var(--active-bg);
+  border-color: var(--hover-line);
+}
+
+/* ---- 标签 chip ----
+ * 小标签：淡底 + 内描边，选中态换成 --active-bg 填底。
+ * 全站唯一定义：标签云（PostTagCloud）与筛选抽屉里的标签都用这一份，
+ * 组件里不再各写一套。挂 .hoverable 时悬停与选中由上面几条统一接管。 */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--rest-bg);
+  box-shadow: inset 0 0 0 1px var(--ring);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.74rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.chip--active {
+  color: var(--white);
+  background: var(--active-bg);
+  box-shadow: inset 0 0 0 1px var(--hover-line);
 }
 
 /* ---- 圆形头像 ----
