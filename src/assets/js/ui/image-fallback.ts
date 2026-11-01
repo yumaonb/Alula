@@ -1,5 +1,5 @@
 // image-fallback.ts — 图片加载失败降级：正文图替换为占位块、封面图隐藏
-// 用法：由 BaseLayout 引入：import "../assets/js/image-fallback"
+// 用法：由 BaseLayout 引入：import "../assets/js/ui/image-fallback"
 // 扫尾：图片可能在监听器挂上前已出结果，初始化 / swup 切页时都重扫一次
 (() => {
   if (window.__alula_image_fallback_bound) return;

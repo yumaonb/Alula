@@ -85,6 +85,11 @@ export function buildCategoryUrl(categoryPath: string[], routePrefix: string = p
   return '/' + [routePrefix, ...categoryPath].join('/') + '/';
 }
 
+/** 标签页 URL。标签里可能有空格 / 中文 / `#`，必须编码，否则链接与构建出的静态路径对不上 */
+export function buildTagUrl(tag: string): string {
+  return `/${postRoute}/tag/${encodeURIComponent(tag)}/`;
+}
+
 export function buildCategoryTrail(
   category: string,
   meta: Record<string, CategoryMeta>,

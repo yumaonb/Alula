@@ -187,19 +187,19 @@ const blog = await loadBlogData();
     <PostsFilterModal client:idle />
     <CustomScrollbar />
     <script>
-      import '../assets/js/swup-widgets';
+      import '../assets/js/nav/swup-widgets';
     </script>
     <script>
-      import '../assets/js/posts-shell';
+      import '../assets/js/posts/posts-shell';
     </script>
     <script>
-      import '../assets/js/image-fallback';
+      import '../assets/js/ui/image-fallback';
     </script>
     <script>
-      import '../assets/js/lightbox';
+      import '../assets/js/ui/lightbox';
     </script>
     <script>
-      import '../assets/js/shell-guard';
+      import '../assets/js/nav/shell-guard';
     </script>
     <!-- data-swup-ignore-script：@swup/scripts-plugin（@swup/astro 默认启用）每次切页
       （content:replace）会重跑全 document 的脚本——切到列表页时本脚本会强制把浮层
@@ -212,6 +212,9 @@ const blog = await loadBlogData();
       // 本脚本随文档执行（无网络依赖），在首帧绘制前按页头占位符计算叠放并显出搜索框；
       // posts-shell.ts 加载后重测接管（值一致，无跳变）。仅列表页有占位符，其余页面跳过。
       // 带 data-swup-ignore-script：swup 切页不重跑（重跑会抢在转场编排前显出搜索框）。
+      // 下面的摆位算式是 posts/search-float.ts 里 placeFloat() 的复制品（is:inline 不过
+      // 构建期处理、不能 import），改一处要同改另一处；首帧还没有 transform，
+      // 所以这里不减槽及其祖先的位移。
       (function () {
         const ph = document.querySelector('.page-main .posts-header-search');
         if (!ph) return;

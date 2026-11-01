@@ -18,17 +18,13 @@ import BaseLayout from './BaseLayout.astro';
 import Breadcrumb from '../components/posts/Breadcrumb.astro';
 import TableOfContents from '../components/posts/TableOfContents.astro';
 import PostCard from '../components/posts/PostCard.astro';
+import type { MarkdownHeading } from 'astro';
+
 import type { BreadcrumbItem, PostItem } from '../lib/category';
 import '../assets/css/posts/posts-listing.css';
 
 // 页头标题图标与导航同源（src/data/nav.ts），列表 / 分类 / 标签页都用「文章」条目
 const pageNav = navItem('posts');
-
-interface Heading {
-  depth: number;
-  slug: string;
-  text: string;
-}
 
 interface Props {
   title: string;
@@ -44,7 +40,7 @@ interface Props {
   /** post：面包屑项（渲染为内容列顶部的面包屑条） */
   breadcrumbs?: BreadcrumbItem[];
   /** post：正文标题树（渲染右侧目录） */
-  headings?: Heading[];
+  headings?: MarkdownHeading[];
   /** post：隐藏文章——正文不进站内搜索索引，页面加 noindex（直链访问仍然正常） */
   hidden?: boolean;
 }
@@ -214,8 +210,10 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     padding: 36px 40px;
   }
 
-  /* 目录顶到行顶（82 = 文章变体行 padding-top），与面包屑条顶边同一水平线——
-     顶差 4px 在切页时会闪；sticky 滚动吸附位也随这一起取 82 */
+  /* 目录顶到行顶（82 = 文章变体行 padding-top，见 global.css 的 .page-main--listing / --post），
+     与面包屑条顶边同一水平线——顶差 4px 在切页时会闪；sticky 滚动吸附位也随这一起取 82。
+     改这个 82 要同改另外两处：global.css 变体的 padding-top、assets/js/posts/strip.ts 的
+     入场落位判定（`scrollY <= yToc - 82`） */
   .post-sidebar {
     width: 240px;
     flex-shrink: 0;

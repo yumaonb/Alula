@@ -10,10 +10,11 @@
 // 动画时长按实际位移成比例（450–700ms，偏从容的滑行），改向的短距离也不会一闪而过。
 // 目标链接的 href 一律从 DOM 读取，不写死。
 // 调试：URL 加 ?ntr=1 会在控制台打印线的移动时间线（平时静默）。
-// 用法：由 NavBar.astro 在桌面端动态 import（手机端不加载）：import "../../assets/js/nav-indicator"
+// 用法：由 NavBar.astro 在桌面端动态 import（手机端不加载）：import "../../assets/js/nav/nav-indicator"
 import { animate } from 'motion';
 import type { AnimationPlaybackControls } from 'motion';
-import { navMatch } from '../../lib/nav-match';
+import { navMatch } from '../../../lib/nav-match';
+import { readTranslate } from '../util/dom';
 
 (() => {
   if (window.__navIndicatorInit) return;
@@ -72,10 +73,7 @@ import { navMatch } from '../../lib/nav-match';
 
   /** 读线当前的 x 位置——过渡进行中时返回插值，即它此刻在屏幕上的真实位置 */
   function currentX(indicator: HTMLElement): number {
-    const t = getComputedStyle(indicator).transform;
-    if (t === 'none') return 0;
-    const m = t.match(/matrix\(([^)]+)\)/);
-    return m ? parseFloat(m[1].split(',')[4]) || 0 : 0;
+    return readTranslate(indicator).x;
   }
 
   /**

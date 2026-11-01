@@ -1,2 +1,12 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# 换行符：索引与工作区一律 LF（Windows 下也不随 core.autocrlf 变回 CRLF）。
+# 属性优先于 core.autocrlf：写了 eol=lf，git checkout 不会把文件写回 CRLF，
+# prettier 输出的 LF 与 git 还原的字节一致，不再出现「LF will be replaced by CRLF」噪声。
+* text=auto eol=lf
+
+# 二进制：不做换行转换，也不参与文本 diff
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary

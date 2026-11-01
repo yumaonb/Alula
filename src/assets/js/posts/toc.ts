@@ -1,5 +1,5 @@
 // toc.ts — 文章目录：活动高亮、指示竖线、点击平滑滚动、目录自身滚动隔离
-// 用法：由 TableOfContents.astro 引入：import "../../assets/js/toc"
+// 用法：由 TableOfContents.astro 引入：import "../../assets/js/posts/toc"
 // 检测：IntersectionObserver + 段标记。每个目录条目在正文里放一个不可见的
 // 1px 宽绝对定位 div，覆盖「本标题 → 下一标题」的整段区域（最后一条到文档
 // 末尾）；区域无缝铺满全文，判定线恒在恰好一个区域内。浏览器用 rootMargin
@@ -160,13 +160,21 @@
     lastT = performance.now();
   }
 
+  /** 竖线高度 = 活动项高度。量不到时（宿主还不可见）不写，否则会把 0 写成真值 */
+  function syncBarHeight(idx: number): void {
+    if (idx < 0 || idx >= itemHeights.length) return;
+    const h = itemHeights[idx];
+    if (h <= 0) return;
+    const bar = document.getElementById('toc-bar');
+    if (bar) bar.style.height = `${h}px`;
+  }
+
   function activate(idx: number): void {
     if (idx === lastActiveIdx) return;
     document.querySelectorAll('.toc-item').forEach((item, i) => {
       item.classList.toggle('active', i === idx);
     });
-    const bar = document.getElementById('toc-bar');
-    if (bar) bar.style.height = `${itemHeights[idx]}px`;
+    syncBarHeight(idx);
     // 切项是显式意图：恢复轨道居中（含手动滑走后的下次切项矫正；
     // 点击窗口内不恢复——页面平滑滚动进行中，轨道不动）
     if (!isClickMode) trackFollow = true;
@@ -300,17 +308,23 @@
   // 图片 load/error（捕获阶段）、字体 ready、resize 都会平移标题、打穿标记的显式位置；
   // 重测放 rAF（等布局落定），重测 + 重写标记 + 重定向一次共用过渡（目录几何若变化则顺势修正，否则空操作）
   let remeasurePending = false;
+  /** 重测 + 重排段标记 + 重新落位（容器或视口变了才需要） */
+  function remeasureNow(): void {
+    measure();
+    layoutMarks();
+    // 换宿主 / 解锁滚动后项高会变，竖线高度只在 activate 里写过，这里要补一次
+    syncBarHeight(lastActiveIdx);
+    if (lastActiveIdx >= 0 && lastActiveIdx < slugs.length) {
+      retarget(lastActiveIdx, trackFollow ? document.getElementById('toc-list') : null);
+    }
+    ensureLoop();
+  }
   function requestRemeasure(): void {
     if (remeasurePending) return;
     remeasurePending = true;
     requestAnimationFrame(() => {
       remeasurePending = false;
-      measure();
-      layoutMarks();
-      if (lastActiveIdx >= 0 && lastActiveIdx < slugs.length) {
-        retarget(lastActiveIdx, trackFollow ? document.getElementById('toc-list') : null);
-      }
-      ensureLoop();
+      remeasureNow();
     });
   }
 
@@ -406,6 +420,9 @@
   // 目录滚动不改变它。手动滚动 = 显式意图接管轨道：关闭跟随（滑走不拉回），
   // 接管期间竖线贴住活动项随内容走（滚轮在此现算，触摸走下方轨道 scroll
   // 监听），下一次切项恢复居中。
+  //
+  // 拦截范围包含「目录不可滚 / 已滚到边界」，是有意为之而非疏漏：指针停在目录上时
+  // 视为在操作目录，滚轮一律不传导给页面，页面位置保持不变，不会被顺手带走。
   document.addEventListener(
     'wheel',
     (e: WheelEvent) => {
@@ -426,7 +443,34 @@
     { passive: false },
   );
 
+  /* ---- 目录节点的宿主：桌面端在侧栏，手机端在抽屉 ----
+   * 节点只跟着「版面」走：换宿主只发生在两处——版面跨界（≤850 ↔ >850）
+   * 与切页（目录整块重建）。抽屉开合不再搬节点。 */
+  // 抽屉模式阈值与文章区版面同源：PostsShell.astro 在 ≤850px 隐藏 .post-sidebar，
+  // swup-widgets.ts 的目录按钮同样 ≤850px 出现——改这里要同改那两处
+  const DRAWER_MODE_MQ = window.matchMedia('(max-width: 850px)');
+  let navEl: HTMLElement | null = null;
+
+  function sidebarHost(): HTMLElement | null {
+    return document.querySelector<HTMLElement>('.post-sidebar');
+  }
+
+  /** 目录节点该在的宿主：手机端抽屉容器、桌面端侧栏 */
+  function targetHost(): HTMLElement | null {
+    return DRAWER_MODE_MQ.matches ? (window.__tocDrawerHost ?? null) : sidebarHost();
+  }
+
+  /** 把目录节点放到该在的宿主里；已在位则不动。返回是否搬动了 */
+  function placeNav(): boolean {
+    if (!navEl || !navEl.isConnected) return false;
+    const host = targetHost();
+    if (!host || navEl.parentElement === host) return false;
+    host.appendChild(navEl);
+    return true;
+  }
+
   const initToc = (): void => {
+    if (!navEl || !navEl.isConnected) navEl = document.querySelector<HTMLElement>('.toc-nav');
     measure();
     // 观察器首次回调即落位初始活动项（深链时触发状态矫正瞬移）
     layoutMarks();
@@ -443,33 +487,46 @@
   };
 
   document.addEventListener('swup:content:replace', () => {
+    // 目录整块重建：新页侧栏里是新节点，抽屉里可能还留着上一页那份——只留新的
+    const main = document.getElementById('swup');
+    const fresh = main?.querySelector<HTMLElement>('.toc-nav') ?? null;
+    document.querySelectorAll<HTMLElement>('.toc-modal-body .toc-nav').forEach((n) => n.remove());
+    navEl = fresh;
     lastActiveIdx = -1;
     // 目录整块重建，竖线是全新元素
     barPlaced = false;
     trackPlaced = false;
     trackFollow = true;
     p = 1;
-    requestAnimationFrame(initToc);
+    requestAnimationFrame(() => {
+      placeNav();
+      initToc();
+    });
+  });
+
+  // 版面跨界：节点换宿主（手机端抽屉 ↔ 桌面端侧栏），换完重测几何
+  DRAWER_MODE_MQ.addEventListener('change', () => {
+    if (placeNav()) remeasureNow();
   });
   // 模块脚本在 DOM 解析完成后才执行，直接初始化即可；切页重绑由上面的 swup:content:replace 负责
   initToc();
 
-  /** 瞬移落位（目录抽屉打开）：竖线直接贴活动项（状态矫正），并让列表按
-   * 抽屉新高度流向居中 */
-  window.__tocSnap = () => {
-    if (lastActiveIdx < 0 || lastActiveIdx >= slugs.length) return;
-    // 抽屉已把 .toc-nav 移入新容器：目录项 offsetTop/高度需重测
-    measure();
-    const track = document.getElementById('toc-list');
-    const bar = document.getElementById('toc-bar');
-    if (!track || !bar) return;
-    barPlaced = true;
-    barPos = itemTops[lastActiveIdx] - track.scrollTop;
-    bar.style.height = `${itemHeights[lastActiveIdx]}px`;
-    bar.style.transform = `translateY(${barPos}px)`;
-    p = 1;
-    trackFollow = true;
-    retarget(lastActiveIdx, track);
-    ensureLoop();
+  /* ---- 对外契约：抽屉只登记容器，不搬节点 ----
+   * TocModal 水合后把抽屉容器写进 window.__tocDrawerHost 并调 ensure()，
+   * 此后节点按版面常驻该在的地方；抽屉开合只切类名。 */
+  window.__toc = {
+    /** 归位：节点不在该在的宿主里才搬，搬完重测几何 */
+    ensure(): void {
+      if (placeNav()) remeasureNow();
+    },
+    /** 只重测几何（开抽屉会锁页面滚动、滚动条消失后整页重排，标题位置随之变） */
+    remeasure(): void {
+      remeasureNow();
+    },
   };
+  // 抽屉容器可能先于本脚本登记（岛是 client:idle）——这里立刻补一次归位 + 重测
+  if (window.__tocDrawerHost) {
+    placeNav();
+    remeasureNow();
+  }
 })();

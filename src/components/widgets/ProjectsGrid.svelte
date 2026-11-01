@@ -2,7 +2,7 @@
      用法：<ProjectsGrid client:load />（项目页） -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { fetchRepos, type RepoInfo } from '../../assets/js/github';
+  import { fetchRepos, type RepoInfo } from '../../assets/js/data/github';
 
   const langColors: Record<string, string> = {
     /* ---- 前端框架 ---- */

@@ -2,15 +2,10 @@
 // TableOfContents.astro — 文章目录（编译期生成，滚动高亮）
 // 用法：<TableOfContents headings={headings} />
 import { Icon } from 'astro-icon/components';
-
-interface Heading {
-  depth: number;
-  slug: string;
-  text: string;
-}
+import type { MarkdownHeading } from 'astro';
 
 interface Props {
-  headings: Heading[];
+  headings: MarkdownHeading[];
 }
 
 const { headings } = Astro.props;
@@ -19,7 +14,7 @@ const hasH1 = headings.some((h) => h.depth === 1);
 const hasH2 = headings.some((h) => h.depth === 2);
 const hasH3 = headings.some((h) => h.depth === 3);
 
-let tocItems: Heading[] = [];
+let tocItems: MarkdownHeading[] = [];
 
 if (hasH1 && hasH2) {
   tocItems = headings.filter((h) => h.depth <= 2);
@@ -62,7 +57,7 @@ if (hasH1 && hasH2) {
 )}
 
 <script>
-  import '../../assets/js/toc';
+  import '../../assets/js/posts/toc';
 </script>
 
 <style>

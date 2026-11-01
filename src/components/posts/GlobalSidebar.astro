@@ -7,7 +7,7 @@
 import AuthorCard from '../widgets/AuthorCard.astro';
 import PostCategoryTree from './PostCategoryTree.astro';
 import PostTagCloud from './PostTagCloud.astro';
-import { postRoute, type CategoryTreeNode } from '../../lib/category';
+import { buildTagUrl, postRoute, type CategoryTreeNode } from '../../lib/category';
 
 interface Props {
   /** 分类树（来自 loadBlogData()） */
@@ -21,7 +21,6 @@ const { tree = [], tags = [] } = Astro.props;
 const categoryTree = tree;
 
 const catUrl = (path: string) => `/${[postRoute, ...path.split('/')].join('/')}/`;
-const tagUrl = (name: string) => `/${postRoute}/tag/${encodeURIComponent(name)}/`;
 
 /* ---- 当前页对应的分类与标签（高亮 + 自动展开祖先） ---- */
 // 收集分类树中全部分类路径，从 URL 解析出能匹配到分类的最长前缀
@@ -60,7 +59,7 @@ if (catSegments[0] === 'tag' && catSegments.length === 2) {
     {categoryTree.length > 0 && (
       <PostCategoryTree tree={categoryTree} categoryUrl={catUrl} activeCategory={activeCategory} />
     )}
-    {tags.length > 0 && <PostTagCloud tags={tags} tagUrl={tagUrl} activeTag={activeTag} />}
+    {tags.length > 0 && <PostTagCloud tags={tags} tagUrl={buildTagUrl} activeTag={activeTag} />}
   </div>
 </aside>
 

@@ -2,7 +2,7 @@
      用法：<DaysCounter client:load />（首页 / 关于页） -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { fetchRepoCount } from '../../assets/js/github';
+  import { fetchRepoCount } from '../../assets/js/data/github';
   import { daysCounterConfig } from '../../data/dayscounter';
 
   const { label, startDate } = daysCounterConfig;
@@ -12,6 +12,7 @@
   let projectsCount = $state(0);
   let projectsLoaded = $state(false);
   let midnightTimer: ReturnType<typeof setTimeout> | undefined;
+  let isAlive = false;
 
   function computeDays(): number {
     const start = new Date(startDate);
@@ -28,24 +29,34 @@
     const now = new Date();
     const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
     midnightTimer = setTimeout(() => {
+      if (!isAlive) return;
       days = computeDays();
       scheduleMidnightRefresh();
     }, nextMidnight.getTime() - now.getTime());
   }
 
-  onMount(async () => {
+  async function loadProjects(): Promise<void> {
+    try {
+      const count = await fetchRepoCount();
+      if (!isAlive) return;
+      projectsCount = count;
+    } catch {
+      if (!isAlive) return;
+      projectsCount = 0;
+    } finally {
+      if (isAlive) projectsLoaded = true;
+    }
+  }
+
+  onMount(() => {
+    isAlive = true;
     days = computeDays();
     ready = true;
     scheduleMidnightRefresh();
-    try {
-      projectsCount = await fetchRepoCount();
-    } catch {
-      projectsCount = 0;
-    } finally {
-      projectsLoaded = true;
-    }
+    void loadProjects();
 
     return () => {
+      isAlive = false;
       clearTimeout(midnightTimer);
     };
   });

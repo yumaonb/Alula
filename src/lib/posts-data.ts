@@ -140,16 +140,12 @@ export function postBreadcrumbs(
   post: PostItem,
   meta: Record<string, CategoryMeta>,
 ): BreadcrumbItem[] {
-  const catPath = post.category ? post.category.split('/') : [];
-  const items: BreadcrumbItem[] = [{ label: '文章首页', href: `/${postRoute}/`, icon: 'la:home' }];
-  let current: string[] = [];
-  for (const seg of catPath) {
-    current.push(seg);
-    items.push({
-      label: meta[current.join('/')]?.name || seg,
-      href: `/${[postRoute, ...current].join('/')}/`,
-    });
-  }
-  items.push({ label: post.title });
-  return items;
+  return [
+    { label: '文章首页', href: `/${postRoute}/`, icon: 'la:home' },
+    ...buildCategoryTrail(post.category, meta).map((item) => ({
+      label: item.name,
+      href: item.url,
+    })),
+    { label: post.title },
+  ];
 }

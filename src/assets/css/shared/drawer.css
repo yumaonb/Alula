@@ -1,0 +1,105 @@
+/* drawer.css — 右侧抽屉骨架（目录抽屉 / 筛选抽屉共用）
+   用法：两个 Svelte 抽屉组件在 <script> 里 import 本文件，标记上挂 .drawer / .drawer-mask /
+        .drawer-panel / .drawer-header / .drawer-title / .drawer-title-icon / .drawer-close / .drawer-body，
+        各自的差异（面板高度、内容内边距、被搬入的第三方节点适配）留在组件自己的 <style> 里。 */
+
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  visibility: hidden;
+  pointer-events: none;
+  /* 关闭时让滑出动画播完再撤 visibility；打开时由 .open 把延迟归零 */
+  transition: visibility 0s linear 0.25s;
+}
+
+.drawer.open {
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.drawer-mask {
+  position: absolute;
+  inset: 0;
+  background: var(--mask);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.drawer.open .drawer-mask {
+  opacity: 1;
+}
+
+.drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(320px, 85vw);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius) 0 0 var(--radius);
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.drawer.open .drawer-panel {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 10px 10px 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.drawer-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.drawer-title-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.65;
+}
+
+.drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.drawer-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.drawer-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+@media (max-width: 768px) {
+  .drawer-header {
+    min-height: 56px;
+  }
+}

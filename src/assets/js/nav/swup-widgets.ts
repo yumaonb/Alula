@@ -1,10 +1,12 @@
 // swup-widgets.ts — 侧边悬浮按钮列运行时控制器（可用性 / 显隐 / 进度环 / 点击）
-// 用法：由 BaseLayout 引入：import "../assets/js/swup-widgets"
+// 用法：由 BaseLayout 引入：import "../assets/js/nav/swup-widgets"
 // 职责：可用性按页面类型+视口重估（.unavailable/.compact）；滚动驱动显隐（.visible）；
 //       进度环更新（stroke-dashoffset + 百分比文本）；向上/向下/到评论跳转。
 //       目录（#toc-fab）与筛选（#posts-filter-fab）按钮分别由 TocModal / PostsFilterModal 监听。
 // 切页放行：切页开始即压制按钮，新内容就绪后保持压制，直到页面滚回顶部、
 //       平滑滚动结束（swup:scroll:end），或新内容渲染后 250ms 兜底超时为止。
+import { detectPageKind } from '../util/page-kind';
+
 const container = document.getElementById('side-widgets');
 if (container) initSideWidgets(container);
 
@@ -41,8 +43,7 @@ function initSideWidgets(container: HTMLElement): void {
 
   function pageContext() {
     return {
-      detail: !!document.querySelector('.post-content'),
-      list: !!document.querySelector('.posts-page'),
+      ...detectPageKind(),
       toc: !!document.querySelector('.toc-nav .toc-link'),
       comments: !!document.getElementById('comments-section'),
     };
@@ -52,13 +53,13 @@ function initSideWidgets(container: HTMLElement): void {
     const { detail, list, toc, comments } = pageContext();
     const w = window.innerWidth;
 
-    // 筛选按钮：侧栏不可见时才需要——文章变体 ≤1150px（global.css 侧栏 ≥1151px 显示）、
-    // 列表变体 ≤768px（≥769px 显示），断点互补，改一处另一处跟着改
+    // 筛选按钮：侧栏不可见时才需要——文章变体 ≤1150（global.css:209 侧栏 ≥1151 显示）、
+    // 列表变体 ≤768（≥769 显示），断点互补；改这里要同改 global.css:199–209
     let filterMode = 'none';
     if (detail) filterMode = w <= 1150 ? 'detail' : 'none';
     else if (list) filterMode = w <= 768 ? 'list' : 'none';
 
-    // 目录按钮：右侧目录栏不可见时才需要（PostsShell ≤850px 隐藏右侧栏）
+    // 目录按钮：右侧目录栏不可见时才需要（PostsShell.astro:228 ≤850 隐藏右侧栏）
     markUnavailable('toc', !(toc && w <= 850));
     markUnavailable('comments', !comments);
     markUnavailable('filter', filterMode === 'none');

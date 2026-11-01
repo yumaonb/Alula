@@ -4,7 +4,7 @@ import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import PhotoSwipe from 'photoswipe';
 import type { SlideData } from 'photoswipe';
 import 'photoswipe/style.css';
-import '../css/shared/lightbox.css';
+import '../../css/shared/lightbox.css';
 
 // 复用同一个 Lightbox 实例（不会重复绑定任何 DOM，仅暴露 loadAndOpen 动态打开）
 const lightbox = new PhotoSwipeLightbox({

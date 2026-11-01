@@ -1,7 +1,7 @@
 // github.ts — GitHub 数据查询（带 localStorage 缓存）
-// 用法：import { fetchRepos, fetchRepoCount } from "../../assets/js/github"
+// 用法：import { fetchRepos, fetchRepoCount } from "../../assets/js/data/github"
 
-import { githubUsername, cacheTTL } from '../../data/github';
+import { githubUsername, cacheTTL } from '../../../data/github';
 
 const CACHE_PREFIX = 'gh_';
 

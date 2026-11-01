@@ -84,7 +84,7 @@ const items = navItems.map((item) => ({
 <script>
   // 每页加载断点模块，保证 window.__onEnterDesktop 存在：
   // 汉堡菜单脚本只在移动端加载，目录 / 筛选抽屉从全局取共享的断点监听器
-  import '../../assets/js/breakpoint';
+  import '../../assets/js/nav/breakpoint';
 
   const mq = window.matchMedia('(max-width: 768px)');
   let loaded = false;
@@ -92,7 +92,7 @@ const items = navItems.map((item) => ({
   function loadHamburger() {
     if (!loaded) {
       loaded = true;
-      import('../../assets/js/hamburger');
+      import('../../assets/js/nav/hamburger');
     }
   }
 
@@ -107,7 +107,7 @@ const items = navItems.map((item) => ({
   function loadNavIndicator() {
     if (!navLoaded) {
       navLoaded = true;
-      import('../../assets/js/nav-indicator');
+      import('../../assets/js/nav/nav-indicator');
     }
   }
 

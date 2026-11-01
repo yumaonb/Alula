@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import type { AstroIntegration } from 'astro';
 import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { background } from './src/data/background';
 import svelte from '@astrojs/svelte';
@@ -52,15 +52,86 @@ function stripNonHydrationComments(html: string): string {
   );
 }
 
+/* ---- 构建后处理自检 ----
+ * 下面两段后处理都靠正则直接改产物，正则漏匹配时构建仍然成功、只是悄悄降级：
+ * CSS 变回外链（首帧又要等 CSS 下载）或注释剥离误伤水合锚点（岛屿整岛不水合）。
+ * 这里只断言「恒等式」，不写任何绝对数量——绝对数量会随页面 / 岛屿增加而过时，
+ * 变成「代码合法改动却构建失败」的假失败：
+ *  - 删注释前后，用同一个检测器数水合锚点 / 岛屿标记，必须相等（Astro 换锚点格式时
+ *    两边一起变 0，不会误报；真被删掉才是 N → 0）；
+ *  - 内联之后，用比替换正则更宽的探测器查外链 stylesheet，必须一条不剩
+ *    （探测器宽于替换器，替换正则漏掉时它才抓得到）；
+ *  - 至少处理到一个 HTML 文件（防 outDir 解析错，空转却报成功）。
+ */
+
+/** 去掉 <script> / <style> 块再扫描，避免把内联代码里的字符串当 HTML 数进去 */
+function scanOutsideCode(html: string): string {
+  return html.replace(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>/gi, '');
+}
+
+function countMatches(html: string, pattern: RegExp): number {
+  return [...html.matchAll(pattern)].length;
+}
+
+function countHydrationAnchors(html: string): number {
+  let count = 0;
+  for (const match of scanOutsideCode(html).matchAll(/<!--([\s\S]*?)-->/g)) {
+    if (isHydrationComment(match[1])) count += 1;
+  }
+  return count;
+}
+
+/** 只认「这是一条外链 stylesheet」，不认属性顺序与自闭合写法——故意比替换正则宽 */
+const STYLESHEET_LINK = /<link\b[^>]*\bstylesheet\b[^>]*>/gi;
+const ISLAND_TAG = /<astro-island\b/g;
+
+function relPath(root: string, file: string): string {
+  return relative(root, file).split('\\').join('/');
+}
+
+/** 防空转：处理 0 个文件却报成功，等于后处理从没生效过 */
+function assertHtmlFound(root: string, files: string[]): void {
+  if (files.length > 0) return;
+  throw new Error(
+    `[build] 构建后处理没有找到任何 HTML 产物：${root}\n  先确认 outDir 解析，否则后处理在空转`,
+  );
+}
+
+function assertAnchorsIntact(root: string, file: string, before: string, after: string): void {
+  const anchorsBefore = countHydrationAnchors(before);
+  const anchorsAfter = countHydrationAnchors(after);
+  const islandsBefore = countMatches(before, ISLAND_TAG);
+  const islandsAfter = countMatches(after, ISLAND_TAG);
+  if (anchorsBefore === anchorsAfter && islandsBefore === islandsAfter) return;
+  throw new Error(
+    `[build] strip-safe-comments 误伤了水合标记：${relPath(root, file)}\n` +
+      `  水合锚点 ${anchorsBefore} → ${anchorsAfter}，岛屿标记 ${islandsBefore} → ${islandsAfter}\n` +
+      `  Astro 换了锚点格式就先更新 isHydrationComment()，否则对应的岛会整岛不水合`,
+  );
+}
+
+function assertNoStylesheetLeft(root: string, file: string, after: string): void {
+  const left = [...scanOutsideCode(after).matchAll(STYLESHEET_LINK)];
+  if (left.length === 0) return;
+  throw new Error(
+    `[build] inline-css 没能内联全部外链 CSS：${relPath(root, file)}\n` +
+      `  残留 ${left.length} 条，例如：${left[0][0].slice(0, 160)}\n` +
+      `  Astro 改了 <link> 的写法就先更新 inlineCss 的替换正则，否则首帧会重新等 CSS 下载`,
+  );
+}
+
 function stripSafeComments(): AstroIntegration {
   return {
     name: 'strip-safe-comments',
     hooks: {
       'astro:build:done': async ({ dir: outDir }) => {
         const root = fileURLToPath(outDir);
-        for (const file of collectHtmlFiles(root)) {
+        const files = collectHtmlFiles(root);
+        assertHtmlFound(root, files);
+        for (const file of files) {
           const before = readFileSync(file, 'utf8');
           const after = stripNonHydrationComments(before);
+          assertAnchorsIntact(root, file, before, after);
           if (after !== before) {
             writeFileSync(file, after);
           }
@@ -86,7 +157,9 @@ function inlineCss(): AstroIntegration {
     hooks: {
       'astro:build:done': async ({ dir: outDir }) => {
         const root = fileURLToPath(outDir);
-        for (const file of collectHtmlFiles(root)) {
+        const files = collectHtmlFiles(root);
+        assertHtmlFound(root, files);
+        for (const file of files) {
           const before = readFileSync(file, 'utf8');
           const after = before.replace(
             /<link rel="stylesheet" href="([^"]+\.css)"\s*\/?>/g,
@@ -95,6 +168,7 @@ function inlineCss(): AstroIntegration {
               return `<style>${css}</style>`;
             },
           );
+          assertNoStylesheetLeft(root, file, after);
           if (after !== before) {
             writeFileSync(file, after);
           }

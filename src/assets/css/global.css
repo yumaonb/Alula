@@ -80,7 +80,9 @@ ol {
 
 /* 全站背景容器：方案（css/图片）与具体绘制由 src/assets/backgrounds/ 下的预设负责，
  * 容器自身的定位与层叠在这里，改方案不用动它。
- * 图片方案由 Background.astro 写入 --bg-image 等变量；css 方案只用到 ::before / ::after。 */
+ * 图片方案由 Background.astro 写入 --bg-image 等变量；css 方案只用到 ::before / ::after。
+ * 时间轴两端渐隐会复制一层同样的容器（.bg--clone）塞进遮罩里，
+ * 所以「怎么铺」必须写在只认容器的规则上，不能只挂在表示真实那层的 .bg--image 上。 */
 .bg {
   position: fixed;
   inset: 0;
@@ -91,19 +93,23 @@ ol {
   height: 100lvh;
 }
 
-/* 图片方案：高度永远铺满视口；宽度取「容器宽」与「按高度缩放后的图宽」中的较大者——
+/* 图片方案的铺法：高度永远铺满视口；宽度取「容器宽」与「按高度缩放后的图宽」中的较大者——
  * 视口比图片更宽时横向拉伸填满，更窄时把超出的左右居中裁掉。
  * --bg-ratio 是图片自身宽高比，由 Background.astro 写入，换图片不用改这里。
- * --bg-scrim 为可选的压暗层，默认 0 即不压暗。 */
-.bg--image {
-  background-image: var(--bg-image);
+ * 克隆层跟着铺同一张图，尺寸规则必须同源，否则两层会错位。
+ * css 方案没有 --bg-image，这里的 none 由兜底值给出，不影响预设自己的绘制。 */
+.bg--image,
+.bg--clone {
+  background-image: var(--bg-image, none);
   /* 兜底：万一环境不支持下面的 max()，退回 cover，仍能铺满视口 */
   background-size: cover;
   background-size: max(100%, calc(100lvh * var(--bg-ratio, 1.5))) 100%;
   background-position: center;
   background-repeat: no-repeat;
-  /* 首载从透明起：启动遮罩不再等背景图，图就绪后 .is-ready（BaseLayout 尾部脚本加）
-   * 淡入 0.8s——背景晚到也平滑到位，不在揭幕后「pop」出来 */
+}
+
+/* 首载淡入只属于真实那层：克隆层嵌在渐隐层里，必须常显，否则遮罩里什么都看不到 */
+.bg--image {
   opacity: 0;
   transition: opacity 0.8s ease;
 }
@@ -119,11 +125,21 @@ ol {
   }
 }
 
-.bg--image::before {
-  content: '';
+/* 克隆层跟着遮罩走，层叠压在渐隐层自身的内容里即可，不参与全站层级 */
+.bg--clone {
+  z-index: 0;
+}
+
+/* 压暗层：真实那层用伪元素；克隆层用子元素，避免占掉背景预设自己的 ::before / ::after */
+.bg--image::before,
+.bg-scrim {
   position: absolute;
   inset: 0;
   background-color: rgba(0, 0, 0, var(--bg-scrim, 0));
+}
+
+.bg--image::before {
+  content: '';
 }
 
 /* 主内容行 —— 全站宽度的唯一执行点（BaseLayout 里，所有页面自动遵守）：
@@ -158,7 +174,10 @@ ol {
  * 82+18=100 ≈ (69+132)/2=100.5），内容顶 82+36+14 = 132 不变。
  * 偏移默认值贴合常见首帧（两变体页锚均为 36px 高、间隙 14px，即 50px），防 JS 前的闪跳。
  * --posts-offset-gap 是 .posts-page / .posts-article-main 的 flex gap 的镜像（侧栏偏移测算用），
- * 改那两处的 gap 必须同步改这里 */
+ * 改那两处的 gap 必须同步改这里。
+ * 桌面端这个 82（两个变体同值）还有两个读取点，改这里必须三处同改：
+ * `layouts/PostsShell.astro` 的 `.post-sidebar { top }`（目录吸顶位）、
+ * `assets/js/posts/strip.ts` 的入场落位判定（`scrollY <= yToc - 82`） */
 .page-main--listing {
   --posts-offset-gap: 14px;
   --posts-side-offset: 50px;
@@ -263,12 +282,9 @@ ol {
   align-self: stretch;
 }
 
-/* 左缘元素（列表页头 / 文章面包屑条）切页滑动切换由 motion 驱动（posts-shell.ts ④）：
- * 本文件只保留端点状态（元素自然位置），不写 keyframes/transition——motion 的
- * commitStyles 会把动画终帧写进内联样式，CSS 端点必须与动画终态一致。
- * 规则：流向逐次交替（首次"上"，之后与上一次相反；涉普通屏不播不消耗）；
- * 旧元素克隆沿流向滑出并淡出，新元素自另一侧滑入且进入侧全程不透明
- * （新内容落地瞬间左缘元素即可见，顶部不留空白闪）。 */
+/* 左缘元素（列表页头 / 文章面包屑条）：切页转场由 motion 在 posts-shell.ts ⑤ 驱动，
+ * 本文件只保留端点状态（元素自然位置），不写 keyframes/transition——动画终帧会写进
+ * 内联样式，CSS 端点必须与动画终态一致。旧带原地模糊渐隐、新带原地渐显，条带自身不位移。 */
 
 /* ---- 侧边悬浮按钮列 ---- */
 .side-widgets {

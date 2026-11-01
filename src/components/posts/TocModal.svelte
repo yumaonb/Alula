@@ -1,14 +1,16 @@
 <!-- TocModal.svelte — 文章目录抽屉
      用法：<TocModal client:idle />（BaseLayout 中，#swup 之外，只水合一次）
-     入口：#toc-fab 按钮点击打开；打开时把 .toc-nav 从文章侧栏移入抽屉展示 -->
+     入口：#toc-fab 按钮点击打开；目录节点常驻这里（手机端版面，toc.ts 按版面归位），这里只管抽屉开合 -->
 <script lang="ts">
   import { onMount } from 'svelte';
 
+  import { lockBodyScroll, unlockBodyScroll } from '../../assets/js/util/body-scroll-lock';
+  import { mountDrawer } from '../../assets/js/ui/drawer';
+
+  import '../../assets/css/shared/drawer.css';
+
   let isOpen = $state(false);
   let lastFocus: HTMLElement | null = null;
-  let hosted: Element | null = null;
-  let hostHome: Node | null = null;
-  let navHeader: Element | null = null;
   let modalEl: HTMLDivElement | null = null;
   let bodyEl: HTMLDivElement | null = null;
 
@@ -19,18 +21,15 @@
 
   function open(): void {
     if (isOpen) return;
-    const nav = document.querySelector<HTMLElement>('.toc-nav');
-    if (!nav) return;
+    if (!bodyEl || !window.__toc || !document.querySelector('.toc-nav')) return;
     isOpen = true;
     setFabExpanded(true);
     lastFocus = document.activeElement as HTMLElement | null;
-    hostHome = nav.parentNode;
-    hosted = nav;
-    navHeader = nav.querySelector('.toc-header');
-    if (navHeader) navHeader.remove();
-    bodyEl?.appendChild(nav);
-    if (window.__tocSnap) window.__tocSnap();
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
+    // 先确保节点在位（版面跨界 / 切页漏了一次也不会开出空抽屉），
+    // 再重测：锁滚动后滚动条消失、整页重排，目录几何要重来
+    window.__toc?.ensure();
+    window.__toc?.remeasure();
     requestAnimationFrame(() => {
       modalEl?.querySelector('.toc-modal-close')?.focus();
     });
@@ -40,14 +39,7 @@
     if (!isOpen) return;
     isOpen = false;
     setFabExpanded(false);
-    document.body.style.overflow = '';
-    if (hosted && hostHome && hostHome.isConnected) {
-      hostHome.appendChild(hosted);
-      if (navHeader) hosted.prepend(navHeader);
-    }
-    hosted = null;
-    hostHome = null;
-    navHeader = null;
+    unlockBodyScroll();
     lastFocus?.focus();
   }
 
@@ -66,39 +58,31 @@
   }
 
   /** 入口按钮在 SideWidgets 容器内，容器级事件委托即可（与挂载顺序无关） */
-  function onWidgetsClick(e: MouseEvent): void {
-    const target = e.target as HTMLElement | null;
-    if (target?.closest('#toc-fab')) open();
-  }
-
   onMount(() => {
-    // 挂到 body 防止被 .side-widgets 的 fixed 层叠上下文压住
-    if (modalEl) document.body.appendChild(modalEl);
-
-    const widgets = document.getElementById('side-widgets');
-    widgets?.addEventListener('click', onWidgetsClick);
-
-    // 复用 NavBar 的共享 matchMedia 监听器
-    function onEnterDesktop(): void {
-      if (isOpen) close();
+    // 登记抽屉容器：目录节点在手机端常驻这里（toc.ts 按版面归位）
+    if (bodyEl) {
+      window.__tocDrawerHost = bodyEl;
+      window.__toc?.ensure();
     }
-    if (typeof window.__onEnterDesktop === 'function') {
-      window.__onEnterDesktop(onEnterDesktop);
-    } else {
-      window.matchMedia('(min-width: 769px)').addEventListener('change', (e) => {
-        if (e.matches) onEnterDesktop();
-      });
-    }
-
-    // swup 切页时抽屉必然要关（切走前先关闭）
-    function onVisitStart(): void {
-      if (isOpen) close();
-    }
-    document.addEventListener('swup:visit:start', onVisitStart);
-
+    const unmount = mountDrawer({
+      modalEl,
+      isOpen: () => isOpen,
+      open,
+      close,
+      bindEntry: (openDrawer) => {
+        const widgets = document.getElementById('side-widgets');
+        if (!widgets) return () => {};
+        function onWidgetsClick(e: MouseEvent): void {
+          const target = e.target as HTMLElement | null;
+          if (target?.closest('#toc-fab')) openDrawer();
+        }
+        widgets.addEventListener('click', onWidgetsClick);
+        return () => widgets.removeEventListener('click', onWidgetsClick);
+      },
+    });
     return () => {
-      widgets?.removeEventListener('click', onWidgetsClick);
-      document.removeEventListener('swup:visit:start', onVisitStart);
+      unmount();
+      if (window.__tocDrawerHost === bodyEl) window.__tocDrawerHost = undefined;
     };
   });
 </script>
@@ -107,7 +91,7 @@
 
 <div
   bind:this={modalEl}
-  class="toc-modal"
+  class="toc-modal drawer"
   class:open={isOpen}
   role="dialog"
   aria-modal="true"
@@ -116,12 +100,12 @@
   onclick={onModalClick}
   onkeydown={onKeydown}
 >
-  <div class="toc-modal-mask" data-toc-close></div>
-  <div class="toc-modal-panel glass">
-    <div class="toc-modal-header">
-      <span class="toc-modal-title">
+  <div class="toc-modal-mask drawer-mask" data-toc-close></div>
+  <div class="toc-modal-panel drawer-panel glass">
+    <div class="toc-modal-header drawer-header">
+      <span class="toc-modal-title drawer-title">
         <svg
-          class="toc-modal-title-icon"
+          class="toc-modal-title-icon drawer-title-icon"
           viewBox="0 0 32 32"
           fill="currentColor"
           aria-hidden="true"
@@ -133,7 +117,7 @@
         文章目录
       </span>
       <button
-        class="toc-modal-close hoverable"
+        class="toc-modal-close drawer-close hoverable"
         data-toc-close
         aria-label="关闭目录"
         onclick={close}
@@ -145,80 +129,14 @@
         </svg>
       </button>
     </div>
-    <div class="toc-modal-body" bind:this={bodyEl}></div>
+    <div class="toc-modal-body drawer-body" bind:this={bodyEl}></div>
   </div>
 </div>
 
 <style>
-  .toc-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 110;
-    visibility: hidden;
-    pointer-events: none;
-    transition: visibility 0s linear 0.25s;
-  }
-
-  .toc-modal.open {
-    visibility: visible;
-    pointer-events: auto;
-    transition-delay: 0s;
-  }
-
-  .toc-modal-mask {
-    position: absolute;
-    inset: 0;
-    background: var(--mask);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-
-  .toc-modal.open .toc-modal-mask {
-    opacity: 1;
-  }
-
-  .toc-modal-panel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: min(320px, 85vw);
-    display: flex;
-    flex-direction: column;
-    border-radius: var(--radius) 0 0 var(--radius);
-    transform: translateX(100%);
-    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .toc-modal.open .toc-modal-panel {
-    transform: translateX(0);
-  }
-
+  /* 骨架见 assets/css/shared/drawer.css；这里只留目录抽屉的差异 */
   .toc-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 10px 10px 16px;
     min-height: 68px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    flex-shrink: 0;
-  }
-
-  .toc-modal-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-
-  .toc-modal-title-icon {
-    width: 18px;
-    height: 18px;
-    opacity: 0.65;
   }
 
   @media (max-width: 768px) {
@@ -227,29 +145,13 @@
     }
   }
 
-  .toc-modal-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--ink);
-    cursor: pointer;
-  }
-
-  .toc-modal-close :global(svg) {
-    width: 16px;
-    height: 16px;
-  }
-
   .toc-modal-body {
-    flex: 1;
-    display: flex;
-    min-height: 0;
     padding: 4px 10px 10px;
+  }
+
+  /* 抽屉自己有标题栏，侧栏那行标题在抽屉里隐藏（不再靠摘 DOM 节点） */
+  :global(.toc-modal-body .toc-nav .toc-header) {
+    display: none;
   }
 
   :global(.toc-modal-body .toc-nav) {

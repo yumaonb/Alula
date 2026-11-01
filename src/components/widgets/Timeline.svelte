@@ -62,8 +62,16 @@
 </script>
 
 <div class="timeline">
-  <div class="timeline-fade timeline-fade--left" class:is-on={canPrev} aria-hidden="true"></div>
-  <div class="timeline-fade timeline-fade--right" class:is-on={canNext} aria-hidden="true"></div>
+  <!-- 渐隐层里放一份背景容器的克隆（与 body 里那层同款），由外层遮罩渐隐；
+       这样换背景方案（图片 / 任意 css 预设）都不需要在这里跟着改 -->
+  <div class="timeline-fade timeline-fade--left" class:is-on={canPrev} aria-hidden="true">
+    <div class="bg bg--clone"></div>
+    <div class="bg-scrim"></div>
+  </div>
+  <div class="timeline-fade timeline-fade--right" class:is-on={canNext} aria-hidden="true">
+    <div class="bg bg--clone"></div>
+    <div class="bg-scrim"></div>
+  </div>
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div
     class="timeline-viewport"
@@ -108,7 +116,8 @@
   }
 
   /* ---- 两端渐隐 ----
-   * 铺一层和页面背景完全一致的固定背景，用 mask 渐隐：遮住卡片边缘 = 融入背景。
+   * 这层只管「裁剪 + 遮罩」，画面交给里面那份背景克隆（.bg--clone）去画：
+   * 克隆与真实背景共用 global.css 的铺法，任何背景方案都不用在这里重写一遍。
    * 不能直接把 mask 套在滚动区上——mask 祖先会让卡片里的 backdrop-filter 失效。 */
   .timeline-fade {
     position: absolute;
@@ -119,13 +128,6 @@
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s ease;
-    background-image:
-      linear-gradient(rgba(0, 0, 0, var(--bg-scrim, 0)), rgba(0, 0, 0, var(--bg-scrim, 0))),
-      var(--bg-image);
-    background-attachment: fixed;
-    background-size: max(100%, calc(100lvh * var(--bg-ratio, 1.5))) 100%;
-    background-position: center;
-    background-repeat: no-repeat;
   }
 
   .timeline-fade.is-on {

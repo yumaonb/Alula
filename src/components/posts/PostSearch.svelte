@@ -33,9 +33,16 @@
   let inputEl = $state<HTMLInputElement | null>(null);
   let dropdownEl = $state<HTMLDivElement | null>(null);
   let pagefindMod: PagefindModule | null = null;
+  let lastFailedAt = 0;
+  // 失败后的冷却时长：构建窗口里 dist/pagefind 会短暂缺失，
+  // 冷却结束允许再试，期间直接失败——避免每次输入都重试 3 轮让搜索看起来彻底失效
+  const FAIL_COOLDOWN_MS = 10_000;
 
   async function loadPagefind(): Promise<PagefindModule> {
     if (pagefindMod) return pagefindMod;
+    if (lastFailedAt && Date.now() - lastFailedAt < FAIL_COOLDOWN_MS) {
+      throw new Error('Pagefind 加载已失败');
+    }
     // 重试：构建窗口里 dist/pagefind 短暂缺失（404 / 半截文件）——「搜索像失效」多半出在这里
     let mod: PagefindModule | null = null;
     let lastErr: unknown = null;
@@ -46,8 +53,11 @@
         const text = await resp.text();
         const blob = new Blob([text], { type: 'text/javascript' });
         const url = URL.createObjectURL(blob);
-        mod = (await import(/* @vite-ignore */ url)) as PagefindModule;
-        URL.revokeObjectURL(url);
+        try {
+          mod = (await import(/* @vite-ignore */ url)) as PagefindModule;
+        } finally {
+          URL.revokeObjectURL(url);
+        }
         lastErr = null;
       } catch (e) {
         lastErr = e;
@@ -56,6 +66,7 @@
       }
     }
     if (!mod) {
+      lastFailedAt = Date.now();
       console.error('[PostSearch] Pagefind load failed', lastErr);
       throw lastErr ?? new Error('Pagefind load failed');
     }

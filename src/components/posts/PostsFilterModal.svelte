@@ -4,6 +4,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
+  import { lockBodyScroll, unlockBodyScroll } from '../../assets/js/util/body-scroll-lock';
+  import { mountDrawer } from '../../assets/js/ui/drawer';
+
+  import '../../assets/css/shared/drawer.css';
+
   let isOpen = $state(false);
   let lastFocus: HTMLElement | null = null;
   let filterRoot: Element | null = null;
@@ -13,7 +18,7 @@
   function close(): void {
     if (!isOpen) return;
     isOpen = false;
-    document.body.style.overflow = '';
+    unlockBodyScroll();
     if (sidebar && filterRoot) sidebar.appendChild(filterRoot);
     lastFocus?.focus();
   }
@@ -28,7 +33,7 @@
     lastFocus = document.activeElement as HTMLElement | null;
     const body = modalEl?.querySelector('.pfilter-modal-body');
     if (body && filterRoot) body.appendChild(filterRoot);
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
     requestAnimationFrame(() => {
       const closeBtn = modalEl?.querySelector('.pfilter-modal-close');
       closeBtn?.focus();
@@ -49,41 +54,27 @@
     if (e.key === 'Escape' && isOpen) close();
   }
 
-  onMount(() => {
-    if (modalEl) document.body.appendChild(modalEl);
-
-    const fab = document.getElementById('posts-filter-fab');
-    if (fab) fab.addEventListener('click', open);
-
-    // swup 切页时关闭抽屉（组件在 BaseLayout 中，不会被销毁，无需移除 modalEl）
-    function onVisitStart(): void {
-      close();
-    }
-    document.addEventListener('swup:visit:start', onVisitStart);
-
-    function onEnterDesktop(): void {
-      if (isOpen) close();
-    }
-    if (typeof window.__onEnterDesktop === 'function') {
-      window.__onEnterDesktop(onEnterDesktop);
-    } else {
-      window.matchMedia('(min-width: 769px)').addEventListener('change', (e) => {
-        if (e.matches) onEnterDesktop();
-      });
-    }
-
-    return () => {
-      fab?.removeEventListener('click', open);
-      document.removeEventListener('swup:visit:start', onVisitStart);
-    };
-  });
+  onMount(() =>
+    mountDrawer({
+      modalEl,
+      isOpen: () => isOpen,
+      open,
+      close,
+      bindEntry: (openDrawer) => {
+        const fab = document.getElementById('posts-filter-fab');
+        if (!fab) return () => {};
+        fab.addEventListener('click', openDrawer);
+        return () => fab.removeEventListener('click', openDrawer);
+      },
+    }),
+  );
 </script>
 
 <svelte:window onkeydown={onKeydown} />
 
 <div
   bind:this={modalEl}
-  class="pfilter-modal"
+  class="pfilter-modal drawer"
   class:open={isOpen}
   role="dialog"
   aria-modal="true"
@@ -92,12 +83,12 @@
   onclick={onMaskClick}
   onkeydown={onKeydown}
 >
-  <div class="pfilter-modal-mask" data-pfilter-close></div>
-  <div class="pfilter-modal-panel glass">
-    <div class="pfilter-modal-header">
-      <span class="pfilter-modal-title">
+  <div class="pfilter-modal-mask drawer-mask" data-pfilter-close></div>
+  <div class="pfilter-modal-panel drawer-panel glass">
+    <div class="pfilter-modal-header drawer-header">
+      <span class="pfilter-modal-title drawer-title">
         <svg
-          class="pfilter-modal-title-icon"
+          class="pfilter-modal-title-icon drawer-title-icon"
           viewBox="0 0 32 32"
           fill="currentColor"
           aria-hidden="true"
@@ -109,7 +100,7 @@
         分类与标签
       </span>
       <button
-        class="pfilter-modal-close hoverable"
+        class="pfilter-modal-close drawer-close hoverable"
         data-pfilter-close
         aria-label="关闭筛选"
         onclick={close}
@@ -121,112 +112,16 @@
         </svg>
       </button>
     </div>
-    <div class="pfilter-modal-body"></div>
+    <div class="pfilter-modal-body drawer-body"></div>
   </div>
 </div>
 
 <style>
-  .pfilter-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 110;
-    visibility: hidden;
-    pointer-events: none;
-    transition: visibility 0s linear 0.25s;
-  }
-
-  .pfilter-modal.open {
-    visibility: visible;
-    pointer-events: auto;
-    transition-delay: 0s;
-  }
-
-  .pfilter-modal-mask {
-    position: absolute;
-    inset: 0;
-    background: var(--mask);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-
-  .pfilter-modal.open .pfilter-modal-mask {
-    opacity: 1;
-  }
-
-  .pfilter-modal-panel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: min(320px, 85vw);
-    display: flex;
-    flex-direction: column;
-    border-radius: var(--radius) 0 0 var(--radius);
-    transform: translateX(100%);
-    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .pfilter-modal.open .pfilter-modal-panel {
-    transform: translateX(0);
-  }
-
-  .pfilter-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 10px 10px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    flex-shrink: 0;
-  }
-
-  @media (max-width: 768px) {
-    .pfilter-modal-header {
-      min-height: 56px;
-    }
-  }
-
-  .pfilter-modal-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-
-  .pfilter-modal-title-icon {
-    width: 18px;
-    height: 18px;
-    opacity: 0.65;
-  }
-
-  .pfilter-modal-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--ink);
-    cursor: pointer;
-  }
-
-  .pfilter-modal-close :global(svg) {
-    width: 16px;
-    height: 16px;
-  }
-
+  /* 骨架见 assets/css/shared/drawer.css；这里只留筛选抽屉的差异 */
   .pfilter-modal-body {
-    flex: 1;
-    min-height: 0;
+    padding: 14px 12px 20px;
     overflow-y: auto;
     scrollbar-width: thin;
-    padding: 14px 12px 20px;
-    display: flex;
     flex-direction: column;
     gap: 18px;
   }

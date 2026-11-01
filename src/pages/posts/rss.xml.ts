@@ -1,7 +1,7 @@
 // rss.xml.ts — 文章订阅源（全文），构建期生成 /posts/rss.xml
 import path from 'node:path';
 
-import type { APIContext, ImageMetadata } from 'astro';
+import type { APIContext } from 'astro';
 import { getImage } from 'astro:assets';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 
@@ -9,12 +9,12 @@ import rss from '@astrojs/rss';
 
 import { nickname } from '../../data/profile';
 import { site } from '../../data/site';
+import {
+  contentImageGlob,
+  resolveContentImageKey,
+  imageKeyToSourcePath,
+} from '../../lib/content-image';
 import { loadBlogData, renderPost } from '../../lib/posts-data';
-
-// 封面图：与 components/posts/ImageWrapper.astro 用同一套 glob 键（都是相对 src/ 的 ./* 路径）
-const coverFiles = import.meta.glob<ImageMetadata>('../../**/*.{png,jpg,jpeg,gif,webp,svg}', {
-  import: 'default',
-});
 
 /** 扩展名 → MIME。public 目录里的文件只能靠扩展名判断（例如 /images/logo.png 实际是 JPEG） */
 const mimeByExt: Record<string, string> = {
@@ -71,10 +71,10 @@ async function resolveCover(image: string, basePath: string) {
     return { src: image, type: mimeByExt[path.extname(image).toLowerCase()] ?? 'image/png' };
   }
 
-  const key = path.normalize(path.join('../../', basePath, image)).replace(/\\/g, '/');
-  const load = coverFiles[key];
+  const key = resolveContentImageKey(basePath, image);
+  const load = contentImageGlob[key];
   if (!load) {
-    console.warn(`[rss] 封面图不存在，已跳过 enclosure：${key.replace('../../', 'src/')}`);
+    console.warn(`[rss] 封面图不存在，已跳过 enclosure：${imageKeyToSourcePath(key)}`);
     return undefined;
   }
 

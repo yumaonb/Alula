@@ -8,7 +8,7 @@ import Comments from '../../components/widgets/Comments.astro';
 import ImageWrapper from '../../components/posts/ImageWrapper.astro';
 import { Icon } from 'astro-icon/components';
 import { loadBlogData, renderPost, postBreadcrumbs } from '../../lib/posts-data';
-import { postRoute, buildCategoryUrl, postMatchesCategory } from '../../lib/category';
+import { buildCategoryUrl, buildTagUrl, postRoute, postMatchesCategory } from '../../lib/category';
 import '../../assets/css/posts/markdown.css';
 
 const data = await loadBlogData();
@@ -20,6 +20,7 @@ export async function getStaticPaths() {
     props: { type: 'post' | 'category'; slug?: string; category?: string };
   }[] = [];
   const seen = new Set<string>();
+  const categoryPaths = new Set<string>();
 
   // 含隐藏文章：隐藏只是不进列表，直链仍要能打开
   for (const p of d.allPosts) {
@@ -28,8 +29,15 @@ export async function getStaticPaths() {
   }
 
   const addCategory = (path: string) => {
-    if (!path || seen.has(path)) return;
+    if (!path) return;
+    // 同一分类会从 meta 键与文章 category 前缀各来一次，重复添加是正常的
+    if (categoryPaths.has(path)) return;
+    // 分类路径撞上文章 slug：两条路由抢同一个 URL，构建期就报错，别静默丢一条
+    if (seen.has(path)) {
+      throw new Error(`路由冲突：/posts/${path}/ 既是文章 slug 又是分类路径，请改名`);
+    }
     seen.add(path);
+    categoryPaths.add(path);
     routes.push({ params: { slug: path }, props: { type: 'category', category: path } });
   };
 
@@ -137,10 +145,7 @@ if (type === 'category') {
             <Icon is:inline name="la:tag" class="meta-icon" />
             {post.tags.map((tag, i) => (
               <span>
-                <a
-                  href={`/${postRoute}/tag/${encodeURIComponent(tag)}/`}
-                  class="post-meta-link link-plain"
-                >
+                <a href={buildTagUrl(tag)} class="post-meta-link link-plain">
                   {tag}
                 </a>
                 {i < post.tags.length - 1 && <span class="meta-sep">/</span>}

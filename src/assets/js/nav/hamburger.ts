@@ -1,12 +1,14 @@
 // hamburger.ts — 汉堡菜单交互（移动端下拉菜单开/关）
-// 用法：由 NavBar.astro 在移动端按需动态 import：import "../../assets/js/hamburger"
+// 用法：由 NavBar.astro 在移动端按需动态 import：import "../../assets/js/nav/hamburger"
 // 开合动效由 motion 驱动：CSS 只定义开/关两个端点状态（.is-open），每段动画以
 // 「飞行中读数」为起点，中断后从屏幕实际位置续接，快速开合不跳变；
 // 收回时顶线先保持、再随尾部淡出（时长/延迟见 CLOSE_TIMING）。
 import { animate, stagger } from 'motion';
 import type { AnimationPlaybackControls } from 'motion';
-import { navMatch } from '../../lib/nav-match';
+import { navMatch } from '../../../lib/nav-match';
 import { onEnterDesktop } from './breakpoint';
+import { lockBodyScroll, unlockBodyScroll } from '../util/body-scroll-lock';
+import { cssNum } from '../util/dom';
 
 const OPEN = 'is-open';
 
@@ -39,11 +41,6 @@ const OPEN_TIMING = {
 
 const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const RM = { reduceMotion: REDUCE_MOTION };
-
-/** 当前生效值（含动画进行中 / 已提交的值），作为下一段动画的起点 */
-function cssNum(el: HTMLElement, prop: string): number {
-  return parseFloat(getComputedStyle(el).getPropertyValue(prop)) || 0;
-}
 
 let controls: AnimationPlaybackControls[] = [];
 
@@ -192,7 +189,8 @@ function setOpen(opening: boolean, { mode = 'normal' }: { mode?: MenuMode } = {}
   dropdown?.querySelectorAll('.mobile-link').forEach((link) => {
     link.setAttribute('tabindex', opening ? '0' : '-1');
   });
-  document.body.style.overflow = opening ? 'hidden' : '';
+  if (opening) lockBodyScroll();
+  else unlockBodyScroll();
 
   runChoreography(opening, mode, from);
 }

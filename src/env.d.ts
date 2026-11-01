@@ -15,10 +15,19 @@ interface Window {
   __onEnterDesktop?: (fn: () => void) => () => void;
   /** toc.ts 的幂等守卫 */
   __tocInit?: boolean;
-  /** toc.ts 提供的目录竖线瞬移方法（供 TocModal 调用） */
-  __tocSnap?: () => void;
+  /** toc.ts 提供的目录控制器（供 TocModal 登记抽屉容器后触发归位） */
+  __toc?: {
+    /** 归位：目录节点不在该在的宿主里才搬，搬完重测几何 */
+    ensure: () => void;
+    /** 只重测几何 */
+    remeasure: () => void;
+  };
+  /** TocModal 登记的抽屉容器（目录节点在手机端的宿主） */
+  __tocDrawerHost?: HTMLElement;
   /** category-tree.ts 的幂等守卫 */
   __postCatTreeBound?: boolean;
+  /** category-tree.ts 提供的开合高度落实方法（供 posts-shell 的自动展开调用） */
+  __catTreeSync?: () => void;
   /** posts-shell.ts 的幂等守卫 */
   __postsShellInit?: boolean;
   /** lightbox.ts 的幂等守卫 */
@@ -31,9 +40,4 @@ interface Window {
   __alula_shell_guard?: boolean;
   /** nav-indicator.ts 的幂等守卫 */
   __navIndicatorInit?: boolean;
-}
-
-interface HTMLElement {
-  /** toc.ts：目录指示竖线动画进行中的标记（仅 JS 读写，不是 DOM 属性） */
-  _animating?: boolean;
 }

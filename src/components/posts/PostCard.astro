@@ -4,7 +4,7 @@
 // 卡片正文整体 pointer-events:none，仅各链接单独可点
 import { Icon } from 'astro-icon/components';
 import ImageWrapper from './ImageWrapper.astro';
-import type { CategoryTrailItem } from '../../lib/category';
+import { buildTagUrl, type CategoryTrailItem } from '../../lib/category';
 
 interface Props {
   title: string;
@@ -127,7 +127,7 @@ const hasMeta = !!date || hasCategory || hasStats;
         <div class="post-card-tags">
           {tags.map((tag) => (
             <a
-              href={`/posts/tag/${encodeURIComponent(tag)}/`}
+              href={buildTagUrl(tag)}
               class="post-card-tag hoverable link-plain"
               title={`标签：${tag}`}
             >
