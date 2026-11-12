@@ -28,7 +28,6 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
           node={node}
           depth={0}
           activeCategory={activeCategory}
-          linkMode={true}
           categoryUrl={categoryUrl}
         />
       ))}
@@ -40,6 +39,15 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
   .cat-panel {
     padding: 14px 12px;
     border-radius: var(--radius);
+  }
+
+  /* 搬进筛选抽屉时：面板不再自己撑高、不再 sticky；
+     变体类由 PostsFilterModal.svelte 增删，改类名两处同改 */
+  .cat-panel.cat-panel--in-drawer {
+    padding: 14px;
+    position: static;
+    max-height: none;
+    overflow: visible;
   }
 
   .cat-panel-title {

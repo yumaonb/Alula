@@ -85,6 +85,7 @@
   let repos = $state<RepoInfo[]>([]);
   let loading = $state(true);
   let error = $state('');
+  let isAlive = true;
 
   /** 仓库日期按 UTC 渲染：GitHub 返回的是 UTC 时间戳，不按本机时区挪一天 */
   function formatRepoDate(iso: string): string {
@@ -100,23 +101,30 @@
   }
 
   async function load(): Promise<void> {
+    if (!isAlive) return;
     loading = true;
     error = '';
     try {
-      repos = await fetchRepos();
+      const nextRepos = await fetchRepos();
+      if (isAlive) repos = nextRepos;
     } catch (e) {
-      error = e instanceof Error ? e.message : '加载项目列表失败';
+      if (isAlive) error = e instanceof Error ? e.message : '加载项目列表失败';
     } finally {
-      loading = false;
+      if (isAlive) loading = false;
     }
   }
 
-  onMount(load);
+  onMount(() => {
+    void load();
+    return () => {
+      isAlive = false;
+    };
+  });
 </script>
 
 <div class="projects-grid">
   {#if loading}
-    {#each Array(6) as _, n}
+    {#each Array(6) as _}
       <div class="project-card glass">
         <div class="card-header">
           <div class="card-header-left">
@@ -143,7 +151,7 @@
   {:else if error}
     <div class="error-state glass">
       <p class="error-text">{error}</p>
-      <button class="retry-btn" onclick={load}>重试</button>
+      <button class="retry-btn hoverable" onclick={load}>重试</button>
     </div>
   {:else if repos.length === 0}
     <div class="empty-state glass">
@@ -202,7 +210,7 @@
             </svg>
             {repo.forks_count}
           </span>
-          <span class="stat update-time">{formatRepoDate(repo.created_at)}</span>
+          <span class="stat created-time">{formatRepoDate(repo.created_at)}</span>
         </div>
       </a>
     {/each}
@@ -324,7 +332,7 @@
     border-radius: 50%;
   }
 
-  .update-time {
+  .created-time {
     margin-left: auto;
     font-size: 0.7rem;
     opacity: 0.6;

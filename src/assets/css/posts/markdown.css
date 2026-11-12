@@ -76,7 +76,9 @@
 
 /* ---- 代码块 ---- */
 .markdown-body pre {
-  background: rgba(0, 0, 0, 0.35);
+  /* 底色走 --astro-code-background：Shiki 的 css-variables 主题
+   * 把 <pre> 的背景也改成变量引用，这里不再自己写死一层 */
+  background: var(--astro-code-background, rgba(0, 0, 0, 0.45));
   border: 1px solid var(--ring);
   border-radius: var(--radius);
   padding: 1em 1.2em;
@@ -84,6 +86,29 @@
   overflow-x: auto;
   font-size: 0.88em;
   line-height: 1.6;
+  /* 横向滚动条：代码块常比正文列宽（选择器长行、宽表格），要能横向拖。
+   * 三件套齐全才跨浏览器一致：scrollbar-width / scrollbar-color 管 Firefox，
+   * ::-webkit-scrollbar 管 Chromium 与 Safari——只写后者的话 Firefox 会
+   * 露出系统默认的粗滚动条（Windows 上尤其突兀）。 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--hover-line) transparent;
+}
+
+.markdown-body pre::-webkit-scrollbar {
+  height: 6px;
+}
+
+.markdown-body pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.markdown-body pre::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--hover-line);
+}
+
+.markdown-body pre::-webkit-scrollbar-thumb:hover {
+  background: var(--ink);
 }
 
 .markdown-body pre code {
@@ -91,16 +116,30 @@
   border: none;
   padding: 0;
   font-size: 1em;
-  color: var(--ink);
+  color: var(--astro-code-foreground, var(--ink));
 }
 
 /* ---- 引用 ---- */
+/* 引用块：左侧竖条用伪元素画，自身带圆角——border-left 是直角，
+   与圆角并排会在左上/左下角露出直角缺口，看着突兀 */
 .markdown-body blockquote {
+  position: relative;
   margin: 1.2em 0;
-  padding: 14px 20px;
-  border-left: 4px solid rgba(255, 255, 255, 0.2);
+  padding: 14px 20px 14px 24px;
+  border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.03);
   color: var(--ink);
+}
+
+.markdown-body blockquote::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .markdown-body blockquote p {
@@ -147,10 +186,14 @@
 }
 
 /* ---- 表格 ---- */
+/* 表格：border-collapse: collapse 时外框由各单元格边框拼成，浏览器不认 border-radius，
+   overflow 对 table 盒子也不生效——两者都是死规则。
+   改用 separate + 单元格自己画边，靠首行/末行的边框收口出圆角 */
 .markdown-body table {
   width: 100%;
   margin: 1.2em 0;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
   overflow: hidden;
@@ -173,6 +216,11 @@
   font-weight: 600;
 }
 
+/* 末行的下边框去掉：表格自身已有外框，留着会叠成 2px 双线 */
+.markdown-body tbody tr:last-child td {
+  border-bottom: none;
+}
+
 /* 悬停行高亮渐变淡入（时长走 --t-hover），不直接跳变 */
 .markdown-body tbody tr {
   transition: background var(--t-hover);
@@ -193,7 +241,7 @@
 /* ---- 图片 ----
  * 说明：图片 block 化，且不声明 width——
  * 浏览器在图片加载完成前会按 width/height 属性预留等比例空间，
- * 让加载占位底（image-fallback.css）可见，且加载后无布局跳动。
+ * 让加载占位底（shared/image-fallback.css）可见，且加载后无布局跳动。
  */
 .markdown-body img {
   display: block;

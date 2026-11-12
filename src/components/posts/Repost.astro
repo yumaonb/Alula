@@ -11,8 +11,8 @@ interface Props {
   date: string;
 }
 
-const { title, url = `https://${site.domain}${Astro.url.pathname}`, date } = Astro.props;
-const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
+const { title, url = `${site.url}${Astro.url.pathname}`, date } = Astro.props;
+const license = site.contentLicense;
 ---
 
 <div class="repost-card">
@@ -33,12 +33,12 @@ const licenseUrl = 'https://creativecommons.org/licenses/by-nc-sa/4.0/';
       <div class="repost-meta-item">
         <span class="repost-meta-label">许可协议</span>
         <a
-          href={licenseUrl}
+          href={license.url}
           target="_blank"
           rel="noopener noreferrer"
           class="repost-meta-value repost-license link-plain"
         >
-          CC BY-NC-SA 4.0
+          {license.name}
         </a>
       </div>
     </div>

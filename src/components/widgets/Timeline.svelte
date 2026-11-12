@@ -63,7 +63,8 @@
 
 <div class="timeline">
   <!-- 渐隐层里放一份背景容器的克隆（与 body 里那层同款），由外层遮罩渐隐；
-       这样换背景方案（图片 / 任意 css 预设）都不需要在这里跟着改 -->
+       这样换背景方案（图片 / 任意 css 预设）都不需要在这里跟着改。
+       与 layout/Background.astro 共用 .bg / .bg-scrim 类名，改类名两处同改 -->
   <div class="timeline-fade timeline-fade--left" class:is-on={canPrev} aria-hidden="true">
     <div class="bg bg--clone"></div>
     <div class="bg-scrim"></div>

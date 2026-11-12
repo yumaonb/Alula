@@ -1,6 +1,6 @@
 // posts-data.ts — 文章数据统一入口（各页面 / 侧栏共用，仅服务端）
 // 用法：import { loadBlogData, renderPost, postBreadcrumbs } from "../../lib/posts-data"
-// 数据结构：{ meta, posts, allPosts, entries, categoryTree, tags }，见 BlogData；模块级缓存。
+// 数据结构：{ meta, posts, allPosts, chronological, entries, categoryTree, tags, allTags }，见 BlogData；模块级缓存。
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import {
   buildCategoryTrail,
@@ -15,6 +15,11 @@ import {
 } from './category';
 
 const contentRoot = 'content/posts';
+
+/** 日期 → 可比较的时间戳。没有日期的按 0 算（排最后） */
+function dateValue(date: string): number {
+  return date ? new Date(date).getTime() : 0;
+}
 
 /* ---- 分类元数据 ---- */
 function metaKeyOf(fileKey: string): string | null {
@@ -62,6 +67,12 @@ export interface BlogData {
   categoryTree: CategoryTreeNode[];
   // 侧栏标签计数（只统计可列出的文章）：数量倒序
   tags: { name: string; count: number }[];
+  // 纯按日期倒序的视图（不看置顶）：上下篇、订阅源「最后更新」用这个，
+  // 置顶文章不改变「谁比谁新」
+  chronological: PostItem[];
+  // 标签并集（含隐藏文章的标签）：只为生成路由——隐藏文章的页头有标签链接，
+  // 路由缺了那一条就是 404
+  allTags: string[];
 }
 
 let cache: Promise<BlogData> | null = null;
@@ -91,6 +102,7 @@ async function buildData(): Promise<BlogData> {
       const category = parts.slice(0, -1).join('/');
       const url = `/${[postRoute, ...parts].join('/')}/`;
       const words = countWords(e.body || '');
+      // 缺字段默认值：content.config.ts 的 transform 里各写一份，改默认值两处同改
       return {
         slug: e.id,
         title: d.title ?? '无标题',
@@ -109,8 +121,7 @@ async function buildData(): Promise<BlogData> {
     })
     .sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-      const t = (d: string) => (d ? new Date(d).getTime() : 0);
-      return t(b.date) - t(a.date);
+      return dateValue(b.date) - dateValue(a.date);
     });
 
   // 列表口径：隐藏文章只保留「能生成页面」，其余派生数据（分类树 / 标签云 / 上下篇）都不带它
@@ -119,12 +130,29 @@ async function buildData(): Promise<BlogData> {
   const categoryTree = buildCategoryTree(posts, meta);
 
   const tagCounts = new Map<string, number>();
-  for (const p of posts) for (const t of p.tags) tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+  for (const p of posts) {
+    for (const t of p.tags) {
+      // 标签名会直接进 URL 路径段：含 / 时编码成 %2F 与静态路由对不上，
+      // 产物是多级目录、点进去 404。在构建期炸掉，别让它变成坏链接
+      if (t.includes('/')) {
+        throw new Error(`文章「${p.slug}」的标签 "${t}" 含斜杠，标签名不能包含 /`);
+      }
+      tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+    }
+  }
   const tags = [...tagCounts.entries()]
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh'));
 
-  return { meta, posts, allPosts, entries, categoryTree, tags };
+  // 上下篇与「最后更新」只看日期：用 posts 的下标会因置顶把新旧关系翻转
+  const chronological = [...posts].sort((a, b) => dateValue(b.date) - dateValue(a.date));
+
+  // 标签路由的并集口径与分类路由一致（分类那边同样用 allPosts 建路由）
+  const allTags = [...new Set(allPosts.flatMap((p) => p.tags))].sort((a, b) =>
+    a.localeCompare(b, 'zh'),
+  );
+
+  return { meta, posts, allPosts, entries, categoryTree, tags, chronological, allTags };
 }
 
 export async function loadBlogData(): Promise<BlogData> {

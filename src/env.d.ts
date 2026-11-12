@@ -31,13 +31,13 @@ interface Window {
   /** posts-shell.ts 的幂等守卫 */
   __postsShellInit?: boolean;
   /** lightbox.ts 的幂等守卫 */
-  __alula_lightbox_bound?: boolean;
+  __alulaLightboxBound?: boolean;
   /** image-fallback.ts 的幂等守卫 */
-  __alula_image_fallback_bound?: boolean;
+  __alulaImageFallbackBound?: boolean;
   /** shell.ts 的幂等守卫 */
   __adminShellInit?: boolean;
   /** shell-guard.ts 的幂等守卫 */
-  __alula_shell_guard?: boolean;
+  __alulaShellGuard?: boolean;
   /** nav-indicator.ts 的幂等守卫 */
   __navIndicatorInit?: boolean;
 }

@@ -6,11 +6,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
 
-  interface Props {
-    placeholder?: string;
-  }
-  let { placeholder = '搜索文章' }: Props = $props();
-
   /** Pagefind 加载产物用到的最小 API 面（blob 动态 import，没有现成类型） */
   interface PagefindResult {
     url: string;
@@ -88,6 +83,9 @@
 
   function onInput(): void {
     activeIndex = -1;
+    // 立刻作废在途查询：防抖还没到点时旧关键词的响应可能先回来，
+    // 它会通过 seq 校验把旧结果写进下拉——输入框里已经是新词，下拉却是旧词的结果
+    seq++;
     if (timer) clearTimeout(timer);
     if (!kw.trim()) {
       results = [];
@@ -139,8 +137,11 @@
       scrollActiveIntoView();
     } else if (e.key === 'Enter' && activeIndex >= 0) {
       e.preventDefault();
-      const url = results[activeIndex]?.url;
-      if (url) window.location.href = url;
+      // 与鼠标点击走同一条路径：派发真实 click 事件，交给 swup 的点击委托处理。
+      // 不能用 window.location.href —— 那是浏览器原生跳转，swup 拦不住，会变成整页重载。
+      const items = dropdownEl?.querySelectorAll<HTMLAnchorElement>('.psd-item');
+      const item = items?.[activeIndex];
+      if (item) item.click();
     } else if (e.key === 'Escape') {
       clearSearch();
     }
@@ -175,12 +176,20 @@
     document.addEventListener('click', onOutsideClick);
     // 空闲预取：首查只付查询成本（wasm + 索引拉取提前完成），
     // 避免第一次搜索等 1–3s 看起来像没反应
+    let idleHandle: number;
     const idleCb = () => {
       void loadPagefind().catch(() => {});
     };
-    if ('requestIdleCallback' in window) window.requestIdleCallback(idleCb);
-    else setTimeout(idleCb, 1000);
-    return () => document.removeEventListener('click', onOutsideClick);
+    idleHandle =
+      'requestIdleCallback' in window
+        ? window.requestIdleCallback(idleCb)
+        : window.setTimeout(idleCb, 1000);
+    return () => {
+      document.removeEventListener('click', onOutsideClick);
+      // 组件卸载时取消尚未触发的预取，避免卸载后仍发起加载
+      if ('cancelIdleCallback' in window) window.cancelIdleCallback(idleHandle);
+      else window.clearTimeout(idleHandle);
+    };
   });
 
   onDestroy(() => {
@@ -200,6 +209,11 @@
     <input
       bind:this={inputEl}
       bind:value={kw}
+      role="combobox"
+      aria-label="搜索文章"
+      aria-expanded={isOpen}
+      aria-controls={isOpen ? 'post-search-dropdown' : undefined}
+      aria-activedescendant={activeIndex >= 0 ? `psd-item-${activeIndex}` : undefined}
       oninput={onInput}
       onfocus={() => {
         loadPagefind().catch(() => {});
@@ -208,7 +222,7 @@
       onkeydown={onKeydown}
       type="search"
       class="post-search-input"
-      {placeholder}
+      placeholder="搜索文章"
       autocomplete="off"
       spellcheck="false"
     />
@@ -235,7 +249,12 @@
 
   {#if isOpen}
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-    <div class="post-search-dropdown glass" bind:this={dropdownEl}>
+    <div
+      class="post-search-dropdown glass"
+      id="post-search-dropdown"
+      role="listbox"
+      bind:this={dropdownEl}
+    >
       <div class="post-search-scroll">
         {#if isLoading}
           <div class="psd-empty">搜索中…</div>
@@ -249,6 +268,9 @@
             <a
               class="psd-item hoverable link-plain"
               class:psd-item--active={i === activeIndex}
+              role="option"
+              id={`psd-item-${i}`}
+              aria-selected={i === activeIndex}
               href={result.url}
               data-index={i}
               onmouseover={() => onItemMouseover(i)}
@@ -280,8 +302,8 @@
     padding: 8px 12px;
     border-radius: 999px;
     transition:
-      box-shadow 0.25s ease,
-      background 0.25s ease;
+      box-shadow var(--t-hover),
+      background var(--t-hover);
   }
 
   .post-search:focus-within {
@@ -393,8 +415,9 @@
     text-decoration: none;
   }
 
+  /* 选中填底由 utilities.css 的 .hoverable.hoverable.psd-item--active 提供
+   * （用它那边的 --active-bg，比 --hover-bg 亮一档）；这里只补内描边。 */
   :global(.psd-item--active) {
-    background: var(--hover-bg);
     box-shadow: inset 0 0 0 1px var(--hover-line);
   }
 

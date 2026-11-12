@@ -4,16 +4,16 @@
 // 转场只在文章区界面之间播放，跨区直接落位：左缘条带「模糊变过去」、搜索/目录退场与入场
 // 配对（先退场再入场）、手机端整页推拉的反向抵消。四个配对动效共用
 // posts/transition-tokens.ts 的相位令牌。
-import { animate } from 'motion';
 import type { AnimationPlaybackControls } from 'motion';
 
 import type { SearchFloatCtl } from './search-float';
 import type { Strip } from './strip';
-import { queryPostSidebar } from './post-sidebar';
-import { EASE, EASE_ENTRY, EASE_EXIT, EDGE_MS, PHASE_MS } from './transition-tokens';
+import { queryPostSidebar } from '../util/post-sidebar';
+import { EASE_ENTRY, EASE_EXIT, EASE_TRANSITION, EDGE_MS, PHASE_MS } from './transition-tokens';
 import { detectPageKind } from '../util/page-kind';
+import type { animateLazy } from '../util/motion';
 
-// 手机端（≤768px）：新内容滑动距离（退场上移与整页推入同缓动（EASE）、时长按位移
+// 手机端（≤768px）：新内容滑动距离（退场上移与整页推入同缓动（EASE_TRANSITION）、时长按位移
 // 距离等比，位移必须小于手机端列式页头的标题↔搜索间隙 16px，否则入场落回会蹭到
 // 标题底边闪一下）；搜索框自身的位移与时长见 posts/search-float.ts
 const MOBILE_SLIDE = 48;
@@ -46,6 +46,8 @@ export interface TransitionEnv {
   tocSlideGate: () => boolean;
   /** 切页已提交：早期导航等待作废 */
   cancelEarlyNav: () => void;
+  /** 位移动画驱动（posts-shell 注入 motion 懒加载入口，behavior 测试可替换） */
+  animate: typeof animateLazy;
 }
 
 export interface Transition {
@@ -54,7 +56,8 @@ export interface Transition {
 }
 
 export function createTransition(env: TransitionEnv): Transition {
-  const { row, strip, floatCtl, track, stopAnims, isMobile, reduceMotion, tocSlideGate } = env;
+  const { row, strip, floatCtl, track, stopAnims, isMobile, reduceMotion, tocSlideGate, animate } =
+    env;
   const { cancelEarlyNav } = env;
   let edgeClone: HTMLElement | null = null;
   let tocClone: HTMLElement | null = null;
@@ -94,16 +97,17 @@ export function createTransition(env: TransitionEnv): Transition {
       if (slot?.classList.contains('posts-edge-slot')) slot.style.transform = '';
       oldHadSearch = !!old.querySelector('.posts-header-search');
       oldIsPost = main ? detectPageKind(main).detail : false;
-      edgeClone = strip.cloneIntoRow(old, r, 'posts-edge-clone');
+      edgeClone = strip.cloneEdge(old, r);
       // 克隆全程钉死 filter: none：带过滤层的克隆被移除时，下方新标题会因合成层重栅格
       // 闪一下（新条带本身已不挂 filter，此为防御性钉死）
       if (edgeClone) edgeClone.style.filter = 'none';
     }
     const oldToc = main ? queryPostSidebar(main) : null;
+    // 「这页有没有目录」口径之一：侧栏目录是否显示（全部口径见 PostsShell.astro 的 hasToc 注释）
     if (oldToc && getComputedStyle(oldToc).display !== 'none') {
       oldToc.style.transform = '';
       oldToc.style.opacity = '';
-      tocClone = strip.cloneIntoRow(oldToc, r, 'posts-toc-clone');
+      tocClone = strip.cloneToc(oldToc, r);
       // 创建即钉视口：before-swap 早于滚顶启动与切页文档高度塌缩，
       // 克隆从此 fixed 不被任何布局变化带走；退场/交叉渐隐块里的再钉变为 no-op
       if (tocClone) {
@@ -115,14 +119,58 @@ export function createTransition(env: TransitionEnv): Transition {
     }
   }
 
-  /** 新内容加载完后调用（astro:after-swap）：判定界面并播放转场 */
+  /** 目录退场（旧目录克隆的离场，两个退场场景共用）：克隆挂行内（文档坐标），
+   *  出发时页面正高速回顶——先把 rect 量出来（必须在任何 transform 写入之前）
+   *  钉到当前视口位置脱离滚动，再右移移出屏幕渐隐（位移与渐隐同时长
+   *  PHASE_MS/EASE_EXIT，与搜索框移动切换同节奏）；减动效只原地渐隐。
+   *  返回相位链的尾动画（有位移为位移、无位移为渐隐），播完移除克隆并清引用
+   */
+  function playTocExit(el: HTMLElement): AnimationPlaybackControls {
+    const rect = el.getBoundingClientRect();
+    el.style.position = 'fixed';
+    el.style.top = `${rect.top}px`;
+    el.style.left = `${rect.left}px`;
+    const slide = tocSlideGate();
+    const dx = slide ? strip.tocOffscreenDx(el) : 0;
+    const move = slide
+      ? track(
+          animate(
+            el,
+            { x: [0, `${dx}px`] },
+            { duration: PHASE_MS / 1000, ease: EASE_EXIT, autoplay: false },
+          ),
+        )
+      : null;
+    const fade = track(
+      animate(
+        el,
+        { opacity: [1, 0] },
+        {
+          duration: (slide ? PHASE_MS : EDGE_MS) / 1000,
+          ease: slide ? EASE_EXIT : EASE_TRANSITION,
+          autoplay: false,
+        },
+      ),
+    );
+    // 相位链：有位移时位移与渐隐同时长、等它走完；无位移时等渐隐
+    const last = move ?? fade;
+    last.finished
+      .then(() => {
+        el.remove();
+        tocClone = null;
+      })
+      .catch(() => {});
+    return last;
+  }
+
+  /** 新内容加载完后调用（swup:content:replace）：判定界面并播放转场 */
   function playTransition(): void {
     const r = row();
     // 新元素只在 main#swup 里找：克隆挂进行内（#swup 之外），若在整行里 querySelector，
     // 离开文章区时唯一命中的会是克隆自己（两个动画加到同一节点互相覆盖）
     const main = r?.querySelector<HTMLElement>('main#swup');
     const newEdge = main?.querySelector<HTMLElement>('.posts-header, .posts-breadcrumb') ?? null;
-    // ≤850px 目录 display:none，不参与；克隆不算（见 post-sidebar.ts）
+    // ≤850px 目录 display:none，不参与；克隆不算（见 util/post-sidebar.ts）
     const newTocEl = main ? queryPostSidebar(main) : null;
     const hasNewToc = !!newTocEl && getComputedStyle(newTocEl).display !== 'none';
     const newHadSearch = !!newEdge?.querySelector('.posts-header-search');
@@ -173,59 +221,8 @@ export function createTransition(env: TransitionEnv): Transition {
       }
     } else if (tocClone) {
       // 旧页有目录：新页也有目录时交给下方「先退场再入场」，这里只管新页没目录（文章→列表）
-      const bothHaveToc = hasNewToc;
-      if (!bothHaveToc) {
-        // 目录退场：电脑端右移移出屏渐隐——位移与渐隐同步（PHASE_MS/EASE_EXIT），
-        // 与搜索框移动切换同节奏；其他只渐隐
-        exitAction = () => {
-          const el = tocClone as HTMLElement;
-          // 先钉到当前视口位置（同下方两侧都有目录的退场）：克隆挂行内（文档坐标），深滚动位
-          // 出发时退场窗口内页面正高速回顶（SwupScrollPlugin）——不钉的话右滑 + 渐隐
-          // 会被滚动「带走」（视口 top 随 scrollY 减小而增大，退场读作向右下漂）；
-          // 减动效只渐隐不位移时也钉（原地渐隐同样会被带走）。rect 必须在任何
-          // transform 写入之前量
-          const rect = el.getBoundingClientRect();
-          el.style.position = 'fixed';
-          el.style.top = `${rect.top}px`;
-          el.style.left = `${rect.left}px`;
-          const slide = tocSlideGate();
-          const dx = slide ? strip.tocOffscreenDx(el) : 0;
-          const move = slide
-            ? track(
-                animate(
-                  el,
-                  { x: [0, `${dx}px`] },
-                  {
-                    duration: PHASE_MS / 1000,
-                    ease: EASE_EXIT,
-                    reduceMotion,
-                    autoplay: false,
-                  },
-                ),
-              )
-            : null;
-          const fade = track(
-            animate(
-              el,
-              { opacity: [1, 0] },
-              {
-                duration: (slide ? PHASE_MS : EDGE_MS) / 1000,
-                ease: slide ? EASE_EXIT : EASE,
-                reduceMotion,
-                autoplay: false,
-              },
-            ),
-          );
-          // 相位链：有位移时位移与渐隐同时长、等它走完；无位移时等渐隐
-          const last = move ?? fade;
-          last.finished
-            .then(() => {
-              el.remove();
-              tocClone = null;
-            })
-            .catch(() => {});
-          return last;
-        };
+      if (!hasNewToc) {
+        exitAction = () => playTocExit(tocClone as HTMLElement);
       }
     } else if (hasNewToc) {
       // 新界面有目录、旧界面没有（列表→文章）：只有进入相位——退出相位由搜索承担（见下）
@@ -289,7 +286,6 @@ export function createTransition(env: TransitionEnv): Transition {
           {
             duration: STRIP_BLUR_OUT_MS / 1000,
             ease: EASE_EXIT,
-            reduceMotion,
             autoplay: false,
           },
         ),
@@ -307,10 +303,7 @@ export function createTransition(env: TransitionEnv): Transition {
       // 副本必须在 counter/推入启动前量盒（槽与根都还无位移，量到的是终位）。
       // 减动效下不建模糊副本，退化为纯 alpha 交叉渐显。
       const rowEl = row();
-      blurClone =
-        !reduceMotion && rowEl
-          ? strip.cloneIntoRow(newEdge, rowEl, 'posts-edge-clone', true)
-          : null;
+      blurClone = !reduceMotion && rowEl ? strip.cloneBlur(newEdge, rowEl) : null;
       if (blurClone) blurClone.style.filter = `blur(${STRIP_BLUR_PX}px)`;
       if (mobilePush) {
         const newSlot = newEdge.parentElement;
@@ -325,9 +318,8 @@ export function createTransition(env: TransitionEnv): Transition {
               { y: [`${y0}px`, '0px', '0px'] },
               {
                 duration: EDGE_MS / 1000,
-                ease: EASE,
+                ease: EASE_TRANSITION,
                 times: [0, 0.5, 1],
-                reduceMotion,
                 autoplay: false,
               },
             ),
@@ -350,7 +342,6 @@ export function createTransition(env: TransitionEnv): Transition {
             {
               duration: STRIP_BLUR_IN_MS / 1000,
               ease: EASE_ENTRY,
-              reduceMotion,
               autoplay: false,
             },
           ),
@@ -370,7 +361,6 @@ export function createTransition(env: TransitionEnv): Transition {
           {
             duration: STRIP_BLUR_IN_MS / 1000,
             ease: EASE_ENTRY,
-            reduceMotion,
             autoplay: false,
           },
         ),
@@ -401,9 +391,8 @@ export function createTransition(env: TransitionEnv): Transition {
             { y: [`${y0}px`, '0px', '0px'] },
             {
               duration: EDGE_MS / 1000,
-              ease: EASE,
+              ease: EASE_TRANSITION,
               times: [0, 0.5, 1],
-              reduceMotion,
               autoplay: false,
             },
           ),
@@ -417,45 +406,21 @@ export function createTransition(env: TransitionEnv): Transition {
     }
 
     /* ---- 目录出入场（文章↔文章，两侧都有目录）：先退场再入场，与滚顶解耦 ---- */
-    // 切页后 SwupScrollPlugin 平滑滚回顶部（时长按距离，长文可达 ~2s），旧目录克隆
-    // 绝对定位挂在行内（文档坐标）——原地渐隐会被滚顶「带走」：视口 top 从 181px
-    // 一路漂出屏幕，退场读作向右下漂移。先把克隆钉到它当前的视口
-    // 位置（position: fixed，行及其祖先无 transform，fixed 即视口坐标），脱离页面
-    // 滚动，再右移移出屏幕渐隐（PHASE_MS/EASE_EXIT，与文章→列表目录退场同节奏）。
     // 新目录在退场前就钉不可见（gate 分支构造即钉屏外右 + 透明；非 gate 分支靠显式
     // 内联 opacity 0 兜住退场 + 等待窗口），退场播完才开始落位等待、落到 sticky 钉
     // 住位才自右缘滑入（startTocEntryWait）——两拍对滑若并行会在途中交叉重叠成
     // 「重影」，顺序执行则退场结束时入场还没开始，任何时刻只有一个目录可见
     if (tocClone && hasNewToc) {
-      const fadeEl = tocClone;
       const newToc = newTocEl as HTMLElement;
       const playEntry = strip.makeTocEntry(newToc);
       newToc.style.opacity = '0';
-      const rect = fadeEl.getBoundingClientRect();
-      fadeEl.style.position = 'fixed';
-      fadeEl.style.top = `${rect.top}px`;
-      fadeEl.style.left = `${rect.left}px`;
-      const slide = tocSlideGate();
-      const dx = slide ? strip.tocOffscreenDx(fadeEl) : 0;
-      const opts = {
-        duration: (slide ? PHASE_MS : EDGE_MS) / 1000,
-        ease: slide ? EASE_EXIT : EASE,
-        reduceMotion,
-        autoplay: false,
-      };
-      const move = slide ? track(animate(fadeEl, { x: [0, `${dx}px`] }, opts)) : null;
-      const fade = track(animate(fadeEl, { opacity: [1, 0] }, opts));
-      // 有位移时位移与渐隐同时长、等它走完；无位移（减动效）等渐隐
-      const last = move ?? fade;
-      last.finished
-        .then(() => {
-          fadeEl.remove();
-          tocClone = null;
+      playTocExit(tocClone)
+        .finished.then(() => {
           // 先退场再入场：退场播完才启动新目录的落位等待 + 右缘滑入（通常落位已
           // 到达、下一帧即播）。若退场被 cancel（快速连切，captureOld 已清落位等待
-          // 与动画），这里走 catch、入场不启动——钉不可见的新目录随本轮 DOM 交换被
+          // 与动画），走 catch、入场不启动——钉不可见的新目录随本轮 DOM 交换被
           // 换走，不残留
-          strip.startTocEntryWait(newToc, playEntry);
+          strip.startTocEntryWait(playEntry);
         })
         .catch(() => {});
     }

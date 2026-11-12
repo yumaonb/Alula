@@ -7,10 +7,12 @@
 // 一旦发现「当前外壳」与「目标 URL」对不上，就交给浏览器整页加载。
 
 (() => {
-  if (window.__alula_shell_guard) return;
-  window.__alula_shell_guard = true;
+  if (window.__alulaShellGuard) return;
+  window.__alulaShellGuard = true;
 
-  const isAdminShell = (): boolean => document.getElementById('admin-shell') !== null;
+  // 外壳身份读 data-shell 属性，不靠裸 id：id 可能被别人复用（同名的站点元素
+  // 会让守卫误判，站点↔后台切换每次都变成整页刷新）
+  const isAdminShell = (): boolean => document.querySelector('[data-shell="admin"]') !== null;
 
   const isAdminUrl = (url: string): boolean => {
     const { pathname } = new URL(url, window.location.origin);
@@ -30,7 +32,7 @@
   });
 
   // 兜底：万一 swup 已经换过内容（顺序不巧），刷新回正确的外壳
-  document.addEventListener('astro:after-swap', () => {
+  document.addEventListener('swup:content:replace', () => {
     if (mismatched()) window.location.reload();
   });
 })();

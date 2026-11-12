@@ -18,6 +18,8 @@ export const intro =
 /** 联系方式 */
 export const socialLinks: SocialLink[] = [
   { icon: 'la:github', label: 'GitHub', url: 'https://github.com/yumaonb' },
+  // QQ 联系方式在 public/llms.txt 另存一份，换联系方式两处同改（漏改静态说明指向旧账号）
+  { icon: 'simple-icons:tencentqq', label: 'QQ', url: 'https://qm.qq.com/q/UhGbjbysQW' },
   { icon: 'simple-icons:bilibili', label: 'Bilibili', url: 'https://b23.tv/XFTBHN3' },
   { icon: 'simple-icons:kuaishou', label: '快手', url: 'https://v.kuaishou.com/JwRUGjtp' },
   { icon: 'simple-icons:tiktok', label: '抖音', url: 'https://v.douyin.com/UrbqZZXQBzc/' },

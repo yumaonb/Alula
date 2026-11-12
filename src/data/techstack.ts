@@ -13,7 +13,7 @@ export const techStack: TechCategory[] = [
   },
   {
     category: '后端',
-    items: ['PHP', 'ThinkPHP'],
+    items: ['Node.js', 'PHP', 'ThinkPHP'],
   },
   {
     category: '数据库',

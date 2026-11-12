@@ -12,6 +12,15 @@
     "check": "astro check",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "verify": "node tests/run.mjs",
+    "test": "node tests/quality/all.mjs && node --test \"tests/behavior/*.test.mjs\"",
+    "test:quality": "node tests/quality/all.mjs",
+    "test:behavior": "node --test \"tests/behavior/*.test.mjs\"",
+    "check:leaks": "node tests/quality/leaks.mjs",
+    "check:docs": "node tests/quality/docs.mjs",
+    "check:contracts": "node tests/quality/contracts.mjs",
+    "check:registry": "node tests/quality/registry.mjs",
+    "registry:write": "node tests/quality/registry.mjs --write",
     "astro": "astro"
   },
   "dependencies": {

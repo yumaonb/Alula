@@ -1,5 +1,5 @@
 // early-nav.ts — 首屏 swup 实例未就绪时的区内点击接管 + fetch 失败兜底
-// 用法：const earlyNav = createEarlyNav({ row, reduceMotion, isMobile, floatCtl })
+// 用法：const earlyNav = createEarlyNav({ row, reduceMotion, floatCtl })
 //
 // 首屏实例在 load + idle 才创建，此前点卡片会走原生整页跳转（落地不播转场）：
 // 这里拦下点击、等实例就绪后 navigate() 转成正常切页，超时回退原生跳转。
@@ -9,7 +9,6 @@ export interface EarlyNavEnv {
   /** 当前文章区行（`.page-main`） */
   row: () => HTMLElement | null;
   reduceMotion: boolean;
-  isMobile: () => boolean;
   floatCtl: SearchFloatCtl;
 }
 
@@ -22,7 +21,7 @@ export interface EarlyNav {
 }
 
 export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
-  const { row, floatCtl, reduceMotion, isMobile } = env;
+  const { row, floatCtl, reduceMotion } = env;
   // window.swup 在实例赋值前会被 DOM id 回退解析成 <main id="swup"> 元素（truthy），
   // !!window.swup 判不出就绪，必须按实例自身特征甄别
   interface SwupLike {
@@ -89,6 +88,7 @@ export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
     if (a.hasAttribute('data-no-swup') || t.closest('[data-no-swup]')) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const r = row();
+    // 页面类型判定用变体类口径（本模块自建），改「列表页 / 文章页」规则要与 util/page-kind.ts 同改
     if (
       !r ||
       (!r.classList.contains('page-main--listing') && !r.classList.contains('page-main--post'))
@@ -121,12 +121,11 @@ export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
     pendingEarlyNav = { url: href, timer: window.setTimeout(poll, 100) };
   }
 
-  /** 手机端：点击只绑 swup 钩子（fetch 失败兜底）。搜索框显隐不在点击时动——
+  /** 点击只绑 swup 钩子（fetch 失败兜底）。搜索框显隐不在点击时动——
    *  点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失；
    *  退场/入场/settle 全部由 playTransition 在 after-swap 统一驱动
    *  （区内「开文章」在那里启动退场、跨区 settle 直接消失/出现） */
   function onDocClick(): void {
-    if (reduceMotion || !isMobile()) return;
     bindSwupHooks();
   }
   function cancel(): void {

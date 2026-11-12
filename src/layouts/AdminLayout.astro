@@ -34,7 +34,8 @@ const { title = '后台' } = Astro.props;
   </head>
   <body class="admin-body">
     <Background />
-    <div class="admin-shell" id="admin-shell">
+    <!-- data-shell 是 shell-guard 识别后台外壳的唯一依据，改它会让守卫失效 -->
+    <div class="admin-shell" id="admin-shell" data-shell="admin">
       <AdminNav />
 
       <div class="admin-content">

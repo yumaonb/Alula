@@ -22,10 +22,12 @@ import { site } from '../../data/site';
     contain: layout style paint;
   }
 
+  /* 宽度公式与 global.css 的 .page-main 同源（改 .page-main 宽度时同步改这里），
+     页脚文字左缘与正文对齐 */
   .footer-inner {
-    max-width: var(--content-width);
+    width: min(100% - var(--page-gutter) * 2, var(--content-width));
     margin: 0 auto;
-    padding: 20px 24px;
+    padding: 20px 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -41,11 +43,17 @@ import { site } from '../../data/site';
     color: var(--ink);
   }
 
+  @media (max-width: 768px) {
+    .footer-inner {
+      width: calc(100% - var(--page-gutter-mobile) * 2);
+    }
+  }
+
   @media (max-width: 640px) {
     .footer-inner {
       flex-direction: column;
       gap: 4px;
-      padding: 16px;
+      padding: 16px 0;
       text-align: center;
     }
   }

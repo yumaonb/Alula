@@ -26,26 +26,55 @@
     }, HIDE_DELAY);
   };
 
+  // 滑块高度（只在尺寸变化时重算）与位移（每帧更新）分开：
+  // scroll 回调经 rAF 合并到每帧一次，只探测文档高度并写 transform，
+  // 不再每个 scroll 事件都读布局再写样式
+  let cachedScrollHeight = 0;
+  let cachedViewportHeight = 0;
+  let cachedTrackHeight = 0;
+  let cachedThumbHeight = 30;
+  let isFrameQueued = false;
+
+  const recalcSizes = (): void => {
+    cachedScrollHeight = document.documentElement.scrollHeight;
+    cachedViewportHeight = window.innerHeight;
+    cachedTrackHeight = track.clientHeight;
+    // 30px 下限：与 CustomScrollbar.astro 组件 CSS 各一份，同改
+    cachedThumbHeight = Math.max(
+      30,
+      (cachedViewportHeight / cachedScrollHeight) * cachedTrackHeight,
+    );
+    thumb.style.height = `${cachedThumbHeight}px`;
+  };
+
   const updateScrollbar = (): void => {
-    if (!hasScroll()) {
+    const scrollHeight = document.documentElement.scrollHeight;
+    const viewportHeight = window.innerHeight;
+    if (scrollHeight <= viewportHeight + 2) {
       container.classList.remove('visible');
       return;
     }
 
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const trackHeight = track.clientHeight;
-    const thumbHeight = Math.max(
-      30,
-      (window.innerHeight / document.documentElement.scrollHeight) * trackHeight,
-    );
-    const thumbTop = (scrollTop / docHeight) * (trackHeight - thumbHeight);
+    // 文档高度 / 视口高度变了（如图片、评论加载后页面变高）：先重算滑块高度
+    if (scrollHeight !== cachedScrollHeight || viewportHeight !== cachedViewportHeight) {
+      recalcSizes();
+    }
 
-    thumb.style.height = `${thumbHeight}px`;
+    const docHeight = cachedScrollHeight - cachedViewportHeight;
+    const thumbTop = (window.scrollY / docHeight) * (cachedTrackHeight - cachedThumbHeight);
     thumb.style.transform = `translateY(${thumbTop}px)`;
 
     showScrollbar();
     scheduleHide();
+  };
+
+  const queueScrollbarUpdate = (): void => {
+    if (isFrameQueued) return;
+    isFrameQueued = true;
+    requestAnimationFrame(() => {
+      isFrameQueued = false;
+      updateScrollbar();
+    });
   };
 
   const onMouseDown = (e: MouseEvent): void => {
@@ -118,12 +147,10 @@
   // 在浏览器窗口外松开鼠标时 mouseup 不会派发，靠失焦兜底清理拖拽态
   window.addEventListener('blur', onMouseUp);
 
-  window.addEventListener('scroll', updateScrollbar, { passive: true });
-  window.addEventListener('resize', updateScrollbar, { passive: true });
+  window.addEventListener('scroll', queueScrollbarUpdate, { passive: true });
+  window.addEventListener('resize', queueScrollbarUpdate, { passive: true });
 
-  document.addEventListener('swup:content:replace', () => {
-    requestAnimationFrame(updateScrollbar);
-  });
+  document.addEventListener('swup:content:replace', queueScrollbarUpdate);
 
   updateScrollbar();
   setTimeout(updateScrollbar, 600);

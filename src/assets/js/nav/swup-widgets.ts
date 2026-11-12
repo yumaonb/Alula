@@ -5,8 +5,9 @@
 //       目录（#toc-fab）与筛选（#posts-filter-fab）按钮分别由 TocModal / PostsFilterModal 监听。
 // 切页放行：切页开始即压制按钮，新内容就绪后保持压制，直到页面滚回顶部、
 //       平滑滚动结束（swup:scroll:end），或新内容渲染后 250ms 兜底超时为止。
+// 回顶放行：点「回到顶部」即刻收起按钮，等滚到顶部、用户反向滚动或 2s 兜底后交还。
 import { detectPageKind } from '../util/page-kind';
-import { queryTocNav } from '../posts/post-sidebar';
+import { queryTocNav } from '../util/post-sidebar';
 
 const container = document.getElementById('side-widgets');
 if (container) initSideWidgets(container);
@@ -16,7 +17,10 @@ function initSideWidgets(container: HTMLElement): void {
   const SHOW_AT = 100;
   // 新内容就绪后等滚动动画启动的窗口，超时按当前位置放行
   const IDLE_RELEASE_MS = 250;
+  // 「回到顶部」平滑滚动的兜底放行时间：滚动被用户打断时不能永久压制
+  const RETURN_TOP_MAX_MS = 2000;
   const WIDGET_ORDER = ['top', 'toc', 'filter', 'progress', 'comments', 'bottom'];
+  // 键与 SideWidgets.astro 的 data-widget 一一对应，增 / 删 / 改名悬浮按钮两处同改
 
   const buttons: Record<string, HTMLElement> = {};
   container.querySelectorAll<HTMLElement>('.back-to-widget').forEach((btn) => {
@@ -27,6 +31,12 @@ function initSideWidgets(container: HTMLElement): void {
   const progressBtn = buttons['progress'];
   const progressBar = progressBtn ? progressBtn.querySelector('.progress-ring-bar') : null;
   const progressText = progressBtn ? progressBtn.querySelector('.progress-text') : null;
+  // 登记的键必须在 DOM 里都有对应按钮：拼错 data-widget 时该按钮会从下面这张表里静默消失，
+  // 之后显隐 / 点击全都不再管它，页面上表现为「按钮永久失踪」且控制台无声
+  for (const key of WIDGET_ORDER) {
+    if (!buttons[key]) console.error(`[swup-widgets] 缺少按钮: ${key}`);
+  }
+
   const available = WIDGET_ORDER.map((k) => buttons[k]).filter((btn): btn is HTMLElement => !!btn);
 
   // swup 切页挂起：切页开始 → 页面回到顶部/滚动结束 期间为 true
@@ -35,6 +45,11 @@ function initSideWidgets(container: HTMLElement): void {
   let scrolling = false;
   // 兜底定时器：新内容就绪后平滑滚动若迟迟不开始，按当前位置放行
   let settleTimer: ReturnType<typeof setTimeout> | null = null;
+  // 点「回到顶部」后的压制：按钮即刻收起，等滚动落定再交还（见 startReturnTop）
+  let returningTop = false;
+  // 起点的滚动位置：用来识别「用户中途往回滚」，那种情况要立刻交还
+  let returnTopFrom = 0;
+  let returnTopTimer: ReturnType<typeof setTimeout> | null = null;
   let rafId = 0;
 
   function markUnavailable(key: string, flag: boolean): void {
@@ -45,6 +60,7 @@ function initSideWidgets(container: HTMLElement): void {
   function pageContext() {
     return {
       ...detectPageKind(),
+      // 「这页有没有目录」口径之一：有没有条目（全部口径见 PostsShell.astro 的 hasToc 注释）
       toc: !!queryTocNav()?.querySelector('.toc-link'),
       comments: !!document.getElementById('comments-section'),
     };
@@ -52,15 +68,18 @@ function initSideWidgets(container: HTMLElement): void {
 
   function probe(): void {
     const { detail, list, toc, comments } = pageContext();
+    // 768/769 是全站手机 / 桌面分界，改分界要与 nav/breakpoint.ts 及其它模块的探测同改（见其文件头）
     const w = window.innerWidth;
 
-    // 筛选按钮：侧栏不可见时才需要——文章变体 ≤1150（global.css:209 侧栏 ≥1151 显示）、
-    // 列表变体 ≤768（≥769 显示），断点互补；改这里要同改 global.css:199–209
+    // 筛选按钮：侧栏不可见时才需要——文章变体 ≤1150（侧栏 ≥1151 显示）、
+    // 列表变体 ≤768（≥769 显示），断点互补；改这里要同改 src/assets/css/global.css 的
+    // .global-sidebar 显隐媒体查询
     let filterMode = 'none';
     if (detail) filterMode = w <= 1150 ? 'detail' : 'none';
     else if (list) filterMode = w <= 768 ? 'list' : 'none';
 
-    // 目录按钮：右侧目录栏不可见时才需要（PostsShell.astro:228 ≤850 隐藏右侧栏）
+    // 目录按钮：右侧目录栏不可见时才需要（src/layouts/PostsShell.astro ≤850 隐藏右侧栏，
+    // 与 posts/toc.ts 的目录抽屉模式阈值同值）
     markUnavailable('toc', !(toc && w <= 850));
     markUnavailable('comments', !comments);
     markUnavailable('filter', filterMode === 'none');
@@ -79,14 +98,17 @@ function initSideWidgets(container: HTMLElement): void {
     render();
   }
 
-  function render(scrollY?: number): void {
-    const y = typeof scrollY === 'number' ? scrollY : window.scrollY;
+  function render(): void {
+    const y = window.scrollY;
 
     // 页面已滚回顶部 → 挂起结束（哪怕平滑滚动只剩收尾，顶部即视为"完全到顶"）
     if (busy && y <= SHOW_AT) release();
 
-    // 挂起期间不驱动显隐（按钮已在切页时被压制成隐藏）
-    const show = y > SHOW_AT && !busy;
+    // 回到顶部途中：到顶、或用户反过来往下滚，都立刻交还给滚动逻辑
+    if (returningTop && (y <= SHOW_AT || y > returnTopFrom)) stopReturnTop();
+
+    // 挂起期间不驱动显隐（按钮已在切页 / 回顶时被压制成隐藏）
+    const show = y > SHOW_AT && !busy && !returningTop;
     for (const btn of available) {
       const usable = show && !btn.classList.contains('unavailable');
       btn.classList.toggle('visible', usable);
@@ -95,8 +117,32 @@ function initSideWidgets(container: HTMLElement): void {
     const doc = document.documentElement;
     const max = Math.max(0, doc.scrollHeight - window.innerHeight);
     const p = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+    // 100 是 SideWidgets.astro 进度环 rect pathLength="100" 的刻度，改刻度两处同改
     if (progressBar) progressBar.setAttribute('stroke-dashoffset', String(100 * (1 - p)));
     if (progressText) progressText.textContent = `${Math.round(p * 100)}%`;
+  }
+
+  /** 点「回到顶部」后立刻收起按钮，不等滚动动画走完。
+   *  只靠 render(0) 不够：下一个滚动事件会按真实位置把它们顶回来，看起来像闪一下。 */
+  function startReturnTop(): void {
+    returningTop = true;
+    returnTopFrom = window.scrollY;
+    available.forEach((btn) => btn.classList.remove('visible'));
+    if (returnTopTimer) clearTimeout(returnTopTimer);
+    // 兜底：滚动被用户打断、或没有可等的滚动事件时，按当前位置恢复显隐
+    returnTopTimer = setTimeout(() => {
+      returnTopTimer = null;
+      stopReturnTop();
+      render();
+    }, RETURN_TOP_MAX_MS);
+  }
+
+  function stopReturnTop(): void {
+    returningTop = false;
+    if (returnTopTimer) {
+      clearTimeout(returnTopTimer);
+      returnTopTimer = null;
+    }
   }
 
   function onScroll(): void {
@@ -118,6 +164,7 @@ function initSideWidgets(container: HTMLElement): void {
     if (!btn || btn.classList.contains('unavailable')) return;
     const key = (btn as HTMLElement).dataset.widget;
     if (key === 'top') {
+      startReturnTop();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (key === 'bottom') {
       window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
@@ -152,6 +199,8 @@ function initSideWidgets(container: HTMLElement): void {
   document.addEventListener('swup:visit:start', () => {
     busy = true;
     scrolling = false;
+    // 回顶压制属于上一次交互，切页时一并收掉，交给下面的切页流程接管
+    stopReturnTop();
     if (settleTimer) {
       clearTimeout(settleTimer);
       settleTimer = null;

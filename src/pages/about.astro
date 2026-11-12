@@ -165,10 +165,21 @@ import avatarImg from '../assets/images/avatar.png';
     background: var(--ink);
   }
 
-  @media (min-width: 769px) {
+  /* 两列的最小视口宽度：2×360（列最小宽）+ 16（gap）+ 2×56（页面留白）= 848。
+     低于它 .about-main 只剩一列，自述卡独占一行，没有「左列行高」可跟——
+     这时继续 contain: size 会让 auto 高塌成 0（只剩 padding），整段正文被裁掉 */
+  @media (min-width: 848px) {
     .about-intro {
       /* 高度只跟左列走：卡片内容不参与行高，超出部分在卡内滚动 */
       contain: size;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+    }
+  }
+
+  /* 单列区间：高度回到由内容决定，正常撑开（超出仍卡内滚动由下面的兜底管） */
+  @media (min-width: 769px) and (max-width: 847.98px) {
+    .about-intro {
       overflow-y: auto;
       scrollbar-gutter: stable;
     }

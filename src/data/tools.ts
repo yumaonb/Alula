@@ -89,10 +89,10 @@ export const toolCategories: ToolCategory[] = [
       {
         title: 'json格式化工具',
         desc: '格式化json的，方便开发',
-        url: 'https://pagespeed.web.dev/?hl=zh-cn',
+        url: 'https://www.json.cn/',
       },
       {
-        title: 'lightthouse测试',
+        title: 'Lighthouse测试',
         desc: '测网站性能的，需要科学上网',
         url: 'https://pagespeed.web.dev/?hl=zh-cn',
       },

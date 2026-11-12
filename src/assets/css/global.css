@@ -237,7 +237,7 @@ ol {
 .page-main--listing > .global-sidebar,
 .page-main--post > .global-sidebar {
   padding-top: var(--posts-side-offset, 0);
-  /* 与 posts-shell.ts 的 EDGE_MS（400ms）同步 */
+  /* 时长与 src/assets/js/posts/transition-tokens.ts 的 EDGE_MS（400ms）同步 */
   transition: padding-top 0.4s ease;
 }
 
@@ -315,14 +315,16 @@ ol {
   transform: translateX(80px);
   visibility: hidden;
   pointer-events: none;
-  /* visibility 延迟到滑出动画播完再生效；
-   * color / background 是悬停提亮，走 --t-hover（滑入滑出位移仍各 0.18s） */
+  /* visibility 延迟到滑出动画播完再生效；悬停提亮走 .hoverable，
+   * 共享四个悬停属性必须与位移一并写全，否则本地 transition 会盖掉全站悬停过渡 */
   transition:
     opacity 0.18s ease,
     transform 0.18s ease,
     visibility 0s linear 0.2s,
-    color var(--t-hover),
-    background var(--t-hover);
+    background var(--t-hover),
+    box-shadow var(--t-hover),
+    border-color var(--t-hover),
+    color var(--t-hover);
 }
 
 .back-to-widget.visible {
@@ -334,8 +336,10 @@ ol {
     opacity 0.18s ease,
     transform 0.18s ease,
     visibility 0s linear 0s,
-    color var(--t-hover),
-    background var(--t-hover);
+    background var(--t-hover),
+    box-shadow var(--t-hover),
+    border-color var(--t-hover),
+    color var(--t-hover);
 }
 
 /* 当前页面不适用的按钮移除占位，只在 swup 切页时重估 */
@@ -349,11 +353,6 @@ ol {
   transform: translateX(80px);
   visibility: hidden;
   pointer-events: none;
-}
-
-.back-to-widget:hover {
-  color: var(--white);
-  background: var(--hover-bg);
 }
 
 .back-to-widget-icon {
@@ -404,6 +403,7 @@ html {
 }
 
 /* ---- 自定义滚动条拖拽态 ----
+ * 自定义滚动条三文件之一（组件 + ui/scrollbar.ts + 此处），改动联动点见 CustomScrollbar.astro 文件头。
  * 滚动条只有 6px 宽，拖动中鼠标一离开滑块，光标就按所在元素退回 pointer / 箭头；
  * 按住鼠标期间（isDragging）把整页光标固定成 grabbing。
  * 类由 scrollbar.ts 在 mousedown / mouseup 增删。

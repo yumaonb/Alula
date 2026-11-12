@@ -9,6 +9,7 @@ import ImageWrapper from '../../components/posts/ImageWrapper.astro';
 import { Icon } from 'astro-icon/components';
 import { loadBlogData, renderPost, postBreadcrumbs } from '../../lib/posts-data';
 import { buildCategoryUrl, buildTagUrl, postMatchesCategory } from '../../lib/category';
+import { resolveCoverImage } from '../../lib/content-image';
 import '../../assets/css/posts/markdown.css';
 
 const data = await loadBlogData();
@@ -72,11 +73,14 @@ if (type === 'post') {
     PostContent = rendered.Content;
     headings = rendered.headings.filter((h) => h.depth >= 1 && h.depth <= 3);
 
-    // 上下篇只在可列出的文章里找：隐藏文章既不出现也不参与（它自己页面没有导航）
-    const idx = data.posts.findIndex((p) => p.slug === slug);
-    if (idx > 0) prevPost = { title: data.posts[idx - 1].title, url: data.posts[idx - 1].url };
-    if (idx >= 0 && idx < data.posts.length - 1)
-      nextPost = { title: data.posts[idx + 1].title, url: data.posts[idx + 1].url };
+    // 上下篇只在可列出的文章里找：隐藏文章既不出现也不参与（它自己页面没有导航）。
+    // 顺序走 chronological（纯日期倒序）而不是列表页的 posts（置顶优先）：
+    // 用 posts 的下标会让「上一篇（较新）」指向比当前更旧的文章
+    const ordered = data.chronological;
+    const idx = ordered.findIndex((p) => p.slug === slug);
+    if (idx > 0) prevPost = { title: ordered[idx - 1].title, url: ordered[idx - 1].url };
+    if (idx >= 0 && idx < ordered.length - 1)
+      nextPost = { title: ordered[idx + 1].title, url: ordered[idx + 1].url };
   }
 }
 
@@ -92,6 +96,12 @@ if (type === 'category') {
   catName = meta?.name || catPath[catPath.length - 1] || metaKey;
   catPosts = data.posts.filter((p) => postMatchesCategory(p, metaKey));
 }
+
+// 分享卡用封面：与订阅源同一套解析（public 原样、外链原样、站内相对走优化）
+const shareImage =
+  type === 'post' && post?.image
+    ? (await resolveCoverImage(post.image, post.basePath))?.src
+    : undefined;
 ---
 
 {type === 'category' && (
@@ -112,6 +122,8 @@ if (type === 'category') {
     breadcrumbs={postBreadcrumbs(post, data.meta)}
     headings={headings}
     hidden={post.hidden}
+    image={shareImage}
+    publishedTime={post.date}
   >
     <header class="post-header">
       <h1 class="post-title">
@@ -234,6 +246,7 @@ if (type === 'category') {
     margin: 0 2px;
     color: var(--ink);
   }
+  /* 容器类名与 ui/image-kind.ts 的选择器一致（灯箱 / 失败降级按它分流），改类名两处同改 */
   .post-cover {
     margin-top: 20px;
     border-radius: var(--radius);

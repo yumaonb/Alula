@@ -1,6 +1,9 @@
 ---
 // CustomScrollbar.astro — 自定义悬浮滚动条
 // 用法：<CustomScrollbar />
+// 三个文件拼一套：本组件（结构 + 三态色）、assets/js/ui/scrollbar.ts（拖动 / 点击轨道）、
+// assets/css/global.css 的 is-dragging-scrollbar 光标规则（拖动态）；
+// 滑块 30px 下限在组件 CSS 与 scrollbar.ts 各写一份，必须同改
 ---
 
 <div class="scrollbar-hover-zone" id="scrollbar-hover-zone"></div>
@@ -20,7 +23,7 @@
     position: fixed;
     right: 0;
     top: 0;
-    width: 60px;
+    width: var(--page-gutter);
     height: 100vh;
     z-index: 40;
     pointer-events: auto;
@@ -32,7 +35,9 @@
     top: 0;
     height: 100vh;
     width: 8px;
-    z-index: 9999;
+    /* 低于首载遮罩（9999）与抽屉遮罩（110）：装饰层不参与遮罩的层级竞争，
+       否则遮罩淡出期间滑块会浮在上面 */
+    z-index: 90;
     padding: 0;
     opacity: 0;
     transition: opacity 0.3s ease;

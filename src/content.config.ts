@@ -8,7 +8,7 @@ const posts = defineCollection({
   schema: z
     .object({
       title: z.string().optional(),
-      date: z.coerce.date().optional(),
+      date: z.coerce.date(),
       description: z.string().optional(),
       image: z.string().optional(),
       tags: z.array(z.string()).optional(),
@@ -18,6 +18,7 @@ const posts = defineCollection({
     // 只认上面这 7 个字段：写错的字段名（description 少个 s、hide 之类）直接构建失败。
     // 放行未知字段等于让拼写错误静默生效，字段看着写了、页面拿不到
     .strict()
+    // 缺字段默认值在 src/lib/posts-data.ts 还有一份，改默认值两处同改（漏改两层取到不同默认）
     .transform((fm) => {
       if (fm.title == null) fm.title = '无标题';
       if (fm.tags == null) fm.tags = [];

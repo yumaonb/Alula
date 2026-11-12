@@ -170,16 +170,24 @@ export function buildCategoryTree(
     node.name = categoryMeta[path]?.name || last;
   }
 
-  const finalize = (node: CategoryTreeNode): void => {
-    node.children.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+  // 两件事分开做：先把子树计数聚合上来，再排序。
+  // 合成一趟的话根排序读到的是聚合前的 count（只含直挂文章），
+  // 「子目录里有 9 篇、自己目录一篇没直挂」的分类会被排到只有 1 篇的分类后面
+  const accumulate = (node: CategoryTreeNode): void => {
     for (const child of node.children) {
-      finalize(child);
+      accumulate(child);
       node.count += child.count;
     }
   };
 
+  const sortChildren = (node: CategoryTreeNode): void => {
+    node.children.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+    for (const child of node.children) sortChildren(child);
+  };
+
   const roots = [...nodes.values()].filter((n) => !n.path.includes('/'));
+  for (const root of roots) accumulate(root);
   roots.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh'));
-  for (const root of roots) finalize(root);
+  for (const root of roots) sortChildren(root);
   return roots;
 }

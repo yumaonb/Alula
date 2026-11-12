@@ -4,8 +4,8 @@
 import { isZoomableImage } from './image-kind';
 
 (() => {
-  if (window.__alula_lightbox_bound) return;
-  window.__alula_lightbox_bound = true;
+  if (window.__alulaLightboxBound) return;
+  window.__alulaLightboxBound = true;
 
   document.addEventListener('click', (e) => {
     const target = e.target;
@@ -13,8 +13,6 @@ import { isZoomableImage } from './image-kind';
 
     // 哪类图能进灯箱统一见 image-kind.ts：正文图与详情页封面参与，列表卡片封面不参与
     if (!isZoomableImage(target)) return;
-    // 加载失败的图片已被替换为占位块，无图可放大
-    if (target.dataset.phReplaced) return;
 
     e.preventDefault();
 

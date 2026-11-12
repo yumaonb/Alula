@@ -88,4 +88,29 @@
    * 容器上（胶囊自身有 focus-within 背景过渡，motion 逐帧写内联背景会与之打架）。 */
   /* 毛玻璃渐隐 / 渐显时接替模糊的实体白 */
   --glass-veil: rgba(255, 255, 255, 0.15);
+
+  /* ---- 代码高亮色板（Shiki 的 css-variables 主题） ----
+   * astro.config.ts 的 markdown.shikiConfig 用 css-variables 主题，
+   * Shiki 不再把颜色写死成 hex，而是输出 var(--astro-code-*) 引用，
+   * 色值全部在这里定义——代码块的配色跟着站点走，不与 GitHub 主题绑死。
+   * 变量名是 Shiki 固定的一套，改主题配置时这些名字也要跟着核对。 */
+  /* 代码块底色：半透明实色，让身后的站点背景透出来一点，
+   * 不再用不透明的主题底色（那是 GitHub 代码页的观感，与毛玻璃风格不搭） */
+  --astro-code-background: rgba(0, 0, 0, 0.45);
+  /* 代码正文默认色：比全站 --ink 略暗一档，纯文本不再刺眼 */
+  --astro-code-foreground: rgba(255, 255, 255, 0.82);
+  /* 关键字（if / const / 冒号等）：暖红，比主题原色柔和 */
+  --astro-code-token-keyword: #f08a95;
+  /* 常量与 CSS 属性名：淡蓝 */
+  --astro-code-token-constant: #79b8ff;
+  /* 注释：最暗的一档 */
+  --astro-code-token-comment: #6a737d;
+  /* 函数名（rgb() / var()）：淡紫 */
+  --astro-code-token-function: #b392f0;
+  /* 标点与括号：比正文略暗，缩进结构看得清又不抢眼 */
+  --astro-code-token-punctuation: rgba(255, 255, 255, 0.55);
+  /* 字符串：淡青 */
+  --astro-code-token-string: #9ecbff;
+  /* 字符串里的表达式（HTML 标签名、CSS 选择器里的片段）：淡绿 */
+  --astro-code-token-string-expression: #85e89d;
 }

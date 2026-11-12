@@ -86,6 +86,7 @@ const items = navItems.map((item) => ({
   // 汉堡菜单脚本只在移动端加载，目录 / 筛选抽屉从全局取共享的断点监听器
   import '../../assets/js/nav/breakpoint';
 
+  // 768/769 是全站手机 / 桌面分界，改分界要与 nav/breakpoint.ts 及其它模块的探测同改（见其文件头）
   const mq = window.matchMedia('(max-width: 768px)');
   let loaded = false;
 
@@ -134,6 +135,8 @@ const items = navItems.map((item) => ({
   .nav-inner {
     width: min(100% - var(--page-gutter) * 2, var(--content-width));
     margin: 0 auto;
+    /* 导航高度另有两处读取：widgets/Comments.astro 的 scroll-margin-top: 78px（让位偏移）、
+       posts/toc.ts 的 NAV_HEIGHT = 80 兜底；改高度三处同改 */
     height: 68px;
     display: flex;
     align-items: center;
@@ -386,6 +389,7 @@ const items = navItems.map((item) => ({
 
   @media (max-width: 768px) {
     .nav-inner {
+      /* 手机端导航高度；改这里与桌面 68px 及 Comments.astro / toc.ts 的让位值同改 */
       height: 56px;
       width: calc(100% - var(--page-gutter-mobile) * 2);
     }

@@ -19,13 +19,11 @@ import {
 interface Props {
   /** 分类树（来自 loadBlogData()） */
   tree?: CategoryTreeNode[];
-  /** 标签计数（来自 loadBlogData()） */
-  tags?: { name: string; count: number }[];
+  /** 标签（来自 loadBlogData()） */
+  tags?: { name: string }[];
 }
 
 const { tree = [], tags = [] } = Astro.props;
-
-const categoryTree = tree;
 
 const catUrl = (path: string) => buildCategoryUrl(path.split('/'));
 
@@ -38,7 +36,7 @@ const collect = (nodes: CategoryTreeNode[]) => {
     collect(n.children);
   }
 };
-collect(categoryTree);
+collect(tree);
 
 const catSegments = postPathSegments(Astro.url.pathname);
 const activeCategory = activeCategoryOf(catSegments, allCatPaths);
@@ -52,8 +50,8 @@ const activeTag = tags.some((t) => t.name === tagCandidate) ? tagCandidate : '';
   <AuthorCard />
 
   <div class="sidebar-filter">
-    {categoryTree.length > 0 && (
-      <PostCategoryTree tree={categoryTree} categoryUrl={catUrl} activeCategory={activeCategory} />
+    {tree.length > 0 && (
+      <PostCategoryTree tree={tree} categoryUrl={catUrl} activeCategory={activeCategory} />
     )}
     {tags.length > 0 && <PostTagCloud tags={tags} tagUrl={buildTagUrl} activeTag={activeTag} />}
   </div>
@@ -66,6 +64,7 @@ const activeTag = tags.some((t) => t.name === tagCandidate) ? tagCandidate : '';
     /* 拉伸到与内容列同高：让内部的 .sidebar-filter 有滚动行程，sticky 才能生效 */
     align-self: stretch;
     margin: 0;
+    /* display: flex 由 global.css 的 .page-main--* 变体规则提供，改显隐规则或搬走本组件要两处同改 */
     flex-direction: column;
     gap: var(--card-gap);
     z-index: 10;

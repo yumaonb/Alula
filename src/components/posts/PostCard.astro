@@ -44,7 +44,7 @@ const hasMeta = !!date || hasCategory || hasStats;
 
 <article class:list={['post-card glass hoverable', { 'has-cover': hasCover }]}>
   {hasCover && (
-    <a href={url} class="post-card-cover link-plain" aria-label={`阅读：${title}`}>
+    <a href={url} class="post-card-cover link-plain">
       <span class="cover-ph-icon">
         <Icon is:inline name="mdi:image-outline" />
       </span>
@@ -77,7 +77,7 @@ const hasMeta = !!date || hasCategory || hasStats;
     </div>
 
     {description && (
-      <a href={url} class="post-card-desc link-plain" aria-label={`阅读：${title}`}>
+      <a href={url} class="post-card-desc link-plain">
         {description}
       </a>
     )}
@@ -391,6 +391,7 @@ const hasMeta = !!date || hasCategory || hasStats;
   }
 
   /* ---- 封面（卡片右侧：高度控制，宽度按 4:3 自动推导） ---- */
+  /* 容器类名与 ui/image-kind.ts 的选择器一致（灯箱 / 失败降级按它分流），改类名两处同改 */
   .post-card-cover {
     flex: 0 0 auto;
     width: auto;

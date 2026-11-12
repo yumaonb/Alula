@@ -1,15 +1,17 @@
 // search-float.ts — 行级常驻搜索浮层：摆位几何 + 出入场状态机
-// 用法：const floatCtl = createSearchFloat({ row, track, stopAnims, isMobile, reduceMotion })
+// 用法：const floatCtl = createSearchFloat({ row, track, stopAnims, isMobile })
 //
 // CSS 只管 visibility / pointer-events（随行变体类瞬时翻转）+ 端点 opacity: 0；
 // opacity / 位移 / 白纱全在这里。白纱规则：**淡出与淡入都用**（容器背景 透明 ↔ VEIL）——
 // 移动渐隐的毛玻璃用实体白替代消失的模糊；淡入：入场前先加上半透明白（同任务 pre-pin、
 // 无绘制间隙），再随入场全程褪去（白纱 / 淡变只用于区内动画；跨区边界直接 settle，无动画）。
-import { animate } from 'motion';
+// exitMobile / exitDesktop / enterMobile / enterDesktop 四个变体与 redirect 共享同一组状态：
+// 钉屏、强制可见、白纱、渐隐 / 渐显、收尾计数；改公共收尾或白纱这五处同改
 import type { AnimationPlaybackControls } from 'motion';
 
 import { readTranslate } from '../util/dom';
-import { EASE, EASE_ENTRY, EASE_EXIT, PHASE_MS } from './transition-tokens';
+import { EASE_ENTRY, EASE_EXIT, EASE_TRANSITION, PHASE_MS } from './transition-tokens';
+import { animateLazy as animate } from '../util/motion';
 
 // 搜索「移一段」的位移距离
 const SEARCH_DX = 48;
@@ -29,6 +31,7 @@ const FLOAT_ENTRY_FADE_MS = 110;
 const FLOAT_ENTRY_DELAY_MS = 110;
 // 白纱关键帧的透明端（与 .glass 的 transparent 等价）
 const BG0 = 'rgba(255, 255, 255, 0)';
+// 白纱令牌（variables.css --glass-veil）：移动渐隐的毛玻璃用它替代模糊
 const VEIL = (() => {
   try {
     return (
@@ -38,7 +41,6 @@ const VEIL = (() => {
   } catch {
     return 'rgba(255, 255, 255, 0.15)';
   }
-  // 白纱令牌（variables.css --glass-veil）：移动渐隐的毛玻璃用它替代模糊
 })();
 
 export interface SearchFloatEnv {
@@ -49,12 +51,15 @@ export interface SearchFloatEnv {
   /** 停掉浮层生命周期的全部动画 */
   stopAnims: () => void;
   isMobile: () => boolean;
-  reduceMotion: boolean;
 }
 
+export type SearchFloatState = 'shown' | 'hidden' | 'exiting' | 'entering';
+
 export interface SearchFloatCtl {
-  state: 'shown' | 'hidden' | 'exiting' | 'entering';
-  active: AnimationPlaybackControls | null;
+  /** 当前状态（只读：写它就绕过了状态机，外部改写会让状态与动画对不上） */
+  readonly state: SearchFloatState;
+  /** 在途动画（只读） */
+  readonly active: AnimationPlaybackControls | null;
   el(): HTMLElement | null;
   settle(show: boolean): void;
   finish(show: boolean, f: HTMLElement): void;
@@ -107,6 +112,8 @@ export function placeFloat(r: HTMLElement, ph: HTMLElement, f: HTMLElement): voi
 export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
   // 浮层钉视口期间的原行相对内联 top / left（unpin 时恢复）
   let pinSaved: { top: string; left: string } | null = null;
+  // 移动端入场落回延迟的定时器句柄（settle / finish 兜底清理，避免切页后残留）
+  let unpinTimer: number | undefined;
 
   /** 浮层钉视口：absolute → fixed 钉到当前视口位置，退场动画期间脱离页面滚动——
    *  切页后 SwupScrollPlugin 平滑滚回顶部，文档坐标里的浮层会被滚动「带走」，
@@ -144,9 +151,17 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
     return { dx, dy, op: Number.isFinite(o) ? o : 1, bg: cs.backgroundColor || BG0 };
   }
 
+  // 状态与在途动画只由本模块写：外部读到的是快照，写不进去
+  let state: SearchFloatState = 'shown';
+  let active: AnimationPlaybackControls | null = null;
+
   const ctl: SearchFloatCtl = {
-    state: 'shown',
-    active: null,
+    get state(): SearchFloatState {
+      return state;
+    },
+    get active(): AnimationPlaybackControls | null {
+      return active;
+    },
 
     el(): HTMLElement | null {
       return env.row()?.querySelector<HTMLElement>('.posts-search-float') ?? null;
@@ -155,8 +170,12 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
     /** 钉到静态目标态：清掉一切内联（transform / opacity / visibility / 背景白纱 + 视口钉） */
     settle(show: boolean): void {
       env.stopAnims();
-      this.active = null;
-      this.state = show ? 'shown' : 'hidden';
+      if (unpinTimer !== undefined) {
+        window.clearTimeout(unpinTimer);
+        unpinTimer = undefined;
+      }
+      active = null;
+      state = show ? 'shown' : 'hidden';
       const f = this.el();
       if (!f) return;
       unpinFloat(f);
@@ -170,8 +189,19 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
      *  清掉一切内联回到静态目标态。若让先结束者收尾，它清的 visibility / transform 内联
      *  会让变体类（如文章页隐藏浮层）提前生效——后结束动画的尾巴就播给用户看漏了 */
     finish(show: boolean, f: HTMLElement): void {
-      this.state = show ? 'shown' : 'hidden';
-      this.active = null;
+      // 前置守卫：只有「正在入场 / 退场」才该收尾。
+      // 状态不符说明调用方在状态不匹配时调了它——静默收尾会把状态机推到与动画无关的态，
+      // 表现为搜索框永久停在 opacity 0（入场 gate 不成立）
+      if (state !== 'exiting' && state !== 'entering') {
+        console.error(`[search-float] finish() 在状态 ${state} 下被调用，已忽略`);
+        return;
+      }
+      state = show ? 'shown' : 'hidden';
+      active = null;
+      if (unpinTimer !== undefined) {
+        window.clearTimeout(unpinTimer);
+        unpinTimer = undefined;
+      }
       // 动画播完：脱离视口钉，回到行内绝对定位（两条入场路径此处均 no-op：移动端入场
       // 落回延迟中已解除、桌面端入场从不钉；退场以 opacity 0 收尾，还原不可见）
       unpinFloat(f);
@@ -192,12 +222,12 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
 
     /** 手机端「开文章」退场：上移（同推入速度）+ 渐隐 + 白纱。after-swap 时触发 */
     exitMobile(): AnimationPlaybackControls | null {
-      if (this.state !== 'shown') return this.active;
+      if (state !== 'shown') return active;
       const f = this.el();
       if (!f) return null;
       // 清掉任何残留内联（幂等起点）
       this.settle(true);
-      this.state = 'exiting';
+      state = 'exiting';
       // 变体类可能已隐藏容器（swap 先于动画结束）——退出窗口内强制可见
       f.style.visibility = 'visible';
       // 退场动画期间钉视口：滚顶滑行不会把上移 + 渐隐「带走」成斜线
@@ -208,8 +238,7 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
           { y: [0, `-${FLOAT_MOVE}px`] },
           {
             duration: FLOAT_EXIT_MOVE_MS / 1000,
-            ease: EASE,
-            reduceMotion: env.reduceMotion,
+            ease: EASE_TRANSITION,
             autoplay: false,
           },
         ),
@@ -221,24 +250,23 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
           {
             duration: FLOAT_EXIT_MOVE_MS / 1000,
             ease: EASE_EXIT,
-            reduceMotion: env.reduceMotion,
             autoplay: false,
           },
         ),
       );
-      this.active = move;
+      active = move;
       this.allFinished(f, false, [move, fade]);
       return move;
     },
 
     /** 桌面端退场：右移 48px（配对目录入场时）+ 渐隐 + 白纱；无配对只渐隐 */
     exitDesktop(withX: boolean): AnimationPlaybackControls | null {
-      if (this.state !== 'shown') return this.active;
+      if (state !== 'shown') return active;
       const f = this.el();
       if (!f) return null;
       // 清掉任何残留内联（幂等起点）
       this.settle(true);
-      this.state = 'exiting';
+      state = 'exiting';
       // 变体类已先隐藏容器——退出窗口内强制可见
       f.style.visibility = 'visible';
       // 退场动画期间钉视口：滚顶滑行不会把右移 + 渐隐「带走」成向右下的斜线
@@ -246,23 +274,22 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
       const opts = {
         duration: PHASE_MS / 1000,
         ease: EASE_EXIT,
-        reduceMotion: env.reduceMotion,
         autoplay: false,
       };
       const move = withX ? env.track(animate(f, { x: [0, `${SEARCH_DX}px`] }, opts)) : null;
       const fade = env.track(animate(f, { opacity: [1, 0], backgroundColor: [BG0, VEIL] }, opts));
       // 相位链到整体退场（位移与渐隐同时长，链谁等效）
-      this.active = move ?? fade;
+      active = move ?? fade;
       this.allFinished(f, false, move ? [move, fade] : [fade]);
-      return move;
+      return active;
     },
 
     /** 手机端「关文章」入场：自上方偏移落回 + 渐显 + 白纱（入场前先铺白、随入场全程褪去） */
     enterMobile(): void {
       const f = this.el();
-      if (!f || this.state !== 'hidden') return;
+      if (!f || state !== 'hidden') return;
       this.settle(false);
-      this.state = 'entering';
+      state = 'entering';
       // 入场动画期间钉视口（先于 pre-pin transform：量盒须取无位移的自然位）
       pinFloat(f);
       f.style.transform = `translateY(-${FLOAT_MOVE}px)`;
@@ -275,8 +302,8 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
       // 延迟一结束即解除视口钉：落回期间浮层行内绝对定位、真正跟着内容走（fixed 钉
       // 不随推入移动，内容快而浮层慢会显得「不跟着文章走」）；unpin 的胶囊重合成落在
       // 渐显进行中，即使挤栅格预算单帧也被 alpha 覆盖（TROUBLESHOOTING 51）
-      window.setTimeout(() => {
-        if (this.state === 'entering') unpinFloat(f);
+      unpinTimer = window.setTimeout(() => {
+        if (state === 'entering') unpinFloat(f);
       }, FLOAT_ENTRY_DELAY_MS);
       const move = env.track(
         animate(
@@ -286,7 +313,6 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
             duration: FLOAT_ENTRY_MOVE_MS / 1000,
             delay,
             ease: EASE_ENTRY,
-            reduceMotion: env.reduceMotion,
             autoplay: false,
           },
         ),
@@ -299,12 +325,11 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
             duration: FLOAT_ENTRY_FADE_MS / 1000,
             delay,
             ease: EASE_ENTRY,
-            reduceMotion: env.reduceMotion,
             autoplay: false,
           },
         ),
       );
-      this.active = move;
+      active = move;
       this.allFinished(f, true, [move, fade]);
     },
 
@@ -314,14 +339,13 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
      *  动画收尾行相对位置时胶囊会跳一次 */
     enterDesktop(withX: boolean): void {
       const f = this.el();
-      if (!f || this.state !== 'hidden') return;
+      if (!f || state !== 'hidden') return;
       // 清掉任何残留内联（幂等起点）
       this.settle(false);
-      this.state = 'entering';
+      state = 'entering';
       const opts = {
         duration: PHASE_MS / 1000,
         ease: EASE_ENTRY,
-        reduceMotion: env.reduceMotion,
         autoplay: false,
       };
       // 位姿先内联写好再起播（同任务内无绘制间隙，不闪）
@@ -331,7 +355,7 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
       f.style.backgroundColor = VEIL;
       const move = withX ? env.track(animate(f, { x: [`${SEARCH_DX}px`, 0] }, opts)) : null;
       const fade = env.track(animate(f, { opacity: [0, 1], backgroundColor: [VEIL, BG0] }, opts));
-      this.active = move ?? fade;
+      active = move ?? fade;
       this.allFinished(f, true, move ? [move, fade] : [fade]);
     },
 
@@ -345,7 +369,7 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
      *  时长按剩余位移 / 剩余渐隐占全程的比例折算（25%–100%） */
     redirect(show: boolean): AnimationPlaybackControls | null {
       const f = this.el();
-      if (!f || (this.state !== 'exiting' && this.state !== 'entering')) return this.active;
+      if (!f || (state !== 'exiting' && state !== 'entering')) return active;
       // 先读：cancel 会把内联改写回首关键帧
       const { dx, dy, op, bg } = readFloatPose(f);
       env.stopAnims();
@@ -386,13 +410,12 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
             duration: (PHASE_MS * frac) / 1000,
             delay,
             ease: show ? EASE_ENTRY : EASE_EXIT,
-            reduceMotion: env.reduceMotion,
             autoplay: false,
           },
         ),
       );
-      this.state = show ? 'entering' : 'exiting';
-      this.active = a;
+      state = show ? 'entering' : 'exiting';
+      active = a;
       a.finished.then(() => this.finish(show, f)).catch(() => {});
       return a;
     },

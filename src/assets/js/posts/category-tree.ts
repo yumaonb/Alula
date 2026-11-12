@@ -9,9 +9,8 @@
 // 开合动效由 motion 驱动：CSS 只定义开/关端点状态，窗口与刚体从「飞行中读数」
 // 走到端点；本层内容高度不变、变的是上方每层窗口的容纳总高，按 ±本层实高增量
 // 更新各祖先的 --cat-sub-h，中途再点上限也保持准确，不用等动画结束再量。
-import { animate } from 'motion';
-
 import { cssNum, readTranslate } from '../util/dom';
+import { animateLazy as animate } from '../util/motion';
 
 (() => {
   if (window.__postCatTreeBound) return;
@@ -19,9 +18,8 @@ import { cssNum, readTranslate } from '../util/dom';
 
   // 开合时长（ms）；开合后的窗口期内不重测，避免量到半程高度
   const ANIM_MS = 340;
-  const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
+  const EASE_CATEGORY_TREE: [number, number, number, number] = [0.32, 0.72, 0, 1];
   const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const RM = { reduceMotion: REDUCE_MOTION };
   let lastToggleAt = 0;
 
   function treeRoot(): HTMLElement | null {
@@ -128,8 +126,8 @@ import { cssNum, readTranslate } from '../util/dom';
       // 起点与点箭头的「关」端一致：窗口收成 0、内层刚体上移一整段
       wrap.style.maxHeight = '0px';
       if (children) children.style.transform = `translateY(-${h}px)`;
-      animate(wrap, { maxHeight: [0, h] }, { ...RM, duration, ease: EASE });
-      if (children) animate(children, { y: [-h, 0] }, { ...RM, duration, ease: EASE });
+      animate(wrap, { maxHeight: [0, h] }, { duration, ease: EASE_CATEGORY_TREE });
+      if (children) animate(children, { y: [-h, 0] }, { duration, ease: EASE_CATEGORY_TREE });
     }
     // 祖先窗口从展开前的高度长到新高度：同一条曲线、同一个时长，外窗容量恒大于内层要露出的部分
     for (const [wrap, from] of before) {
@@ -137,7 +135,7 @@ import { cssNum, readTranslate } from '../util/dom';
       const to = cssNum(wrap, 'max-height');
       if (Math.abs(to - from) < 1) continue;
       wrap.style.maxHeight = `${from}px`;
-      animate(wrap, { maxHeight: [from, to] }, { ...RM, duration, ease: EASE });
+      animate(wrap, { maxHeight: [from, to] }, { duration, ease: EASE_CATEGORY_TREE });
     }
   }
 
@@ -204,24 +202,33 @@ import { cssNum, readTranslate } from '../util/dom';
     }
 
     node.classList.toggle('cat-node--open', open);
+    // 子项一直渲染在 DOM 里，压高度不会把它们移出焦点序：收起时必须 inert，
+    // 否则 Tab 能进看不见的子分类、读屏器也会把收起的项念成普通链接
+    if (wrap) wrap.toggleAttribute('inert', !open);
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    // 可访问名跟着开合走：构建期写死的文案不会变，读屏器会念错状态
+    btn.setAttribute('aria-label', open ? '收起' : '展开');
 
     // 首屏（高度未量完，data-cat-init 在位）直接落位，不按兜底高度播半程
     const instant = !!treeRoot()?.hasAttribute('data-cat-init');
     const duration = instant ? 0 : ANIM_MS / 1000;
     if (wrap) {
-      animate(wrap, { maxHeight: [fromHeight, open ? delta : 0] }, { ...RM, duration, ease: EASE });
+      animate(
+        wrap,
+        { maxHeight: [fromHeight, open ? delta : 0] },
+        { duration, ease: EASE_CATEGORY_TREE },
+      );
     }
     if (children) {
-      animate(children, { y: [fromY, open ? 0 : -delta] }, { ...RM, duration, ease: EASE });
+      animate(children, { y: [fromY, open ? 0 : -delta] }, { duration, ease: EASE_CATEGORY_TREE });
     }
     for (const { wrap: ancestorWrap, from, to } of ancestors) {
-      animate(ancestorWrap, { maxHeight: [from, to] }, { ...RM, duration, ease: EASE });
+      animate(ancestorWrap, { maxHeight: [from, to] }, { duration, ease: EASE_CATEGORY_TREE });
     }
   });
 
   // 换页后的同步由 posts-shell 的 syncActive() → __catTreeSync() 单点驱动（本模块只被它懒加载）。
-  // 这里再挂一个 astro:after-swap 会让同一次换页同步两遍：第二遍在本任务里把自动展开动画的
+  // 这里再挂一个 content:replace 会让同一次换页同步两遍：第二遍在本任务里把自动展开动画的
   // 起点直接改写成终值，浏览器先画出一帧「已全展开」再从头播，看着就是闪一下
   syncHeights();
 })();

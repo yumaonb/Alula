@@ -31,7 +31,8 @@ export function mountDrawer({ modalEl, isOpen, open, close, bindEntry }: DrawerH
   if (typeof window.__onEnterDesktop === 'function') {
     unbindDesktop = window.__onEnterDesktop(closeIfOpen);
   } else {
-    // 兜底监听：与全站 @media (max-width: 768px) 互补，改这里要同步 CSS 里所有 768 断点
+    // 兜底监听：与全站 @media (max-width: 768px) 互补；
+    // 768/769 是全站手机 / 桌面分界，改分界要与 CSS 断点及各模块的探测同改（见 nav/breakpoint.ts 文件头）
     const mq = window.matchMedia('(min-width: 769px)');
     const onChange = (e: MediaQueryListEvent): void => {
       if (e.matches) closeIfOpen();
@@ -45,7 +46,7 @@ export function mountDrawer({ modalEl, isOpen, open, close, bindEntry }: DrawerH
 
   return () => {
     // 组件在打开状态被销毁时把锁还回去，否则计数残留会让页面永久锁死
-    if (isOpen()) unlockBodyScroll();
+    if (isOpen()) unlockBodyScroll('drawer');
     unbindEntry();
     unbindDesktop();
     document.removeEventListener('swup:visit:start', closeIfOpen);
@@ -106,10 +107,13 @@ export function createDrawer({
     setOpen(true);
     syncFabExpanded(true);
     lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    lockBodyScroll();
+    lockBodyScroll('drawer');
     onOpened?.();
     // 等抽屉过渡开始后聚焦：立刻聚焦会让浏览器把焦点滚进面板，抢掉开合动画
     requestAnimationFrame(() => {
+      // 下一帧之前可能已经关闭（Esc 按得快、鼠标连点）：此时抽屉不可见，
+      // 再聚焦会把焦点丢进一个看不见的面板里
+      if (!isOpen()) return;
       modalEl()?.querySelector<HTMLElement>(focusOn)?.focus();
     });
   }
@@ -118,14 +122,43 @@ export function createDrawer({
     if (!isOpen()) return;
     setOpen(false);
     syncFabExpanded(false);
-    unlockBodyScroll();
+    unlockBodyScroll('drawer');
     onClosed?.();
     lastFocus?.focus();
     lastFocus = null;
   }
 
   function onKeydown(e: KeyboardEvent): void {
-    if (e.key === 'Escape' && isOpen()) close();
+    if (e.key === 'Escape' && isOpen()) {
+      close();
+      return;
+    }
+    if (e.key === 'Tab' && isOpen()) trapFocus(e);
+  }
+
+  /** 焦点循环：Tab 在抽屉内首尾回绕，不让它跑到被遮住的正文上 */
+  function trapFocus(e: KeyboardEvent): void {
+    const root = modalEl();
+    if (!root) return;
+    const focusables = root.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (!root.contains(active)) {
+      e.preventDefault();
+      first.focus();
+      return;
+    }
+    if (e.shiftKey && active === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
   }
 
   function onPanelClick(e: Event): void {

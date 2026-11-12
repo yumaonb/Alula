@@ -1,10 +1,12 @@
-// astro.config.ts — 站点构建配置（Astro 集成 / 压缩 / 构建后清理注释 / 背景预设）
+// astro.config.ts — 站点构建配置（Astro 集成 / 压缩 / 构建后处理 / 背景预设）
 import { defineConfig } from 'astro/config';
 import type { AstroIntegration } from 'astro';
-import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { background } from './src/data/background';
+import { site } from './src/data/site';
+import { splitOutsideCode } from './astro-code-blocks';
 import svelte from '@astrojs/svelte';
 import icon from 'astro-icon';
 import swup from '@swup/astro';
@@ -27,6 +29,110 @@ function collectHtmlFiles(dir: string): string[] {
   return files;
 }
 
+/** 产物里的全部文件（递归），用于扫描引用与清理 */
+function collectAllFiles(dir: string): string[] {
+  const files: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      files.push(...collectAllFiles(full));
+    } else {
+      files.push(full);
+    }
+  }
+  return files;
+}
+
+/* ---- 构建后处理自检 ----
+ * 下面两段后处理都靠正则直接改产物，正则漏匹配时构建仍然成功、只是悄悄降级：
+ * CSS 变回外链（首帧又要等 CSS 下载）或注释剥离误伤水合锚点（岛屿整岛不水合）。
+ * 这里只断言「恒等式」，不写任何绝对数量——绝对数量会随页面 / 岛屿增加而过时，
+ * 变成「代码合法改动却构建失败」的假失败：
+ *  - 删注释前后，逐个岛屿比对内容，必须逐字相同——不靠「认得锚点长什么样」来数，
+ *    否则锚点格式一变就两边一起变 0，永远测不出自己把自己剥没了；
+ *  - 内联之后，再查一遍外链 stylesheet，必须一条不剩
+ *    （探测器与替换器认同一套标签，替换器将来若退化到跳过某些 link 时它才抓得到）；
+ *  - 至少处理到一个 HTML 文件（防 outDir 解析错，空转却报成功）。
+ */
+
+/**
+ * 产物里被引用到的资源文件名集合。
+ *
+ * 依据「文件名的字面量出现」判断：资源 URL 一定以字面量写在引用它的
+ * HTML / JS / CSS 里（img 的 src、script 的 src、CSS 的 url()、动态 import 的
+ * 分块名），扫遍产物全部文件（含二进制，按 latin1 读）扫不到，就是没人请求。
+ */
+const ASSET_FILE_NAME = /[\w@.-]+\.(?:css|mjs|js|json|xml|txt|jpg|jpeg|png|gif|webp|svg|wasm)/g;
+
+function collectReferencedAssets(root: string): Set<string> {
+  const referenced = new Set<string>();
+  for (const file of collectAllFiles(root)) {
+    const text = readFileSync(file).toString('latin1');
+    for (const match of text.matchAll(ASSET_FILE_NAME)) {
+      referenced.add(match[0]);
+    }
+  }
+  return referenced;
+}
+
+/** Pagefind 自带的官方 UI 包：站点用自己的搜索界面（PostSearch.svelte），这套从不加载。
+ *  它们互相引用（component-ui 引用 ui），所以要整组删——单删一个会留下半截。 */
+const PAGEFIND_UNUSED_FILES = [
+  'pagefind-ui.js',
+  'pagefind-ui.css',
+  'pagefind-component-ui.js',
+  'pagefind-component-ui.css',
+  'pagefind-modular-ui.js',
+  'pagefind-modular-ui.css',
+];
+
+/**
+ * 删掉产物里没人请求的文件。
+ *
+ * 三类来源：
+ *  - Pagefind 官方 UI 包（上面那组固定文件名）
+ *  - 已内联的 CSS 副本：inlineCss 把 <link> 换成 <style> 后，原文件已无人引用
+ *  - 只作为模块被引用、页面实际用的是优化变体的图片原图（背景图等）
+ *
+ * 只删 CSS 与图片，不碰 JS 分块：动态 import 的分块名在产物里的形式不唯一，
+ * 误删会直接让页面功能失效。
+ */
+function pruneUnusedAssets(): AstroIntegration {
+  return {
+    name: 'prune-unused-assets',
+    hooks: {
+      'astro:build:done': async ({ dir: outDir }) => {
+        const root = fileURLToPath(outDir);
+        const referenced = collectReferencedAssets(root);
+
+        for (const name of PAGEFIND_UNUSED_FILES) {
+          const file = join(root, 'pagefind', name);
+          if (existsSync(file)) {
+            rmSync(file, { force: true });
+          }
+        }
+
+        // 扫描引用时已把 Pagefind 的 UI 文件算作「被引用」（它们彼此引用），
+        // 所以那组要显式排除，否则刚删掉的文件名会让人以为别人还在用
+        for (const name of PAGEFIND_UNUSED_FILES) {
+          referenced.delete(name);
+        }
+
+        const assetsDir = join(root, '_astro');
+        if (!existsSync(assetsDir)) return;
+        for (const entry of readdirSync(assetsDir)) {
+          const full = join(assetsDir, entry);
+          if (!statSync(full).isFile()) continue;
+          // JS 分块一律保留：动态 import 的引用形式不唯一，判不准就留着
+          if (!/\.(css|jpg|jpeg|png|gif|webp|svg)$/i.test(entry)) continue;
+          if (referenced.has(entry)) continue;
+          rmSync(full, { force: true });
+        }
+      },
+    },
+  };
+}
+
 /** Svelte 5 水合锚点与 Astro 岛屿标记，不能删 */
 function isHydrationComment(inner: string): boolean {
   return (
@@ -44,12 +150,26 @@ function commentReplacer(match: string, inner?: string): string {
   return isHydrationComment(inner) ? match : '';
 }
 
-/** 只处理 <script>/<style> 之外的内容，避免误伤内联代码字符串 */
+/** 岛屿整块（含内部的水合锚点与 SSR 结构） */
+const ISLAND_BLOCK = /<astro-island\b[\s\S]*?<\/astro-island>/g;
+
+/**
+ * 只处理 <script>/<style> 之外的内容，避免误伤内联代码字符串。
+ * 岛屿整块先摘出来保护：岛内的注释结构与水合锚点有关，剥了会让整岛不水合。
+ * 保护靠位置而不是靠「认得锚点长什么样」——锚点格式一变就漏认，是原来那条自检的盲区。
+ */
 function stripNonHydrationComments(html: string): string {
-  return html.replace(
-    /<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--([\s\S]*?)-->/g,
-    commentReplacer,
-  );
+  const islands: string[] = [];
+  const masked = html.replace(ISLAND_BLOCK, (block) => {
+    islands.push(block);
+    return `\0ISLAND${islands.length - 1}\0`;
+  });
+  const stripped = splitOutsideCode(masked)
+    .map((part, index) =>
+      index % 2 === 0 ? part.replace(/<!--([\s\S]*?)-->/g, commentReplacer) : part,
+    )
+    .join('');
+  return stripped.replace(/\0ISLAND(\d+)\0/g, (_, index) => islands[Number(index)]);
 }
 
 /* ---- 构建后处理自检 ----
@@ -57,33 +177,29 @@ function stripNonHydrationComments(html: string): string {
  * CSS 变回外链（首帧又要等 CSS 下载）或注释剥离误伤水合锚点（岛屿整岛不水合）。
  * 这里只断言「恒等式」，不写任何绝对数量——绝对数量会随页面 / 岛屿增加而过时，
  * 变成「代码合法改动却构建失败」的假失败：
- *  - 删注释前后，用同一个检测器数水合锚点 / 岛屿标记，必须相等（Astro 换锚点格式时
- *    两边一起变 0，不会误报；真被删掉才是 N → 0）；
- *  - 内联之后，用比替换正则更宽的探测器查外链 stylesheet，必须一条不剩
- *    （探测器宽于替换器，替换正则漏掉时它才抓得到）；
+ *  - 删注释前后，逐个岛屿比对内容，必须逐字相同——不靠「认得锚点长什么样」来数，
+ *    否则锚点格式一变就两边一起变 0，永远测不出自己把自己剥没了；
+ *  - 内联之后，再查一遍外链 stylesheet，必须一条不剩
+ *    （探测器与替换器认同一套标签，替换器将来若退化到跳过某些 link 时它才抓得到）；
  *  - 至少处理到一个 HTML 文件（防 outDir 解析错，空转却报成功）。
  */
 
+/** 只认「这是一条外链 stylesheet」：属性集含 stylesheet 的任意 <link>，不依赖属性顺序与附加属性 */
+const STYLESHEET_LINK = /<link\b[^>]*\bstylesheet\b[^>]*>/gi;
+
+/** 从 link 标签里取 href 值：双引号 / 单引号 / 无引号都认，缺失返回 null */
+function linkHref(tag: string): string | null {
+  const match = tag.match(/\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+  if (!match) return null;
+  return match[1] ?? match[2] ?? match[3];
+}
+
 /** 去掉 <script> / <style> 块再扫描，避免把内联代码里的字符串当 HTML 数进去 */
 function scanOutsideCode(html: string): string {
-  return html.replace(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>/gi, '');
+  return splitOutsideCode(html)
+    .filter((_, index) => index % 2 === 0)
+    .join('');
 }
-
-function countMatches(html: string, pattern: RegExp): number {
-  return [...html.matchAll(pattern)].length;
-}
-
-function countHydrationAnchors(html: string): number {
-  let count = 0;
-  for (const match of scanOutsideCode(html).matchAll(/<!--([\s\S]*?)-->/g)) {
-    if (isHydrationComment(match[1])) count += 1;
-  }
-  return count;
-}
-
-/** 只认「这是一条外链 stylesheet」，不认属性顺序与自闭合写法——故意比替换正则宽 */
-const STYLESHEET_LINK = /<link\b[^>]*\bstylesheet\b[^>]*>/gi;
-const ISLAND_TAG = /<astro-island\b/g;
 
 function relPath(root: string, file: string): string {
   return relative(root, file).split('\\').join('/');
@@ -97,17 +213,51 @@ function assertHtmlFound(root: string, files: string[]): void {
   );
 }
 
+/** 逐块取出岛屿：断言「剥前剥后每个岛的内容逐字相同」 */
+function islandBlocks(html: string): string[] {
+  return [...html.matchAll(ISLAND_BLOCK)].map((match) => match[0]);
+}
+
+/** 只认开标签：比整块正则宽，整块正则漏认（Astro 改了岛屿写法）时这条仍然数得到 */
+const ISLAND_OPEN = /<astro-island\b[^>]*>/g;
+
+function islandOpenTags(html: string): string[] {
+  return [...html.matchAll(ISLAND_OPEN)].map((match) => match[0]);
+}
+
 function assertAnchorsIntact(root: string, file: string, before: string, after: string): void {
-  const anchorsBefore = countHydrationAnchors(before);
-  const anchorsAfter = countHydrationAnchors(after);
-  const islandsBefore = countMatches(before, ISLAND_TAG);
-  const islandsAfter = countMatches(after, ISLAND_TAG);
-  if (anchorsBefore === anchorsAfter && islandsBefore === islandsAfter) return;
-  throw new Error(
-    `[build] strip-safe-comments 误伤了水合标记：${relPath(root, file)}\n` +
-      `  水合锚点 ${anchorsBefore} → ${anchorsAfter}，岛屿标记 ${islandsBefore} → ${islandsAfter}\n` +
-      `  Astro 换了锚点格式就先更新 isHydrationComment()，否则对应的岛会整岛不水合`,
-  );
+  const fail = (detail: string): never => {
+    throw new Error(
+      `[build] strip-safe-comments 误伤了岛屿：${relPath(root, file)}\n` +
+        `  ${detail}\n` +
+        `  岛屿被改动的后果是整岛不水合（页面上像静态标记，交互全失效）`,
+    );
+  };
+
+  // 第一道：独立数开标签。整块正则与掩码同源，一起漏认时上面那条比对会「两边都是 0」而通过；
+  // 开标签个数是从完整产物上数的，能独立发现「整岛被吞掉」
+  const opensBefore = islandOpenTags(before);
+  const opensAfter = islandOpenTags(after);
+  if (opensBefore.length !== opensAfter.length) {
+    fail(`岛屿开标签数 ${opensBefore.length} → ${opensAfter.length}`);
+  }
+
+  // 第二道：被保留下来的岛必须仍带水合指令，且与剥前逐字相同
+  const islandsBefore = islandBlocks(before);
+  const islandsAfter = islandBlocks(after);
+  if (islandsBefore.length !== islandsAfter.length) {
+    fail(`可识别的岛屿块数 ${islandsBefore.length} → ${islandsAfter.length}`);
+  }
+  const changed = islandsBefore.findIndex((block, i) => block !== islandsAfter[i]);
+  if (changed >= 0) {
+    fail(`第 ${changed + 1} 个岛的内容被改动`);
+  }
+  const dehydrated = opensAfter.filter((tag) => !/\bclient="/.test(tag));
+  if (dehydrated.length > 0) {
+    fail(
+      `有 ${dehydrated.length} 个岛丢了 client 属性（不再水合），例如：${dehydrated[0].slice(0, 120)}`,
+    );
+  }
 }
 
 function assertNoStylesheetLeft(root: string, file: string, after: string): void {
@@ -116,7 +266,7 @@ function assertNoStylesheetLeft(root: string, file: string, after: string): void
   throw new Error(
     `[build] inline-css 没能内联全部外链 CSS：${relPath(root, file)}\n` +
       `  残留 ${left.length} 条，例如：${left[0][0].slice(0, 160)}\n` +
-      `  Astro 改了 <link> 的写法就先更新 inlineCss 的替换正则，否则首帧会重新等 CSS 下载`,
+      `  Astro 改了 <link> 的写法就先更新 astro.config.ts 里的 STYLESHEET_LINK / linkHref，否则首帧会重新等 CSS 下载`,
   );
 }
 
@@ -161,13 +311,20 @@ function inlineCss(): AstroIntegration {
         assertHtmlFound(root, files);
         for (const file of files) {
           const before = readFileSync(file, 'utf8');
-          const after = before.replace(
-            /<link rel="stylesheet" href="([^"]+\.css)"\s*\/?>/g,
-            (_match, href: string) => {
-              const css = readFileSync(join(root, href.slice(1)), 'utf8');
-              return `<style>${css}</style>`;
-            },
-          );
+          const after = before.replace(STYLESHEET_LINK, (tag) => {
+            const href = linkHref(tag);
+            if (href === null) {
+              throw new Error(
+                `[build] inline-css 遇到没有 href 的 stylesheet link：${relPath(root, file)}\n` +
+                  `  ${tag.slice(0, 160)}\n` +
+                  `  请更新 astro.config.ts 里的 STYLESHEET_LINK / linkHref`,
+              );
+            }
+            // 磁盘上的文件名不带查询串与片段，读之前剥掉
+            const hrefPath = href.split(/[?#]/)[0];
+            const css = readFileSync(join(root, hrefPath.slice(1)), 'utf8');
+            return `<style>${css}</style>`;
+          });
           assertNoStylesheetLeft(root, file, after);
           if (after !== before) {
             writeFileSync(file, after);
@@ -213,6 +370,7 @@ function backgroundPreset() {
 }
 
 export default defineConfig({
+  site: site.url,
   integrations: [
     svelte(),
     icon(),
@@ -234,6 +392,11 @@ export default defineConfig({
         persistAssets: true,
       },
       theme: false,
+      // smoothScrolling —— @swup/astro 用这个开关决定是否注册 SwupScrollPlugin。
+      // 显式写出来：swup-widgets.ts 靠 swup:scroll:start / swup:scroll:end 判断
+      // 平滑滚动何时结束，依赖的就是这个插件——它默认开启，但依赖关系在配置里看不见，
+      // 将来升级或改配置把它关掉时，按钮的显隐时机会静默退化成 250ms 兜底。
+      smoothScrolling: true,
       // animationClass: false —— 关掉 swup 的「动画等待」：不找 [class*="transition-"] 元素，
       // 新页面一到就替换内容。若保留默认选择器又不留 transition- 类，
       // 每次切页都会打一条 "No elements found matching animationSelector" 警告。
@@ -284,6 +447,8 @@ export default defineConfig({
     stripSafeComments(),
     // 内联 head 里的外链 CSS（首帧不阻塞在 CSS 下载上，见 inlineCss）
     inlineCss(),
+    // 删掉产物里没人请求的文件（已内联的 CSS 副本、Pagefind 官方 UI 包等）
+    pruneUnusedAssets(),
     // 独立文件压缩；按官方要求放在集成列表最后
     // CSS 必须保持 false：compress 底层用 lightningcss，会无条件删掉不带前缀的
     // backdrop-filter、只保留 -webkit- 版，导致 Firefox 等只支持原版属性的浏览器
@@ -298,6 +463,12 @@ export default defineConfig({
     }),
   ],
   markdown: {
+    // 代码高亮走 css-variables 主题：Shiki 不再把颜色写死成 hex，
+    // 而是输出 var(--astro-code-*) 引用，色板统一在 variables.css 里定义
+    // （代码块的配色随站点主色走，不必跟 GitHub 主题绑死）
+    shikiConfig: {
+      theme: 'css-variables',
+    },
     rehypePlugins: [rehypeSlug],
   },
   vite: {

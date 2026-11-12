@@ -10,14 +10,16 @@
 // 转场只在文章区界面之间播放，跨区直接落位；所有动画延迟到下一个出帧的 rAF 起播，
 // 避免主线程繁忙时墙钟空转、动画直接跳到终帧。
 // category-tree 脚本按需懒加载（从非文章页进入文章区时），模块单例。
-// 完整机制与取舍见 .dsh/docs/ARCHITECTURE.md 与 .dsh/docs/TROUBLESHOOTING.md 第 51–53 条。
+// 完整机制与取舍见 docs/reference/ARCHITECTURE.md 与 docs/reference/TROUBLESHOOTING.md 第 51–53 条。
 import type { AnimationPlaybackControls } from 'motion';
 
 import { createEarlyNav } from './early-nav';
+import { EDGE_CLONE_CLASS } from '../util/post-sidebar';
 import { createRowState } from './row-state';
 import { createSearchFloat, placeFloat } from './search-float';
 import { createStrip } from './strip';
 import { createTransition } from './transition';
+import { animateLazy, preloadMotion } from '../util/motion';
 
 (() => {
   if (window.__postsShellInit) return;
@@ -26,6 +28,7 @@ import { createTransition } from './transition';
   /* ---- 0. 常量与环境 ---- */
 
   const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // 768/769 是全站手机 / 桌面分界，改分界要与 CSS 断点及各模块的探测同改（见 nav/breakpoint.ts 文件头）
   const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
   // 目录滑动只在电脑端显示目录（≥851px；更窄目录是按钮+抽屉，只走普通渐隐）
   const tocSlideGate = () => !REDUCE_MOTION && window.matchMedia('(min-width: 851px)').matches;
@@ -82,7 +85,7 @@ import { createTransition } from './transition';
     // 占位符只认真实页头的：转场克隆条带（edgeClone）带着占位符克隆且播完才移除，
     // RO 回调可能在克隆还在时触发，把它当真实占位会量到克隆位置
     const phs = r ? Array.from(r.querySelectorAll<HTMLElement>('.posts-header-search')) : [];
-    const ph = phs.find((el) => !el.closest('.posts-edge-clone')) ?? null;
+    const ph = phs.find((el) => !el.closest(`.${EDGE_CLONE_CLASS}`)) ?? null;
     // 退场/入场动画期间浮层钉在视口（内联 top/left 是视口坐标）：此刻写行相对值
     // 会把浮层瞬移；unpin 后下一轮重测自然补齐
     if (floatEl?.style.position === 'fixed') return;
@@ -100,7 +103,6 @@ import { createTransition } from './transition';
   const strip = createStrip({
     row,
     track,
-    reduceMotion: REDUCE_MOTION,
     tocSlideGate,
   });
 
@@ -112,11 +114,10 @@ import { createTransition } from './transition';
     track: trackFloat,
     stopAnims: stopFloatAnims,
     isMobile,
-    reduceMotion: REDUCE_MOTION,
   });
 
   /* ---- 5. 首屏早期导航与 fetch 失败兜底（实现在 posts/early-nav.ts） ---- */
-  const earlyNav = createEarlyNav({ row, reduceMotion: REDUCE_MOTION, isMobile, floatCtl });
+  const earlyNav = createEarlyNav({ row, reduceMotion: REDUCE_MOTION, floatCtl });
 
   /* ---- 6. 转场编排（实现在 posts/transition.ts） ---- */
   const transition = createTransition({
@@ -129,49 +130,68 @@ import { createTransition } from './transition';
     reduceMotion: REDUCE_MOTION,
     tocSlideGate,
     cancelEarlyNav: () => earlyNav.cancel(),
+    animate: animateLazy,
   });
 
   /* ---- 7. 事件与初始化 ---- */
 
   /* ---- category-tree 脚本守卫：侧栏常驻，模块只需加载一次 ---- */
-  let importing = false;
-  function ensureCategoryTree(): void {
-    if (window.__postCatTreeBound || importing) return;
+  let categoryTreeLoad: Promise<void> | null = null;
+  function ensureCategoryTree(): Promise<void> {
+    if (window.__postCatTreeBound) return Promise.resolve();
+    if (categoryTreeLoad) return categoryTreeLoad;
     const r = row();
     // 普通页侧栏隐藏、树不需要交互，不加载（省 motion 共享块）
-    if (!r || r.classList.contains('page-main--plain')) return;
-    if (!document.getElementById('category-tree')) return;
-    importing = true;
-    import('./category-tree')
+    if (!r || r.classList.contains('page-main--plain')) return Promise.resolve();
+    if (!document.getElementById('category-tree')) return Promise.resolve();
+    categoryTreeLoad = import('./category-tree')
+      .then(() => undefined)
       .catch((err: unknown) => {
         console.error('[posts-shell] category-tree 懒加载失败，分类树将无交互', err);
       })
       .finally(() => {
-        importing = false;
+        categoryTreeLoad = null;
       });
+    return categoryTreeLoad;
   }
 
-  function onReady(isSwap = false): void {
+  // 两个生命周期共用的同步步骤：按新内容重测行变体、侧栏偏移与高亮
+  function syncShellState(): void {
     syncVariant();
     syncOffset();
     observeAnchor();
     syncSearchPos();
     syncActive();
-    ensureCategoryTree();
-    if (isSwap) {
-      // 首屏整页加载不播转场，只有 swup 切页才播；此刻新内容已加载完，播放不会先于内容
-      transition.playTransition();
-    } else {
-      // 首屏：搜索钉到变体目标态（在首次绘制前，无闪）
-      const r = row();
-      if (r) floatCtl.settle(r.classList.contains('page-main--listing'));
-    }
+    void ensureCategoryTree().then(() => syncActive());
+  }
+
+  // 首屏整页加载：同步后把搜索钉到变体目标态（在首次绘制前，无闪）
+  function initializeShell(): void {
+    syncShellState();
+    const r = row();
+    if (r) floatCtl.settle(r.classList.contains('page-main--listing'));
+  }
+
+  // swup 切页：同步后播转场——此刻新内容已加载完，播放不会先于内容
+  function refreshAfterNavigation(): void {
+    syncShellState();
+    transition.playTransition();
   }
 
   // astro:* 事件由 @swup/astro 在 document 上派发且不冒泡（new Event 默认 bubbles:false），必须监听 document
   document.addEventListener('click', (e) => earlyNav.onEarlyClick(e));
   document.addEventListener('click', () => earlyNav.onDocClick());
   document.addEventListener('astro:before-swap', () => transition.captureOld());
-  document.addEventListener('astro:after-swap', () => onReady(true));
-  onReady();
+  document.addEventListener('swup:content:replace', refreshAfterNavigation);
+  initializeShell();
+
+  // motion 懒加载：首屏不拉这个 54 KB 的共享块，等首帧画完再取。
+  // 用户真正点击通常在几百毫秒之后，到那时动画引擎已就绪；
+  // 万一还没就绪，animateLazy 会把元素直接落到终态，不会卡住。
+  const warmMotion = (): void => void preloadMotion();
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(warmMotion, { timeout: 2000 });
+  } else {
+    globalThis.setTimeout(warmMotion, 200);
+  }
 })();

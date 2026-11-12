@@ -1,6 +1,7 @@
 ---
 // TableOfContents.astro — 文章目录（编译期生成，滚动高亮）
 // 用法：<TableOfContents headings={headings} />
+// data-target（标题 slug）是目录与正文标题的唯一连接键（posts/toc.ts 读取），改 slug 规则两处同改
 import { Icon } from 'astro-icon/components';
 import type { MarkdownHeading } from 'astro';
 
@@ -43,7 +44,7 @@ if (hasH1 && hasH2) {
               class:list={['toc-item', { 'toc-sub': heading.depth > tocItems[0].depth }]}
               data-target={heading.slug}
             >
-              <a class="toc-link link-plain" href={`#${heading.slug}`} data-target={heading.slug}>
+              <a class="toc-link link-plain" href={`#${heading.slug}`}>
                 {heading.text.replace(/\s*#$/, '')}
               </a>
             </li>
@@ -65,6 +66,19 @@ if (hasH1 && hasH2) {
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
+
+  /* 搬进抽屉时的布局差异：由组件自己负责，抽屉不必知道内部结构 */
+  /* 抽屉里的版式差异：变体类由 posts/toc.ts 增删，改类名两处同改 */
+  .toc-nav.toc-nav--in-drawer .toc-header {
+    display: none;
+  }
+
+  .toc-nav.toc-nav--in-drawer,
+  .toc-nav.toc-nav--in-drawer .toc-track,
+  .toc-nav.toc-nav--in-drawer .toc-scroll {
+    flex: 1;
+    min-height: 0;
   }
 
   .toc-header {
@@ -94,6 +108,12 @@ if (hasH1 && hasH2) {
     overflow-y: auto;
     overflow-x: hidden;
     padding-left: 6px;
+    /* 三件套齐全才跨浏览器一致：scrollbar-width / scrollbar-color 管 Firefox，
+     * ::-webkit-scrollbar 管 Chromium 与 Safari。只写 ::-webkit-scrollbar 的话，
+     * Firefox 会露出系统默认的粗滚动条（Windows 上尤其突兀），
+     * 与目录竖线（2px 细线）的观感也对不上。 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
 
   .toc-scroll::-webkit-scrollbar {

@@ -8,7 +8,9 @@ const data = await loadBlogData();
 
 export async function getStaticPaths() {
   const d = await loadBlogData();
-  return d.tags.map((t) => ({ params: { tag: t.name }, props: { tag: t.name } }));
+  // 路由取标签并集（含隐藏文章）：隐藏文章页头有标签链接，缺路由就是 404；
+  // 页面正文仍只列可列出的文章，某个标签只被隐藏文章用过时列表为空
+  return d.allTags.map((tag) => ({ params: { tag }, props: { tag } }));
 }
 
 const { tag } = Astro.props;

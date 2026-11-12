@@ -15,9 +15,10 @@
 // 会在转场编排前强制显出搜索框（「移两次 / 闪一下」，见 TROUBLESHOOTING 52）。
 import '../assets/css/global.css';
 import '../assets/css/shared/skeleton.css';
-import '../assets/css/posts/image-fallback.css';
+import '../assets/css/shared/image-fallback.css';
 import NavBar from '../components/layout/NavBar.astro';
 import Background from '../components/layout/Background.astro';
+import PageMeta from '../components/layout/PageMeta.astro';
 import Footer from '../components/layout/Footer.astro';
 import SideWidgets from '../components/layout/SideWidgets.astro';
 import GlobalSidebar from '../components/posts/GlobalSidebar.astro';
@@ -32,20 +33,31 @@ import { loadBlogData } from '../lib/posts-data';
 interface Props {
   title?: string;
   description?: string;
-  bodyClass?: string;
   /** 隐藏文章：给页面加 noindex，别让搜索引擎把直链页收录出去 */
   noindex?: boolean;
   /** 主内容行变体：plain 普通页 / listing 列表·分类·标签页 / post 文章详情页（PostsShell 传入） */
   shellVariant?: 'plain' | 'listing' | 'post';
+  /** 对外分享卡配图（文章详情页传封面）；不传就用站点方图 */
+  image?: string;
+  /** 分享卡类型：文章详情页传 article */
+  ogType?: 'website' | 'article';
+  /** 文章发布时间（ISO 串），只有 ogType=article 时进分享卡 */
+  publishedTime?: string;
 }
 
 const {
   title,
-  description = site.description,
-  bodyClass = '',
+  description,
   noindex = false,
   shellVariant = 'plain',
+  image,
+  ogType = 'website',
+  publishedTime,
 } = Astro.props;
+
+// 解构默认值只对 undefined 生效，文章缺 description 时传下来的是空串——
+// 那样会产出空的 meta description（比不写还差）。空串一并回落到站点描述。
+const pageDescription = description || site.description;
 
 const pageTitle = title ? `${title} - ${site.name}` : site.name;
 const blog = await loadBlogData();
@@ -60,11 +72,18 @@ const blog = await loadBlogData();
       document.documentElement.classList.add('js');
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description} />
+    <meta name="description" content={pageDescription} />
     {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="icon" type="image/png" href="/images/logo.png" />
     <link rel="alternate" type="application/rss+xml" title={site.name} href="/posts/rss.xml" />
     <title>{pageTitle}</title>
+    <PageMeta
+      title={pageTitle}
+      description={pageDescription}
+      image={image}
+      type={ogType}
+      publishedTime={publishedTime}
+    />
     <slot name="head" />
     <!-- 首载 loading 屏样式：必须 is:inline（留在 head 内联，不打包进外链 CSS）。
          首帧只靠这段样式自足：颜色不引用 variables.css 令牌，
@@ -154,7 +173,7 @@ const blog = await loadBlogData();
       }
     </style>
   </head>
-  <body class={bodyClass}>
+  <body>
     <!-- 首载 loading 屏：body 第一个元素 + head 内联样式，不依赖任何外部资源即可画出；
          只在首次加载显示（swup 切页不重建 body 壳），页面就绪后 0.5s 渐隐并移除节点 -->
     <div class="boot-splash" id="boot-splash" aria-hidden="true">
@@ -170,7 +189,7 @@ const blog = await loadBlogData();
       <NavBar />
       <div class:list={['page-main', `page-main--${shellVariant}`]}>
         <GlobalSidebar tree={blog.categoryTree} tags={blog.tags} />
-        <main class="hero" id="swup">
+        <main class="hero" id="swup" data-shell="site">
           <slot />
         </main>
         <div class="posts-search-float">
@@ -180,6 +199,7 @@ const blog = await loadBlogData();
       <Footer />
     </div>
     <SideWidgets />
+    <!-- 图片占位图标模板：id 与 ui/image-fallback.ts 的 ICON_TEMPLATE_ID 一致，改 id 两处同改 -->
     <div id="alula-img-ph-icon" hidden>
       <Icon is:inline name="mdi:image-off-outline" />
     </div>

@@ -19,9 +19,3 @@ pnpm-debug.log*
 
 # JetBrains 配置
 .idea/
-
-# AI 协作
-AGENTS.md
-.dsh/
-.dsh-code-index/
-.dshwolf/

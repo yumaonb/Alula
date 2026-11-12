@@ -69,12 +69,19 @@ export function createRowState(env: RowStateEnv): RowState {
       while (node) {
         if (!node.classList.contains('cat-node--open')) {
           node.classList.add('cat-node--open');
-          node
-            .querySelector<HTMLElement>(':scope > .cat-row > .cat-toggle')
-            ?.setAttribute('aria-expanded', 'true');
+          (() => {
+            const toggle = node.querySelector<HTMLElement>(':scope > .cat-row > .cat-toggle');
+            if (!toggle) return;
+            toggle.setAttribute('aria-expanded', 'true');
+            toggle.setAttribute('aria-label', '收起');
+          })();
           // 打上「刚自动展开」的标记：category-tree 同步时据此把这一段从关播到开（与点箭头同一曲线）
           const wrap = node.querySelector<HTMLElement>(':scope > .cat-children-wrap');
-          if (wrap) wrap.dataset.catOpenNew = '';
+          if (wrap) {
+            wrap.dataset.catOpenNew = '';
+            // 自动展开等于把这一支「打开」：inert 也要摘掉，否则路径上的子项点不进去
+            wrap.removeAttribute('inert');
+          }
         }
         node = node.parentElement?.closest<HTMLElement>('.cat-node') ?? null;
       }
@@ -110,6 +117,7 @@ export function createRowState(env: RowStateEnv): RowState {
   // 浮层内联值还没重量的帧（断点跨界时搜索框「跳一下/宽度旧值闪一下」）。
   // MQL 的 change 回调在样式重算翻转的那一刻同步触发，此时重测与布局翻转同帧写入，
   // 消灭错位帧；RO 继续负责跨界后的连续缩放（标题换行 / 宽度变化）
+  // 768/769 是全站手机 / 桌面分界，改分界要与 CSS 断点及各模块的探测同改（见 nav/breakpoint.ts 文件头）
   for (const mq of [
     window.matchMedia('(max-width: 768px)'),
     window.matchMedia('(min-width: 1151px)'),

@@ -4,7 +4,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  import { queryTocNav } from '../../assets/js/posts/post-sidebar';
+  import { queryTocNav } from '../../assets/js/util/post-sidebar';
   import { createDrawer, mountDrawer } from '../../assets/js/ui/drawer';
 
   import '../../assets/css/shared/drawer.css';
@@ -20,6 +20,7 @@
       isOpen = open;
     },
     fabId: 'toc-fab',
+    // 「这页有没有目录」口径之一：节点在不在（全部口径见 PostsShell.astro 的 hasToc 注释）
     canOpen: () => !!bodyEl && !!window.__toc && !!queryTocNav(),
     onOpened: () => {
       // 先确保节点在位（版面跨界 / 切页漏了一次也不会开出空抽屉），
@@ -123,22 +124,9 @@
     padding: 4px 10px 10px;
   }
 
-  /* 抽屉自己有标题栏，侧栏那行标题在抽屉里隐藏（不再靠摘 DOM 节点） */
-  :global(.toc-modal-body .toc-nav .toc-header) {
-    display: none;
-  }
-
-  :global(.toc-modal-body .toc-nav) {
-    flex: 1;
-    min-height: 0;
-  }
-
-  :global(.toc-modal .toc-modal-body .toc-track) {
-    flex: 1;
-    min-height: 0;
-  }
-
-  :global(.toc-modal .toc-modal-body .toc-scroll) {
+  /* 目录在抽屉里的版式差异由目录组件自己负责（.toc-nav--in-drawer 变体类），
+     这里只管抽屉自己的容器，不穿透目录组件的内部结构 */
+  :global(.toc-modal-body .toc-nav--in-drawer .toc-scroll) {
     max-height: none;
     height: 100%;
   }

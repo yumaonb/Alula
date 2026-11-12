@@ -8,7 +8,7 @@
   const { label, startDate } = daysCounterConfig;
 
   let ready = $state(false);
-  let days = $state(0);
+  let days = $state<number | null>(0);
   let projectsCount = $state(0);
   let projectsLoaded = $state(false);
   // 拉取失败时显示占位，别把「拿不到」渲染成 0 个项目
@@ -17,16 +17,25 @@
   let isAlive = false;
 
   /** 起始日按本地日历日算，天数走自然日差：不受时区把 UTC 零点挪成前一天/后一天影响 */
-  function computeDays(): number {
+  function computeDays(): number | null {
+    // 格式错不能当成 0 天：那会让卡片显示「0天」，看着像统计坏了却没有任何提示
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+      console.error('[DaysCounter] startDate 必须写成 YYYY-MM-DD：', startDate);
+      return null;
+    }
     const [y, m, d] = startDate.split('-').map(Number);
     const start = new Date(y, m - 1, d);
-    if (Number.isNaN(start.getTime())) return 0;
+    if (Number.isNaN(start.getTime())) {
+      console.error('[DaysCounter] startDate 不是有效日期：', startDate);
+      return null;
+    }
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     return Math.round((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   let yearsLabel = $derived.by(() => {
+    if (days === null) return '—';
     const y = Math.floor(days / 365);
     return days % 365 > 0 ? `${y}年+` : `${y}年`;
   });
@@ -73,7 +82,7 @@
   <div class="stat-card glass">
     <span class="stat-label">{label}</span>
     {#if ready}
-      <span class="stat-value">{days}天</span>
+      <span class="stat-value">{days === null ? '—' : `${days}天`}</span>
     {:else}
       <span class="stat-value">
         <span

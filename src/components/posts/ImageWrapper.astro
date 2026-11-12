@@ -8,12 +8,12 @@ import {
   contentImageGlob,
   resolveContentImageKey,
   imageKeyToSourcePath,
+  isOptimizableImage,
 } from '../../lib/content-image';
 
 interface Props {
   src: string;
   alt?: string;
-  class?: string;
   basePath?: string;
   style?: string;
   /** 图片的固定显示宽度（CSS 像素）。锚定后窗口缩放不会切换 srcset 候选 */
@@ -23,14 +23,8 @@ interface Props {
 }
 
 const { src, alt = '', basePath = '/', style, sizes, widths } = Astro.props;
-const className = Astro.props.class;
 
-const isLocal = !(
-  src.startsWith('/') ||
-  src.startsWith('http') ||
-  src.startsWith('https') ||
-  src.startsWith('data:')
-);
+const isLocal = isOptimizableImage(src);
 
 let img: ImageMetadata | undefined;
 
@@ -46,13 +40,8 @@ if (isLocal) {
 }
 
 // 尺寸不在这里定：由各调用处的容器规则负责（`.post-cover img` / `.post-card-cover img`），
-// 传了 class 才透传，避免组件自带一套和容器打架的默认尺寸
-const imageClass = className;
+// 组件不自带一套和容器打架的默认尺寸
 ---
 
-{isLocal && img && (
-  <Image src={img} alt={alt} class={imageClass} style={style} sizes={sizes} widths={widths} />
-)}
-{!isLocal && (
-  <img src={src} alt={alt} class={imageClass} loading="lazy" decoding="async" style={style} />
-)}
+{isLocal && img && <Image src={img} alt={alt} style={style} sizes={sizes} widths={widths} />}
+{!isLocal && <img src={src} alt={alt} loading="lazy" decoding="async" style={style} />}

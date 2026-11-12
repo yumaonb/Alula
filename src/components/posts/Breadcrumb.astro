@@ -16,14 +16,18 @@ const { items } = Astro.props;
   <nav class="breadcrumb" aria-label="面包屑导航">
     {items.map((item, index) => (
       <span class="breadcrumb-item">
-        {index > 0 && <span class="breadcrumb-sep">/</span>}
+        {index > 0 && (
+          <span class="breadcrumb-sep" aria-hidden="true">
+            /
+          </span>
+        )}
         {item.href ? (
           <a href={item.href} class="breadcrumb-link link-plain">
             {item.icon && <Icon is:inline name={item.icon} class="breadcrumb-icon" />}
             {item.label}
           </a>
         ) : (
-          <span class="breadcrumb-current">
+          <span class="breadcrumb-current" aria-current="page">
             {item.icon && <Icon is:inline name={item.icon} class="breadcrumb-icon" />}
             {item.label}
           </span>
@@ -41,12 +45,36 @@ const { items } = Astro.props;
     gap: 2px;
     margin: 0;
     font-size: 0.85rem;
+    min-width: 0;
   }
 
   .breadcrumb-item {
     display: inline-flex;
     align-items: center;
     gap: 2px;
+    min-width: 0;
+  }
+
+  /* 中间层级可压缩：深分类 + 窄屏时先省略靠前的分类，保留最后一级（当前文章名） */
+  .breadcrumb-item:not(:last-child) {
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+  }
+
+  .breadcrumb-item:last-child {
+    flex-shrink: 0;
+  }
+
+  .breadcrumb-link,
+  .breadcrumb-current {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .breadcrumb-current {
+    flex-shrink: 0;
   }
 
   .breadcrumb-sep {

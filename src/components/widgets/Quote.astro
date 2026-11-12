@@ -4,19 +4,26 @@
 import { quotes } from '../../data/quotes';
 ---
 
-<div class="quote-body" id="quote-box">
+<div class="quote-body">
   <p class="quote-text" id="quote-text"></p>
   <p class="quote-source" id="quote-source"></p>
 </div>
 
 <script is:inline define:vars={{ quotes }}>
   (function () {
-    const idx = Math.floor(Math.random() * quotes.length);
-    const q = quotes[idx];
     const textEl = document.getElementById('quote-text');
     const sourceEl = document.getElementById('quote-source');
+    const q = quotes[Math.floor(Math.random() * quotes.length)];
+    // 数据集为空或这条缺 text：给出占位文案，不让卡片留白
+    if (!q?.text) {
+      console.error('[Quote] 一言数据集为空或数据缺 text');
+      if (textEl) textEl.textContent = '暂无一言';
+      return;
+    }
     if (textEl) textEl.textContent = q.text;
-    const source = q.fromWho ? q.fromWho + '\u300C' + q.from + '\u300D' : q.from || '';
+    // 两个字段各自可选：只写了人物时不该拼出「某人「undefined」」
+    const from = q.from || '';
+    const source = q.fromWho ? (from ? q.fromWho + '\u300C' + from + '\u300D' : q.fromWho) : from;
     if (sourceEl) sourceEl.textContent = source;
   })();
 </script>

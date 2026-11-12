@@ -1,15 +1,8 @@
-/* image-fallback.css — 封面图 / 正文图片的占位与加载失败降级
- * 封面：容器常铺半透明底 + 居中标；图片盖在最上层，加载失败加 .img-failed 隐藏露出占位。
+/* image-fallback.css — 全站图片的占位与加载失败降级
+ * 封面：容器常铺半透明底 + 居中标；图片盖在最上层，加载失败时 JS 把 img 摘掉，露出占位。
  * 正文：图片加载期间自带占位底 + 图标，成功加 .img-loaded 移除；失败由 JS 替换为 .img-ph 占位块。
+ * 其它图片（友情链接头像、赞助图标等）：失败时同样换成 .img-ph 图标占位块，不再留浏览器破图图标。
  */
-
-/* 加载失败的图片：隐藏（占位效果由容器 / 占位块提供）。
- * img.img-failed 压全局 img 的 display:block；.markdown-body 变体压正文的 .markdown-body img，
- * 保证正文与封面两种上下文里坏图都藏得住 */
-img.img-failed,
-.markdown-body img.img-failed {
-  display: none;
-}
 
 /* ---- 文章详情页封面 ---- */
 .post-cover {
@@ -39,22 +32,16 @@ img.img-failed,
   height: 84px;
 }
 
-/* 无图片子元素（构建期缺失）或只剩失败图片时保留封面版式 */
-@supports (selector(:has(.img-failed))) {
-  .post-cover:not(:has(img)),
-  .post-cover:has(.img-failed) {
-    aspect-ratio: 21 / 9;
-    min-height: 200px;
-  }
+/* 无图片子元素（构建期缺失）或封面加载失败（img 被摘掉）时保留封面版式 */
+.post-cover:not(:has(img)) {
+  aspect-ratio: 21 / 9;
+  min-height: 200px;
 }
 
 @media (max-width: 768px) {
-  @supports (selector(:has(.img-failed))) {
-    .post-cover:not(:has(img)),
-    .post-cover:has(.img-failed) {
-      aspect-ratio: 16 / 9;
-      min-height: 120px;
-    }
+  .post-cover:not(:has(img)) {
+    aspect-ratio: 16 / 9;
+    min-height: 120px;
   }
 }
 
@@ -73,12 +60,8 @@ img.img-failed,
   height: 44px;
 }
 
-@supports (selector(:has(.img-failed))) {
-  .post-card-cover:not(:has(img)),
-  .post-card-cover:has(.img-failed) {
-    min-height: 170px;
-  }
-}
+/* 卡片封面失败（img 被摘掉）：高度沿用 .post-card-cover 自己的 height: calc(100% - 24px)，
+   不再写死 min-height —— 卡片高 150px（手机端 140px），写死会把封面撑破卡片被裁 */
 
 /* ---- 正文图片：未加载完成 / 加载失败时的占位底（加载成功后 JS 加 .img-loaded 移除） ----
  * 与封面占位一致：mdi:image-outline 白色半透明图标 + 淡灰底 */
@@ -104,7 +87,8 @@ img.img-failed,
   cursor: zoom-in;
 }
 
-/* ---- 正文图片占位块（加载失败时替换 <img>，居中图标 + 淡灰半透明底） ---- */
+/* ---- 图片占位块（加载失败时替换 <img>，居中图标 + 淡灰半透明底） ----
+ * 全站通用：正文图、封面图以外的普通图片都用它 */
 .img-ph {
   display: flex;
   align-items: center;
@@ -118,6 +102,17 @@ img.img-failed,
   box-sizing: border-box;
   user-select: none;
   cursor: default;
+}
+
+/* 普通小图（头像、图标类）：JS 按原图实测宽高给占位块定尺寸，
+   尺寸取不到时退回方形小占位（.img-ph--inline） */
+.img-ph--inline {
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  aspect-ratio: 1;
+  display: inline-flex;
+  vertical-align: middle;
 }
 
 /* 占位图标：白色，居中（容器 flex 居中）；无状态恒定全白，走 --white */

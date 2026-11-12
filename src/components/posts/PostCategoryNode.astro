@@ -9,38 +9,29 @@ interface Props {
   node: CategoryTreeNode;
   depth: number;
   activeCategory?: string;
-  linkMode?: boolean;
-  categoryUrl?: (path: string) => string;
+  categoryUrl: (path: string) => string;
 }
 
-const { node, depth, activeCategory = '', linkMode = false, categoryUrl } = Astro.props;
+const { node, depth, activeCategory = '', categoryUrl } = Astro.props;
 
 const hasChildren = node.children.length > 0;
 const isActive = node.path === activeCategory;
 const isOpen =
   hasChildren && (activeCategory === node.path || activeCategory.startsWith(node.path + '/'));
-const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
+const url = categoryUrl(node.path);
 ---
 
 <li class:list={['cat-node', { 'cat-node--open': isOpen }]}>
   <div class="cat-row" style={`--depth:${depth}`}>
-    {linkMode ? (
-      <a
-        href={url}
-        class:list={['cat-item', 'link-plain', { 'cat-item--active': isActive }]}
-        data-category={node.path}
-      >
-        <span class="cat-name">{node.name}</span>
-      </a>
-    ) : (
-      <button
-        type="button"
-        class:list={['cat-item', { 'cat-item--active': isActive }]}
-        data-category={node.path}
-      >
-        <span class="cat-name">{node.name}</span>
-      </button>
-    )}
+    <a
+      href={url}
+      class:list={['cat-item', 'link-plain', { 'cat-item--active': isActive }]}
+      data-category={node.path}
+    >
+      <span class="cat-name">{node.name}</span>
+    </a>
+    <!-- 按钮内只有图标，可访问名要靠 aria-label；运行期由 category-tree.ts
+         与 aria-expanded 一起更新，避免两者各说一套 -->
     {hasChildren && (
       <button
         type="button"
@@ -54,14 +45,13 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
   </div>
 
   {hasChildren && (
-    <div class="cat-children-wrap">
+    <div class="cat-children-wrap" inert={!isOpen}>
       <ul class="cat-children">
         {node.children.map((child) => (
           <Self
             node={child}
             depth={depth + 1}
             activeCategory={activeCategory}
-            linkMode={linkMode}
             categoryUrl={categoryUrl}
           />
         ))}
@@ -93,7 +83,7 @@ const url = linkMode && categoryUrl ? categoryUrl(node.path) : '';
     margin-left: auto;
     padding: 0;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--ink);
     cursor: pointer;

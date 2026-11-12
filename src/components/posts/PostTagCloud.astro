@@ -4,7 +4,7 @@
 import { Icon } from 'astro-icon/components';
 
 interface Props {
-  tags: { name: string; count: number }[];
+  tags: { name: string }[];
   /** 生成标签链接的函数，如 (name) => `/posts/tag/${name}/` */
   tagUrl: (name: string) => string;
   /** 当前所在标签（高亮用，可选） */
@@ -35,6 +35,15 @@ const { tags, tagUrl, activeTag = '' } = Astro.props;
   .tag-panel {
     padding: 16px;
     border-radius: var(--radius);
+  }
+
+  /* 搬进筛选抽屉时：面板不再自己撑高、不再 sticky；
+     变体类由 PostsFilterModal.svelte 增删，改类名两处同改 */
+  .tag-panel.tag-panel--in-drawer {
+    padding: 14px;
+    position: static;
+    max-height: none;
+    overflow: visible;
   }
 
   .tag-panel-title {

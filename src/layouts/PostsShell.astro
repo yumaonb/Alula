@@ -43,6 +43,10 @@ interface Props {
   headings?: MarkdownHeading[];
   /** post：隐藏文章——正文不进站内搜索索引，页面加 noindex（直链访问仍然正常） */
   hidden?: boolean;
+  /** 分享卡配图：由文章页解析好封面地址传进来 */
+  image?: string;
+  /** 文章发布时间（ISO 串），只进分享卡 */
+  publishedTime?: string;
 }
 
 const {
@@ -51,20 +55,34 @@ const {
   variant,
   heading = '',
   count = 0,
+  image,
+  publishedTime,
   posts = [],
   breadcrumbs = [],
   headings = [],
   hidden = false,
 } = Astro.props;
 
+// 「这页有没有目录」共四种口径：此处（构建期数标题）、posts/transition.ts（侧栏目录是否显示）、
+// nav/swup-widgets.ts（.toc-link 有没有条目）、posts/TocModal.svelte（节点在不在）。
+// 改「该不该出目录」的规则要四处按同一语义重算，漏一处目录按钮与实际目录不一致
 const hasToc = headings.length > 0;
 // 不输出 data-pagefind-body：Pagefind 只索引带该属性的页面，隐藏文章因此整个页面不进索引
 const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 ---
 
-<BaseLayout title={title} description={description} noindex={hidden} shellVariant={variant}>
+<BaseLayout
+  title={title}
+  description={description}
+  noindex={hidden}
+  shellVariant={variant}
+  image={image}
+  ogType={variant === 'post' ? 'article' : 'website'}
+  publishedTime={publishedTime}
+>
   {variant === 'listing' ? (
     <div class="posts-page">
+      <!-- 列表页标记：util/page-kind.ts 按 .post-content / .posts-page 判定页面类型，改类名同改 -->
       <div class="posts-edge-slot">
         <div class="posts-header" data-posts-anchor>
           <h1 class="posts-title page-title">
@@ -220,7 +238,25 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     position: sticky;
     top: 82px;
     overflow-y: auto;
+    /* 与目录内层的 .toc-scroll 同一套细滚动条：scrollbar-width /
+     * scrollbar-color 管 Firefox，::-webkit-scrollbar 管 Chromium 与 Safari。
+     * 只写 scrollbar-width 的话 Firefox 仍是系统默认色（偏灰蓝），
+     * 与目录竖线的白调对不上。 */
     scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  }
+
+  .post-sidebar::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  .post-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .post-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
   }
 
   @media (max-width: 850px) {

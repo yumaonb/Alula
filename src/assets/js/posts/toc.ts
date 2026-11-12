@@ -28,18 +28,23 @@
 // 切页后）且距离 > SNAP_MAX_PX 才是状态矫正、瞬移就位。
 // 帧循环：单 rAF、滚动驱动（哨兵与过渡同通道）、收敛后自动停摆（静止零开
 // 销）。竖线位移走 translateY（合成器通道）而非 top（布局通道）。
-import { queryPostSidebar, queryTocNav } from './post-sidebar';
+import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../util/post-sidebar';
 
 (() => {
   if (window.__tocInit) return;
   window.__tocInit = true;
 
+  // 导航高度兜底（正常路径在 getNavOffset 读 .navbar 实测值），改 NavBar.astro 的高度要同改这里
   const NAV_HEIGHT = 80;
   // 段标记（toc.ts 创建/销毁的不可见元素）
   const MARK_CLASS = 'toc-io-mark';
   let isClickMode = false;
+  /** 点击窗口的定时器（可取消：每次点击都重起窗口，旧的不许提前结束新的） */
+  let clickWindowTimer = 0;
   // 大距离阈值：只用于「首次落位」——状态矫正（深链进入 / 切页后），瞬移就位
   const SNAP_MAX_PX = 120;
+  // 减少动态效果：跳过平滑过渡，直接落终态
+  const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // 点击窗口：期间轨道不动（不抢页面平滑滚动），窗口后由下一次切项矫正
   const CLICK_WINDOW_MS = 800;
 
@@ -57,31 +62,52 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
   /* ---- 缓存 ---- */
   // 标题文档绝对位 + 目录项 offsetTop/height。页面滚动不改变它们；
   // 只在 init / 重测时重建（重测频率低：init / 切页 / 图片 / 字体 / resize / 哨兵命中）。
+  // 五个平行数组按下标互相一一对应，改任何一个要核对其余不错位（错位 = 目录高亮偏移一格）
   let slugs: string[] = [];
   let headingTops: number[] = [];
   let itemTops: number[] = [];
   let itemHeights: number[] = [];
+  /** 与上面四个数组同序：量到了的目录项本身。
+   *  高亮要按这个列表打标记——按 DOM 全量索引打会在中间跳项时整体错位一格 */
+  let measuredItems: HTMLElement[] = [];
   let navOffset = NAV_HEIGHT;
 
   function measure(): void {
-    const items = document.querySelectorAll('.toc-item');
+    // 必须限定在真实目录节点里查：转场期间行内还挂着上一篇的目录克隆
+    // （strip.cloneIntoRow 的 cloneNode 连 .toc-item / data-target 一起复制），
+    // 全文档查询会把旧页的条目也量进来——旧 slug 在新页里找不到标题，
+    // 每次切页都刷一串假的「找不到对应标题」；新旧页有同名标题时还会量成同一段
+    const nav = queryTocNav();
+    const items = nav ? nav.querySelectorAll<HTMLElement>('.toc-item') : [];
     slugs = [];
     headingTops = [];
     itemTops = [];
     itemHeights = [];
+    measuredItems = [];
     if (items.length === 0) return;
     const sy = window.scrollY;
+    const missing: string[] = [];
     items.forEach((item) => {
       const slug = item.getAttribute('data-target');
       if (!slug) return;
       const h = document.getElementById(slug);
       const link = item.querySelector<HTMLElement>('.toc-link');
-      if (!h || !link) return;
+      // 标题在正文里不存在（原生 HTML 标题没拿到 id、重复标题去重规则不同）：
+      // 这一项量不到，跳过。跳过后 DOM 索引与数组下标就对不上了，
+      // 所以高亮要按 measuredItems 打，不能按 DOM 顺序打
+      if (!h || !link) {
+        missing.push(slug);
+        return;
+      }
       slugs.push(slug);
       headingTops.push(h.getBoundingClientRect().top + sy);
       itemTops.push(link.offsetTop);
       itemHeights.push(link.offsetHeight);
+      measuredItems.push(item);
     });
+    if (missing.length > 0) {
+      console.warn(`[toc] ${missing.length} 个目录项在正文里找不到对应标题：${missing.join(', ')}`);
+    }
     navOffset = getNavOffset();
   }
 
@@ -130,7 +156,7 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
       restScroll = trackTo;
     } else {
       // 点击窗口内轨道不动：静止滚动即当前值
-      const t = document.getElementById('toc-list');
+      const t = queryTocList();
       restScroll = t ? t.scrollTop : 0;
     }
     // 竖线目标 = 活动项顶边在轨道坐标里的静止位置：居中可达时该值恒为轨道
@@ -138,6 +164,17 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
     barTo = itemTops[idx] - restScroll;
     let dist = Math.abs(barTo - barFrom);
     if (trackEl) dist = Math.max(dist, Math.abs(trackTo - trackFrom));
+    if (REDUCE_MOTION) {
+      // 减少动态效果：与状态矫正同一套写入，直接落终态
+      barPos = barTo;
+      if (trackEl) trackEl.scrollTop = trackTo;
+      const bar = queryTocBar();
+      if (bar) bar.style.transform = `translateY(${barPos}px)`;
+      barPlaced = true;
+      trackPlaced = true;
+      p = 1;
+      return;
+    }
     if ((!barPlaced || !trackPlaced) && dist > SNAP_MAX_PX) {
       // 状态矫正：仅首次落位且距离大（深链进入 / 切页后）——立刻对齐。
       // 必须同帧写入竖线 transform：此分支不走帧循环，只改变量竖线会停在
@@ -145,7 +182,7 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
       // 走平滑过渡而非再次瞬移）
       barPos = barTo;
       if (trackEl) trackEl.scrollTop = trackTo;
-      const bar = document.getElementById('toc-bar');
+      const bar = queryTocBar();
       if (bar) bar.style.transform = `translateY(${barPos}px)`;
       barPlaced = true;
       trackPlaced = true;
@@ -167,20 +204,21 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
     if (idx < 0 || idx >= itemHeights.length) return;
     const h = itemHeights[idx];
     if (h <= 0) return;
-    const bar = document.getElementById('toc-bar');
+    const bar = queryTocBar();
     if (bar) bar.style.height = `${h}px`;
   }
 
   function activate(idx: number): void {
     if (idx === lastActiveIdx) return;
-    document.querySelectorAll('.toc-item').forEach((item, i) => {
+    // 按量到的目录项打高亮，不按 DOM 顺序——两者在有条目跳不过去时长度不同
+    measuredItems.forEach((item, i) => {
       item.classList.toggle('active', i === idx);
     });
     syncBarHeight(idx);
     // 切项是显式意图：恢复轨道居中（含手动滑走后的下次切项矫正；
     // 点击窗口内不恢复——页面平滑滚动进行中，轨道不动）
     if (!isClickMode) trackFollow = true;
-    retarget(idx, trackFollow ? document.getElementById('toc-list') : null);
+    retarget(idx, trackFollow ? queryTocList() : null);
     lastActiveIdx = idx;
     ensureLoop();
   }
@@ -317,7 +355,7 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
     // 换宿主 / 解锁滚动后项高会变，竖线高度只在 activate 里写过，这里要补一次
     syncBarHeight(lastActiveIdx);
     if (lastActiveIdx >= 0 && lastActiveIdx < slugs.length) {
-      retarget(lastActiveIdx, trackFollow ? document.getElementById('toc-list') : null);
+      retarget(lastActiveIdx, trackFollow ? queryTocList() : null);
     }
     ensureLoop();
   }
@@ -366,9 +404,9 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
       p = Math.min(1, p + dt / (dur * 1000));
       const v = EASE_OUT(p);
       barPos = barFrom + (barTo - barFrom) * v;
-      const bar = document.getElementById('toc-bar');
+      const bar = queryTocBar();
       if (bar) bar.style.transform = `translateY(${barPos}px)`;
-      const trackEl = document.getElementById('toc-list');
+      const trackEl = queryTocList();
       if (trackEl && trackFollow) trackEl.scrollTop = trackFrom + (trackTo - trackFrom) * v;
       if (p >= 1) {
         barPlaced = true;
@@ -403,8 +441,12 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
     // 窗口内轨道不居中，不抢页面平滑滚动
     trackFollow = false;
     smoothScrollTo(el);
-    setTimeout(() => {
+    // 窗口必须是可取消的：每次点击都新起一个定时器，旧的那个到点会把
+    // 后一次点击的窗口提前结束——页面还在平滑滚动，目录就抢先自己居中
+    window.clearTimeout(clickWindowTimer);
+    clickWindowTimer = window.setTimeout(() => {
       isClickMode = false;
+      clickWindowTimer = 0;
     }, CLICK_WINDOW_MS);
   });
 
@@ -414,7 +456,7 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
   function syncBarToActive(track: HTMLElement): void {
     if (lastActiveIdx < 0 || lastActiveIdx >= slugs.length) return;
     barPos = itemTops[lastActiveIdx] - track.scrollTop;
-    const bar = document.getElementById('toc-bar');
+    const bar = queryTocBar();
     if (bar) bar.style.transform = `translateY(${barPos}px)`;
   }
 
@@ -428,7 +470,7 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
   document.addEventListener(
     'wheel',
     (e: WheelEvent) => {
-      const track = document.getElementById('toc-list');
+      const track = queryTocList();
       if (!track || !(e.target instanceof Node) || !track.contains(e.target)) return;
 
       e.preventDefault();
@@ -468,6 +510,9 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
     const host = targetHost();
     if (!host || navEl.parentElement === host) return false;
     host.appendChild(navEl);
+    // 抽屉里的版式差异由目录组件自己负责（变体类），抽屉不必穿透它的内部结构；
+    // 类名要与 TableOfContents.astro 的 .toc-nav--in-drawer 样式同改
+    navEl.classList.toggle('toc-nav--in-drawer', host === window.__tocDrawerHost);
     return true;
   }
 
@@ -478,7 +523,7 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
     layoutMarks();
     // 触摸等原生滚动不产生 wheel 事件：轨道 scroll 监听里同样让竖线贴住
     // 活动项；过渡自己驱动轨道时（p < 1）不接管
-    const track = document.getElementById('toc-list');
+    const track = queryTocList();
     if (track) {
       track.addEventListener('scroll', () => {
         if (p < 1) return;
@@ -489,6 +534,9 @@ import { queryPostSidebar, queryTocNav } from './post-sidebar';
   };
 
   document.addEventListener('swup:content:replace', () => {
+    // 上一页的点击窗口定时器不该跨页生效：清掉，避免它在新页上改写 isClickMode
+    window.clearTimeout(clickWindowTimer);
+    clickWindowTimer = 0;
     // 目录整块重建：新页侧栏里是新节点，抽屉里可能还留着上一页那份——只留新的
     const main = document.getElementById('swup');
     const fresh = main ? queryTocNav(main) : null;

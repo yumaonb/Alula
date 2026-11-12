@@ -13,6 +13,18 @@
   let sidebar: HTMLElement | null = null;
   let modalEl: HTMLDivElement | null = null;
 
+  /** 面板在抽屉里的版式差异由各面板组件自己负责（变体类），
+   *  抽屉不必穿透它们的内部结构；进出要成对，撤销掉才不会把抽屉版式带回侧栏 */
+  function markPanelsInDrawer(inDrawer: boolean): void {
+    filterRoot?.querySelectorAll<HTMLElement>('.cat-panel, .tag-panel').forEach((panel) => {
+      const isCategory = panel.classList.contains('cat-panel');
+      panel.classList.toggle(
+        isCategory ? 'cat-panel--in-drawer' : 'tag-panel--in-drawer',
+        inDrawer,
+      );
+    });
+  }
+
   const drawer = createDrawer({
     modalEl: () => modalEl,
     isOpen: () => isOpen,
@@ -21,21 +33,30 @@
     },
     fabId: 'posts-filter-fab',
     canOpen: () => {
-      sidebar = document.querySelector<HTMLElement>('.posts-sidebar');
-      filterRoot = sidebar?.querySelector('.sidebar-filter') || sidebar;
-      return !!filterRoot?.children.length;
+      // 只认筛选子树，取不到就不开：兜底到整个侧栏会把作者卡、头像一起搬进抽屉，
+      // 关回来时还会把分类树的展开状态弄乱
+      const root = document.querySelector<HTMLElement>('.posts-sidebar .sidebar-filter');
+      return !!root && root.children.length > 0;
     },
     onBeforeOpen: () => {
       // 抽屉展示的是侧栏里的筛选面板，打开时把它搬进来
-      const body = modalEl?.querySelector('.pfilter-modal-body');
-      if (body && filterRoot) body.appendChild(filterRoot);
+      sidebar = document.querySelector<HTMLElement>('.posts-sidebar');
+      filterRoot = sidebar?.querySelector<HTMLElement>('.sidebar-filter') ?? null;
+      if (!sidebar || !filterRoot) {
+        console.error('[PostsFilterModal] 找不到 .posts-sidebar 或 .sidebar-filter，筛选内容为空');
+        return;
+      }
+      modalEl?.querySelector('.pfilter-modal-body')?.appendChild(filterRoot);
+      markPanelsInDrawer(true);
     },
     onClosed: () => {
-      // 关闭后放回侧栏原位
+      // 关闭后放回侧栏原位，变体类要一起撤销：
+      // 留在身上会让面板回到侧栏后仍是抽屉里的版式
+      markPanelsInDrawer(false);
       if (sidebar && filterRoot) sidebar.appendChild(filterRoot);
     },
     // 点分类 / 标签跳走前先关抽屉
-    closeOn: ['[data-pfilter-close]', '.cat-item', '.chip'],
+    closeOn: ['[data-pfilter-close]', '.cat-item', '.tag-panel .chip'],
     focusOn: '.pfilter-modal-close',
   });
 
@@ -106,20 +127,15 @@
     padding: 14px 12px 20px;
     overflow-y: auto;
     scrollbar-width: thin;
-    flex-direction: column;
     gap: 18px;
   }
 
+  /* 筛选子树整体在抽屉里的版式：这是抽屉自己的容器，不算穿透面板内部结构 */
   :global(.pfilter-modal .pfilter-modal-body .glass),
   :global(.pfilter-modal .pfilter-modal-body .sidebar-filter) {
     position: static;
     max-height: none;
     top: auto;
     overflow: visible;
-  }
-
-  :global(.pfilter-modal-body .cat-panel),
-  :global(.pfilter-modal-body .tag-panel) {
-    padding: 14px;
   }
 </style>

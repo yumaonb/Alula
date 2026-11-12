@@ -99,25 +99,32 @@
   onMount(() => {
     tick();
 
-    // 转起目标 = 动画结束时刻的角度 + 整圈（360/720/1080）。
-    // 动画期间真实时间仍在走（4 秒里秒针要走 24°），若锚在开始时刻，结束时指针落后真实时间，
-    // 结尾校正会猛跳一大截；锚到结束时刻，落点即真实时间
-    const endDate = new Date(Date.now() + EASE_DURATION);
-    const targetH = hAngle(endDate) + 360;
-    const targetM = mAngle(endDate) + 720;
-    const targetS = sAngle(endDate) + 1080;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // 减少动态效果：不播 4 秒起针动画，直接定格当前时间
+    if (reduceMotion) {
+      ready = true;
+      tick();
+    } else {
+      // 转起目标 = 动画结束时刻的角度 + 整圈（360/720/1080）。
+      // 动画期间真实时间仍在走（4 秒里秒针要走 24°），若锚在开始时刻，结束时指针落后真实时间，
+      // 结尾校正会猛跳一大截；锚到结束时刻，落点即真实时间
+      const endDate = new Date(Date.now() + EASE_DURATION);
+      const targetH = hAngle(endDate) + 360;
+      const targetM = mAngle(endDate) + 720;
+      const targetS = sAngle(endDate) + 1080;
 
-    easeFromH = hDeg;
-    easeFromM = mDeg;
-    easeFromS = sDeg;
-    easeToH = targetH;
-    easeToM = targetM;
-    easeToS = targetS;
-    easeStart = performance.now();
-    easing = true;
+      easeFromH = hDeg;
+      easeFromM = mDeg;
+      easeFromS = sDeg;
+      easeToH = targetH;
+      easeToM = targetM;
+      easeToS = targetS;
+      easeStart = performance.now();
+      easing = true;
 
-    ready = true;
-    raf = requestAnimationFrame(loop);
+      ready = true;
+      raf = requestAnimationFrame(loop);
+    }
     scheduleTick();
 
     function onVisibility(): void {
@@ -220,7 +227,7 @@
 
   <div class="clock-info">
     {#if ready}
-      <span class="clock-time" aria-live="polite">{time}</span>
+      <span class="clock-time">{time}</span>
       <span class="clock-date">{date}</span>
     {:else}
       <div

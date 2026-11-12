@@ -1,5 +1,5 @@
 // post-sidebar.ts — 取「真实」的文章目录侧栏与目录节点，避开转场克隆
-// 用法：import { queryPostSidebar, queryTocNav } from "./post-sidebar"
+// 用法：import { queryPostSidebar, queryTocList, queryTocBar } from "../util/post-sidebar"
 //
 // 侧栏在 PostsShell.astro 里渲染（有目录的文章才有），转场时 strip 会克隆它、
 // 克隆保留 .post-sidebar / .toc-nav 类名并挂在 #swup 之外的行内。所以：
@@ -10,14 +10,18 @@
 // 只在某个版面/时刻悄悄失效，统一收在这里。
 
 /**
- * 转场克隆的标记类（strip.cloneIntoRow 的 markerClass）：
+ * 转场克隆的标记类（strip.ts 的 cloneEdge / cloneToc / cloneBlur 各挂一种）：
  * 克隆身上仍带 .post-sidebar / .toc-nav，查询时必须排除。
+ * 新增克隆类型：在这里加常量并并入 CLONE_SELECTOR，再核对两个查询方是否要认新类
+ * （strip.ts 的 clearClones、posts-shell.ts 的搜索占位符查询），漏了新克隆永远不会被清理
  */
-const CLONE_MARKERS = '.posts-toc-clone, .posts-edge-clone';
+export const EDGE_CLONE_CLASS = 'posts-edge-clone';
+export const TOC_CLONE_CLASS = 'posts-toc-clone';
+export const CLONE_SELECTOR = `.${TOC_CLONE_CLASS}, .${EDGE_CLONE_CLASS}`;
 
 /** 元素是否落在某个转场克隆里 */
 export function isTransitionClone(el: Element): boolean {
-  return !!el.closest(CLONE_MARKERS);
+  return !!el.closest(CLONE_SELECTOR);
 }
 
 /** 取真实侧栏：root 缺省查整个文档，传入 main#swup 可限定在内容区内找 */
@@ -37,4 +41,14 @@ export function queryTocNav(root: ParentNode = document): HTMLElement | null {
     if (!isTransitionClone(el)) return el;
   }
   return null;
+}
+
+/** 取真实目录的滚动轨道；克隆里的同名 id 不参与查询 */
+export function queryTocList(root: ParentNode = document): HTMLElement | null {
+  return queryTocNav(root)?.querySelector<HTMLElement>('#toc-list') ?? null;
+}
+
+/** 取真实目录的活动竖线；克隆里的同名 id 不参与查询 */
+export function queryTocBar(root: ParentNode = document): HTMLElement | null {
+  return queryTocNav(root)?.querySelector<HTMLElement>('#toc-bar') ?? null;
 }

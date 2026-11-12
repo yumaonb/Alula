@@ -1,7 +1,7 @@
 ---
 // PostNav.astro — 文章 上一篇 / 下一篇 导航
 // 用法：<PostNav prev={...} next={...} />
-import { Icon } from 'astro-icon/components';
+import PostNavItem from './PostNavItem.astro';
 
 interface NavPost {
   title: string;
@@ -20,40 +20,8 @@ const { prev = null, next = null } = Astro.props;
 
 {(prev || next) && (
   <nav class="post-nav" aria-label="文章导航">
-    {prev ? (
-      <a href={prev.url} class="post-nav-item post-nav-prev glass hoverable link-plain" rel="prev">
-        <span class="post-nav-label">
-          <Icon is:inline name="la:arrow-left" class="post-nav-icon" />
-          上一篇
-        </span>
-        <span class="post-nav-title">{prev.title}</span>
-      </a>
-    ) : (
-      <span class="post-nav-item post-nav-empty glass">
-        <span class="post-nav-label">
-          <Icon is:inline name="la:arrow-left" class="post-nav-icon" />
-          上一篇
-        </span>
-        <span class="post-nav-title">没有更多文章了</span>
-      </span>
-    )}
-    {next ? (
-      <a href={next.url} class="post-nav-item post-nav-next glass hoverable link-plain" rel="next">
-        <span class="post-nav-label">
-          下一篇
-          <Icon is:inline name="la:arrow-right" class="post-nav-icon" />
-        </span>
-        <span class="post-nav-title">{next.title}</span>
-      </a>
-    ) : (
-      <span class="post-nav-item post-nav-empty post-nav-next glass">
-        <span class="post-nav-label">
-          下一篇
-          <Icon is:inline name="la:arrow-right" class="post-nav-icon" />
-        </span>
-        <span class="post-nav-title">没有更多文章了</span>
-      </span>
-    )}
+    <PostNavItem dir="prev" post={prev} />
+    <PostNavItem dir="next" post={next} />
   </nav>
 )}
 
