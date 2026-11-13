@@ -283,7 +283,7 @@ export const background = {
 - **灯箱**（`shared/lightbox.css`）：PhotoSwipe 主题微调，随 `lightbox-core.ts` 懒加载，不进首屏产物。
 - **骨架屏**（`shared/skeleton.css`）：`.skeleton` 加载占位闪烁动画，加在任意元素上即可。
 - **导航下划线**（`NavBar.astro` 组件内）：静态线由 `is-active` / `aria-current` 服务端渲染、首屏可见不依赖 JS（选择器带 `:not(.js-ready)` 只画接管前）；共享线 JS 接管后是下划线的唯一画者，motion 驱动（`cubic-bezier(0.32, 0.72, 0, 1)`），时长按「起点 → 终点」实际位移成比例（`450–700ms`，位移 ×3.4ms，上下限夹取）；桌面导航只变文字色、不挂 `.hoverable`（那会加白底描边，导航只要字体高亮），手机端下拉菜单仍是 `.hoverable` 反馈。细节读 `nav-indicator.ts`。
-- **圆形按钮**（`index.astro` 页内自持）：首页社交按钮的 46px 毛玻璃圆钮（内部图标 22px），尺寸写在页面 `<style>`，磨砂与投影来自挂的 `.glass`，悬停反馈靠 `.hoverable`，不进公共文件。
+- **圆形按钮**（`index.astro` 页内自持）：首页社交按钮的 40px 毛玻璃圆钮（内部图标 20px，行内间距 12px，六个一行的尺寸），尺寸写在页面 `<style>`，磨砂与投影来自挂的 `.glass`，悬停反馈靠 `.hoverable`，不进公共文件。
 - **头像**：白环 + 圆形裁切、尺寸由 `--avatar-size` 变量控制，定义在 `utilities.css`，4 处调用只覆写 `--avatar-size`；光环观感值（0.9 白环 + 0.25 白辉光）按白名单第 3 类 4 处各自持。
 - **数据卡片**（`DaysCounter.svelte`）：只服务这一个组件，样式写在组件 `<style>` 里（scoped），不进公共文件。
 - **侧边按钮**（`SideWidgets.astro`）：侧边悬浮按钮组（返回顶部、到底部、目录、进度等）44px 磨砂圆角方块，磨砂来自标记里挂的 `glass` 类，样式自持在组件内；swup 切页时组容器加 `.navigating` 类隐藏所有按钮。

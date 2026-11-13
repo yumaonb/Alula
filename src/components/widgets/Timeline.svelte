@@ -11,6 +11,7 @@
   let canPrev = $state(false);
   let canNext = $state(false);
   let railFill = $state(0);
+  let trackWidth = $state(0);
 
   let pointerId: number | null = null;
   let pointerStart = 0;
@@ -22,6 +23,7 @@
     canPrev = viewport.scrollLeft > 1;
     canNext = viewport.scrollLeft < max - 1;
     railFill = Math.min(viewport.scrollWidth, viewport.scrollLeft + viewport.clientWidth);
+    trackWidth = viewport.scrollWidth;
   }
 
   function onPointerDown(event: PointerEvent): void {
@@ -87,7 +89,7 @@
     onpointerup={stopDrag}
     onpointercancel={stopDrag}
   >
-    <ol class="timeline-track" style={`--rail-fill:${railFill}px`}>
+    <ol class="timeline-track" style={`--rail-fill:${railFill}px;--rail-track:${trackWidth}px`}>
       {#each items as item, index (item.date + item.title)}
         {@const year = item.date.slice(0, 4)}
         {@const day = item.date.slice(5).replace('-', '.')}
@@ -114,6 +116,7 @@
     position: relative;
     width: 100%;
     --fade-width: 56px;
+    --rail-fade: 176px;
   }
 
   /* ---- 两端渐隐 ----
@@ -195,13 +198,23 @@
   .timeline-track::before {
     right: 0;
     background: linear-gradient(to right, var(--ring), var(--hover-line) 55%, var(--ring));
+    /* 线末端一小段渐隐，避免在轨道尽头硬切断 */
+    mask-image: linear-gradient(to right, #000 calc(100% - var(--rail-fade)), transparent);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--rail-fade)), transparent);
   }
 
   /* 已经划过的部分提亮，给横向滚动一个进度感 */
+  /* mask 按轨道全宽定位，末端渐隐与 ::before 的线对齐，进度高亮滚到尽头时不会盖住渐隐 */
   .timeline-track::after {
     width: var(--rail-fill, 0px);
     background: linear-gradient(to right, var(--hover-line), var(--white));
     opacity: 0.42;
+    mask-image: linear-gradient(to right, #000 calc(100% - var(--rail-fade)), transparent);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--rail-fade)), transparent);
+    mask-size: var(--rail-track, 100%) 100%;
+    -webkit-mask-size: var(--rail-track, 100%) 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
   }
 
   .timeline-item {
@@ -322,6 +335,12 @@
       width: 1px;
       height: auto;
       background: linear-gradient(to bottom, var(--hover-line), var(--ring));
+      mask-image: linear-gradient(to bottom, #000 calc(100% - var(--rail-fade)), transparent);
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        #000 calc(100% - var(--rail-fade)),
+        transparent
+      );
     }
 
     .timeline-track::after {
