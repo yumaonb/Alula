@@ -1,23 +1,19 @@
 // post-sidebar.ts — 取「真实」的文章目录侧栏与目录节点，避开转场克隆
 // 用法：import { queryPostSidebar, queryTocList, queryTocBar } from "../util/post-sidebar"
 //
-// 侧栏在 PostsShell.astro 里渲染（有目录的文章才有），转场时 strip 会克隆它、
-// 克隆保留 .post-sidebar / .toc-nav 类名并挂在 #swup 之外的行内。所以：
-// ① 文档级查询可能命中克隆（克隆不是真侧栏，不该被测量/搬运）；
-// ② 真侧栏只在 #swup 里；
-// ③ ≤850px 侧栏 display:none，此时「有目录」不成立（目录走抽屉）。
-// 这三条判据原先分散在 toc.ts 与 transition.ts 各写一遍，改一处漏一处不会报错、
-// 只在某个版面/时刻悄悄失效，统一收在这里。
+// 侧栏在 PostsShell.astro 里渲染（有目录的文章才有）。转场克隆挂在 #swup 之外的
+// 行内、播完才移除，判据：① 文档级查询要排除克隆（克隆不是真侧栏，不该被
+// 测量/搬运）；② 真侧栏只在 #swup 里；③ ≤850px 侧栏 display:none，此时
+// 「有目录」不成立（目录走抽屉）。
 
 /**
- * 转场克隆的标记类（strip.ts 的 cloneEdge / cloneToc / cloneBlur 各挂一种）：
- * 克隆身上仍带 .post-sidebar / .toc-nav，查询时必须排除。
- * 新增克隆类型：在这里加常量并并入 CLONE_SELECTOR，再核对两个查询方是否要认新类
- * （strip.ts 的 clearClones、posts-shell.ts 的搜索占位符查询），漏了新克隆永远不会被清理
+ * 转场克隆的标记类（strip.ts 的 cloneEdge / cloneBlur 都挂这一个）：
+ * 克隆身上仍带 .posts-header / .posts-breadcrumb，相关查询必须排除。
+ * 新增克隆类型：在这里加常量并并入 CLONE_SELECTOR，再核对查询方是否要认新类
+ * （strip.ts 的 clearClones、posts-shell.ts 的搜索占位符查询），漏了永远不会被清理
  */
 export const EDGE_CLONE_CLASS = 'posts-edge-clone';
-export const TOC_CLONE_CLASS = 'posts-toc-clone';
-export const CLONE_SELECTOR = `.${TOC_CLONE_CLASS}, .${EDGE_CLONE_CLASS}`;
+export const CLONE_SELECTOR = `.${EDGE_CLONE_CLASS}`;
 
 /** 元素是否落在某个转场克隆里 */
 export function isTransitionClone(el: Element): boolean {

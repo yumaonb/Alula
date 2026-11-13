@@ -202,8 +202,8 @@ const blog = await loadBlogData();
     </script>
     <!-- data-swup-ignore-script：@swup/scripts-plugin（@swup/astro 默认启用）每次切页
       （content:replace）会重跑全 document 的脚本——切到列表页时本脚本会强制把浮层
-      opacity 写 1，搜索框先直接出现在终位，入场动画起播时再渐隐+右移+滑回（表现为
-      「移两次 / 闪一下」，见 TROUBLESHOOTING 52）。本脚本只服务整页首帧，切页由
+      opacity 写 1，搜索框会抢在切页 settle 落位前先直接现于终位（多露一帧，
+      见 TROUBLESHOOTING 52）。本脚本只服务整页首帧，切页由
       posts-shell.ts 全权负责 -->
     <script is:inline data-swup-ignore-script>
       // 搜索框首帧可见：浮层叠放位置平时由 posts-shell.ts（JS 包加载后）计算写入，此前

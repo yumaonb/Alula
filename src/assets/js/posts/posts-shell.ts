@@ -3,7 +3,7 @@
 //
 // 侧边栏与搜索框都在 #swup 之外、切页不重建，切页后要据此重跑一遍。具体实现在各分件：
 // 行变体类 / 侧栏顶偏移 / 侧栏高亮 → posts/row-state.ts
-// 搜索浮层摆位与状态机 → posts/search-float.ts
+// 搜索浮层摆位与显隐落位 → posts/search-float.ts
 // 转场编排 → posts/transition.ts（过场件在 posts/strip.ts）
 // 本文件只做环境探测、动画登记与接线。
 //
@@ -28,21 +28,13 @@ import { animateLazy, preloadMotion } from '../util/motion';
   /* ---- 0. 常量与环境 ---- */
 
   const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // 768/769 是全站手机 / 桌面分界，改分界要与 CSS 断点及各模块的探测同改（见 nav/breakpoint.ts 文件头）
-  const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
-  // 目录滑动只在电脑端显示目录（≥851px；更窄目录是按钮+抽屉，只走普通渐隐）
-  const tocSlideGate = () => !REDUCE_MOTION && window.matchMedia('(min-width: 851px)').matches;
-
   function row(): HTMLElement | null {
     return document.querySelector<HTMLElement>('.page-main');
   }
 
-  /* ---- 1. 动画登记（两套生命周期） ---- */
-  // anims：转场动画——快速二次导航（captureOld）一律 cancel；
-  // floatAnims：搜索浮层动画——独立生命周期（不能被转场中断连带杀掉；
-  // 只在浮层自己的 settle/新动画前清理）
+  /* ---- 1. 动画登记 ---- */
+  // 转场动画——快速二次导航（captureOld）一律 cancel
   let anims: AnimationPlaybackControls[] = [];
-  let floatAnims: AnimationPlaybackControls[] = [];
   /** 延迟起播：autoplay: false 创建后时钟冻在首关键帧，
    *  在这里等下一个真正出帧的 rAF 才 play()。rAF 回调只在合成器出帧时运行——首次
    *  切进文章区时 after-swap 后主线程还忙几百 ms（dev 按需编译 + 岛屿水合），此刻
@@ -60,18 +52,9 @@ import { animateLazy, preloadMotion } from '../util/motion';
     deferPlay(a);
     return a;
   };
-  const trackFloat = (a: AnimationPlaybackControls) => {
-    floatAnims.push(a);
-    deferPlay(a);
-    return a;
-  };
   const stopAnims = () => {
     for (const a of anims) a.cancel();
     anims = [];
-  };
-  const stopFloatAnims = () => {
-    for (const a of floatAnims) a.cancel();
-    floatAnims = [];
   };
 
   /* ---- 2. 行状态（变体类 / 侧栏偏移 / 侧栏高亮实现在 posts/row-state.ts） ---- */
@@ -86,9 +69,6 @@ import { animateLazy, preloadMotion } from '../util/motion';
     // RO 回调可能在克隆还在时触发，把它当真实占位会量到克隆位置
     const phs = r ? Array.from(r.querySelectorAll<HTMLElement>('.posts-header-search')) : [];
     const ph = phs.find((el) => !el.closest(`.${EDGE_CLONE_CLASS}`)) ?? null;
-    // 退场/入场动画期间浮层钉在视口（内联 top/left 是视口坐标）：此刻写行相对值
-    // 会把浮层瞬移；unpin 后下一轮重测自然补齐
-    if (floatEl?.style.position === 'fixed') return;
     if (!r || !floatEl || !ph) return;
     placeFloat(r, ph, floatEl);
   }
@@ -99,21 +79,15 @@ import { animateLazy, preloadMotion } from '../util/motion';
     onLayoutChange: syncSearchPos,
   });
 
-  /* ---- 3. 克隆与目录入场（实现在 posts/strip.ts） ---- */
+  /* ---- 3. 条带克隆（实现在 posts/strip.ts） ---- */
   const strip = createStrip({
     row,
-    track,
-    tocSlideGate,
   });
 
   /* ---- 4. 搜索浮层控制（行级常驻单节点） ---- */
-  // 摆位几何（placeFloat）与出入场状态机都在 posts/search-float.ts；这里只接上本文件的
-  // 动画登记与环境，行为与拆分前一致
+  // 摆位几何（placeFloat）与显隐落位都在 posts/search-float.ts
   const floatCtl = createSearchFloat({
     row,
-    track: trackFloat,
-    stopAnims: stopFloatAnims,
-    isMobile,
   });
 
   /* ---- 5. 首屏早期导航与 fetch 失败兜底（实现在 posts/early-nav.ts） ---- */
@@ -126,9 +100,7 @@ import { animateLazy, preloadMotion } from '../util/motion';
     floatCtl,
     track,
     stopAnims,
-    isMobile,
     reduceMotion: REDUCE_MOTION,
-    tocSlideGate,
     cancelEarlyNav: () => earlyNav.cancel(),
     animate: animateLazy,
   });

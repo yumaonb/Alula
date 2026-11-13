@@ -29,17 +29,17 @@ pnpm verify
 
 两类检测各自的检查项：
 
-| 类       | 检查              | 查什么                                                                                             |
-| -------- | ----------------- | -------------------------------------------------------------------------------------------------- |
-| quality  | `check-leaks`     | `console.log` / `any` / `@ts-ignore` / `var` / `!important` / `DOMContentLoaded` / Svelte 4 老语法 |
-| quality  | `check-docs`      | 文档里提到的路径与命令真实存在                                                                     |
-| quality  | `check-contracts` | 必填 Prop 没人传、脚本导出没人引用、组件无人使用                                                   |
-| quality  | `gen-registry`    | 组件清单与代码一致、水合指令一致、`window` 标记与 `env.d.ts` 一致                                  |
-| behavior | `category`        | 分类树计数与排序、分类/标签 URL 编码、日期时区、分类链                                             |
-| behavior | `nav`             | 导航命中的边界（同前缀兄弟路径、末尾斜杠）                                                         |
-| behavior | `code-blocks`     | 代码块范围识别：结束标签只在字符串 / 模板串 / 注释 / 正则之外才被认                                |
-| behavior | `motion-reduce`   | 动画统一并入 reduceMotion：偏好开时 motion 收到 reduceMotion: true，关后同一单例现读回 false       |
-| behavior | `transition`      | 目录退场共享核心：文章→列表 与 文章↔文章 两条路径对旧目录克隆动作一致，cancel 不留克隆             |
+| 类       | 检查              | 查什么                                                                                                                                                                                                                         |
+| -------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| quality  | `check-leaks`     | `console.log` / `any` / `@ts-ignore` / `var` / `!important` / `DOMContentLoaded` / Svelte 4 老语法                                                                                                                             |
+| quality  | `check-docs`      | 文档里提到的路径与命令真实存在                                                                                                                                                                                                 |
+| quality  | `check-contracts` | 必填 Prop 没人传、脚本导出没人引用、组件无人使用                                                                                                                                                                               |
+| quality  | `gen-registry`    | 组件清单与代码一致、水合指令一致、`window` 标记与 `env.d.ts` 一致                                                                                                                                                              |
+| behavior | `category`        | 分类树计数与排序、分类/标签 URL 编码、日期时区、分类链                                                                                                                                                                         |
+| behavior | `nav`             | 导航命中的边界（同前缀兄弟路径、末尾斜杠）                                                                                                                                                                                     |
+| behavior | `code-blocks`     | 代码块范围识别：结束标签只在字符串 / 模板串 / 注释 / 正则之外才被认                                                                                                                                                            |
+| behavior | `motion-reduce`   | 动画统一并入 reduceMotion：偏好开时 motion 收到 reduceMotion: true，关后同一单例现读回 false                                                                                                                                   |
+| behavior | `transition`      | 左缘条带「模糊变过去」契约：条带→条带恰好 3 个动画（旧带渐隐 160ms / 新带渐显 260ms / blur(4px) 副本渐隐 260ms），纯 alpha、不写 filter 关键帧，克隆播完移除；普通页 0 动画 + settle 落位搜索框显隐；reduceMotion 不建模糊副本 |
 
 - **报错就改代码，不要改检查脚本去迁就代码。** 确实需要豁免时，在那行写 `// check-xxx: allow`（对应脚本名），并在交付说明里写清理由。
 - 单独跑：`pnpm test:quality`（四类质检）/ `pnpm test:behavior`（业务测试）/ `pnpm test`（两类都跑，不含格式与类型）。

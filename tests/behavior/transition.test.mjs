@@ -1,11 +1,11 @@
-// tests/behavior/transition.test.mjs — 文章目录退场共享核心（playTocExit）的行为测试
+// tests/behavior/transition.test.mjs — 左缘条带「模糊变过去」转场的行为测试
 // 用法：pnpm test:behavior
 //
-// A-14：文章→列表 与 文章↔文章 两条目录退场路径原先各写一份高度相似代码，现都调用
-// 同一个 playTocExit。这里钉住「两条路径对旧目录克隆做的动作完全一致」：克隆钉到当前
-// 视口、按同一组 keyframes / 缓动播放位移 + 渐隐、尾动画播完移除克隆；只有「文章↔文章」
-// 在退场完成后额外启动新目录落位等待（startTocEntryWait），「文章→列表」不启动；
-// 退场被 cancel（快速连切）时两者都不启动、克隆不残留。
+// 钉住条带交换（列表页头 ↔ 面包屑）的三动画契约：旧条带原地渐隐（160ms、EASE_EXIT）、
+// 新条带原地渐显（260ms、EASE_ENTRY）、静态 blur(4px) 副本同步渐隐（260ms、EASE_ENTRY），
+// 全部纯 alpha、不写 filter 关键帧；目标普通页直接移除旧克隆、0 动画；
+// reduceMotion 不建模糊副本。搜索框不参与转场：切页后 settle 直接落位显隐
+//（列表系界面显示、其他隐藏）。
 //
 // transition.ts 依赖浏览器 DOM，无法在 Node 直跑；这里用 registerHooks 内联一个极小的
 // ESM 解析钩子，给无扩展名相对 import 补 .ts，使本测试直接 import 真模块，不复制逻辑。
@@ -34,71 +34,50 @@ registerHooks({
 });
 
 const { createTransition } = await import('../../src/assets/js/posts/transition.ts');
-const { PHASE_MS, EASE_EXIT } = await import('../../src/assets/js/posts/transition-tokens.ts');
 
-// 目录克隆（strip.cloneToc 的返回值）：带 rect、可 remove、可写内联样式
-function makeEl(rect) {
+// 时长 / 缓动与 transition.ts 内联的常量一致；那边改这里同步改
+const EASE_EXIT = [0.4, 0, 1, 1];
+const EASE_ENTRY = [0, 0, 0.2, 1];
+
+// 模拟元素：可写内联样式、可移除
+function makeEl() {
   return {
-    style: { removeProperty() {} },
-    isConnected: true,
+    style: {},
     removed: false,
     remove() {
       this.removed = true;
     },
-    getBoundingClientRect: () => rect ?? { top: 10, left: 20 },
-    closest: () => null,
-    classList: { contains: () => false },
-    parentElement: null,
   };
 }
 
-// main#swup 伪元素：按选择器分发，还原 captureOld / playTransition 依赖的探测点
-function makeMain({ hasToc, isDetail, hasSearch }) {
-  const edge = {
-    style: {},
-    parentElement: null,
-    querySelector: (sel) => (sel === '.posts-header-search' ? (hasSearch ? {} : null) : null),
-  };
-  return {
-    querySelector(sel) {
-      if (sel === '.posts-article, .posts-page') return { style: { removeProperty() {} } };
-      if (sel === '.posts-header, .posts-breadcrumb') return edge;
-      if (sel === '.post-content') return isDetail ? {} : null;
-      if (sel === '.posts-page') return !isDetail ? {} : null;
-      return null;
-    },
-    querySelectorAll: (sel) => (sel === '.post-sidebar' && hasToc ? [makeEl()] : []),
-  };
+// 新条带：模拟 .posts-header-search 探测（决定 settle 的入参）
+function makeNewEdge(hasSearch) {
+  const el = makeEl();
+  el.querySelector = (sel) => (sel === '.posts-header-search' ? (hasSearch ? {} : null) : null);
+  return el;
 }
 
-// 走一遍真实 captureOld + playTransition，返回对 animate 的调用记录与落位等待计数
-function runExit({ newToc, newDetail, newSearch }) {
-  globalThis.getComputedStyle = () => ({ display: 'block' });
-  const tocClone = makeEl({ top: 10, left: 20 });
-  let startWait = 0;
+// 走一遍真实 captureOld + playTransition，返回 animate 调用记录与 settle 调用记录
+function run({ hasOldEdge, hasNewEdge, newSearch, reduceMotion }) {
+  const oldEdge = makeEl();
+  const edgeClone = makeEl();
+  const blurClone = makeEl();
+  const newEdge = hasNewEdge ? makeNewEdge(newSearch) : null;
+  const main = {
+    querySelector: (sel) =>
+      sel === '.posts-header, .posts-breadcrumb' ? (hasOldEdge ? oldEdge : null) : null,
+  };
   const strip = {
-    cloneEdge: () => null,
-    cloneToc: () => tocClone,
-    cloneBlur: () => null,
+    cloneEdge: () => edgeClone,
+    cloneBlur: () => blurClone,
     clearClones: () => {},
-    tocOffscreenDx: () => 120,
-    makeTocEntry: () => () => {},
-    startTocEntryWait: () => {
-      startWait += 1;
-    },
-    cancelTocEntryWait: () => {},
   };
+  const settles = [];
   const floatCtl = {
     state: 'hidden',
-    active: null,
-    settle: () => {},
-    finish: () => {},
-    allFinished: () => {},
-    exitMobile: () => null,
-    exitDesktop: () => null,
-    enterMobile: () => {},
-    enterDesktop: () => {},
-    redirect: () => null,
+    settle: (show) => {
+      settles.push(show);
+    },
   };
   const anims = [];
   const animate = (el, keyframes, options) => {
@@ -117,80 +96,98 @@ function runExit({ newToc, newDetail, newSearch }) {
     anims.push(ctrl);
     return ctrl;
   };
-  let currentMain = null;
-  const oldMain = makeMain({ hasToc: true, isDetail: true, hasSearch: false });
-  const newMain = makeMain({ hasToc: newToc, isDetail: newDetail, hasSearch: newSearch });
   const transition = createTransition({
-    row: () => ({ querySelector: (sel) => (sel === 'main#swup' ? currentMain : null) }),
+    row: () => ({
+      querySelector: (sel) => {
+        if (sel === 'main#swup') return main;
+        if (sel === 'main#swup .posts-header, main#swup .posts-breadcrumb') return newEdge;
+        return null;
+      },
+    }),
     strip,
     floatCtl,
     track: (a) => a,
     stopAnims: () => {},
-    isMobile: () => false,
-    reduceMotion: false,
-    tocSlideGate: () => true,
+    reduceMotion,
     cancelEarlyNav: () => {},
     animate,
   });
-  currentMain = oldMain;
   transition.captureOld();
-  currentMain = newMain;
   transition.playTransition();
-  return { anims, tocClone, startWait: () => startWait };
+  return { anims, edgeClone, blurClone, newEdge, settles };
 }
 
-// 断言两条路径对目录克隆的动作一致：恰好两个动画（位移 + 渐隐）、同相位参数、钉视口
-function assertSameTocExit({ anims, tocClone }) {
-  const list = anims.filter((a) => a.el === tocClone);
-  assert.equal(list.length, 2);
-  const [move, fade] = list;
-  const opts = { duration: PHASE_MS / 1000, ease: EASE_EXIT, autoplay: false };
-  assert.deepEqual(move.keyframes, { x: [0, '120px'] });
-  assert.deepEqual(move.options, opts);
-  assert.deepEqual(fade.keyframes, { opacity: [1, 0] });
-  assert.deepEqual(fade.options, opts);
-  assert.equal(tocClone.style.position, 'fixed');
-  assert.equal(tocClone.style.top, '10px');
-  assert.equal(tocClone.style.left, '20px');
-  return [move, fade];
-}
+const tick = () => new Promise((r) => setImmediate(r));
 
-test('文章→列表：目录克隆钉视口、位移+渐隐同相位、播完移除，且不启动落位等待', async () => {
-  const { anims, tocClone, startWait } = runExit({
-    newToc: false,
-    newDetail: false,
+test('条带→条带：恰好 3 个动画（旧带渐隐/新带渐显/模糊副本渐隐），纯 alpha，两个克隆播完移除', async () => {
+  const { anims, edgeClone, blurClone, newEdge, settles } = run({
+    hasOldEdge: true,
+    hasNewEdge: true,
     newSearch: true,
+    reduceMotion: false,
   });
-  const [move] = assertSameTocExit({ anims, tocClone });
-  move._resolve();
-  await new Promise((r) => setImmediate(r));
-  assert.equal(tocClone.removed, true);
-  assert.equal(startWait(), 0);
+  assert.equal(anims.length, 3);
+  const [out, blur, inFade] = anims;
+  assert.equal(out.el, edgeClone);
+  assert.deepEqual(out.keyframes, { opacity: [1, 0] });
+  assert.deepEqual(out.options, { duration: 0.16, ease: EASE_EXIT, autoplay: false });
+  assert.equal(edgeClone.style.filter, 'none');
+  assert.equal(blur.el, blurClone);
+  assert.deepEqual(blur.keyframes, { opacity: [1, 0] });
+  assert.deepEqual(blur.options, { duration: 0.26, ease: EASE_ENTRY, autoplay: false });
+  assert.equal(blurClone.style.filter, 'blur(4px)');
+  assert.equal(inFade.el, newEdge);
+  assert.deepEqual(inFade.keyframes, { opacity: [0, 1] });
+  assert.deepEqual(inFade.options, { duration: 0.26, ease: EASE_ENTRY, autoplay: false });
+  // 延迟起播的空窗帧先同步钉不可见
+  assert.equal(newEdge.style.opacity, '0');
+  out._resolve();
+  blur._resolve();
+  await tick();
+  assert.equal(edgeClone.removed, true);
+  assert.equal(blurClone.removed, true);
+  assert.equal(newEdge.removed, false);
+  assert.deepEqual(settles, [true]);
 });
 
-test('文章↔文章：退场动画与上一条路径完全一致，退场完成后才启动落位等待', async () => {
-  const { anims, tocClone, startWait } = runExit({
-    newToc: true,
-    newDetail: true,
+test('目标普通页（无新条带）：旧克隆直接移除、0 动画，settle 隐藏搜索框', () => {
+  const { anims, edgeClone, settles } = run({
+    hasOldEdge: true,
+    hasNewEdge: false,
     newSearch: false,
+    reduceMotion: false,
   });
-  const [move] = assertSameTocExit({ anims, tocClone });
-  assert.equal(startWait(), 0, '退场未完成前不应启动落位等待');
-  move._resolve();
-  await new Promise((r) => setImmediate(r));
-  assert.equal(tocClone.removed, true);
-  assert.equal(startWait(), 1);
+  assert.equal(anims.length, 0);
+  assert.equal(edgeClone.removed, true);
+  assert.deepEqual(settles, [false]);
 });
 
-test('退场被 cancel（快速连切）：落位等待不启动、克隆不残留', async () => {
-  const { anims, tocClone, startWait } = runExit({
-    newToc: true,
-    newDetail: true,
-    newSearch: false,
+test('无旧条带（普通页进文章区）：0 动画、新条带直接就位，settle 按新界面落位', () => {
+  const { anims, edgeClone, newEdge, settles } = run({
+    hasOldEdge: false,
+    hasNewEdge: true,
+    newSearch: true,
+    reduceMotion: false,
   });
-  const [move] = assertSameTocExit({ anims, tocClone });
-  move.cancel();
-  await new Promise((r) => setImmediate(r));
-  assert.equal(startWait(), 0);
-  assert.equal(tocClone.removed, false);
+  assert.equal(anims.length, 0);
+  assert.equal(edgeClone.removed, false);
+  assert.equal(newEdge.removed, false);
+  assert.deepEqual(settles, [true]);
+});
+
+test('reduceMotion：不建模糊副本，只剩旧带渐隐 + 新带渐显两个 alpha 动画', () => {
+  const { anims, blurClone, settles } = run({
+    hasOldEdge: true,
+    hasNewEdge: true,
+    newSearch: false,
+    reduceMotion: true,
+  });
+  assert.equal(anims.length, 2);
+  assert.equal(blurClone.style.filter, undefined);
+  assert.equal(blurClone.removed, false);
+  assert.deepEqual(
+    anims.map((a) => a.keyframes),
+    [{ opacity: [1, 0] }, { opacity: [0, 1] }],
+  );
+  assert.deepEqual(settles, [false]);
 });

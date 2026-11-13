@@ -123,8 +123,8 @@ export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
 
   /** 点击只绑 swup 钩子（fetch 失败兜底）。搜索框显隐不在点击时动——
    *  点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失；
-   *  退场/入场/settle 全部由 playTransition 在 after-swap 统一驱动
-   *  （区内「开文章」在那里启动退场、跨区 settle 直接消失/出现） */
+   *  显隐全部由 playTransition 在 after-swap 用 settle 统一落位
+   *  （切到列表系界面显示、其他界面隐藏，即时生效） */
   function onDocClick(): void {
     bindSwupHooks();
   }
