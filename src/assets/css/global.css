@@ -291,7 +291,7 @@ ol {
   position: fixed;
   right: 10px;
   /* 锚点：调这一个值即可整体升降 */
-  bottom: 100px;
+  bottom: 90px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -369,7 +369,7 @@ ol {
 
   .side-widgets {
     right: 8px;
-    bottom: 400px;
+    bottom: 90px;
   }
 
   .back-to-widget {
