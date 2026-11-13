@@ -18,7 +18,12 @@ const license = site.contentLicense;
 <div class="repost-card">
   <div class="repost-content">
     <h3 class="repost-title">{title}</h3>
-    <a href={url} target="_blank" rel="noopener noreferrer" class="repost-url link-plain">
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="repost-url link-plain hover-brighten"
+    >
       {url}
     </a>
     <div class="repost-meta">
@@ -37,6 +42,7 @@ const license = site.contentLicense;
           target="_blank"
           rel="noopener noreferrer"
           class="repost-meta-value repost-license link-plain"
+          class="repost-meta-value repost-license link-plain hover-brighten"
         >
           {license.name}
         </a>
@@ -81,11 +87,6 @@ const license = site.contentLicense;
     text-decoration: none;
     word-break: break-all;
     margin-bottom: 12px;
-    transition: color var(--t-hover);
-  }
-
-  .repost-url:hover {
-    color: var(--white);
   }
   .repost-meta {
     display: flex;
@@ -108,17 +109,12 @@ const license = site.contentLicense;
     line-height: 1.2;
     color: var(--ink);
     text-decoration: none;
-    /* 许可协议链接（.repost-license 也挂此列）悬停提亮走 --t-hover */
-    transition: color var(--t-hover);
   }
   .repost-license {
     color: var(--ink);
     text-decoration: none;
   }
 
-  .repost-license:hover {
-    color: var(--white);
-  }
   .repost-cc-icon {
     position: absolute;
     right: 24px;

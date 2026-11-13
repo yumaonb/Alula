@@ -83,11 +83,6 @@
   cursor: pointer;
   position: relative;
   text-decoration: none;
-  transition: color var(--t-hover);
-}
-
-.cat-item:hover {
-  color: var(--white);
 }
 
 /* 活跃分类 */

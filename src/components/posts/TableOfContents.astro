@@ -32,7 +32,7 @@ if (hasH1 && hasH2) {
 
 {tocItems.length > 0 && (
   <nav class="toc-nav" aria-label="文章目录">
-    <div class="toc-header">
+    <div class="toc-header panel-title">
       <Icon is:inline name="la:list" class="toc-icon" />
       <span>文章目录</span>
     </div>
@@ -83,15 +83,10 @@ if (hasH1 && hasH2) {
     min-height: 0;
   }
 
+  /* 面板标题排布走全站 .panel-title，这里只留本面板的字号与字距 */
   .toc-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
     font-size: 0.8rem;
-    font-weight: 600;
     letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink);
   }
 
   .toc-icon {

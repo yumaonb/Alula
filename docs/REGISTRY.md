@@ -47,7 +47,7 @@
 | `components/widgets/ProjectsGrid.svelte` | client:load |
 | `components/widgets/Timeline.svelte`     | client:load |
 
-## 全局 CSS 类（172）
+## 全局 CSS 类（175）
 
 | 类名                         | 定义于                                                                           |
 | ---------------------------- | -------------------------------------------------------------------------------- |
@@ -171,6 +171,7 @@
 | `.global-sidebar`            | `src/assets/css/global.css`                                                      |
 | `.hero`                      | `src/assets/css/global.css`                                                      |
 | `.hint`                      | `src/assets/css/admin/elements.css`                                              |
+| `.hover-brighten`            | `src/assets/css/utilities.css`                                                   |
 | `.hoverable`                 | `src/assets/css/utilities.css`                                                   |
 | `.img-loaded`                | `src/assets/css/shared/image-fallback.css`                                       |
 | `.img-ph`                    | `src/assets/css/shared/image-fallback.css`                                       |
@@ -199,6 +200,7 @@
 | `.page-title`                | `src/assets/css/utilities.css`                                                   |
 | `.page-title-icon`           | `src/assets/css/utilities.css`                                                   |
 | `.page-top-standard`         | `src/assets/css/utilities.css`                                                   |
+| `.panel-title`               | `src/assets/css/utilities.css`                                                   |
 | `.post-card`                 | `src/assets/css/posts/posts-listing.css`                                         |
 | `.post-card-cover`           | `src/assets/css/shared/image-fallback.css`                                       |
 | `.post-card-slot`            | `src/assets/css/posts/posts-listing.css`                                         |
@@ -219,6 +221,7 @@
 | `.skeleton`                  | `src/assets/css/shared/skeleton.css`                                             |
 | `.status`                    | `src/assets/css/admin/elements.css`                                              |
 | `.swup-progress-bar`         | `src/assets/css/global.css`                                                      |
+| `.thin-scroll`               | `src/assets/css/utilities.css`                                                   |
 | `.title-count-sep`           | `src/assets/css/posts/posts-listing.css`                                         |
 | `.toolbar`                   | `src/assets/css/admin/elements.css`                                              |
 | `.unavailable`               | `src/assets/css/global.css`                                                      |

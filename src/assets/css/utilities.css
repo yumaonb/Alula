@@ -65,6 +65,22 @@
   border-color: var(--hover-line);
 }
 
+/* ---- 只提亮文字的悬停（不加背景底 / 描边） ----
+ * 面包屑链接、卡片标题 / 分类、转载链接、分类项这类「悬停只让文字变亮、不要底色」的
+ * 元素挂 .hover-brighten：静止色保留在各自组件里，本类只负责提亮到 --white 与过渡时长。
+ * 类名重复写两遍提到 (0,3,0)：组件的静止 color 是 (0,2,0) 且排在全局样式之后，
+ * 单类 :hover (0,2,0) 压不过（与 .hoverable 同一机制，见上）。
+ * 挂 .hover-brighten 的元素不要再自己写 transition / :hover 的 color（会与本类打架）；
+ * 静止色本身在 (0,3,0) 的元素（如目录子项）不挂这里，仍走各自的组件悬停。 */
+.hover-brighten {
+  transition: color var(--t-hover);
+}
+
+.hover-brighten.hover-brighten:hover,
+.hover-brighten.hover-brighten:focus-visible {
+  color: var(--white);
+}
+
 /* ---- 标签 chip ----
  * 小标签：淡底 + 内描边，选中态换成 --active-bg 填底。
  * 全站唯一定义：标签云（PostTagCloud）与筛选抽屉里的标签都用这一份，
@@ -148,6 +164,28 @@
   }
 }
 
+/* ---- 细滚动条（常显 2px，白 0.1 滑块） ----
+ * 文章区里常驻可见的滚动容器（右侧目录栏、筛选侧栏）统一走这一份：
+ * scrollbar-width / scrollbar-color 管 Firefox，::-webkit-scrollbar 管 Chromium 与 Safari。
+ * 只服务「常显」的滚动条；悬停才显现的目录滚动条（.toc-scroll）自成一套，不挂这里。 */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  width: 2px;
+}
+
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
 /* ---- 页面标题（项目 / 友链 / 赞助 / 文章列表共用） ----
  * 各界面统一的入口标题：左图标 + 文字，字号 / 颜色全站一份。
  * - .page-title：标题本体（flex 行，白字 + 阴影）
@@ -196,4 +234,17 @@
   .page-top-standard {
     margin-top: -11px;
   }
+}
+
+/* ---- 面板标题（侧栏分类 / 标签 / 文章目录的小标题共用） ----
+ * 左图标 + 大写小字的区块标题：排布、字重、字距、颜色全站一份；
+ * 各面板保留自己的字号 / 下间距 / 左缩进（覆写本类即可）。 */
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink);
 }

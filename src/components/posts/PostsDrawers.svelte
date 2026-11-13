@@ -18,18 +18,6 @@
   let filterRoot: Element | null = null;
   let filterSidebar: HTMLElement | null = null;
 
-  /** 面板在抽屉里的版式差异由各面板组件自己负责（变体类），
-   *  抽屉不必穿透它们的内部结构；进出要成对，撤销掉才不会把抽屉版式带回侧栏 */
-  function markPanelsInDrawer(inDrawer: boolean): void {
-    filterRoot?.querySelectorAll<HTMLElement>('.cat-panel, .tag-panel').forEach((panel) => {
-      const isCategory = panel.classList.contains('cat-panel');
-      panel.classList.toggle(
-        isCategory ? 'cat-panel--in-drawer' : 'tag-panel--in-drawer',
-        inDrawer,
-      );
-    });
-  }
-
   const tocDrawer = createDrawer({
     modalEl: () => tocModalEl,
     isOpen: () => tocOpen,
@@ -72,12 +60,9 @@
         return;
       }
       filterModalEl?.querySelector('.pfilter-modal-body')?.appendChild(filterRoot);
-      markPanelsInDrawer(true);
     },
     onClosed: () => {
-      // 关闭后放回侧栏原位，变体类要一起撤销：
-      // 留在身上会让面板回到侧栏后仍是抽屉里的版式
-      markPanelsInDrawer(false);
+      // 关闭后放回侧栏原位（抽屉版式由容器选择器承载，节点搬走即自动失效）
       if (filterSidebar && filterRoot) filterSidebar.appendChild(filterRoot);
     },
     // 点分类 / 标签跳走前先关抽屉
@@ -252,12 +237,20 @@
     gap: 18px;
   }
 
-  /* 筛选子树整体在抽屉里的版式：这是抽屉自己的容器，不算穿透面板内部结构 */
-  :global(.pfilter-modal .pfilter-modal-body .glass),
   :global(.pfilter-modal .pfilter-modal-body .sidebar-filter) {
     position: static;
     max-height: none;
     top: auto;
     overflow: visible;
+  }
+
+  /* 筛选子树整体在抽屉里的版式：这是抽屉自己的容器，不算穿透面板内部结构；
+     .glass 的 padding 替代原各面板 --in-drawer 变体的统一内边距 */
+  :global(.pfilter-modal .pfilter-modal-body .glass) {
+    position: static;
+    max-height: none;
+    top: auto;
+    overflow: visible;
+    padding: 14px;
   }
 </style>

@@ -15,7 +15,7 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
 ---
 
 <section class="cat-panel glass">
-  <h2 class="cat-panel-title">
+  <h2 class="cat-panel-title panel-title">
     <Icon is:inline name="la:layer-group" class="cat-panel-icon" />
     分类
   </h2>
@@ -41,24 +41,9 @@ const { tree, categoryUrl, activeCategory = '' } = Astro.props;
     border-radius: var(--radius);
   }
 
-  /* 搬进筛选抽屉时：面板不再自己撑高、不再 sticky；
-     变体类由 PostsDrawers.svelte 增删，改类名两处同改 */
-  .cat-panel.cat-panel--in-drawer {
-    padding: 14px;
-    position: static;
-    max-height: none;
-    overflow: visible;
-  }
-
+  /* 面板标题排布走全站 .panel-title，这里只留本面板的字号与间距 */
   .cat-panel-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
     font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--ink);
     margin-bottom: 8px;
     padding-left: 4px;
   }

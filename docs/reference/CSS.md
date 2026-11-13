@@ -95,7 +95,7 @@
 2. **跟随文字的小图标（E 类）**：不写自己的 `color`，继承周围文字色再叠 `opacity` 0.55–0.8（面包屑 0.65、目录 0.55、meta 行 0.6 等），文字换令牌后自动跟着变
 3. **机制文件（自成体系的观感值）**：骨架屏（0.06 / 0.14）、swup 进度条、首载 loading 屏（站点名 0.92 / 轨道 0.1 / 高光 0.85 + 兜底底色 `#000`）、时钟（独立仪表配色 0.15 / 0.55 / 0.7 + 自身黑投影）、阅读进度环（轨道 0.08 / 进度 0.9）、头像光环（0.9 白环 + 0.25 白辉光，4 处各自持）
 4. **markdown 正文局部排版值**（按规则留在 `posts/markdown.css`）：行内代码 0.08 / 0.1、引用 0.2 / 0.03、表格 0.1 / 0.06 / 0.03（行悬停）、hr 0.1、脚注 0.1、复选框 accent 0.6。**代码块的底色与正文色已令牌化**（`--astro-code-background` / `--astro-code-foreground`），不在此列
-5. **单点局部值**：内容内小滚动条（目录 0.1、搜索下拉 0.15）、搜索 mark 高亮 0.18、赞助页分隔线 0.18、图片占位底 0.06（`shared/image-fallback.css` 的详情页封面 / 卡片封面 / 正文图占位 / 占位块四处）——单独出现、无共性，留原地
+5. **单点局部值**：内容内小滚动条（`.thin-scroll` 0.1、目录 `.toc-scroll` 0.1、搜索下拉 0.15）、搜索 mark 高亮 0.18、赞助页分隔线 0.18、图片占位底 0.06（`shared/image-fallback.css` 的详情页封面 / 卡片封面 / 正文图占位 / 占位块四处）——单独出现、无共性，留原地
 6. **后台的同值硬编码**：`admin/elements.css` 的 `.input` 圆角 6px、`AdminChanges.svelte` 的 6px / 9px 圆角——后台未引入 `--radius-sm` 令牌，先留原地
 7. **纯机制值**：`disabled` 透明度、`select option` 底色、徽章状态填底（0.2）这类语义浓淡，不是设计色阶
 
@@ -123,7 +123,7 @@
 
 **挂 `.hoverable` 的元素不要再声明自己的 `transition`**：组件样式同样编译成 (0,2,0) 且排在全局样式之后，本地的 `transition` 会悄悄盖掉全站那份悬停过渡（background / box-shadow / border-color / color，时长 `var(--t-hover)`），悬停时颜色/描边直接跳变。确需过渡 transform 等额外属性，要么把共享的四个属性一并写全（时长同样走 `var(--t-hover)`），要么把过渡写到子元素上（如 PostCard 封面图缩放，位移时长各自定）。元素若还挂在全局低权重（0,1,0）基础规则里，写全四个属性也不够——`.hoverable.hoverable` 权重更高，仍整条盖掉那份 transition，基础规则要提到 (0,2,0) 靠源码顺序压过；踩坑实录见 [TROUBLESHOOTING](./TROUBLESHOOTING.md) 第 66 条。
 
-例外（这些不是「按钮式反馈」，按各自语义取值、不挂 `.hoverable`）：正文表格行高亮、封面图缩放/遮罩、自定义滚动条滑块、只变文字色的正文链接（`.post-card-title-link` / `.post-card-category` / `.cat-item` / `.post-meta-link` / `.repost-url` / `.repost-license`，悬停色同样走 `--white`）、面包屑链接 `.breadcrumb-link`（只提亮文字、不加背景底——36px 细左缘条里挂 `.hoverable` 的悬停底色会多出一块底，观感突兀）、常规图标的悬停/选中/激活色（走 `--white`）。**这些例外的悬停提亮时长同样走 `var(--t-hover)`**——不挂 `.hoverable` 只意味着反馈形态不同（不加白底描边），「变过去」的速度全站统一；唯一的位移是封面图缩放（transform 各自定时长）。
+例外（这些不是「按钮式反馈」，按各自语义取值、不挂 `.hoverable`）：正文表格行高亮、封面图缩放/遮罩、自定义滚动条滑块、只提亮文字不加背景底的链接（面包屑 `.breadcrumb-link`——36px 细左缘条里挂 `.hoverable` 的悬停底色会多出一块底，观感突兀；卡片标题/分类 `.post-card-title-link` / `.post-card-category`；分类项 `.cat-item`；转载 `.repost-url` / `.repost-license`）、常规图标的悬停/选中/激活色（走 `--white`）。只提亮文字这类统一挂 **`.hover-brighten`**（`utilities.css` 全站唯一定义，双类提到 (0,3,0) 的机制与 `.hoverable` 相同）：本类只负责悬停/聚焦提亮到 `--white` 与 `var(--t-hover)` 过渡，静止色仍写在各自组件；挂它的元素不要再自己写 `transition` / `:hover` 的 color。静止色本身是 (0,3,0) 的元素（目录子项 `.toc-sub .toc-link`、`.post-meta-link`）不挂——单一全站悬停色压不过组件的选中态色，悬停仍留在组件内。唯一的位移是封面图缩放（transform 各自定时长）。
 
 ---
 

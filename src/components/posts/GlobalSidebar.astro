@@ -49,7 +49,7 @@ const activeTag = tags.some((t) => t.name === tagCandidate) ? tagCandidate : '';
 <aside class="global-sidebar posts-sidebar">
   <AuthorCard />
 
-  <div class="sidebar-filter">
+  <div class="sidebar-filter thin-scroll">
     {tree.length > 0 && (
       <PostCategoryTree tree={tree} categoryUrl={catUrl} activeCategory={activeCategory} />
     )}
@@ -79,6 +79,5 @@ const activeTag = tags.some((t) => t.name === tagCandidate) ? tagCandidate : '';
     gap: var(--card-gap);
     max-height: calc(100vh - 104px);
     overflow-y: auto;
-    scrollbar-width: thin;
   }
 </style>

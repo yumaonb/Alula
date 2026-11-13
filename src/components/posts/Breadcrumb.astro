@@ -22,7 +22,7 @@ const { items } = Astro.props;
           </span>
         )}
         {item.href ? (
-          <a href={item.href} class="breadcrumb-link link-plain">
+          <a href={item.href} class="breadcrumb-link link-plain hover-brighten">
             {item.icon && <Icon is:inline name={item.icon} class="breadcrumb-icon" />}
             {item.label}
           </a>
@@ -91,6 +91,8 @@ const { items } = Astro.props;
     top: -1px;
   }
 
+  /* 悬停只「亮起来」（文字变亮），不加背景底：面包屑条是细左缘元素，
+     挂 .hoverable 会有底色，改用 .hover-brighten */
   .breadcrumb-link {
     display: inline-flex;
     align-items: center;
@@ -98,13 +100,6 @@ const { items } = Astro.props;
     color: var(--ink);
     text-decoration: none;
     padding: 2px 6px;
-    transition: color var(--t-hover);
-  }
-
-  /* 悬停只「亮起来」（文字变亮），不加背景底：面包屑条是桌面 36px / 手机 28px 的细左缘元素，
-     挂 .hoverable 的悬停底色会在条里多出一块底，观感突兀 */
-  .breadcrumb-link:hover {
-    color: var(--white);
   }
 
   .breadcrumb-current {

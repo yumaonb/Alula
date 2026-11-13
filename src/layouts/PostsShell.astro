@@ -140,7 +140,7 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
         </div>
       </div>
       {hasToc && (
-        <aside class="post-sidebar">
+        <aside class="post-sidebar thin-scroll">
           <TableOfContents headings={headings} />
         </aside>
       )}
@@ -238,25 +238,6 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
     position: sticky;
     top: 82px;
     overflow-y: auto;
-    /* 与目录内层的 .toc-scroll 同一套细滚动条：scrollbar-width /
-     * scrollbar-color 管 Firefox，::-webkit-scrollbar 管 Chromium 与 Safari。
-     * 只写 scrollbar-width 的话 Firefox 仍是系统默认色（偏灰蓝），
-     * 与目录竖线的白调对不上。 */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-  }
-
-  .post-sidebar::-webkit-scrollbar {
-    width: 2px;
-  }
-
-  .post-sidebar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .post-sidebar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
   }
 
   @media (max-width: 850px) {
