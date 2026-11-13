@@ -41,6 +41,8 @@ function inspectSpan(rawSpan) {
   if (DOT_SLASH_RE.test(span)) return { problem: '写仓库相对路径，不要带 ./ 前缀' };
   if (!PATH_PREFIX_RE.test(span)) return null;
   const base = (span.match(/^[\p{L}\p{N}_\-./[\]\\]*/u) ?? [''])[0];
+  // 前缀用正斜杠、路径中段混进反斜杠（src/assets\css）也要拦
+  if (base.includes('\\')) return { problem: '路径要用正斜杠 /，不要用反斜杠' };
   return base ? { base } : { problem: '路径缺少仓库内名称' };
 }
 

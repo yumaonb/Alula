@@ -12,7 +12,7 @@
 | `global.css`    | 重置 + 页面基础结构（含全站背景容器 `.bg`），引入 `variables` / `utilities`                                                                                                                                                                                                                                              |
 | `backgrounds/`  | 全站背景方案预设（`css/` 纯 CSS 绘制、`images/` 图片），由 `src/data/background.ts` 选择，见下文                                                                                                                                                                                                                         |
 | `utilities.css` | 可复用的**元件级**类（玻璃拟态、悬停、页面标题等），**前台后台共用的元件放这里**；页面内容排版（描述/座右铭）不在这，写各页或页面组共享文件；页面结构（`.page`/`.page-main`）在 `global.css`                                                                                                                             |
-| `shared/`       | **全站可复用的组件级样式**（比较大的、能划成"组件"的文件）：`skeleton.css`（骨架屏加载动画）+ `lightbox.css`（PhotoSwipe 灯箱主题微调，随 `lightbox-core.ts` 懒加载）+ `drawer.css`（右侧抽屉骨架，`TocModal` / `PostsFilterModal` 两个抽屉共用）。卡片/按钮这类小元件不在这，在根目录的 `utilities.css` 聚合文件里      |
+| `shared/`       | **全站可复用的组件级样式**（比较大的、能划成"组件"的文件）：`skeleton.css`（骨架屏加载动画）+ `lightbox.css`（PhotoSwipe 灯箱主题微调，随 `lightbox-core.ts` 懒加载）+ `drawer.css`（右侧抽屉骨架，`PostsDrawers` 里两个抽屉共用）。卡片/按钮这类小元件不在这，在根目录的 `utilities.css` 聚合文件里                     |
 | `admin/`        | **后台全部样式**：`variables.css`（后台令牌 `--nav-*` / `--admin-shadow*`，与根目录 `variables.css` 同名同职责、只服务后台）+ `admin.css`（布局）+ `elements.css`（`.card` / `.btn` / `.input` / 行列表 / 文件列表 / 徽标）。整个目录**只由 `AdminLayout` 引入**，不进站点其他页面；不想要后台时删掉目录即可，前台零依赖 |
 | `posts/`        | **文章相关样式**：`posts-listing.css`（列表/分类/标签页共享布局，由 `PostsShell` 引入）+ `markdown.css`（正文 Markdown 排版，about 页也经 `Markdown.astro` 用）。文章详情页的行内样式（正文卡、右侧目录、面包屑条）在 `PostsShell.astro` 的 `<style>` 里                                                                 |
 
@@ -180,7 +180,7 @@
 | `768px` / `769px`                            | 全站（`nav/breakpoint.ts` 与各 CSS 同值）                                                | 手机 ↔ 桌面这条总分界                                                                                                                                                                                             |
 | `850px`                                      | `nav/swup-widgets.ts` · `posts/toc.ts` · `layouts/PostsShell.astro`                      | 文章详情页右侧目录栏还显不显示（≤850 隐藏并移入抽屉）                                                                                                                                                             |
 | `1150px` / `1151px`                          | `nav/swup-widgets.ts` · `posts/row-state.ts` · `layouts/PostsShell.astro` · `global.css` | 文章详情页正文 + 常驻侧栏两列还容不容得下（侧栏 ≥1151 显示）                                                                                                                                                      |
-| `max-aspect-ratio: 3 / 4`                    | `src/assets/backgrounds/css/*.css` 六个预设各自内部                                      | 窄高竖屏下重排色斑，避免渐变被拉成竖条                                                                                                                                                                            |
+| `max-aspect-ratio: 3 / 4`                    | `src/assets/backgrounds/css/*.css` 五个预设各自内部                                      | 窄高竖屏下重排色斑，避免渐变被拉成竖条                                                                                                                                                                            |
 | 页面专属值（如首页 `827px`、关于页 `848px`） | 只在那个页面自己的样式里                                                                 | 该版面压到多少会挤（首页两栏最小总宽 716 + 两侧 112 = 828；关于页两列 2×360 + 16 gap + 2×56 留白 = 848。低于它就转单栏，此时「自述卡跟左列等高」的 `contain: size` 必须一起撤掉，否则独占一行会把 auto 高压成 0） |
 
 改一处断点时，只同步「同一个版面规则」里的其它处（写死的地方都有注释指向）；**不要**顺手把别的页面拉齐到同值——那不是漏改。
@@ -194,7 +194,7 @@
 ```ts
 export const background = {
   type: 'css', // 'css' 用 css/ 里的样式绘制，'image' 用 images/ 里的图片
-  path: 'chroma-drift.css', // 只填文件名，写错会在构建期直接报错
+  path: 'ocean.css', // 只填文件名，写错会在构建期直接报错
   scrim: 0, // 图片压暗强度 0~1，0 为不压暗（css 方案忽略）
 };
 ```
@@ -207,14 +207,13 @@ export const background = {
 
 ### 预设
 
-| 文件                   | 说明                                                                                                                                                                                                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `css/blueprint.css`    | 蓝图网格，保留备用。`#041b41` 深蓝底 + 100px 主网格（2px 线）与 20px 细网格（1px 线）双层正交线网，叠中上方冷光、左下与右下色斑、四角压暗；径向 mask 让网格向四周淡出。含高频细节，毛玻璃磨砂感明显                                                                                                                                               |
-| `css/ocean.css`        | 深蓝夜海：深海蓝（左下沉底，主）/蓝紫（右上提亮）/靛蓝（中部）/淡蓝（顶部高光）4 团低饱和色斑；底色 `#0a1424`。纯低频渐变，无图案层                                                                                                                                                                                                               |
-| `css/aurora.css`       | 分层极光渐变，保留备用。低频渐变，毛玻璃模糊感不如 ocean 明显                                                                                                                                                                                                                                                                                     |
-| `css/wave-dots.css`    | 遮罩波浪点阵，保留备用。10px 周期圆点作高频层，两层 `mask-image`（斜向条纹 + 中心椭圆）把点阵裁成两条波浪带；底色 `#08111e`。含高频细节，磨砂感明显                                                                                                                                                                                               |
-| `css/honeycomb.css`    | 保留备用。蜂窝六边形线网：一格尖顶正六边形（边长 28px，重复单元 `√3·s × 3s`）画成内联 SVG data URI 平铺，1px 浅蓝线（`#A8CCF5`，`stroke-opacity .15`）压在 `#041b41` 深蓝底上，叠顶部冷光、中上方冷光、左下与右下色斑、四角压暗（共五层）。**不做遮罩，蜂窝铺满四角**；**完全静止，没有任何动画**，手机与桌面同一格子尺寸。含高频细节，磨砂感明显 |
-| `css/chroma-drift.css` | 彩色流光，保留备用。两组大半径径向色斑（`blur(56px)` / `blur(72px)`）叠加混合，各带 `hue-rotate` 动画（28s / 38s，方向相反）持续流转；底色 `#05070c`。开销最高的预设（每帧重算 `blur` + 色相），代价见下                                                                                                                                          |
+| 文件                | 说明                                                                                                                                                                                                                                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `css/blueprint.css` | 蓝图网格，保留备用。`#041b41` 深蓝底 + 100px 主网格（2px 线）与 20px 细网格（1px 线）双层正交线网，叠中上方冷光、左下与右下色斑、四角压暗；径向 mask 让网格向四周淡出。含高频细节，毛玻璃磨砂感明显                                                                                                                                               |
+| `css/ocean.css`     | 深蓝夜海：深海蓝（左下沉底，主）/蓝紫（右上提亮）/靛蓝（中部）/淡蓝（顶部高光）4 团低饱和色斑；底色 `#0a1424`。纯低频渐变，无图案层                                                                                                                                                                                                               |
+| `css/aurora.css`    | 分层极光渐变，保留备用。低频渐变，毛玻璃模糊感不如 ocean 明显                                                                                                                                                                                                                                                                                     |
+| `css/wave-dots.css` | 遮罩波浪点阵，保留备用。10px 周期圆点作高频层，两层 `mask-image`（斜向条纹 + 中心椭圆）把点阵裁成两条波浪带；底色 `#08111e`。含高频细节，磨砂感明显                                                                                                                                                                                               |
+| `css/honeycomb.css` | 保留备用。蜂窝六边形线网：一格尖顶正六边形（边长 28px，重复单元 `√3·s × 3s`）画成内联 SVG data URI 平铺，1px 浅蓝线（`#A8CCF5`，`stroke-opacity .15`）压在 `#041b41` 深蓝底上，叠顶部冷光、中上方冷光、左下与右下色斑、四角压暗（共五层）。**不做遮罩，蜂窝铺满四角**；**完全静止，没有任何动画**，手机与桌面同一格子尺寸。含高频细节，磨砂感明显 |
 
 预设只写 `:root` 令牌与 `.bg::before`（可选再加 `.bg::after`）伪元素，容器样式一律不动。选择器写 `.bg` 而不是 `.bg--image`，克隆层（`.bg--clone`）才会跟着同一个预设一起画——时间轴两端渐隐靠这一点与背景无缝对上。
 
@@ -244,11 +243,11 @@ export const background = {
 
 **改多层的预设时，层数与层序要能独立看懂**：`.bg::before` 的 `background` 简写逐层带注释，增删一层只影响这一条规则（各层都是整屏图幅时（如 `honeycomb.css`）可省略逐层 `background-size` / `background-position` 列表）；竖屏 / 手机端换排布时改的是简写里对应的渐变层，覆盖时**底色必须写回**（它是简写完整值的一部分，漏了底色会被清掉）。
 
-**`chroma-drift.css` 开销最高**：它带 `hue-rotate` 动画，背景色相持续变化，玻璃卡的 `backdrop-filter` 每帧都要重新采样重糊，滚动时的合成开销高于其他预设。它的取舍是**用开销换观感**。不想要动效就删掉两条 `animation`（静态彩色画面保留）；`prefers-reduced-motion: reduce` 下动画自动停止。
+**会持续改变背景颜色的动画最费**：`hue-rotate` 这类让色相一直在变的动画，玻璃卡的 `backdrop-filter` 每帧都要重新采样重糊，滚动时的合成开销高于静态预设——这是**用开销换观感**，`prefers-reduced-motion: reduce` 下这类动画同样要停掉。
 
-**配色经验**：色斑不要等强度堆叠，分主次才不发闷。单色系预设要**把色相统一在一个区间**（`ocean.css` 是 214°~228° 的蓝—蓝紫），不要掺入区间外的偏绿色相（如 201° 青绿），会与整套蓝色打架。注意这条**只适用于单色系预设**：`chroma-drift.css` 是刻意的多彩方案（色相横跨全环），不做色彩收敛，否则「彩色流光」就不成立。选预设时先确定走哪条路线，别把两套标准混用。
+**配色经验**：色斑不要等强度堆叠，分主次才不发闷。单色系预设要**把色相统一在一个区间**（`ocean.css` 是 214°~228° 的蓝—蓝紫），不要掺入区间外的偏绿色相（如 201° 青绿），会与整套蓝色打架。注意这条**只适用于单色系预设**：刻意走多彩路线的预设（色相横跨全环）不做色彩收敛。选预设时先确定走哪条路线，别把两套标准混用。
 
-**排版经验**：**不要用斜向亚像素条纹**（`repeating-linear-gradient` 配 1px），它在屏幕上会和大面积线网干涉出摩尔纹，是「看着怪」的常见来源。多层图案时周期取整数倍，避免互相拍频。**要「没有形状」的彩色背景就别加图案层**：点阵、条纹、网格都会读出可辨认的形状，只用大半径径向渐变 + `blur()` 柔化边界即可（`chroma-drift.css` 是范例）。
+**排版经验**：**不要用斜向亚像素条纹**（`repeating-linear-gradient` 配 1px），它在屏幕上会和大面积线网干涉出摩尔纹，是「看着怪」的常见来源。多层图案时周期取整数倍，避免互相拍频。**要「没有形状」的彩色背景就别加图案层**：点阵、条纹、网格都会读出可辨认的形状，只用大半径径向渐变 + `blur()` 柔化边界即可（`ocean.css` 是范例）。
 
 **加新预设**：把 `.css` 丢进 `css/`（或把图片丢进 `images/`），再把 `src/data/background.ts` 的 `path` 改成文件名即可，产物零增长。
 
@@ -272,7 +271,7 @@ export const background = {
 ## 首载：CSS 内联与 loading 屏
 
 - **外链 CSS 是渲染阻塞资源**（高延迟下白屏时长 = HTML + CSS 串行等待），所以 `astro.config.ts` 的 `inlineCss()` 钩子在构建后把 head 里全部 `link[rel=stylesheet]` 内联成 `<style>`——首帧第一块 HTML 解析完即可画。**别走「preload + onload 切 rel」的非阻塞路径**：`SwupHeadPlugin` 按 `outerHTML` diff head、`awaitAssets` 只等 `link[rel=stylesheet][href]`，切 rel 后新旧标签对不上，每次切页 remove + 重加样式表、闪样式；内联 `<style>` 被 head diff 天然处理（同步生效），不碰 swup。
-- **`#boot-splash` 首载 loading 屏（BaseLayout 自持）**：body 第一个元素 + head 的 `<style is:inline>` + head 顶部 `js` 类门 + body 尾部淡出脚本，自足、不依赖任何外部资源，随首帧画出；等 `window load` 揭幕（最少 500ms、6s 超时兜底），揭幕推迟到页面资源就绪，用户揭开后看到的是加载完整的页面；`prefers-reduced-motion` 下动画全停。**这块必须自足**：首帧只能依赖它自己，颜色与时长全是局部值，唯一例外是背景底色 `var(--bg-base, #000)`（CSS 预设取预设底色衔接、图片预设回退纯黑）。
+- **`#boot-splash` 首载 loading 屏（BaseLayout 自持）**：body 第一个元素 + head 的 `<style is:inline>` + head 顶部 `js` 类门 + body 尾部淡出脚本，自足、不依赖任何外部资源，随首帧画出；等 `window load` 揭幕（最少 500ms、5s 超时兜底），揭幕推迟到页面资源就绪，用户揭开后看到的是加载完整的页面；`prefers-reduced-motion` 下动画全停。**这块必须自足**：首帧只能依赖它自己，颜色与时长全是局部值，唯一例外是背景底色 `var(--bg-base, #000)`（CSS 预设取预设底色衔接、图片预设回退纯黑）。
 - **背景图**：`Image` 预热走缓存，就绪后给 `.bg--image` 加 `.is-ready` 自行 0.8s 淡入（`prefers-reduced-motion` 不淡入直接显示）；兜底超时路径（图未就绪）下背景图到位后自行淡入，不 pop。
 - **怎么确认**：构建后 `dist/**/*.html` 搜 `link rel="stylesheet"` 0 命中；`dist/index.html` 的 body 第一个元素是 `#boot-splash`。
 
@@ -280,7 +279,7 @@ export const background = {
 
 ## 组件级与自持样式
 
-- **抽屉骨架**（`shared/drawer.css`）：两个右侧抽屉（目录 `TocModal` / 筛选 `PostsFilterModal`）共用一套骨架，各自只留差异；`visibility` 延迟 0.25s 撤，让滑出动画播完；≤768px 标题栏收成 56px 高，TocModal 桌面 68px 高是组件内差异，写在它的 `<style>` 里。组件里的 `toc-modal-*` / `pfilter-modal-*` 类是 JS 钩子（`[data-toc-close]`、目录节点的宿主容器）与 `:global` 适配的锚点。
+- **抽屉骨架**（`shared/drawer.css`）：`PostsDrawers` 里两个右侧抽屉（目录 / 筛选）共用一套骨架，各自只留差异；`visibility` 延迟 0.25s 撤，让滑出动画播完；≤768px 标题栏收成 56px 高，目录抽屉桌面 68px 高是组件内差异，写在 `PostsDrawers` 的 `<style>` 里。组件里的 `toc-modal-*` / `pfilter-modal-*` 类是 JS 钩子（`[data-toc-close]`、目录节点的宿主容器）与 `:global` 适配的锚点。
 - **灯箱**（`shared/lightbox.css`）：PhotoSwipe 主题微调，随 `lightbox-core.ts` 懒加载，不进首屏产物。
 - **骨架屏**（`shared/skeleton.css`）：`.skeleton` 加载占位闪烁动画，加在任意元素上即可。
 - **导航下划线**（`NavBar.astro` 组件内）：静态线由 `is-active` / `aria-current` 服务端渲染、首屏可见不依赖 JS（选择器带 `:not(.js-ready)` 只画接管前）；共享线 JS 接管后是下划线的唯一画者，motion 驱动（`cubic-bezier(0.32, 0.72, 0, 1)`），时长按「起点 → 终点」实际位移成比例（`450–700ms`，位移 ×3.4ms，上下限夹取）；桌面导航只变文字色、不挂 `.hoverable`（那会加白底描边，导航只要字体高亮），手机端下拉菜单仍是 `.hoverable` 反馈。细节读 `nav-indicator.ts`。

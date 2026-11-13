@@ -70,19 +70,32 @@ import { animateLazy as animate } from '../util/motion';
    *  `syncActive()` 补上的自动展开会被「上一轮动画的落点」压住（箭头转了、内容不出来）。
    *  反过来只写内联不同步、或只同步 --cat-sub-h 不写内联，缩放后又会裁掉内容。
    *
-   *  最里层先量：内层窗口定到实高后，外层量到的才是含已展开子项的完整高度 */
+   *  最里层先量：内层窗口定到实高后，外层量到的才是含已展开子项的完整高度。
+   *  同一深度的窗口先全部量完（读）再全部落值（写）：内层已落值后外层量到的才准，
+   *  读、写按层分开让浏览器每层只刷一次样式，而不是每个窗口各刷一次 */
   function syncSizes(root: HTMLElement): void {
     const wraps = Array.from(root.querySelectorAll<HTMLElement>('.cat-children-wrap'));
     wraps.sort((a, b) => wrapDepth(b) - wrapDepth(a));
-    for (const wrap of wraps) {
-      // 隐藏态量到 0（手机端抽屉未展开、文章页窄屏侧栏 display:none）：不写——上限归零后
-      // 再显示就是「箭头转了、内容不出来」，等可见时 ResizeObserver 重跑本函数
-      const h = contentHeight(wrap);
-      if (h <= 0) continue;
-      setWrapHeight(wrap, h);
-      const open = !!wrap.parentElement?.classList.contains('cat-node--open');
-      wrap.style.maxHeight = open ? `${h}px` : '0px';
-      wrap.querySelector<HTMLElement>(':scope > .cat-children')?.style.removeProperty('transform');
+    let i = 0;
+    while (i < wraps.length) {
+      const depth = wrapDepth(wraps[i]);
+      const level: Array<{ wrap: HTMLElement; h: number }> = [];
+      while (i < wraps.length && wrapDepth(wraps[i]) === depth) {
+        const wrap = wraps[i];
+        level.push({ wrap, h: contentHeight(wrap) });
+        i += 1;
+      }
+      for (const { wrap, h } of level) {
+        // 隐藏态量到 0（手机端抽屉未展开、文章页窄屏侧栏 display:none）：不写——
+        // 上限归零后再显示就是「箭头转了、内容不出来」，等可见时 ResizeObserver 重跑本函数
+        if (h <= 0) continue;
+        setWrapHeight(wrap, h);
+        const open = !!wrap.parentElement?.classList.contains('cat-node--open');
+        wrap.style.maxHeight = open ? `${h}px` : '0px';
+        wrap
+          .querySelector<HTMLElement>(':scope > .cat-children')
+          ?.style.removeProperty('transform');
+      }
     }
   }
 

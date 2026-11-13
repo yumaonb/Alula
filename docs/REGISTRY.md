@@ -35,18 +35,17 @@
 | `layouts/BaseLayout.astro`                |
 | `layouts/PostsShell.astro`                |
 
-## Svelte 组件（8）
+## Svelte 组件（7）
 
-| 路径                                       | 水合指令    |
-| ------------------------------------------ | ----------- |
-| `components/admin/AdminChanges.svelte`     | client:idle |
-| `components/posts/PostSearch.svelte`       | client:load |
-| `components/posts/PostsFilterModal.svelte` | client:idle |
-| `components/posts/TocModal.svelte`         | client:idle |
-| `components/widgets/Clock.svelte`          | client:load |
-| `components/widgets/DaysCounter.svelte`    | client:load |
-| `components/widgets/ProjectsGrid.svelte`   | client:load |
-| `components/widgets/Timeline.svelte`       | client:load |
+| 路径                                     | 水合指令    |
+| ---------------------------------------- | ----------- |
+| `components/admin/AdminChanges.svelte`   | client:idle |
+| `components/posts/PostsDrawers.svelte`   | client:idle |
+| `components/posts/PostSearch.svelte`     | client:load |
+| `components/widgets/Clock.svelte`        | client:load |
+| `components/widgets/DaysCounter.svelte`  | client:load |
+| `components/widgets/ProjectsGrid.svelte` | client:load |
+| `components/widgets/Timeline.svelte`     | client:load |
 
 ## 全局 CSS 类（172）
 
@@ -238,6 +237,6 @@
 | `window.__onEnterDesktop`          | `src/assets/js/nav/breakpoint.ts`、`src/assets/js/ui/drawer.ts`、`src/components/layout/NavBar.astro` |
 | `window.__postCatTreeBound`        | `src/assets/js/posts/category-tree.ts`、`src/assets/js/posts/posts-shell.ts`                          |
 | `window.__postsShellInit`          | `src/assets/js/posts/posts-shell.ts`                                                                  |
-| `window.__toc`                     | `src/assets/js/posts/toc.ts`、`src/components/posts/TocModal.svelte`                                  |
-| `window.__tocDrawerHost`           | `src/assets/js/posts/toc.ts`、`src/components/posts/TocModal.svelte`                                  |
+| `window.__toc`                     | `src/assets/js/posts/toc.ts`、`src/components/posts/PostsDrawers.svelte`                              |
+| `window.__tocDrawerHost`           | `src/assets/js/posts/toc.ts`、`src/components/posts/PostsDrawers.svelte`                              |
 | `window.__tocInit`                 | `src/assets/js/posts/toc.ts`                                                                          |

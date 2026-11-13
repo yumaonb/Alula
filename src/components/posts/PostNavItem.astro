@@ -34,3 +34,64 @@ const titleText = dir === 'prev' ? '上一篇' : '下一篇';
     <span class="post-nav-title">没有更多文章了</span>
   </span>
 )}
+
+<!-- 顶层片段元素拿不到 scoped CID，item 样式必须全局 -->
+<style is:global>
+  .post-nav-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 20px;
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .post-nav-next {
+    text-align: right;
+    align-items: flex-end;
+  }
+
+  .post-nav-empty {
+    pointer-events: none;
+  }
+
+  .post-nav-empty .post-nav-title {
+    color: var(--ink);
+    font-weight: 400;
+  }
+
+  .post-nav-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    color: var(--ink);
+  }
+
+  .post-nav-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .post-nav-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    transition: color var(--t-hover);
+  }
+
+  @media (max-width: 768px) {
+    .post-nav-item {
+      padding: 14px 16px;
+    }
+  }
+</style>

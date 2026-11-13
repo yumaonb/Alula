@@ -67,7 +67,7 @@
 
 ## 11. 构建前的基础环境
 
-- Node 版本：`package.json` 的 `engines` 已固定（`18.20.8 || ^20.3.0 || >=22.0.0`），别用更低的版本。
+- Node 版本：`package.json` 的 `engines` 已固定（`>=22.18.0`），别用更低的版本。
 - 包管理器：pnpm。不要用 npm/yarn 装依赖，否则 `pnpm-lock.yaml` 会对不上。
 - 路径别名：**项目没有 `@/` 之类别名**，`src/data/*.ts` 在页面里一律用相对路径引用。
 
@@ -526,7 +526,7 @@ if (!animatedElements.length) {
 | 三套骨架各有不同块结构                                                         | 时钟、天数、项目卡的加载内容不同；共享颜色与闪烁动画已足够，结构随组件保留                                                                         |
 | `--posts-offset-gap` 的镜像写法                                                | 侧栏偏移由运行时实测写入行内联变量，CSS 里的值是首帧默认值的镜像，刻意的                                                                           |
 | `.hoverable.hoverable` 双类                                                    | 特异性 hack，原因见 `CSS.md`「悬浮反馈」                                                                                                           |
-| 6 个背景预设彼此独立（含 ocean/wave-dots、blueprint/honeycomb 两对观感相近的） | 预设是独立视觉设计，刻意不合并                                                                                                                     |
+| 5 个背景预设彼此独立（含 ocean/wave-dots、blueprint/honeycomb 两对观感相近的） | 预设是独立视觉设计，刻意不合并                                                                                                                     |
 | `BaseLayout` 首帧搜索框脚本复制                                                | `is:inline` 脚本不能 import、无法共享，复制是唯一解                                                                                                |
 | `row-state` / `BaseLayout` 的行变体「双源」                                    | 构建期初值 + 运行时更新，swup 的标准模式，不是双写                                                                                                 |
 | `dayscounter.ts` / `techstack.ts` 旧文件名                                     | 存量豁免（AGENTS §2.1），禁止新增、允许保留                                                                                                        |

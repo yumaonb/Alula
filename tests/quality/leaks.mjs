@@ -59,7 +59,7 @@ export function collect() {
       },
       {
         name: 'any',
-        pattern: /:\s*any\b(?![\w-])|<any>|as\s+any\b/,
+        pattern: /:\s*any\b(?![\w-])|<\s*any\s*>|as\s+any\b|[,<(=]\s*any\b(?![\w-])/,
         message: '用了 any；确实定不了型就用 unknown + 收窄，并注释原因',
       },
       {

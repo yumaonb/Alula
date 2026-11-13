@@ -23,8 +23,7 @@ import Footer from '../components/layout/Footer.astro';
 import SideWidgets from '../components/layout/SideWidgets.astro';
 import GlobalSidebar from '../components/posts/GlobalSidebar.astro';
 import PostSearch from '../components/posts/PostSearch.svelte';
-import TocModal from '../components/posts/TocModal.svelte';
-import PostsFilterModal from '../components/posts/PostsFilterModal.svelte';
+import PostsDrawers from '../components/posts/PostsDrawers.svelte';
 import CustomScrollbar from '../components/layout/CustomScrollbar.astro';
 import { Icon } from 'astro-icon/components';
 import { site } from '../data/site';
@@ -129,20 +128,13 @@ const blog = await loadBlogData();
         overflow: hidden;
         background: rgba(255, 255, 255, 0.1);
       }
-      .boot-splash-bar-dot {
+      .boot-splash-bar-fill {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 40px;
-        height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0),
-          rgba(255, 255, 255, 0.85),
-          rgba(255, 255, 255, 0)
-        );
-        animation: boot-splash-sweep 1.4s ease-in-out infinite;
+        inset: 0;
+        border-radius: inherit;
+        transform: scaleX(0);
+        transform-origin: left center;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.85));
       }
       @keyframes boot-splash-in {
         from {
@@ -154,21 +146,9 @@ const blog = await loadBlogData();
           transform: none;
         }
       }
-      @keyframes boot-splash-sweep {
-        from {
-          transform: translateX(-44px);
-        }
-        to {
-          transform: translateX(124px);
-        }
-      }
       @media (prefers-reduced-motion: reduce) {
         html.js #boot-splash .boot-splash-inner {
           animation: none;
-        }
-        html.js #boot-splash .boot-splash-bar-dot {
-          animation: none;
-          opacity: 0;
         }
       }
     </style>
@@ -180,7 +160,7 @@ const blog = await loadBlogData();
       <div class="boot-splash-inner">
         <span class="boot-splash-name">{site.name}</span>
         <span class="boot-splash-bar">
-          <span class="boot-splash-bar-dot"></span>
+          <span class="boot-splash-bar-fill"></span>
         </span>
       </div>
     </div>
@@ -203,8 +183,7 @@ const blog = await loadBlogData();
     <div id="alula-img-ph-icon" hidden>
       <Icon is:inline name="mdi:image-off-outline" />
     </div>
-    <TocModal client:idle />
-    <PostsFilterModal client:idle />
+    <PostsDrawers client:idle />
     <CustomScrollbar />
     <script>
       import '../assets/js/nav/swup-widgets';
@@ -260,17 +239,34 @@ const blog = await loadBlogData();
     <script is:inline>
       // 首载 loading 屏：等页面资源（window load：CSS 背景图、首屏图片、脚本包）就绪才揭幕，
       // 揭开后第一帧就是加载完整的页面；最少展示 500ms 防快网闪屏。
-      // 6s 超时兜底：个别资源卡死时遮罩不永久盖住页面。
+      // 5s 超时兜底：个别资源卡死时遮罩不永久盖住页面。
+      // 进度条：遮罩期间按等待时长增长（快起慢收、渐近不越界），揭幕时补满到整条；
+      // rAF 驱动，减少动态效果下不跑（条形留空）。
       // load 后再等一帧 rAF：揭幕画在已绘制的一帧上，不揭开到未绘制的帧。
       // 背景图用 Image 预热：同一 URL 走缓存，加 .is-ready 时图已就位，不闪。
       (function () {
         const splash = document.getElementById('boot-splash');
         if (!splash) return;
+        const fillEl = splash.querySelector('.boot-splash-bar-fill');
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const started = performance.now();
         let finished = false;
+        let rafId = 0;
+        const tick = (now) => {
+          const t = now - started;
+          const p = 0.9 * (1 - Math.exp(-t / 1200));
+          if (fillEl) fillEl.style.transform = 'scaleX(' + p + ')';
+          if (!finished) rafId = requestAnimationFrame(tick);
+        };
+        if (fillEl && !reduced) rafId = requestAnimationFrame(tick);
         const fade = () => {
           if (finished) return;
           finished = true;
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = 0;
+          }
+          if (fillEl && !reduced) fillEl.style.transform = 'scaleX(1)';
           // 快网下防闪：至少展示 500ms
           const minShown = 500;
           setTimeout(
@@ -295,8 +291,8 @@ const blog = await loadBlogData();
           reveal();
         } else {
           window.addEventListener('load', reveal, { once: true });
-          // 兜底：最多遮 6s 也揭幕
-          setTimeout(reveal, 6000);
+          // 兜底：最多遮 5s 也揭幕
+          setTimeout(reveal, 5000);
         }
       })();
     </script>

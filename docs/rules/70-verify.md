@@ -37,13 +37,16 @@ pnpm verify
 | quality  | `gen-registry`    | 组件清单与代码一致、水合指令一致、`window` 标记与 `env.d.ts` 一致                                  |
 | behavior | `category`        | 分类树计数与排序、分类/标签 URL 编码、日期时区、分类链                                             |
 | behavior | `nav`             | 导航命中的边界（同前缀兄弟路径、末尾斜杠）                                                         |
+| behavior | `code-blocks`     | 代码块范围识别：结束标签只在字符串 / 模板串 / 注释 / 正则之外才被认                                |
+| behavior | `motion-reduce`   | 动画统一并入 reduceMotion：偏好开时 motion 收到 reduceMotion: true，关后同一单例现读回 false       |
+| behavior | `transition`      | 目录退场共享核心：文章→列表 与 文章↔文章 两条路径对旧目录克隆动作一致，cancel 不留克隆             |
 
 - **报错就改代码，不要改检查脚本去迁就代码。** 确实需要豁免时，在那行写 `// check-xxx: allow`（对应脚本名），并在交付说明里写清理由。
 - 单独跑：`pnpm test:quality`（四类质检）/ `pnpm test:behavior`（业务测试）/ `pnpm test`（两类都跑，不含格式与类型）。
 - 单个质检项：`pnpm check:leaks` / `pnpm check:docs` / `pnpm check:contracts` / `pnpm check:registry`。
 - `gen-registry` 报「清单缺失」= 新加了组件没登记，去 `docs/reference/COMPONENTS.md` 补一行（含水合指令）；报「水合指令不符」= 文档与代码写的不是同一个，改其中一处。全表见 `docs/rules/80-doc-sync.md`「机器会替你核的部分」。
 - behavior 失败说明业务逻辑真的错了，不是格式问题：先看断言里的中文用例名，再去对应的 `src/lib/` 文件。
-- 业务测试直接 import `src/lib/` 下的生产代码（Node ≥ 22.6 的类型擦除），测的是本体，不是复制品。
+- 业务测试直接 import `src/lib/` 下的生产代码（Node ≥ 22.18 的默认类型擦除），测的是本体，不是复制品。
 - `docs/REGISTRY.md` 是 `pnpm registry:write` 生成的机器清单（组件 / CSS 类 / window 标记），可随时重新生成；它与 `docs/reference/COMPONENTS.md` 的区别是：前者是机器写的，后者「用途」列是人写的。
 - `pnpm verify` 的报告里若还有 `hint` / `warning`，说明来源；能顺手清掉的就清掉，不要用 `@ts-ignore` 压。
 

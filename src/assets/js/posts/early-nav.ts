@@ -43,7 +43,7 @@ export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
   let swupHooksBound = false;
   // 首屏实例未就绪时点区内链接：拦截原生全页跳转，等实例就绪后 navigate() 转正场，
   // 超时回退原生跳转（此变量是该轮询的在途状态）
-  let pendingEarlyNav: { url: string; timer: number } | null = null;
+  let pendingEarlyNav: { timer: number } | null = null;
   // 实例在 load+idle 才创建：慢网/冷缓存下 load 可超 5s（首载场景），时限要覆盖它
   const EARLY_NAV_TIMEOUT_MS = 10000;
 
@@ -116,9 +116,9 @@ export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
         location.assign(href);
         return;
       }
-      pendingEarlyNav = { url: href, timer: window.setTimeout(poll, 100) };
+      pendingEarlyNav = { timer: window.setTimeout(poll, 100) };
     };
-    pendingEarlyNav = { url: href, timer: window.setTimeout(poll, 100) };
+    pendingEarlyNav = { timer: window.setTimeout(poll, 100) };
   }
 
   /** 点击只绑 swup 钩子（fetch 失败兜底）。搜索框显隐不在点击时动——

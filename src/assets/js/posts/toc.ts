@@ -139,6 +139,9 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
   let trackFollow = true;
   let lastActiveIdx = -1;
   let rafId = 0;
+  // 哨兵重测节流：连续漂移帧只在窗口后每 150ms 重测一次，避免逐帧重建段标记
+  let lastSentinelAt = 0;
+  const SENTINEL_INTERVAL_MS = 150;
 
   // 先快后缓（≈ easeOutQuart）：切项时列表快速起滑、轻柔落位
   const EASE_OUT = (t: number): number => 1 - Math.pow(1 - t, 4);
@@ -384,12 +387,17 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
 
     // 哨兵：当前活动项标题的实际文档位 vs 缓存，偏差 > 2px = 内容发生布局
     // 平移（事件未覆盖的图片/公式等），标记的显式位置已过期——先重测 + 重写
-    // 标记再继续。单元素读取（非 × N），滚动本身不改样式，不逐帧强制布局。
+    // 标记再继续。单元素读取（非 × N），滚动本身不改样式，不逐帧强制布局；
+    // 重测走 150ms 节流，连续漂移帧不会逐帧重建段标记
     if (lastActiveIdx >= 0 && lastActiveIdx < slugs.length) {
       const h = document.getElementById(slugs[lastActiveIdx]);
       if (h) {
         const actual = h.getBoundingClientRect().top + window.scrollY;
-        if (Math.abs(actual - headingTops[lastActiveIdx]) > 2) {
+        if (
+          Math.abs(actual - headingTops[lastActiveIdx]) > 2 &&
+          now - lastSentinelAt >= SENTINEL_INTERVAL_MS
+        ) {
+          lastSentinelAt = now;
           measure();
           layoutMarks();
         }
@@ -562,7 +570,7 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
   initToc();
 
   /* ---- 对外契约：抽屉只登记容器，不搬节点 ----
-   * TocModal 水合后把抽屉容器写进 window.__tocDrawerHost 并调 ensure()，
+   * PostsDrawers 水合后把抽屉容器写进 window.__tocDrawerHost 并调 ensure()，
    * 此后节点按版面常驻该在的地方；抽屉开合只切类名。 */
   window.__toc = {
     /** 归位：节点不在该在的宿主里才搬，搬完重测几何 */

@@ -5,8 +5,8 @@
 //   quality  —— 代码写得合不合规范（调试残留、死代码、文档与代码不一致……）
 //   behavior —— 业务逻辑对不对（分类树、URL 构造、导航判定……）
 //
-// 顺序按「越快越靠前」：格式 → 质检 → 行为 → 类型检查。前面几秒就能失败的，
-// 没必要等 astro check 跑完。
+// 顺序：质检 → 格式 → 行为 → 类型检查。astro check 最慢，放最后，
+// 前面几秒就能失败的先跑，不用白等。
 
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

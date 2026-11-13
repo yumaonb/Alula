@@ -2,7 +2,7 @@
 // 用法：由 BaseLayout 引入：import "../assets/js/nav/swup-widgets"
 // 职责：可用性按页面类型+视口重估（.unavailable/.compact）；滚动驱动显隐（.visible）；
 //       进度环更新（stroke-dashoffset + 百分比文本）；向上/向下/到评论跳转。
-//       目录（#toc-fab）与筛选（#posts-filter-fab）按钮分别由 TocModal / PostsFilterModal 监听。
+//       目录（#toc-fab）与筛选（#posts-filter-fab）按钮由 PostsDrawers 监听。
 // 切页放行：切页开始即压制按钮，新内容就绪后保持压制，直到页面滚回顶部、
 //       平滑滚动结束（swup:scroll:end），或新内容渲染后 250ms 兜底超时为止。
 // 回顶放行：点「回到顶部」即刻收起按钮，等滚到顶部、用户反向滚动或 2s 兜底后交还。
@@ -51,6 +51,7 @@ function initSideWidgets(container: HTMLElement): void {
   let returnTopFrom = 0;
   let returnTopTimer: ReturnType<typeof setTimeout> | null = null;
   let rafId = 0;
+  let resizeRafId = 0;
 
   function markUnavailable(key: string, flag: boolean): void {
     const btn = buttons[key];
@@ -154,8 +155,14 @@ function initSideWidgets(container: HTMLElement): void {
   }
 
   function onResize(): void {
-    probe();
-    render();
+    // resize 可能连续触发（拖拽窗口），rAF 合并成一帧一次；不共用滚动的 rafId，
+    // 否则滚动占着这一帧时 resize 的落点会被吞掉
+    if (resizeRafId) return;
+    resizeRafId = requestAnimationFrame(() => {
+      resizeRafId = 0;
+      probe();
+      render();
+    });
   }
 
   /* ---- 点击：目录 / 筛选由抽屉组件监听，这里只处理直接跳转类 ---- */

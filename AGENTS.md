@@ -93,7 +93,7 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 
 ### 3. 代码风格
 
-- 格式以 `.prettierrc.json` 为准：UTF-8、LF、2 空格、单引号、带分号、行宽 100。
+- 格式以 `.prettierrc.json` 为准：UTF-8、LF、2 空格、单引号、带分号、尾逗号、行宽 100。
 - 不用 `var`；默认 `const`，需重新赋值才用 `let`。
 - 不用 `any`；确实定不了型用 `unknown` + 收窄，并注释原因。
 - 不用 `@ts-ignore` / `@ts-expect-error` 掩盖错误。
@@ -250,7 +250,7 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 ## 目录地图
 
 ```
-src/assets/css/          全局样式：根目录=全站基础+小元件聚合（variables/global/utilities）；shared/=全站可复用组件级（skeleton/lightbox/drawer）；posts/=文章；admin/=后台
+src/assets/css/          全局样式：根目录=全站基础+小元件聚合（variables/global/utilities）；shared/=全站可复用组件级（drawer/image-fallback/lightbox/skeleton）；posts/=文章；admin/=后台
 src/assets/backgrounds/  全站背景预设（css/ 绘制、images/ 图片）
 src/assets/js/           客户端脚本（swup 下的 DOM 交互）：nav/ 导航与外壳常驻控件、posts/ 文章区、ui/ 通用可视元件、util/ 小工具、data/ 外部数据、admin/ 后台
 src/components/          layout 布局 / posts 文章区 / widgets 小组件 / admin 后台

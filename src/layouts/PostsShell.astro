@@ -64,7 +64,7 @@ const {
 } = Astro.props;
 
 // 「这页有没有目录」共四种口径：此处（构建期数标题）、posts/transition.ts（侧栏目录是否显示）、
-// nav/swup-widgets.ts（.toc-link 有没有条目）、posts/TocModal.svelte（节点在不在）。
+// nav/swup-widgets.ts（.toc-link 有没有条目）、posts/PostsDrawers.svelte（节点在不在）。
 // 改「该不该出目录」的规则要四处按同一语义重算，漏一处目录按钮与实际目录不一致
 const hasToc = headings.length > 0;
 // 不输出 data-pagefind-body：Pagefind 只索引带该属性的页面，隐藏文章因此整个页面不进索引

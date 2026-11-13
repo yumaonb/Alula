@@ -181,7 +181,7 @@
         <p class="card-desc">{repo.description || '暂无描述'}</p>
         {#if repo.topics.length}
           <div class="card-topics">
-            {#each repo.topics as t}
+            {#each repo.topics as t (t)}
               <span class="topic-tag">{t}</span>
             {/each}
           </div>

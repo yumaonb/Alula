@@ -9,6 +9,7 @@
 import { adminStore, type StagedChange } from './store';
 
 const API = 'https://api.github.com';
+const REQUEST_TIMEOUT_MS = 10000;
 
 /** API 错误：带上状态码，UI 才能区分「令牌无效」和「分支被别人推走了」 */
 export class GitHubError extends Error {
@@ -88,11 +89,24 @@ function captureRateLimit(res: Response): void {
 
 async function gh<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, token } = options;
-  const res = await fetch(`${API}${path}`, {
-    method,
-    headers: headers(token),
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  // 令牌缺失时 headers() 同步抛 401，放在 try 外保留原始错误
+  const reqHeaders = headers(token);
+  let res: Response;
+  try {
+    res = await fetch(`${API}${path}`, {
+      method,
+      headers: reqHeaders,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (err) {
+    throw new GitHubError(
+      err instanceof DOMException && err.name === 'AbortError'
+        ? `请求超时（${REQUEST_TIMEOUT_MS / 1000}s），请检查网络后重试`
+        : '网络请求失败，请检查网络后重试',
+      408,
+    );
+  }
 
   // 成功失败都要记，失败响应（如 403 限流）同样带这些头
   captureRateLimit(res);

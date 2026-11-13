@@ -6,10 +6,9 @@
 //
 // 全部走报错拦住：任一命中即退出码 1。
 //
-// 查三类：
-//   1. 组件的 Prop 声明了，但全项目没有调用方传值（且没有默认值兜底）
+// 查两类：
+//   1. 组件的必填 Prop 声明了，但全项目没有调用方传值（组件从未被调用时整体报「组件无人使用」）
 //   2. 客户端脚本里导出了函数/常量，但全项目没有 import 方
-//   3. 客户端脚本里的顶层 const，但全项目没有第二处引用
 //
 // 第 1 条要区分「有默认值」与「必填」：有默认值的 Prop 即使没人传也能工作，
 // 属于可疑但不报错；必填的没人传，属于真死 Prop。
@@ -111,7 +110,12 @@ function collectExports() {
 function countReferences(name) {
   let count = 0;
   for (const file of ALL_SOURCE) {
-    const text = read(file);
+    // 注释里提到某名字不算「使用」：剥掉行注释与块注释再数，避免把只出现在注释里的导出误判成在用
+    const text = read(file)
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .split('\n')
+      .map((line) => line.replace(/(^|[^:])\/\/.*$/, '$1'))
+      .join('\n');
     const re = new RegExp(`\\b${name}\\b`, 'g');
     const hits = text.match(re);
     if (hits) count += hits.length;
@@ -180,7 +184,7 @@ export function collect() {
 if (isMain(import.meta.url)) {
   process.exit(
     runCheck('check-contracts', collect, {
-      hint: '这些是「有声明没人用」的死代码。真需要留（例如给将来用），在那一行写 "// check-contracts: allow" 并写清理由。',
+      hint: '这些是「有声明没人用」的死代码，删掉即可；确属有意保留（如预留的公开 API）的，在声明处注释写明保留原因。',
     }),
   );
 }

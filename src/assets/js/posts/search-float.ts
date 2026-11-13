@@ -415,6 +415,14 @@ export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {
         ),
       );
       state = show ? 'entering' : 'exiting';
+      // 移动端重入带延迟落回：延迟一结束就解除视口钉（同 enterMobile），
+      // 否则整段落回都停在 fixed 钉位、到 finish 才 unpin，胶囊不跟内容走
+      if (mobile && show) {
+        if (unpinTimer !== undefined) window.clearTimeout(unpinTimer);
+        unpinTimer = window.setTimeout(() => {
+          if (state === 'entering') unpinFloat(f);
+        }, FLOAT_ENTRY_DELAY_MS);
+      }
       active = a;
       a.finished.then(() => this.finish(show, f)).catch(() => {});
       return a;

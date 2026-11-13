@@ -27,7 +27,7 @@ Alula：Astro 5 + Svelte 5 + TypeScript 的静态个人站点，深色毛玻璃�
 
 ```
 src/
-├── assets/css/          全局样式（根目录=全站基础+小元件聚合：variables/global/utilities；shared/=全站可复用组件级：skeleton/lightbox；posts/=文章；admin/=后台）
+├── assets/css/          全局样式（根目录=全站基础+小元件聚合：variables/global/utilities；shared/=全站可复用组件级：drawer/image-fallback/lightbox/skeleton；posts/=文章；admin/=后台）
 ├── assets/backgrounds/  全站背景预设（css/ 纯 CSS 绘制、images/ 图片），由 src/data/background.ts 选择
 ├── assets/js/           客户端脚本（DOM 交互）：nav/ 导航与外壳常驻控件、posts/ 文章区、ui/ 通用可视元件、util/ 小工具、data/ 外部数据、admin/ 后台
 ├── assets/images/       站点自带图片（头像等）

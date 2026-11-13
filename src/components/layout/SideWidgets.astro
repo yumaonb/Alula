@@ -3,7 +3,7 @@
 // 用法：<SideWidgets />（BaseLayout 引入）
 // DOM 约定：容器 #side-widgets；每个按钮 .back-to-widget +
 //   data-widget="top|toc|filter|progress|comments|bottom"；
-//   目录 / 筛选按钮 id 固定为 #toc-fab / #posts-filter-fab（由 TocModal / PostsFilterModal 监听）
+//   目录 / 筛选按钮 id 固定为 #toc-fab / #posts-filter-fab（由 PostsDrawers 监听）
 // data-widget 键必须与 assets/js/nav/swup-widgets.ts 的 WIDGET_ORDER 一致，增 / 删 / 改名同改；
 // 进度环 rect 的 pathLength="100" 是 swup-widgets.ts 里 stroke-dashoffset 的刻度，改刻度同改
 import { Icon } from 'astro-icon/components';
@@ -22,9 +22,7 @@ import { Icon } from 'astro-icon/components';
     aria-haspopup="dialog"
     aria-expanded="false"
   >
-    <svg class="back-to-widget-icon" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
-      <path d="M4 5v6h6V5zm2 2h2v2H6zm6 0v2h15V7zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2zm-8 6v6h6v-6zm2 2h2v2H6zm6 0v2h15v-2z" />
-    </svg>
+    <Icon is:inline name="la:list" class="back-to-widget-icon" />
   </button>
 
   <button

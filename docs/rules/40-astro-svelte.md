@@ -9,7 +9,7 @@
 
 ## 水合指令细节
 
-- 布局层常驻岛（不在 `#swup` 内、只水合一次）可 `client:idle`，现有实例：`BaseLayout` 里的 `TocModal`、`PostsFilterModal`。
+- 布局层常驻岛（不在 `#swup` 内、只水合一次）可 `client:idle`，现有实例：`BaseLayout` 里的 `PostsDrawers`。
 - 交互复杂到水合不可靠的，改纯静态标记 + `src/assets/js/` 脚本，现有实例：`SideWidgets.astro` + `swup-widgets.ts`。
 
 ## 脚本语言细节

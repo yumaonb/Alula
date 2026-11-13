@@ -252,9 +252,16 @@ function initEditor(): Cleanup {
       chip.className = 'badge is-staged';
       return;
     }
-    const dirty = textarea ? textarea.value !== (original ?? '') : false;
+    const dirty = isCurrentDirty();
     chip.textContent = dirty ? '有未暂存修改' : '未暂存';
     chip.className = dirty ? 'badge is-dirty' : 'badge';
+  }
+
+  // 未暂存修改 = 该路径没有暂存且文本框内容不等于基线
+  function isCurrentDirty(): boolean {
+    if (!textarea) return false;
+    const staged = adminStore.changeOf(currentPath);
+    return !staged && textarea.value !== (original ?? '');
   }
 
   function refreshLines(): void {
@@ -302,6 +309,9 @@ function initEditor(): Cleanup {
 
   async function openFile(path: string): Promise<void> {
     if (!textarea) return;
+    if (isCurrentDirty() && !window.confirm('当前文件有未暂存的修改，继续会丢弃它们，确定？')) {
+      return;
+    }
     currentPath = path;
 
     const staged = adminStore.changeOf(path);
@@ -310,6 +320,7 @@ function initEditor(): Cleanup {
       textarea.value = staged.content ?? '';
     } else {
       const remote = await getFileTextOrNull(path, adminStore.state.config.branch);
+      if (currentPath !== path) return;
       original = remote?.text ?? null;
       textarea.value = remote?.text ?? '';
     }

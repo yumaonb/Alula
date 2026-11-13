@@ -15,14 +15,14 @@ interface Window {
   __onEnterDesktop?: (fn: () => void) => () => void;
   /** toc.ts 的幂等守卫 */
   __tocInit?: boolean;
-  /** toc.ts 提供的目录控制器（供 TocModal 登记抽屉容器后触发归位） */
+  /** toc.ts 提供的目录控制器（供 PostsDrawers 登记抽屉容器后触发归位） */
   __toc?: {
     /** 归位：目录节点不在该在的宿主里才搬，搬完重测几何 */
     ensure: () => void;
     /** 只重测几何 */
     remeasure: () => void;
   };
-  /** TocModal 登记的抽屉容器（目录节点在手机端的宿主） */
+  /** PostsDrawers 登记的抽屉容器（目录节点在手机端的宿主） */
   __tocDrawerHost?: HTMLElement;
   /** category-tree.ts 的幂等守卫 */
   __postCatTreeBound?: boolean;

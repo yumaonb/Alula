@@ -139,8 +139,8 @@ export function collect() {
   for (const c of components) {
     if (c.kind !== 'svelte') continue;
     const key = `${c.path}/${c.file}`;
-    // 在文档里找这一行，看它声明的指令
-    const row = docText.split('\n').find((l) => l.includes(`\`${key}\``) && l.includes('`client:'));
+    // 在文档里找这一行（按路径定位，不要求该行含 client:，否则「代码有指令、文档漏写」会静默通过）
+    const row = docText.split('\n').find((l) => l.includes(`\`${key}\``));
     if (!row) continue;
     const docDirectives = [
       ...new Set([...row.matchAll(/`(client:[a-z]+)`/g)].map((m) => m[1])),

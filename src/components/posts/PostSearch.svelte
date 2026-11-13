@@ -175,20 +175,35 @@
   onMount(() => {
     document.addEventListener('click', onOutsideClick);
     // 空闲预取：首查只付查询成本（wasm + 索引拉取提前完成），
-    // 避免第一次搜索等 1–3s 看起来像没反应
-    let idleHandle: number;
-    const idleCb = () => {
-      void loadPagefind().catch(() => {});
+    // 避免第一次搜索等 1–3s 看起来像没反应。
+    // 等 load 再进 idle：首屏图片等资源没加载完时预取会抢它们的主线程时间，
+    // 已 load 完（切页后水合）则立即进 idle
+    let idleHandle: number | undefined;
+    let started = false;
+    const startPrefetch = (): void => {
+      if (started) return;
+      started = true;
+      const idleCb = () => {
+        void loadPagefind().catch(() => {});
+      };
+      idleHandle =
+        'requestIdleCallback' in window
+          ? window.requestIdleCallback(idleCb)
+          : window.setTimeout(idleCb, 1000);
     };
-    idleHandle =
-      'requestIdleCallback' in window
-        ? window.requestIdleCallback(idleCb)
-        : window.setTimeout(idleCb, 1000);
+    if (document.readyState === 'complete') {
+      startPrefetch();
+    } else {
+      window.addEventListener('load', startPrefetch, { once: true });
+    }
     return () => {
       document.removeEventListener('click', onOutsideClick);
+      if (document.readyState !== 'complete') window.removeEventListener('load', startPrefetch);
       // 组件卸载时取消尚未触发的预取，避免卸载后仍发起加载
-      if ('cancelIdleCallback' in window) window.cancelIdleCallback(idleHandle);
-      else window.clearTimeout(idleHandle);
+      if (idleHandle !== undefined) {
+        if ('cancelIdleCallback' in window) window.cancelIdleCallback(idleHandle);
+        else window.clearTimeout(idleHandle);
+      }
     };
   });
 
