@@ -240,7 +240,7 @@ const blog = await loadBlogData();
       // 首载 loading 屏：等页面资源（window load：CSS 背景图、首屏图片、脚本包）就绪才揭幕，
       // 揭开后第一帧就是加载完整的页面；最少展示 200ms 防快网闪屏。
       // 5s 超时兜底：个别资源卡死时遮罩不永久盖住页面。
-      // 进度条：遮罩期间按等待时长增长（快起慢收、渐近不越界），揭幕时补满到整条；
+      // 进度条：遮罩期间按等待时长增长（快起慢收、渐近不越界），揭幕时滑满到整条，永不跳变；
       // rAF 驱动，减少动态效果下不跑（条形留空）。
       // load 后再等一帧 rAF：揭幕画在已绘制的一帧上，不揭开到未绘制的帧。
       // 背景图用 Image 预热：同一 URL 走缓存，加 .is-ready 时图已就位，不闪。
@@ -266,7 +266,11 @@ const blog = await loadBlogData();
             cancelAnimationFrame(rafId);
             rafId = 0;
           }
-          if (fillEl && !reduced) fillEl.style.transform = 'scaleX(1)';
+          if (fillEl && !reduced) {
+            // 揭幕时当前值可能远小于 1，直接赋值会一帧跳满，走 transition 滑过去
+            fillEl.style.transition = 'transform 0.5s ease';
+            fillEl.style.transform = 'scaleX(1)';
+          }
           // 快网下防闪：至少展示 200ms
           const minShown = 200;
           setTimeout(
