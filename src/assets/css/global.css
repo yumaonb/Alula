@@ -143,7 +143,7 @@ ol {
 }
 
 /* 主内容行 —— 全站宽度的唯一执行点（BaseLayout 里，所有页面自动遵守）：
- * 桌面端最宽 --content-width，视口不足时两侧各空 --page-gutter；
+ * 桌面端两侧各空 --page-gutter；
  * 移动端（≤768px）两侧各空 --page-gutter-mobile（见下方媒体查询）。
  * 行内两个子元素：常驻侧边栏（.global-sidebar，默认隐藏）+ main#swup 内容列。
  * 页面自己的外层元素不要再声明宽度规则（会覆盖/绕过这里），
@@ -161,14 +161,13 @@ ol {
   display: flex;
   align-items: flex-start;
   gap: var(--posts-side-gap);
-  width: min(100% - var(--page-gutter) * 2, var(--content-width));
+  width: calc(100% - var(--page-gutter) * 2);
   margin: 0 auto;
   padding: 84px 0 32px;
   position: relative;
 }
 
 /* 文章区变体（posts-shell.ts 切页后按内容同步类名）：
- * 侧栏显示时内容列收窄到 1000px；
  * 行 padding-top 82px（普通页 84px 不动）+ 间隙 14px 配平：左缘条（36px）恰好垂直居中于
  * 导航底(69)→内容顶(132)窗口（搜索框上下居中：
  * 82+18=100 ≈ (69+132)/2=100.5），内容顶 82+36+14 = 132 不变。
@@ -209,10 +208,6 @@ ol {
     --posts-offset-gap: 13px;
     --posts-side-offset: 41px;
   }
-}
-.page-main--listing > .hero,
-.page-main--post > .hero {
-  max-width: 1000px;
 }
 
 /* 侧栏显隐：普通页默认隐藏；列表变体 ≥769px 显示、文章变体 ≥1151px 显示——

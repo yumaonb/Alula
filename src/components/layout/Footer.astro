@@ -25,7 +25,7 @@ import { site } from '../../data/site';
   /* 宽度公式与 global.css 的 .page-main 同源（改 .page-main 宽度时同步改这里），
      页脚文字左缘与正文对齐 */
   .footer-inner {
-    width: min(100% - var(--page-gutter) * 2, var(--content-width));
+    width: calc(100% - var(--page-gutter) * 2);
     margin: 0 auto;
     padding: 20px 0;
     display: flex;
