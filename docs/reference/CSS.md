@@ -265,7 +265,7 @@ export const background = {
 ## 首载：CSS 内联与 loading 屏
 
 - **外链 CSS 是渲染阻塞资源**（高延迟下白屏时长 = HTML + CSS 串行等待），所以 `astro.config.ts` 的 `inlineCss()` 钩子在构建后把 head 里全部 `link[rel=stylesheet]` 内联成 `<style>`——首帧第一块 HTML 解析完即可画。**别走「preload + onload 切 rel」的非阻塞路径**：`SwupHeadPlugin` 按 `outerHTML` diff head、`awaitAssets` 只等 `link[rel=stylesheet][href]`，切 rel 后新旧标签对不上，每次切页 remove + 重加样式表、闪样式；内联 `<style>` 被 head diff 天然处理（同步生效），不碰 swup。
-- **`#boot-splash` 首载 loading 屏（BaseLayout 自持）**：body 第一个元素 + head 的 `<style is:inline>` + head 顶部 `js` 类门 + body 尾部淡出脚本，自足、不依赖任何外部资源，随首帧画出；等 `window load` 揭幕（最少 500ms、5s 超时兜底），揭幕推迟到页面资源就绪，用户揭开后看到的是加载完整的页面；`prefers-reduced-motion` 下动画全停。**这块必须自足**：首帧只能依赖它自己，颜色与时长全是局部值，唯一例外是背景底色 `var(--bg-base, #000)`（CSS 预设取预设底色衔接、图片预设回退纯黑）。
+- **`#boot-splash` 首载 loading 屏（BaseLayout 自持）**：body 第一个元素 + head 的 `<style is:inline>` + head 顶部 `js` 类门 + body 尾部淡出脚本，自足、不依赖任何外部资源，随首帧画出；等 `window load` 揭幕（最少 200ms、5s 超时兜底），揭幕推迟到页面资源就绪，用户揭开后看到的是加载完整的页面；`prefers-reduced-motion` 下动画全停。**这块必须自足**：首帧只能依赖它自己，颜色与时长全是局部值，唯一例外是背景底色 `var(--bg-base, #000)`（CSS 预设取预设底色衔接、图片预设回退纯黑）。
 - **背景图**：`Image` 预热走缓存，就绪后给 `.bg--image` 加 `.is-ready` 自行 0.8s 淡入（`prefers-reduced-motion` 不淡入直接显示）；兜底超时路径（图未就绪）下背景图到位后自行淡入，不 pop。
 - **怎么确认**：构建后 `dist/**/*.html` 搜 `link rel="stylesheet"` 0 命中；`dist/index.html` 的 body 第一个元素是 `#boot-splash`。
 

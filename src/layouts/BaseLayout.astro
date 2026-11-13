@@ -238,7 +238,7 @@ const blog = await loadBlogData();
     </script>
     <script is:inline>
       // 首载 loading 屏：等页面资源（window load：CSS 背景图、首屏图片、脚本包）就绪才揭幕，
-      // 揭开后第一帧就是加载完整的页面；最少展示 500ms 防快网闪屏。
+      // 揭开后第一帧就是加载完整的页面；最少展示 200ms 防快网闪屏。
       // 5s 超时兜底：个别资源卡死时遮罩不永久盖住页面。
       // 进度条：遮罩期间按等待时长增长（快起慢收、渐近不越界），揭幕时补满到整条；
       // rAF 驱动，减少动态效果下不跑（条形留空）。
@@ -267,8 +267,8 @@ const blog = await loadBlogData();
             rafId = 0;
           }
           if (fillEl && !reduced) fillEl.style.transform = 'scaleX(1)';
-          // 快网下防闪：至少展示 500ms
-          const minShown = 500;
+          // 快网下防闪：至少展示 200ms
+          const minShown = 200;
           setTimeout(
             () => {
               splash.classList.add('is-done');
