@@ -293,8 +293,11 @@ ol {
   z-index: 50;
 }
 
-/* 显隐只做水平平移，占位固定；槽位由容器自底向上分配 */
-.back-to-widget {
+/* 显隐只做水平平移，占位固定；槽位由容器自底向上分配。
+ * 选择器带容器前缀不是装饰：.hoverable.hoverable 权重 (0,2,0) 且只写四个悬停属性，
+ * 裸类 (0,1,0) 的 transition 会被它整条盖掉——退场时 opacity / transform 不再过渡，按钮瞬间消失。
+ * 提到 (0,2,0) 靠源码顺序压过它，四个悬停属性仍照写全，悬停过渡不丢。 */
+.side-widgets .back-to-widget {
   position: relative;
   display: flex;
   align-items: center;
@@ -310,8 +313,7 @@ ol {
   transform: translateX(80px);
   visibility: hidden;
   pointer-events: none;
-  /* visibility 延迟到滑出动画播完再生效；悬停提亮走 .hoverable，
-   * 共享四个悬停属性必须与位移一并写全，否则本地 transition 会盖掉全站悬停过渡 */
+  /* visibility 延迟到滑出动画播完再生效 */
   transition:
     opacity 0.18s ease,
     transform 0.18s ease,

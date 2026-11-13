@@ -541,6 +541,16 @@ if (!animatedElements.length) {
 
 **怎么确认**：文章滑到底、目录滑到顶，侧栏 `scrollHeight === clientHeight`（不可滚），同屏只剩目录自己的悬停细条一条；把目录滑回活动项在窗内，竖线照常贴住活动项。
 
+## 66. 侧边悬浮按钮入场有动画、退场瞬间消失
+
+**症状**：文章页右侧悬浮按钮列（返回顶部 / 目录 / 筛选 / 进度 / 评论 / 底部）滚过阈值后从右滑入淡入，滚回去移除 `.visible` 时却原地瞬间消失，没有退场动画。手机桌面均可复现，与端无关。
+
+**原因**：`transition` 是单属性、不按列表合并。`src/assets/css/utilities.css` 的 `.hoverable.hoverable` 权重 (0,2,0)，声明的 transition 只含四个悬停属性（background / box-shadow / border-color / color），整条盖掉低权重基础规则里的 transition——opacity / transform / visibility 不再过渡，退场目标态（基础态）直接跳变。入场时 `.back-to-widget.visible` 同为 (0,2,0) 靠源码顺序胜出，所以入场正常，容易误判成「只坏退场」。
+
+**修法**：基础规则提升为 `.side-widgets .back-to-widget`（(0,2,0)，`src/assets/css/global.css`），靠源码顺序压过 `.hoverable.hoverable`；transition 列表里四个悬停属性仍照写全，悬停过渡不丢。
+
+**怎么确认**：按钮基础态的 `getComputedStyle` 中 `transitionProperty` 含 opacity / transform / visibility 加四个悬停属性；移除 `.visible` 后 opacity / transform 平滑过渡到 0 / 80px，播完 visibility 才切 hidden。
+
 ## 决定台账（刻意设计 / 已知不修 / 排查过不是 bug）
 
 > 收「看起来有问题、其实不是，或已决定不改」的事。看到对应现象**别修**，按表处理。不记变更史，只记现行决定与理由；同类只登记一处。

@@ -123,7 +123,7 @@
 
 **`.hoverable.hoverable` 为什么写两遍**：Astro 把组件 `<style>` 编译成 `.xxx[data-astro-cid-yyy]`，权重 (0,2,0) 且排在全局样式之后。只写一次 `.hoverable:hover`（也是 (0,2,0)）会被组件的静止态颜色盖掉，表现为「悬停没反应」。重复类名提到 (0,3,0) 才能稳定生效。**看到这行不要当成笔误去重**。
 
-**挂 `.hoverable` 的元素不要再声明自己的 `transition`**：组件样式同样编译成 (0,2,0) 且排在全局样式之后，本地的 `transition` 会悄悄盖掉全站那份悬停过渡（background / box-shadow / border-color / color，时长 `var(--t-hover)`），悬停时颜色/描边直接跳变。确需过渡 transform 等额外属性，要么把共享的四个属性一并写全（时长同样走 `var(--t-hover)`），要么把过渡写到子元素上（如 PostCard 封面图缩放，位移时长各自定）。
+**挂 `.hoverable` 的元素不要再声明自己的 `transition`**：组件样式同样编译成 (0,2,0) 且排在全局样式之后，本地的 `transition` 会悄悄盖掉全站那份悬停过渡（background / box-shadow / border-color / color，时长 `var(--t-hover)`），悬停时颜色/描边直接跳变。确需过渡 transform 等额外属性，要么把共享的四个属性一并写全（时长同样走 `var(--t-hover)`），要么把过渡写到子元素上（如 PostCard 封面图缩放，位移时长各自定）。元素若还挂在全局低权重（0,1,0）基础规则里，写全四个属性也不够——`.hoverable.hoverable` 权重更高，仍整条盖掉那份 transition，基础规则要提到 (0,2,0) 靠源码顺序压过；踩坑实录见 [TROUBLESHOOTING](./TROUBLESHOOTING.md) 第 66 条。
 
 例外（这些不是「按钮式反馈」，按各自语义取值、不挂 `.hoverable`）：正文表格行高亮、封面图缩放/遮罩、自定义滚动条滑块、只变文字色的正文链接（`.post-card-title-link` / `.post-card-category` / `.cat-item` / `.post-meta-link` / `.repost-url` / `.repost-license`，悬停色同样走 `--white`）、面包屑链接 `.breadcrumb-link`（只提亮文字、不加背景底——36px 细左缘条里挂 `.hoverable` 的悬停底色会多出一块底，观感突兀）、常规图标的悬停/选中/激活色（走 `--white`）。**这些例外的悬停提亮时长同样走 `var(--t-hover)`**——不挂 `.hoverable` 只意味着反馈形态不同（不加白底描边），「变过去」的速度全站统一；唯一的位移是封面图缩放（transform 各自定时长）。
 
