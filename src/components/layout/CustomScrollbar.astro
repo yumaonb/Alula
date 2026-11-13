@@ -9,7 +9,7 @@
 <div class="scrollbar-hover-zone" id="scrollbar-hover-zone"></div>
 
 <div class="custom-scrollbar-container" id="custom-scrollbar">
-  <div class="custom-scrollbar-track glass" id="scrollbar-track">
+  <div class="custom-scrollbar-track" id="scrollbar-track">
     <div class="custom-scrollbar-thumb" id="scrollbar-thumb"></div>
   </div>
 </div>
@@ -64,7 +64,7 @@
     left: 0;
     top: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.45);
+    background: var(--ring);
     border-radius: 3px;
     /* 悬停 / 拖动提亮的时长走 --t-hover（容器显隐的 0.3s opacity 是显隐动效，不动） */
     transition: background var(--t-hover);
@@ -73,12 +73,12 @@
   }
 
   .custom-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--hover-line);
   }
 
   .custom-scrollbar-thumb.active {
     cursor: grabbing;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--active-bg);
   }
 
   @media (max-width: 768px) {
