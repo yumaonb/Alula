@@ -14,6 +14,8 @@ import {
   verifyConnection,
 } from './github';
 import { adminStore } from './store';
+import { toggleGroup } from '../util/expand-collapse';
+import { preloadMotion } from '../util/motion';
 
 const shell = document.getElementById('admin-shell');
 
@@ -187,12 +189,30 @@ function setDrawer(open: boolean): void {
  * 之后切页不再自动把它弹开——否则用户收起来、一切页又自己张开，像是不听话。
  * 用 dataset 而不是 JS 变量存，是因为侧栏在 #swup 之外、切页不重建，
  * 标记挂在 DOM 上天然能跨页保留。
+ *
+ * 飞行由共享编排 util/expand-collapse.ts 驱动（CSS 只留端点）：
+ * 展开/收起窗口与刚体同曲线同长；首屏的自动展开赶在 motion 就绪之前，直接落位不播动画。
  */
 export function setAccordion(group: Element, open: boolean, byUser = false): void {
   if (byUser) group.setAttribute('data-nav-user-touched', '');
+  const wasOpen = group.classList.contains('is-open');
   measureNavSub(group);
-  group.classList.toggle('is-open', open);
   group.querySelector('[data-nav-toggle]')?.setAttribute('aria-expanded', String(open));
+  if (open === wasOpen) return;
+
+  const wrap = group.querySelector<HTMLElement>('.admin-nav-sub');
+  const clip = group.querySelector<HTMLElement>('.admin-nav-sub-clip');
+  if (!wrap || !clip) {
+    group.classList.toggle('is-open', open);
+    return;
+  }
+  toggleGroup({
+    wrap,
+    clip,
+    height: clip.offsetHeight,
+    open,
+    onState: () => group.classList.toggle('is-open', open),
+  });
 }
 
 /**
@@ -211,15 +231,9 @@ export function measureNavSub(group: Element): void {
     ?.style.setProperty('--sub-h', `${clip.offsetHeight}px`);
 }
 
-/** 量一遍所有分组，并处理首屏不播动画：首次量完就摘掉 data-nav-init */
+/** 量一遍所有分组，把实高写进 --sub-h（供 CSS 端点用） */
 export function initNavSubHeights(): void {
-  const groups = document.querySelectorAll('[data-nav-accordion]');
-  for (const group of groups) measureNavSub(group);
-  // 首屏那次展开（由 syncNavActive 触发）不该有滑动动画，
-  // 否则一进后台就看到菜单自己滑一下。摘掉标记后动画恢复正常。
-  requestAnimationFrame(() => {
-    for (const group of groups) group.removeAttribute('data-nav-init');
-  });
+  for (const group of document.querySelectorAll('[data-nav-accordion]')) measureNavSub(group);
 }
 
 /** 连接后取一次分支头；取不到就显示读取失败，不影响已经建立的连接 */
@@ -310,10 +324,20 @@ export function initShell(): void {
     el.addEventListener('click', () => setDrawer(false));
   }
 
-  // 首屏先把各组子菜单的实高量出来写进 --sub-h，再摘掉 data-nav-init 放开动画。
+  // 首屏先把各组子菜单的实高量出来写进 --sub-h。
   // 顺序很重要：必须在 syncNavActive()（pages.ts 的 boot）自动展开之前完成，
   // 否则那一次展开会因为没量到高度而跳一下。
   initNavSubHeights();
+
+  // motion 懒加载：首屏不拉这个 54 KB 的共享块，等首帧画完再取。
+  // 用户真正点击通常在几百毫秒之后，到那时动画引擎已就绪；
+  // 万一还没就绪，animateLazy 会把元素直接落到终态，不会卡住。
+  const warmMotion = (): void => void preloadMotion();
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(warmMotion, { timeout: 2000 });
+  } else {
+    globalThis.setTimeout(warmMotion, 200);
+  }
 
   // 父项按钮只开关自己的子菜单，不跳转；点击不冒泡到下面那圈链接监听。
   // 侧栏在 #swup 之外、切页时整块不重渲染，所以这里只绑一次就够。

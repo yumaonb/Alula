@@ -1,60 +1,57 @@
 // hamburger.ts — 汉堡菜单交互（移动端下拉菜单开/关）
 // 用法：由 NavBar.astro 在移动端按需动态 import：import "../../assets/js/nav/hamburger"
-// 开合动效由 motion 驱动：CSS 只定义开/关两个端点状态（.is-open），每段动画以
-// 「飞行中读数」为起点，中断后从屏幕实际位置续接，快速开合不跳变；
-// .is-open 是与 NavBar.astro 样式的状态契约（菜单开合视觉全看它），改类名两处同改；
-// 收回时顶线先保持、再随尾部淡出（各场景时长见 CLOSE_NORMAL / CLOSE_FOR_NAVIGATION / CLOSE_INSTANT）。
+// 开合动效经 util/expand-collapse.ts 共享编排（窗口与刚体同曲线同长，CSS 只留 .is-open
+// 端点态，中断从飞行中位置续接，快速开合不跳变）；遮罩与顶线是配套元素、不在编排内，
+// 由本文件单独驱动，收回时顶线先保持、再随尾部淡出（时长见各场景常量）。
+// .is-open 是与 NavBar.astro 样式的状态契约（菜单开合视觉全看它），改类名两处同改。
 import type { AnimationPlaybackControls } from 'motion';
 import { navMatch } from '../../../lib/nav-match';
+import { GROUP_DURATION, toggleGroup } from '../util/expand-collapse';
 import { onEnterDesktop } from './breakpoint';
 import { lockBodyScroll, unlockBodyScroll } from '../util/body-scroll-lock';
 import { cssNum } from '../util/dom';
-import { animateLazy as animate, staggerLazy as stagger } from '../util/motion';
+import { animateLazy as animate } from '../util/motion';
 
 const OPEN = 'is-open';
 
 type Ease = [number, number, number, number];
 
-const EASE_OUT: Ease = [0.22, 1, 0.36, 1];
 const EASE_MENU: Ease = [0.25, 0.1, 0.25, 1];
 
 const LINE_OPEN = 'rgba(255, 255, 255, 0.12)';
 const LINE_CLOSED = 'rgba(255, 255, 255, 0)';
 
-// 三种收起场景：常规 / 切页前快速收起 / 内容替换时直接落位，差异只是时长与缓动
+// 三种收起场景：常规 / 切页前快速收起 / 内容替换时直接落位，差异只是时长
 type CloseTiming = {
-  dropdown: { duration: number; ease: Ease };
+  dropdown: number;
   overlay: number;
   border: { duration: number; delay: number };
 };
 
 const CLOSE_NORMAL: CloseTiming = {
-  dropdown: { duration: 0.4, ease: EASE_OUT },
+  dropdown: GROUP_DURATION,
   overlay: 0.3,
   border: { duration: 0.2, delay: 0.2 },
 };
 
 const CLOSE_FOR_NAVIGATION: CloseTiming = {
-  dropdown: { duration: 0.2, ease: EASE_MENU },
+  dropdown: 0.2,
   overlay: 0.2,
   border: { duration: 0.1, delay: 0.1 },
 };
 
 const CLOSE_INSTANT: CloseTiming = {
-  dropdown: { duration: 0, ease: EASE_OUT },
+  dropdown: 0,
   overlay: 0,
   border: { duration: 0, delay: 0 },
 };
 
 const OPEN_TIMING = {
-  dropdown: 0.4,
   overlay: 0.3,
   border: 0.25,
-  inner: 0.35,
-  items: 0.3,
-  itemsStagger: 0.04,
 };
 
+// 遮罩与顶线的配套动画；窗口的动画由共享编排自己记录，不在此列
 let controls: AnimationPlaybackControls[] = [];
 
 function cancelAll(): void {
@@ -70,115 +67,7 @@ function getEls() {
   };
 }
 
-type FromState = { maxHeight: number; overlay: number };
-
-/**
- * 展开编排：dropdown 高度与遮罩从「飞行中读数」走到端点，端点值与 CSS 终态一致，
- * 动画结束（motion 提交最终值）后与 .is-open / 基础态无缝交接；
- * inner / items 每次展开都从收起姿态重播（显式 [0,1] 关键帧）
- */
-function openChoreography(from: FromState): void {
-  const { dropdown, overlay } = getEls();
-  if (!dropdown || !overlay) return;
-  cancelAll();
-
-  const inner = dropdown.querySelector<HTMLElement>('.mobile-dropdown-inner');
-  // 内层容器缺失就整段编排不做：measure 用可选链能兜底，但动画把它直接传进 animate()
-  // 会被 motion 静默跳过（null 主体直接返回），结果是内容直接出现、没有过渡
-  if (!inner) {
-    console.error('[hamburger] 找不到 .mobile-dropdown-inner，跳过菜单动画');
-    return;
-  }
-  const items = Array.from(dropdown.querySelectorAll<HTMLElement>('.mobile-item'));
-  // scrollHeight 不受 max-height 裁切影响，何时量都准；+1px 是 border-top（全局 border-box）
-  const height = inner.scrollHeight + 1;
-
-  // 展开前把内层实高写进 --dd-h，CSS 端点状态用它（窗口上限贴实高，大字体缩放不截断）
-  dropdown.style.setProperty('--dd-h', `${inner.scrollHeight}px`);
-  controls.push(
-    animate(
-      dropdown,
-      { maxHeight: [from.maxHeight, height] },
-      {
-        duration: OPEN_TIMING.dropdown,
-        ease: EASE_OUT,
-      },
-    ),
-    animate(
-      dropdown,
-      { borderTopColor: LINE_OPEN },
-      {
-        duration: OPEN_TIMING.border,
-        ease: EASE_MENU,
-      },
-    ),
-    animate(
-      overlay,
-      { opacity: [from.overlay, 1] },
-      {
-        duration: OPEN_TIMING.overlay,
-        ease: EASE_MENU,
-      },
-    ),
-    animate(
-      inner,
-      { opacity: [0, 1], y: [-8, 0] },
-      {
-        duration: OPEN_TIMING.inner,
-        ease: EASE_OUT,
-      },
-    ),
-  );
-  if (items.length) {
-    controls.push(
-      animate(
-        items,
-        { opacity: [0, 1], y: [-12, 0] },
-        {
-          duration: OPEN_TIMING.items,
-          delay: stagger(OPEN_TIMING.itemsStagger, { startDelay: OPEN_TIMING.itemsStagger }),
-          ease: EASE_MENU,
-        },
-      ),
-    );
-  }
-}
-
-/** 收起编排：dropdown 高度与遮罩从「飞行中读数」落到关闭端点，场景差异只在时长 */
-function closeChoreography(from: FromState, timing: CloseTiming): void {
-  const { dropdown, overlay } = getEls();
-  if (!dropdown || !overlay) return;
-  cancelAll();
-  controls.push(
-    animate(
-      dropdown,
-      { maxHeight: [from.maxHeight, 0] },
-      {
-        duration: timing.dropdown.duration,
-        ease: timing.dropdown.ease,
-      },
-    ),
-    animate(
-      dropdown,
-      { borderTopColor: LINE_CLOSED },
-      {
-        duration: timing.border.duration,
-        delay: timing.border.delay,
-        ease: EASE_MENU,
-      },
-    ),
-    animate(
-      overlay,
-      { opacity: [from.overlay, 0] },
-      {
-        duration: timing.overlay,
-        ease: EASE_MENU,
-      },
-    ),
-  );
-}
-
-/** 翻类 + aria + tabindex + 滚动锁；三层缺一就整体放弃 */
+/** 翻类 + aria + tabindex + 滚动锁；在共享编排读飞行中值之后由 onState 调用。三层缺一就整体放弃 */
 function applyMenuState(opening: boolean): boolean {
   const { btn, dropdown, overlay } = getEls();
   // 三层缺一就整件事不做：只翻按钮类而不写面板 / 遮罩，会留下
@@ -205,35 +94,91 @@ function applyMenuState(opening: boolean): boolean {
   return true;
 }
 
-function readFlightState(): FromState | null {
-  const { dropdown, overlay } = getEls();
-  if (!dropdown || !overlay) return null;
-  // 先读飞行中值再翻类：翻类后 computed 会变成端点态，飞行中的位置就丢了
-  return {
-    maxHeight: cssNum(dropdown, 'max-height'),
-    overlay: cssNum(overlay, 'opacity'),
-  };
-}
-
 function openMenu(): void {
-  const { btn } = getEls();
+  const { btn, dropdown, overlay } = getEls();
   if (!btn || btn.classList.contains(OPEN)) return;
-  const from = readFlightState();
-  if (!from) return;
-  if (!applyMenuState(true)) return;
-  openChoreography(from);
+  if (!dropdown || !overlay) return;
+  const inner = dropdown.querySelector<HTMLElement>('.mobile-dropdown-inner');
+  // 内层容器缺失就整段开合不做：高度量不出，动画也没主体
+  if (!inner) {
+    console.error('[hamburger] 找不到 .mobile-dropdown-inner，跳过菜单开合');
+    return;
+  }
+  // scrollHeight 不受 max-height 裁切影响，何时量都准；+1px 是 border-top（全局 border-box）
+  const height = inner.scrollHeight + 1;
+  // 展开前把内层实高写进 --dd-h，CSS 端点状态用它（窗口上限贴实高，大字体缩放不截断）
+  dropdown.style.setProperty('--dd-h', `${inner.scrollHeight}px`);
+  // 遮罩的飞行中读数必须在翻类前取：onState 翻类后 computed 即端点值
+  const fromOverlay = cssNum(overlay, 'opacity');
+  cancelAll();
+  controls.push(
+    animate(
+      dropdown,
+      { borderTopColor: LINE_OPEN },
+      {
+        duration: OPEN_TIMING.border,
+        ease: EASE_MENU,
+      },
+    ),
+    animate(
+      overlay,
+      { opacity: [fromOverlay, 1] },
+      {
+        duration: OPEN_TIMING.overlay,
+        ease: EASE_MENU,
+      },
+    ),
+  );
+  toggleGroup({
+    wrap: dropdown,
+    clip: inner,
+    height,
+    open: true,
+    onState: () => applyMenuState(true),
+  });
 }
 
 function closeMenu(timing: CloseTiming): void {
-  const { btn, dropdown } = getEls();
-  if (!btn || !btn.classList.contains(OPEN)) return;
+  const { btn, dropdown, overlay } = getEls();
+  if (!btn || !btn.classList.contains(OPEN) || !dropdown || !overlay) return;
   // 只收回菜单内的焦点：搜索框在菜单外面，盲调 blur 会在手机上打字打到一半被抢走焦点
   const active = document.activeElement;
   if (active instanceof HTMLElement && dropdown?.contains(active)) active.blur();
-  const from = readFlightState();
-  if (!from) return;
-  if (!applyMenuState(false)) return;
-  closeChoreography(from, timing);
+  const inner = dropdown.querySelector<HTMLElement>('.mobile-dropdown-inner');
+  const fromOverlay = cssNum(overlay, 'opacity');
+  cancelAll();
+  controls.push(
+    animate(
+      dropdown,
+      { borderTopColor: LINE_CLOSED },
+      {
+        duration: timing.border.duration,
+        delay: timing.border.delay,
+        ease: EASE_MENU,
+      },
+    ),
+    animate(
+      overlay,
+      { opacity: [fromOverlay, 0] },
+      {
+        duration: timing.overlay,
+        ease: EASE_MENU,
+      },
+    ),
+  );
+  if (!inner) {
+    applyMenuState(false);
+    dropdown.style.maxHeight = '0px';
+    return;
+  }
+  toggleGroup({
+    wrap: dropdown,
+    clip: inner,
+    height: inner.scrollHeight + 1,
+    open: false,
+    duration: timing.dropdown,
+    onState: () => applyMenuState(false),
+  });
 }
 
 function closeNormal(): void {

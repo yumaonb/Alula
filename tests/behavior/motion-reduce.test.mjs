@@ -19,7 +19,6 @@ export function animate(el, keyframes, options) {
   globalThis.__motionCalls.push({ keyframes, options });
   return { finished: Promise.resolve(), cancel() {}, state: 'finished' };
 }
-export function stagger() { return 0; }
 `;
 const FAKE_MOTION_URL = `data:text/javascript;base64,${Buffer.from(FAKE_MOTION).toString('base64')}`;
 

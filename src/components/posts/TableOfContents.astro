@@ -38,15 +38,17 @@ if (hasH1 && hasH2) {
     </div>
     <div class="toc-track">
       <div class="toc-scroll" id="toc-list">
+        <!-- 目录项是 button 而非真链接：swup 不捕获、状态栏不显示地址，
+             点击由 posts/toc.ts 的委托接管平滑滚动（见 TROUBLESHOOTING.md 第 63 条） -->
         <ul class="toc-list">
           {tocItems.map((heading) => (
             <li
               class:list={['toc-item', { 'toc-sub': heading.depth > tocItems[0].depth }]}
               data-target={heading.slug}
             >
-              <a class="toc-link link-plain" href={`#${heading.slug}`}>
+              <button type="button" class="toc-link">
                 {heading.text.replace(/\s*#$/, '')}
-              </a>
+              </button>
             </li>
           ))}
         </ul>
@@ -98,9 +100,12 @@ if (hasH1 && hasH2) {
     opacity: 0.55;
   }
 
-  /* 轨道只做竖线的定位盒；滚动在内层 .toc-scroll */
+  /* 轨道只做竖线的定位盒；滚动在内层 .toc-scroll。
+   * 裁剪是必须的：活动项滚出可视窗时竖线会定位到轨道外，
+   * 溢出不裁就会撑爆 sticky 侧栏的滚动区，卡出第二条滚动条 */
   .toc-track {
     position: relative;
+    overflow: hidden;
   }
 
   .toc-scroll {
@@ -162,6 +167,10 @@ if (hasH1 && hasH2) {
   }
 
   .toc-link {
+    appearance: none;
+    background: none;
+    border: 0;
+    font: inherit;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -169,7 +178,6 @@ if (hasH1 && hasH2) {
     font-size: 0.8rem;
     line-height: 1.45;
     color: var(--ink);
-    text-decoration: none;
     border-radius: 4px;
     cursor: pointer;
     white-space: nowrap;

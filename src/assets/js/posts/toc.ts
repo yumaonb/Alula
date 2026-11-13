@@ -438,7 +438,9 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
   document.addEventListener('click', (e: MouseEvent) => {
     const link = e.target instanceof Element ? e.target.closest('.toc-link') : null;
     if (!link) return;
-    e.preventDefault();
+    // 指针点击后失焦：焦点留在目录项上会让 :focus-within 常驻，
+    // 目录滚动条随之常显，与页面滚动条同屏；键盘激活（detail 为 0）保留焦点
+    if (e.detail > 0 && link instanceof HTMLElement) link.blur();
     const item = link.closest('.toc-item');
     if (!item) return;
     const id = item.getAttribute('data-target');

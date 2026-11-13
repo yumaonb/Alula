@@ -6,20 +6,20 @@
 // 每个节点的窗口高度 --cat-sub-h 由这里量出（与后台侧栏 admin/shell.ts 同一套）：
 // 外层 .cat-children-wrap 是 max-height 窗口，内层 .cat-children 是平移的刚体，
 // 两者同一条曲线同步进行，子项任何一帧都不被压缩。
-// 开合动效由 motion 驱动：CSS 只定义开/关端点状态，窗口与刚体从「飞行中读数」
-// 走到端点；本层内容高度不变、变的是上方每层窗口的容纳总高，按 ±本层实高增量
-// 更新各祖先的 --cat-sub-h，中途再点上限也保持准确，不用等动画结束再量。
-import { cssNum, readTranslate } from '../util/dom';
+// 开合动效经 util/expand-collapse.ts 共享编排：CSS 只定义开/关端点状态，窗口与刚体
+// 从「飞行中读数」走到端点；本层内容高度不变、变的是上方每层窗口的容纳总高，
+// 按 ±本层实高增量更新各祖先的 --cat-sub-h（增量不是开合单元，不走 toggleGroup），
+// 中途再点上限也保持准确，不用等动画结束再量。
+import { GROUP_DURATION, GROUP_EASE, toggleGroup } from '../util/expand-collapse';
+import { cssNum } from '../util/dom';
 import { animateLazy as animate } from '../util/motion';
 
 (() => {
   if (window.__postCatTreeBound) return;
   window.__postCatTreeBound = true;
 
-  // 开合时长（ms）；开合后的窗口期内不重测，避免量到半程高度
-  const ANIM_MS = 340;
-  const EASE_CATEGORY_TREE: [number, number, number, number] = [0.32, 0.72, 0, 1];
-  const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // 开合时长（ms）：与共享编排同源；开合后的窗口期内不重测，避免量到半程高度
+  const ANIM_MS = GROUP_DURATION * 1000;
   let lastToggleAt = 0;
 
   function treeRoot(): HTMLElement | null {
@@ -44,11 +44,6 @@ import { animateLazy as animate } from '../util/motion';
   function currentWrapHeight(wrap: HTMLElement): number {
     const value = Number(wrap.dataset.subH || 0);
     return Number.isFinite(value) ? value : 0;
-  }
-
-  /** 内层刚体当前的纵向位移（动画进行中时是插值，即此刻在屏幕上的真实位置） */
-  function currentY(el: HTMLElement): number {
-    return readTranslate(el).y;
   }
 
   /** 窗口所属节点的嵌套深度，供重测时从最里层开始排序 */
@@ -108,8 +103,10 @@ import { animateLazy as animate } from '../util/motion';
     const flagged = Array.from(
       root.querySelectorAll<HTMLElement>('.cat-children-wrap[data-cat-open-new]'),
     );
-    // 减动效 / 首屏高度还没量完：直接落位（与点箭头的 instant 口径一致）
-    const instant = REDUCE_MOTION || root.hasAttribute('data-cat-init');
+    // 减动效（现读偏好，不取模块加载时的旧值）/ 首屏高度还没量完：直接落位
+    const instant =
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      root.hasAttribute('data-cat-init');
     const before = new Map<HTMLElement, number>();
     if (flagged.length && !instant) {
       for (const wrap of root.querySelectorAll<HTMLElement>('.cat-children-wrap')) {
@@ -130,8 +127,6 @@ import { animateLazy as animate } from '../util/motion';
       for (const wrap of playing) delete wrap.dataset.catOpenNew;
       return;
     }
-    lastToggleAt = performance.now();
-    const duration = ANIM_MS / 1000;
     for (const wrap of playing) {
       delete wrap.dataset.catOpenNew;
       const h = contentHeight(wrap);
@@ -139,8 +134,12 @@ import { animateLazy as animate } from '../util/motion';
       // 起点与点箭头的「关」端一致：窗口收成 0、内层刚体上移一整段
       wrap.style.maxHeight = '0px';
       if (children) children.style.transform = `translateY(-${h}px)`;
-      animate(wrap, { maxHeight: [0, h] }, { duration, ease: EASE_CATEGORY_TREE });
-      if (children) animate(children, { y: [-h, 0] }, { duration, ease: EASE_CATEGORY_TREE });
+      // syncSizes 已把内联写成端点，必须先手动退回起点，toggleGroup 的飞行中读数才读得到
+      if (children) {
+        toggleGroup({ wrap, clip: children, height: h, open: true, onState: () => {} });
+      } else {
+        animate(wrap, { maxHeight: [0, h] }, { duration: GROUP_DURATION, ease: GROUP_EASE });
+      }
     }
     // 祖先窗口从展开前的高度长到新高度：同一条曲线、同一个时长，外窗容量恒大于内层要露出的部分
     for (const [wrap, from] of before) {
@@ -148,7 +147,7 @@ import { animateLazy as animate } from '../util/motion';
       const to = cssNum(wrap, 'max-height');
       if (Math.abs(to - from) < 1) continue;
       wrap.style.maxHeight = `${from}px`;
-      animate(wrap, { maxHeight: [from, to] }, { duration, ease: EASE_CATEGORY_TREE });
+      animate(wrap, { maxHeight: [from, to] }, { duration: GROUP_DURATION, ease: GROUP_EASE });
     }
   }
 
@@ -195,9 +194,7 @@ import { animateLazy as animate } from '../util/motion';
 
     const wrap = node.querySelector<HTMLElement>(':scope > .cat-children-wrap');
     const delta = wrap ? contentHeight(wrap) : 0;
-    const fromHeight = wrap ? cssNum(wrap, 'max-height') : 0;
     const children = wrap ? wrap.querySelector<HTMLElement>(':scope > .cat-children') : null;
-    const fromY = children ? currentY(children) : 0;
 
     // 本层内容高度不变，变的是上方每一层窗口要容纳的总高：按 ±本层实高增减各祖先的
     // --cat-sub-h。先读飞行中值、再翻类改上限：翻类后 computed 会变成端点值，
@@ -214,29 +211,40 @@ import { animateLazy as animate } from '../util/motion';
       parent = parent.parentElement;
     }
 
-    node.classList.toggle('cat-node--open', open);
-    // 子项一直渲染在 DOM 里，压高度不会把它们移出焦点序：收起时必须 inert，
-    // 否则 Tab 能进看不见的子分类、读屏器也会把收起的项念成普通链接
-    if (wrap) wrap.toggleAttribute('inert', !open);
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    // 可访问名跟着开合走：构建期写死的文案不会变，读屏器会念错状态
-    btn.setAttribute('aria-label', open ? '收起' : '展开');
-
     // 首屏（高度未量完，data-cat-init 在位）直接落位，不按兜底高度播半程
     const instant = !!treeRoot()?.hasAttribute('data-cat-init');
-    const duration = instant ? 0 : ANIM_MS / 1000;
-    if (wrap) {
-      animate(
-        wrap,
-        { maxHeight: [fromHeight, open ? delta : 0] },
-        { duration, ease: EASE_CATEGORY_TREE },
-      );
-    }
-    if (children) {
-      animate(children, { y: [fromY, open ? 0 : -delta] }, { duration, ease: EASE_CATEGORY_TREE });
+    // 类翻转 / inert / aria 挪进 onState：toggleGroup 内部先读飞行值再调它，
+    // 顺序与「先读后翻」一致
+    const setState = (): void => {
+      node.classList.toggle('cat-node--open', open);
+      // 子项一直渲染在 DOM 里，压高度不会把它们移出焦点序：收起时必须 inert，
+      // 否则 Tab 能进看不见的子分类、读屏器也会把收起的项念成普通链接
+      if (wrap) wrap.toggleAttribute('inert', !open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      // 可访问名跟着开合走：构建期写死的文案不会变，读屏器会念错状态
+      btn.setAttribute('aria-label', open ? '收起' : '展开');
+    };
+    const duration = instant ? 0 : GROUP_DURATION;
+    // 退化路径的飞行值起点必须在翻类前读：翻类后 computed 即端点
+    const fromHeight = wrap ? cssNum(wrap, 'max-height') : 0;
+    if (wrap && children) {
+      toggleGroup({ wrap, clip: children, height: delta, open, duration, onState: setState });
+    } else {
+      setState();
+      if (wrap) {
+        // 缺内层刚体的退化路径：只动窗口
+        animate(
+          wrap,
+          { maxHeight: [fromHeight, open ? delta : 0] },
+          {
+            duration,
+            ease: GROUP_EASE,
+          },
+        );
+      }
     }
     for (const { wrap: ancestorWrap, from, to } of ancestors) {
-      animate(ancestorWrap, { maxHeight: [from, to] }, { duration, ease: EASE_CATEGORY_TREE });
+      animate(ancestorWrap, { maxHeight: [from, to] }, { duration, ease: GROUP_EASE });
     }
   });
 

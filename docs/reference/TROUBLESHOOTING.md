@@ -437,7 +437,7 @@ if (!animatedElements.length) {
   1. **内联压住端点规则**：开合动画由 motion 驱动，`animate(wrap, { maxHeight })` / `animate(children, { y })` 把 `max-height` / `transform` 写成**内联**；内联优先级高于 `.cat-node--open > .cat-children-wrap { max-height: var(--cat-sub-h) }`。切页后由 `syncActive()` 补上的展开类撞上「上一轮动画留下的落点」（`max-height: 0px`、`translateY(-100%)`），视觉上就是箭头转了、内容不出来。
   2. **隐藏态量高写 0**：`#category-tree` 在 `.page-main--post`（≤1150px）与普通页、手机端抽屉未开时都是 `display: none`，此时 `offsetHeight` 全为 0；旧实现把 0 无条件写进 `--cat-sub-h`，上限归零 → 再可见时展开节点也是空的（等 ResizeObserver 重跑才恢复，慢一帧到几帧）。
 - **处理**：`posts/category-tree.ts` 的 `measureAll` 改成 `syncSizes`——从最里层往外，① 量到 0（不可见）就**跳过不写**；② 每个窗口同时写 `--cat-sub-h` 与**内联** `max-height`（open = 实高、closed = `0px`），并清掉内层残留的 `transform`，即「开合状态全部由类决定、每次同步都把结果落实成内联端点」。落点三处共用它：模块 init / `astro:after-swap`（`syncHeights`）、容器 ResizeObserver、以及新暴露的 `window.__catTreeSync()`。最后一处由 `row-state.ts` 的 `syncActive()` 在补完自动展开的类之后**立即**调用——否则「先补类、后同步」之间有内联端点空窗（类在位但内联仍是旧落点）。
-- **动效**：自动展开不是「啪一下到位」——`syncTree` 量之前先把每个窗口的当前高度记下（`before`），`syncSizes` 写完最终值后，把参与动画的窗口退回起点（刚展开的窗口 `max-height` 0、内层刚体 `translateY(-实高)`，祖先窗口退回展开前高度）再播，曲线 / 时长与点箭头完全同一套（`EASE` + `ANIM_MS` 340ms）。`REDUCE_MOTION` 与首帧 `data-cat-init` 期间直接落位；容器不可见时标记留着，可见后由 ResizeObserver 补播。
+- **动效**：自动展开不是「啪一下到位」——`syncTree` 量之前先把每个窗口的当前高度记下（`before`），`syncSizes` 写完最终值后，把参与动画的窗口退回起点（刚展开的窗口 `max-height` 0、内层刚体 `translateY(-实高)`，祖先窗口退回展开前高度）再播，曲线 / 时长与点箭头完全同一套（同曲线同长，经 `util/expand-collapse.ts`）。`REDUCE_MOTION` 与首帧 `data-cat-init` 期间直接落位；容器不可见时标记留着，可见后由 ResizeObserver 补播。
   **换页同步必须单点**：`astro:after-swap` 上如果树自己也挂一个监听，同一次换页会同步两遍——第二遍在本任务里把动画起点改写成终值，浏览器先画一帧「已全展开」再从头播，看着是闪一下。所以换页同步只由 `posts-shell` 的 `syncActive()` → `__catTreeSync()` 驱动，树自己只在模块 init 同步一次。
 - **怎么确认**：headless Chrome（CDP，`dist` 静态服务器，逐条内联写入）。①列表→分类：`devnotes` 窗口 `clientHeight` 0 → 58；②列表→文章：同样 58；③人为注入残留（`wrap.style.maxHeight='0px'` + `children.style.transform='translateY(-100%)'`）后调用 `__catTreeSync()`：0 → 58 恢复；④1000px 文章页（侧栏 `display:none`）→ 回分类：`--cat-sub-h` 全为 58、无 0 值；⑤375px 抽屉打开后：58；⑥1000px 首页（普通页）→ 分类：58；⑦动效逐帧（MutationObserver 记录每次内联写入）：`0px`（起点）→ 3.1 → 9.6 → 24.3 → 28.6 → 29px，约 340ms 单调爬升，无中间帧落到终值。
 - **同源先例**：第 43 条（并发 motion 动画收尾会被另一条动画的端点提交写回——同一「内联端点与 CSS 端点谁说了算」家族）、第 42 条（不可见/位移中的祖先会污染量测）、条目「分类树开合」见 `ARCHITECTURE.md` 的 `posts/category-tree.ts` 行。
@@ -510,6 +510,36 @@ if (!animatedElements.length) {
 **修法**：`.toc-scroll` 的滚动条改为默认隐藏，`:hover` / `:focus-within` 时显现（`src/components/posts/TableOfContents.astro` 的 scoped 样式：`scrollbar-color` 与 `::-webkit-scrollbar-thumb` 默认透明、悬停还原值，跨浏览器「三件套」保持齐全）。指针停在目录上时 `src/assets/js/posts/toc.ts` 拦截 wheel 不传给页面，页面滚动条此时不会显示；指针在正文滚动页面时目录滚动条处于透明默认态。两条从此不同屏。
 
 **怎么确认**：长文里指针停在正文滚动，只应看到页面滚动条；指针移到目录上，2px 细滚动条才出现，且此时滚动只滚目录、页面不动。
+
+## 63. 点目录项后 URL 尾部多出锚点（#xxx）；悬停目录项状态栏显示链接地址
+
+**症状**：桌面端点文章目录项，URL 尾部立刻多出 `#标题slug`（如 `/posts/devnotes/css/selector/#11-通配选择器-`）并保留；用这个地址重进页面，浏览器首载就会跳到对应标题。另一个同源表现：鼠标悬停目录项时，浏览器左下角状态栏显示链接地址（`…#slug`）——目录项是页内滚动定位，不是导航链接，地址提示是噪音。
+
+**原因**：目录项当时是真链接 `<a href="#slug">`。URL 问题：swup 4 内置同页锚点处理。swup 默认 `linkSelector` 是 `a[href]`，它在 document 上的点击委托也捕获目录链接：同页链接带 hash 时走 `link:anchor` 默认处理器——`updateHistoryRecord(url + hash)`（`history.pushState` 把 `#slug` 写进 URL，就是尾部锚点的直接来源）加 `scrollToContent`（它自己滚到锚点），与 `posts/toc.ts` 的平滑滚动并行、竞争落点。状态栏问题：Chromium 只对真链接（`a` / `area[href]`）显示悬停地址提示。
+
+**修法**：目录项改为 `<button type="button">`（`src/components/posts/TableOfContents.astro`）。swup 的 `linkSelector`（`a[href]`）从此捕获不到它，同页锚点处理自然不发生；`posts/toc.ts` 的点击委托 + 平滑滚动不变，URL 不再变。button 无 href，状态栏不再显示地址。代价：目录项丢失中键 / 右键「在新标签打开标题」的深链能力（目录项本来就不是导航出口，刻意接受）。
+
+**怎么确认**：长文里连点数次目录项，URL 尾部不出现 hash；页面落到对应标题（按导航高度偏移），目录高亮同步；悬停目录项，状态栏无地址提示。
+
+## 64. 点目录项后目录滚动条常显，与页面滚动条同屏（第 62 条症状复发）
+
+**症状**：桌面端点过一次目录项后，侧栏目录右缘的 2px 细滚动条不再自动隐藏；随后指针在正文滚动页面，视口右缘的页面滚动条与它同时可见，又是两条。
+
+**原因**：指针点击目录项会把焦点带到该目录项上（点击的预激活阶段即完成聚焦，与是否拦截导航无关）。目录滚动条按第 62 条的修法在 `:focus-within` 时显现（给键盘用户滚动目录时的指示），焦点不离开目录它就恒真，滚动条一直可见。
+
+**修法**：`src/assets/js/posts/toc.ts` 的点击委托里，指针点击（`e.detail > 0`）对目录项 `blur()`；键盘激活（Enter / 空格，detail 为 0）保留焦点，键盘用户滚动目录时的指示不丢。
+
+**怎么确认**：点一次目录项后 `document.activeElement` 不再是目录项；指针在正文滚动时只看到页面滚动条，移回目录上 2px 细条才出现。
+
+## 65. 长文滑到底、目录滑到顶后，目录右缘并排出现两条细滚动条
+
+**症状**：桌面端长文，文章滑到最下方后把目录滑到最上方，目录右缘同时出现两条 2px 细滚动条并排——一条是目录内层滚动的悬停条（第 62 条的门控条），另一条从侧栏边缘「卡」出来。活动项仍在窗内时（目录居中跟随）不出现，只有活动项被推出目录可视窗才出现。
+
+**原因**：活动项竖线 `.toc-active-bar` 是绝对定位，`translateY` 由活动项 offset 减目录 `scrollTop` 现算。文章在底部时活动项是最后一项，目录滚到顶后竖线被定位到目录可视窗下方数百像素处；`.toc-track` 原先不裁剪，竖线溢出计入其最近的滚动容器——sticky 的 `.post-sidebar`（`overflow-y: auto`，`src/layouts/PostsShell.astro`）——侧栏 `scrollHeight` 瞬间大于 `clientHeight` 变可滚，它自带的无门控细滚动条（0.1 alpha、2px）随之弹出，与悬停的目录条并排。
+
+**修法**：`.toc-track` 加 `overflow: hidden`（`src/components/posts/TableOfContents.astro` 的 scoped 样式）。竖线在活动项出窗时被裁在轨道边缘（出窗本来就不该画在外面），溢出无从进入侧栏滚动区。单条 CSS 覆盖竖线位移的全部写入路径（滚轮现算、触摸 scroll 监听、retarget 过渡），不逐点改 JS 钳制；侧栏 `overflow-y: auto` 保留作防御。
+
+**怎么确认**：文章滑到底、目录滑到顶，侧栏 `scrollHeight === clientHeight`（不可滚），同屏只剩目录自己的悬停细条一条；把目录滑回活动项在窗内，竖线照常贴住活动项。
 
 ## 决定台账（刻意设计 / 已知不修 / 排查过不是 bug）
 

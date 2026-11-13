@@ -281,8 +281,8 @@ const items = navItems.map((item) => ({
   }
 
   /* 手机端下拉菜单 - 常驻DOM，用高度+位移实现滑落；
-     开合动效由 motion 驱动（hamburger.ts）：这里只定义开/关两个端点状态，
-     动画飞行中的值由 motion 接管，结束后提交的最终值与端点一致 */
+     开合动效走共享编排 util/expand-collapse.ts（hamburger.ts 调用）：
+     这里只定义开/关两个端点状态，飞行中的值由编排接管，落点与端点一致 */
   .mobile-dropdown {
     max-height: 0;
     overflow: hidden;
@@ -294,6 +294,16 @@ const items = navItems.map((item) => ({
        （全局 border-box，max-height 含边框）；380px 是无 JS 时的兜底 */
     max-height: calc(var(--dd-h, 380px) + 1px);
     border-top-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .mobile-dropdown-inner {
+    /* 刚体：窗口高 = 内层实高 + 1px 边框，上移 calc(-100% - 1px) 正好让底边贴窗口顶，
+       与共享编排的 -height 同一落点；飞行中窗口与刚体同曲线，任意一帧子项不被压缩 */
+    transform: translateY(calc(-100% - 1px));
+  }
+
+  .mobile-dropdown.is-open .mobile-dropdown-inner {
+    transform: translateY(0);
   }
 
   .mobile-menu {

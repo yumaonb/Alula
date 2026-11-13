@@ -14,10 +14,9 @@
 
 import type { animate as animateType, AnimationPlaybackControls } from 'motion';
 
-/** 只包含实际用到的两个函数，让 Rollup 能把 motion 其余部分 tree-shake 掉 */
+/** 只包含实际用到的函数，让 Rollup 能把 motion 其余部分 tree-shake 掉 */
 export interface Motion {
   animate: typeof animateType;
-  stagger: typeof import('motion').stagger;
 }
 export type Animate = typeof animateType;
 
@@ -126,16 +125,4 @@ export function animateLazy(
     element instanceof Element ? [element] : Array.from(element as ArrayLike<Element>);
   for (const target of targets) applyFinalKeyframes(target, keyframes);
   return INSTANT;
-}
-
-/** `stagger()` 的替身：未就绪时返回 0（所有项同时开始，无交错） */
-export function staggerLazy(...args: unknown[]): number {
-  const motion = motionSync();
-  if (motion) {
-    // stagger() 的返回类型是 DynamicOption<number>（可能是函数），
-    // 这里只把实际用到的数值形态取出来；函数形态由调用方自己展开
-    const result = motion.stagger(...(args as [number, never])) as unknown;
-    return typeof result === 'number' ? result : 0;
-  }
-  return 0;
 }

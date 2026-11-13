@@ -415,13 +415,6 @@
   transform: scaleY(1);
 }
 
-/* 首屏（还没量完高度）不播展开动画：一进后台就看到菜单自己滑一下很怪。
- * data-nav-init 由 AdminNav 输出，shell.ts 量完第一遍高度就摘掉。 */
-[data-nav-init] .admin-nav-sub,
-[data-nav-init] .admin-nav-sub-clip {
-  transition: none;
-}
-
 .admin-nav-icon {
   width: 17px;
   height: 17px;
@@ -435,6 +428,7 @@
  * 折叠分两层（分类树 PostCategoryNode 同一套）：
  * 外层 .admin-nav-sub 是窗口：max-height 0 → var(--sub-h)，--sub-h 由 shell.ts 量出的内容实高写入；
  * 内层 .admin-nav-sub-clip 是刚体：translateY(-100%) ↔ 0 整组滑出/收回。
+ * CSS 只定义开/关端点；飞行由 motion 共享编排（util/expand-collapse.ts，经 admin/shell.ts 引入）驱动：
  * 窗口与刚体同一条 0.34s 曲线，窗口只裁切、不压缩子项（为什么不直接用 0fr/1fr，见下方 .admin-nav-sub 处注释）。
  *
  * 层级用「一条细轨道 + 略暗的字」两级就够，不再铺底色：
@@ -505,7 +499,6 @@
 .admin-nav-sub {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.34s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .admin-nav-group.is-open > .admin-nav-sub {
@@ -520,7 +513,6 @@
   display: flex;
   flex-direction: column;
   transform: translateY(-100%);
-  transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .admin-nav-group.is-open > .admin-nav-sub > .admin-nav-sub-clip {
