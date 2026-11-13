@@ -108,11 +108,16 @@ if (hasH1 && hasH2) {
     overflow-y: auto;
     overflow-x: hidden;
     padding-left: 6px;
-    /* 三件套齐全才跨浏览器一致：scrollbar-width / scrollbar-color 管 Firefox，
-     * ::-webkit-scrollbar 管 Chromium 与 Safari。只写 ::-webkit-scrollbar 的话，
-     * Firefox 会露出系统默认的粗滚动条（Windows 上尤其突兀），
-     * 与目录竖线（2px 细线）的观感也对不上。 */
+    /* 默认隐藏，悬停或聚焦目录时才显现：否则长文里它会与全站页面滚动条同屏，
+     * 一条挨着侧栏边缘、一条挨着视口边缘，像卡出来两条。
+     * 三件套齐全才跨浏览器一致：scrollbar-width / scrollbar-color 管 Firefox，
+     * ::-webkit-scrollbar 管 Chromium 与 Safari。 */
     scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .toc-scroll:hover,
+  .toc-scroll:focus-within {
     scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
 
@@ -123,8 +128,13 @@ if (hasH1 && hasH2) {
     background: transparent;
   }
   .toc-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: transparent;
     border-radius: 2px;
+  }
+
+  .toc-scroll:hover::-webkit-scrollbar-thumb,
+  .toc-scroll:focus-within::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
   }
 
   .toc-active-bar {
