@@ -2,20 +2,22 @@
 // 用法：由 BaseLayout 引入：import "../assets/js/posts/posts-shell"
 //
 // 侧边栏与搜索框都在 #swup 之外、切页不重建，切页后要据此重跑一遍。具体实现在各分件：
+// 左缘条常驻盒（.posts-edge-float）克隆换入 → posts/edge-float.ts
 // 行变体类 / 侧栏顶偏移 / 侧栏高亮 → posts/row-state.ts
 // 搜索浮层摆位与显隐落位 → posts/search-float.ts
-// 区内切换标记 is-post-swap → 本文件（swup:visit:start 开、visit:end 关）
-// 本文件只做环境探测、motion 预取与接线。切页转场本身是 CSS
-//（html 的 is-leaving / is-rendering 类 + .transition-page，见 global.css「切页转场」），
-// 无需 JS 编排；swup 换内容后这里只落位壳（搜索框到目标态）。
+// 区内切换标记 is-post-swap / is-swap-list-list → 本文件（swup:visit:start 开、visit:end 关）
+// 本文件只做环境探测、motion 预取与接线。切页转场本身是 CSS（html 的
+// is-leaving / is-rendering 类 + .transition-page，见 global.css「切页转场」），
+// 无需 JS 编排；swup 换内容后这里落位壳（左缘克隆换入 + 搜索框到目标态）。
 // category-tree 脚本按需懒加载（从非文章页进入文章区时），模块单例。
 // 完整机制与取舍见 docs/reference/ARCHITECTURE.md 与 docs/reference/TROUBLESHOOTING.md。
 
+import { createEdgeFloat } from './edge-float';
 import { createEarlyNav } from './early-nav';
 import { createRowState } from './row-state';
 import { createSearchFloat, placeFloat } from './search-float';
 import { preloadMotion } from '../util/motion';
-import { isPostAreaPath } from '../../../lib/category';
+import { isPostAreaPath, postPathSegments } from '../../../lib/category';
 
 (() => {
   if (window.__postsShellInit) return;
@@ -53,10 +55,13 @@ import { isPostAreaPath } from '../../../lib/category';
     row,
   });
 
-  /* ---- 3. 首屏早期导航与 fetch 失败兜底（实现在 posts/early-nav.ts） ---- */
+  /* ---- 3. 左缘条常驻盒（行级 .posts-edge-float，实现在 posts/edge-float.ts） ---- */
+  const edgeFloat = createEdgeFloat({ row });
+
+  /* ---- 4. 首屏早期导航与 fetch 失败兜底（实现在 posts/early-nav.ts） ---- */
   const earlyNav = createEarlyNav({ row, reduceMotion: REDUCE_MOTION, floatCtl });
 
-  /* ---- 4. 事件与初始化 ---- */
+  /* ---- 5. 事件与初始化 ---- */
 
   /* ---- category-tree 脚本守卫：侧栏常驻，模块只需加载一次 ---- */
   let categoryTreeLoad: Promise<void> | null = null;
@@ -78,9 +83,10 @@ import { isPostAreaPath } from '../../../lib/category';
     return categoryTreeLoad;
   }
 
-  // 两个生命周期共用的同步步骤：按新内容重测行变体、侧栏偏移与高亮
+  // 两个生命周期共用的同步步骤：按新内容重测行变体、左缘克隆、侧栏偏移与高亮
   function syncShellState(): void {
     syncVariant();
+    edgeFloat.sync();
     syncOffset();
     observeAnchor();
     syncSearchPos();
@@ -103,21 +109,44 @@ import { isPostAreaPath } from '../../../lib/category';
     if (r) floatCtl.settle(!!r.querySelector('.posts-header-search'));
   }
 
-  /* ---- 5. 区内切换标记（is-post-swap，动效见 global.css「切页转场」） ---- */
-  // 左缘条（页头 / 面包屑）的原地渐隐渐显 + 白色瞬幕动效只在源页与目标页都在文章区时生效。
-  // visit:start 时行变体类还是源页的（翻变体在 content:replace），源页按变体判、
-  // 目标页按 URL 判；visit:end 摘标记，生命周期与一次转场窗口对齐。
+  /* ---- 6. 区内切换标记（is-post-swap / is-swap-list-list，动效见 global.css「切页转场」） ---- */
+  // 左缘常驻盒内车道的原地模糊渐隐渐显、侧栏不播曲线，只在源页与目标页都在文章区时
+  // 生效（is-post-swap）；visit:start 时行变体类还是源页的（翻变体在 content:replace），
+  // 源页按变体判、目标页按 URL 判；visit:end 摘标记，生命周期与一次转场窗口对齐。
+  // is-swap-list-list 更窄：源页是列表变体且目标也是列表页，搜索框退出 / 进入规则
+  // 上的 :not 据此把它摘出曲线（全程不动，只有列表↔详情才隐显）。
   function onVisitStart(e: Event): void {
     const r = row();
     if (!r) return;
     const detail = (e as CustomEvent).detail as { visit?: { to?: { url: string } } } | undefined;
+    const targetUrl = detail?.visit?.to?.url ?? '';
     const fromInPosts =
       r.classList.contains('page-main--listing') || r.classList.contains('page-main--post');
-    r.classList.toggle('is-post-swap', fromInPosts && isPostAreaPath(detail?.visit?.to?.url ?? ''));
+    const inPostSwap = fromInPosts && isPostAreaPath(targetUrl);
+    r.classList.toggle('is-post-swap', inPostSwap);
+    r.classList.toggle(
+      'is-swap-list-list',
+      inPostSwap && r.classList.contains('page-main--listing') && isListingUrl(targetUrl),
+    );
   }
 
   function onVisitEnd(): void {
-    row()?.classList.remove('is-post-swap');
+    row()?.classList.remove('is-post-swap', 'is-swap-list-list');
+  }
+
+  /** 目标 URL 是不是文章列表页（根 / 分类 / 标签）。visit:start 只有源页变体 + 目标 URL，
+   *  单看 URL 形状分不出「分类页」和「同名路径下的文章页」，借常驻侧栏分类树取已知
+   *  分类集判：整条路径（文章区之后各段）精确命中某分类路径才算列表页。
+   *  不能用最长前缀 activeCategoryOf——文章 URL 前缀必命中所属分类，会被误判成列表页。
+   *  分类目录名恒为小写连字符 ASCII（§7 硬约束），各段 join 直接比，无需解码。 */
+  function isListingUrl(url: string): boolean {
+    const segs = postPathSegments(url);
+    if (segs.length === 0) return true;
+    if (segs[0] === 'tag' && segs.length === 2) return true;
+    const items = Array.from(
+      document.querySelectorAll<HTMLElement>('.global-sidebar .cat-item[data-category]'),
+    );
+    return new Set(items.map((el) => el.dataset.category ?? '')).has(segs.join('/'));
   }
 
   // astro:* 事件由 @swup/astro 在 document 上派发且不冒泡（new Event 默认 bubbles:false），必须监听 document

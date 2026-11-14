@@ -179,11 +179,14 @@ ol {
 .page-main--listing {
   --posts-offset-gap: 14px;
   --posts-side-offset: 50px;
+  /* 左缘常驻盒（.posts-edge-float）的 top：须与同规则 padding-top 保持同值 */
+  --posts-edge-top: 82px;
   padding-top: 82px;
 }
 .page-main--post {
   --posts-offset-gap: 14px;
   --posts-side-offset: 50px;
+  --posts-edge-top: 82px;
   padding-top: 82px;
 }
 /* 手机端（≤768px）：导航更矮（57px），同样的 82px 留白显得松——内容顶与标准页统一：
@@ -198,6 +201,7 @@ ol {
 @media (max-width: 768px) {
   .page-main--listing,
   .page-main--post {
+    --posts-edge-top: 73px;
     padding-top: 73px;
   }
 
@@ -206,6 +210,7 @@ ol {
     padding-top: 70px;
     --posts-offset-gap: 13px;
     --posts-side-offset: 41px;
+    --posts-edge-top: 70px;
   }
 }
 
@@ -232,6 +237,45 @@ ol {
 .page-main--post > .global-sidebar {
   padding-top: var(--posts-side-offset, 0);
   transition: padding-top 0.4s ease;
+}
+
+/* 左缘条行级常驻盒（BaseLayout 渲染在行内、main#swup 之外）：页头 / 面包屑的
+ * 显示实例。#swup 里的驱动条（.posts-edge-slot 内的 .posts-header / .posts-breadcrumb）
+ * 只留布局空间（搜索浮层叠放测算、锚高度观察）+ 无 JS 回退显示；JS 接管后
+ * posts/edge-float.ts 把驱动条深克隆进本盒（车道 .posts-edge-content）、行加
+ * is-edge-live 隐掉驱动条。
+ * top 取变体的 --posts-edge-top（与行 padding-top 同值：槽顶边即行 padding-top），
+ * 盒横跨整行、与驱动条通栏同位。z-index 20 与包裹槽同档（盒在槽的 DOM 之后，
+ * 压过驱动条），低于搜索浮层（30）——搜索框照常叠在占位区上。
+ * visibility 默认 hidden、仅文章区变体可见（普通页盒是空的、不参与转场）。
+ * 转场见下方「切页转场」：跨区切页盒随 page-exit / page-enter 曲线；
+ * 区内切页（is-post-swap）盒不位移、车道原地模糊渐隐渐显 */
+.posts-edge-float {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--posts-edge-top, 82px);
+  z-index: 20;
+  visibility: hidden;
+}
+.page-main--listing > .posts-edge-float,
+.page-main--post > .posts-edge-float {
+  visibility: visible;
+}
+/* 文章变体 ≥851px：目录右列可见，驱动条右缘在内容列右缘（TOC 左侧），盒收进
+ * 「目录宽 + 行间隙」与驱动条像素级重合。240px 须与 layouts/PostsShell.astro 的
+ * .post-sidebar 宽同值（≤850px 目录隐藏，盒照常通栏） */
+@media (min-width: 851px) {
+  .page-main--post > .posts-edge-float {
+    right: calc(240px + var(--card-gap));
+  }
+}
+
+/* 常驻克隆生效后隐藏驱动条：visibility 不影响布局，浮层叠放测算 / 锚高度 /
+ * ResizeObserver 仍照读驱动条 */
+.page-main.is-edge-live main#swup .posts-edge-slot > .posts-header,
+.page-main.is-edge-live main#swup .posts-edge-slot > .posts-breadcrumb {
+  visibility: hidden;
 }
 
 /* 搜索框行级常驻（BaseLayout 渲染在行内、main#swup 之外）：
@@ -275,44 +319,60 @@ ol {
  * 按 .transition-page 的 animationDuration 等播完再继续）。
  * 退出：整块下移渐隐，forwards 钉住终帧，防 DOM 替换间隙回闪；
  * 进入：新内容从下方上移渐显，终态即元素自然状态，无需 fill。
- * 行级侧栏 / 搜索框在 #swup 外，按行变体类跟上同曲线：退出期行上还是源页的
- * 变体、进入期已翻成目标页的变体（content:replace 同帧翻），规则各自只命中
- * 该侧本来就该动的那个元素。
+ * 行级侧栏 / 搜索框 / 左缘常驻盒在 #swup 外，按行变体类跟上同曲线：退出期行上
+ * 还是源页的变体、进入期已翻成目标页的变体（content:replace 同帧翻），规则各自
+ * 只命中该侧本来就该动的那个元素。
  * 区内切换（行带 is-post-swap，posts-shell.ts 在 visit:start 标记、visit:end 摘除）：
- * 左缘条（页头 / 面包屑）用反向位移抵消容器位移，原地渐隐渐显，不挂 filter（逐帧
- * blur 的栅格重建代价太大），改用白色瞬幕（--page-veil 在条底上退出期 0.05s 渐显、
- * 进入期 0.05s 渐隐，速度写死不立令牌）。规则挂在
- * 条自身而不是包裹槽——子元素 transform 不参与槽的盒测量，placeFloat 叠放测算不受影响。
+ * 左缘常驻盒不位移（animation: none 压过跨区规则），盒内车道（.posts-edge-content，
+ * 驱动条的深克隆）原地模糊渐隐渐显（edge-blur-out / edge-blur-in，半径 --page-edge-blur；
+ * 车道是单条小栏不是栅格，逐帧 blur 的代价可接受），侧栏两变体同位常驻、不播曲线；
+ * 驱动条本体在 #swup 内随整块位移，但被 is-edge-live 隐着、不参与视觉。
+ * 列表页之间再叠加 is-swap-list-list（源页是列表变体且目标也是列表页）：搜索框退出 /
+ * 进入规则上的 :not 把它摘出曲线，全程不动——只有列表↔详情才隐显。
  * 玻璃平铺（veil）：动画窗口内 #swup 里与侧栏 / 搜索框里所有 .glass 的磨砂换成
  * 不透明白填底（--page-veil）。原因：opacity < 1 会新建 backdrop root，其后代
  * 的 backdrop-filter 全部失效（TROUBLESHOOTING 20.1 实测标准差 78.9 vs 基线 1.58）；
- * 磨砂平铺后 opacity 动画窗口内不存在「模糊跟着变淡」。 */
+ * 磨砂平铺后 opacity 动画窗口内不存在「模糊跟着变淡」。区内不播曲线的常驻玻璃
+ * （侧栏、列表间切换的搜索框）opacity 恒 1、磨砂不失效，另行豁免平铺免得白闪。 */
 html.is-leaving .transition-page,
-html.is-leaving .page-main--listing .posts-search-float,
+html.is-leaving .page-main--listing:not(.is-swap-list-list) .posts-search-float,
 html.is-leaving .page-main--listing > .global-sidebar,
-html.is-leaving .page-main--post > .global-sidebar {
+html.is-leaving .page-main--post > .global-sidebar,
+html.is-leaving .page-main--listing > .posts-edge-float,
+html.is-leaving .page-main--post > .posts-edge-float {
   animation: page-exit var(--t-page-exit) forwards;
 }
 
 html.is-rendering .transition-page,
-html.is-rendering .page-main--listing .posts-search-float,
+html.is-rendering .page-main--listing:not(.is-swap-list-list) .posts-search-float,
 html.is-rendering .page-main--listing > .global-sidebar,
-html.is-rendering .page-main--post > .global-sidebar {
+html.is-rendering .page-main--post > .global-sidebar,
+html.is-rendering .page-main--listing > .posts-edge-float,
+html.is-rendering .page-main--post > .posts-edge-float {
   animation: page-enter var(--t-page-enter);
 }
 
-html.is-leaving .page-main.is-post-swap .posts-header,
-html.is-leaving .page-main.is-post-swap .posts-breadcrumb {
-  animation:
-    page-exit-edge var(--t-page-exit) forwards,
-    page-edge-veil-in 0.05s forwards;
+/* 区内切换：常驻盒不位移（压过上面的跨区规则），车道原地模糊渐隐渐显 */
+html.is-leaving .page-main--listing.is-post-swap > .posts-edge-float,
+html.is-leaving .page-main--post.is-post-swap > .posts-edge-float,
+html.is-rendering .page-main--listing.is-post-swap > .posts-edge-float,
+html.is-rendering .page-main--post.is-post-swap > .posts-edge-float {
+  animation: none;
 }
 
-html.is-rendering .page-main.is-post-swap .posts-header,
-html.is-rendering .page-main.is-post-swap .posts-breadcrumb {
-  animation:
-    page-enter-edge var(--t-page-enter),
-    page-edge-veil-out 0.05s;
+/* 区内切换：侧栏两种变体同位常驻（顶偏移同值，只有内部内容态变化），
+ * 不播出入场曲线、全程原地，免得同一条侧栏每次区内切页都渐隐渐显 */
+html.is-leaving .page-main.is-post-swap > .global-sidebar,
+html.is-rendering .page-main.is-post-swap > .global-sidebar {
+  animation: none;
+}
+
+html.is-leaving .page-main.is-post-swap .posts-edge-float .posts-edge-content {
+  animation: edge-blur-out var(--t-page-exit) forwards;
+}
+
+html.is-rendering .page-main.is-post-swap .posts-edge-float .posts-edge-content {
+  animation: edge-blur-in var(--t-page-enter);
 }
 
 html.is-changing #swup .glass,
@@ -321,6 +381,14 @@ html.is-changing .posts-search-float .glass {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   background: var(--page-veil);
+}
+/* 区内不播曲线的常驻玻璃：侧栏（is-post-swap）与列表间切换的搜索框（is-swap-list-list）
+ * opacity 恒 1、磨砂不失效，平铺只会在白填底那一帧闪一下——豁免，恢复磨砂与透明底 */
+html.is-changing .page-main.is-post-swap > .global-sidebar .glass,
+html.is-changing .page-main.is-swap-list-list .posts-search-float .glass {
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  background: transparent;
 }
 /* .glass-tall 的模糊在 sticky ::before 上（见 utilities.css），一并平铺 */
 html.is-changing #swup .glass-tall::before {
@@ -342,31 +410,19 @@ html.is-changing #swup .glass-tall::before {
   }
 }
 
-@keyframes page-exit-edge {
+/* 区内切换车道：模糊渐隐 / 渐显（退出用 forwards 钉住终帧到 DOM 替换；
+ * 进入终点即自然态，无需 fill） */
+@keyframes edge-blur-out {
   to {
     opacity: 0;
-    transform: translateY(calc(-1 * var(--page-shift)));
+    filter: blur(var(--page-edge-blur));
   }
 }
 
-@keyframes page-enter-edge {
+@keyframes edge-blur-in {
   from {
     opacity: 0;
-    transform: translateY(calc(-1 * var(--page-shift)));
-  }
-}
-
-/* 白色瞬幕：条底快速（0.05s 写死）变到 --page-veil 再变回，替代逐帧 blur。
- * 退出用 forwards 钉住终帧到 DOM 替换；进入终点即自然态，无需 fill */
-@keyframes page-edge-veil-in {
-  to {
-    background-color: var(--page-veil);
-  }
-}
-
-@keyframes page-edge-veil-out {
-  from {
-    background-color: var(--page-veil);
+    filter: blur(var(--page-edge-blur));
   }
 }
 
@@ -376,16 +432,18 @@ html.is-changing #swup .glass-tall::before {
 @media (prefers-reduced-motion: reduce) {
   html.is-leaving .transition-page,
   html.is-rendering .transition-page,
-  html.is-leaving .page-main--listing .posts-search-float,
-  html.is-rendering .page-main--listing .posts-search-float,
+  html.is-leaving .page-main--listing:not(.is-swap-list-list) .posts-search-float,
+  html.is-rendering .page-main--listing:not(.is-swap-list-list) .posts-search-float,
   html.is-leaving .page-main--listing > .global-sidebar,
   html.is-rendering .page-main--listing > .global-sidebar,
   html.is-leaving .page-main--post > .global-sidebar,
   html.is-rendering .page-main--post > .global-sidebar,
-  html.is-leaving .page-main.is-post-swap .posts-header,
-  html.is-rendering .page-main.is-post-swap .posts-header,
-  html.is-leaving .page-main.is-post-swap .posts-breadcrumb,
-  html.is-rendering .page-main.is-post-swap .posts-breadcrumb {
+  html.is-leaving .page-main--listing > .posts-edge-float,
+  html.is-rendering .page-main--listing > .posts-edge-float,
+  html.is-leaving .page-main--post > .posts-edge-float,
+  html.is-rendering .page-main--post > .posts-edge-float,
+  html.is-leaving .page-main.is-post-swap .posts-edge-float .posts-edge-content,
+  html.is-rendering .page-main.is-post-swap .posts-edge-float .posts-edge-content {
     animation-duration: 0.01s;
   }
 }
