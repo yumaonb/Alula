@@ -1,5 +1,5 @@
 // shell.ts — 后台外壳运行时（连接弹窗 / 仓库状态 / 顶部提示）
-// 用法：由 AdminLayout 引入：import "../assets/js/admin/shell"
+// 用法：由 AdminLayout 引入：import "./js/shell"
 //
 // 外壳在 #swup 容器之外，swup 切页不会碰它，所以连接状态与表单里填到一半的密钥
 // 都不会因为切页丢失。密钥只写进内存，不落任何浏览器存储。
@@ -14,8 +14,8 @@ import {
   verifyConnection,
 } from './github';
 import { adminStore } from './store';
-import { toggleGroup } from '../util/expand-collapse';
-import { preloadMotion } from '../util/motion';
+import { toggleGroup } from './expand-collapse';
+import { preloadMotion } from './motion';
 
 const shell = document.getElementById('admin-shell');
 
@@ -190,7 +190,7 @@ function setDrawer(open: boolean): void {
  * 用 dataset 而不是 JS 变量存，是因为侧栏在 #swup 之外、切页不重建，
  * 标记挂在 DOM 上天然能跨页保留。
  *
- * 飞行由共享编排 util/expand-collapse.ts 驱动（CSS 只留端点）：
+ * 飞行由同目录 expand-collapse.ts（前台 util 版的独立拷贝）驱动（CSS 只留端点）：
  * 展开/收起窗口与刚体同曲线同长；首屏的自动展开赶在 motion 就绪之前，直接落位不播动画。
  */
 export function setAccordion(group: Element, open: boolean, byUser = false): void {

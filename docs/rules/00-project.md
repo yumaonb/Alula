@@ -27,16 +27,16 @@ Alula：Astro 5 + Svelte 5 + TypeScript 的静态个人站点，深色毛玻璃�
 
 ```
 src/
-├── assets/css/          全局样式（根目录=全站基础+小元件聚合：variables/global/utilities；shared/=全站可复用组件级：drawer/image-fallback/lightbox/skeleton；posts/=文章；admin/=后台）
+├── assets/css/          全局样式（根目录=全站基础+小元件聚合：variables/global/utilities；shared/=全站可复用组件级：drawer/image-fallback/lightbox/skeleton；posts/=文章）
 ├── assets/backgrounds/  全站背景预设（css/ 纯 CSS 绘制、images/ 图片），由 src/data/background.ts 选择
-├── assets/js/           客户端脚本（DOM 交互）：nav/ 导航与外壳常驻控件、posts/ 文章区、ui/ 通用可视元件、util/ 小工具、data/ 外部数据、admin/ 后台
+├── assets/js/           客户端脚本（DOM 交互）：nav/ 导航与外壳常驻控件、posts/ 文章区、ui/ 通用可视元件、util/ 小工具、data/ 外部数据
 ├── assets/images/       站点自带图片（头像等）
-├── components/          layout 布局层 / posts 文章区 / widgets 小组件 / admin 后台
+├── components/          layout 布局层 / posts 文章区 / widgets 小组件
 ├── content/posts/       文章：目录结构即分类，各分类可放 index.json 定义分类名
 ├── data/                站点配置与数据（site / profile / quotes / github / background ...）
-├── layouts/             BaseLayout（全站外壳，含文章区常驻侧栏）、PostsShell（文章区统一布局）、AdminLayout（后台独立外壳）
+├── layouts/             BaseLayout（全站外壳，含文章区常驻侧栏）、PostsShell（文章区统一布局）
 ├── lib/                 构建期专用（无浏览器 API）：category.ts 纯函数、posts-data.ts 数据入口、nav-match.ts 导航匹配（与浏览器侧同源）
-└── pages/               路由：index / about / friends / projects / sponsor / posts/** / admin/**
+└── pages/               路由：index / about / friends / projects / sponsor / posts/** / admin/**（admin/_admin/ 是后台自包含本体，下划线目录不被路由）
 tests/                   自检脚本（纯 Node，无第三方依赖）：quality/=代码质量、behavior/=业务逻辑测试、run.mjs=汇总门禁
 ```
 

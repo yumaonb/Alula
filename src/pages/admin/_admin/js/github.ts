@@ -1,5 +1,5 @@
 // github.ts — 后台的 GitHub API 客户端（读取 + 一次性打包提交）
-// 用法：import { verifyConnection, listPostFiles, commitStaged } from "../../assets/js/admin/github"
+// 用法：import { commitStaged } from "../js/github"（components 目录引入；js 目录内用 "./github"）
 //
 // 提交走 Git Data API 的五步流水线，无论暂存了多少文件都只产生一个 commit：
 //   取分支头 → 取头提交的 tree → 逐个变更建 blob → 建 tree（带 base_tree）→ 建 commit → 移动分支引用

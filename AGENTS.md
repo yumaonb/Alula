@@ -24,14 +24,14 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 
 ## 规则怎么读（规则不自动加载，靠这张表）
 
-| 要动的文件                                      | 动手前先读                                                           |
-| ----------------------------------------------- | -------------------------------------------------------------------- |
-| 项目总览、命令、目录地图、项目级硬约束          | `docs/rules/00-project.md`                                           |
-| CSS / 样式放哪里                                | `docs/rules/30-css.md`                                               |
-| 组件选型与水合指令（`src/**/*.{astro,svelte}`） | `docs/rules/40-astro-svelte.md`                                      |
-| 文章内容（`src/content/**`）                    | `docs/rules/50-content.md`                                           |
-| 客户端脚本（`src/assets/js/**`）                | `docs/rules/60-client-script.md`                                     |
-| 收工前                                          | `docs/rules/70-verify.md` 验证、`docs/rules/80-doc-sync.md` 同步文档 |
+| 要动的文件                                                       | 动手前先读                                                           |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 项目总览、命令、目录地图、项目级硬约束                           | `docs/rules/00-project.md`                                           |
+| CSS / 样式放哪里                                                 | `docs/rules/30-css.md`                                               |
+| 组件选型与水合指令（`src/**/*.{astro,svelte}`）                  | `docs/rules/40-astro-svelte.md`                                      |
+| 文章内容（`src/content/**`）                                     | `docs/rules/50-content.md`                                           |
+| 客户端脚本（`src/assets/js/**`、`src/pages/admin/_admin/js/**`） | `docs/rules/60-client-script.md`                                     |
+| 收工前                                                           | `docs/rules/70-verify.md` 验证、`docs/rules/80-doc-sync.md` 同步文档 |
 
 ## 开发规范
 
@@ -44,6 +44,7 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 - 不引入新的前端框架或 CSS 框架；动画只允许 `motion` 的 vanilla API（不引框架版）。
 - 不写只在浏览器里成立的顶层代码：`.astro` 前置脚本在构建期执行，`window` / `document` 只能出现在 `<script>` 块或 Svelte 生命周期里。
 - 不用淘汰的语法：HTML 的淘汰标签与属性（`<font>` / `<center>` / `<marquee>` / `align=` / `bgcolor=`），CSS 的淘汰写法（IE 滤镜、`-moz-opacity` 之类）。
+- 后台是自包含外壳：组件 / 样式 / 脚本全部在 `src/pages/admin/_admin/`（下划线目录不被 Astro 路由），禁止 import 前台的 `src/components/`、`src/layouts/`、`src/assets/`；需要相同的东西就拷进 `_admin/` 各自维护；共享的只有构建期配置 `src/data/`。
 
 ### 2. 命名
 
@@ -119,7 +120,7 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 
 ### 5. 样式
 
-- 设计令牌（颜色、圆角、模糊、时长）只在 `src/assets/css/variables.css` 定义；后台专属令牌（`--nav-*` / `--admin-shadow*`）放 `admin/variables.css`；组件不硬编码。
+- 设计令牌（颜色、圆角、模糊、时长）只在 `src/assets/css/variables.css` 定义；后台专属令牌（`--nav-*` / `--admin-shadow*`）放 `src/pages/admin/_admin/css/variables.css`（连同全站令牌的独立拷贝）；组件不硬编码。
 - 圆角分两档，按元件角色判定：小标签 / chip 用 `--radius-sm`，卡片与按钮用 `--radius`（细则见 `docs/reference/CSS.md`「令牌」节）。
 - 是否立令牌以语义为准，不以「重复次数」为判据：值承载稳定设计含义、会在多处持续复用时才立（由设计者定夺），单纯重复不强制。
 - 不用 `!important`；要覆盖就调选择器权重或换类名。
@@ -133,7 +134,7 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 
 ### 6. 客户端脚本
 
-- 放 `src/assets/js/`，新文件一律 `.ts`。
+- 放 `src/assets/js/`（后台脚本放 `src/pages/admin/_admin/js/`，不 import `src/assets/js/`），新文件一律 `.ts`。
 - 文件头写「用法：由哪个组件引入」。
 - 假设 DOM 随时被替换：监听元素前先判空，优先事件委托，内容替换后需要重绑的绑定要能重绑。
 - 不用 `DOMContentLoaded`；用 `swup:content:replace` / `astro:after-swap` / `astro:page-load`；swup v3 驼峰事件名（`swup:contentReplaced` 之类）不会触发，禁止使用。
@@ -250,14 +251,14 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 ## 目录地图
 
 ```
-src/assets/css/          全局样式：根目录=全站基础+小元件聚合（variables/global/utilities）；shared/=全站可复用组件级（drawer/image-fallback/lightbox/skeleton）；posts/=文章；admin/=后台
+src/assets/css/          全局样式：根目录=全站基础+小元件聚合（variables/global/utilities）；shared/=全站可复用组件级（drawer/image-fallback/lightbox/skeleton）；posts/=文章
 src/assets/backgrounds/  全站背景预设（css/ 绘制、images/ 图片）
-src/assets/js/           客户端脚本（swup 下的 DOM 交互）：nav/ 导航与外壳常驻控件、posts/ 文章区、ui/ 通用可视元件、util/ 小工具、data/ 外部数据、admin/ 后台
-src/components/          layout 布局 / posts 文章区 / widgets 小组件 / admin 后台
+src/assets/js/           客户端脚本（swup 下的 DOM 交互）：nav/ 导航与外壳常驻控件、posts/ 文章区、ui/ 通用可视元件、util/ 小工具、data/ 外部数据
+src/components/          layout 布局 / posts 文章区 / widgets 小组件
 src/content/posts/       文章：目录结构即分类
 src/data/                站点配置与数据
-src/layouts/             BaseLayout（全站壳，含文章区常驻侧栏）、PostsShell（文章区统一布局）、AdminLayout（后台独立壳）
+src/layouts/             BaseLayout（全站壳，含文章区常驻侧栏）、PostsShell（文章区统一布局）
 src/lib/                 构建期专用（无浏览器 API）：category.ts 纯函数、posts-data.ts 数据入口、nav-match.ts 导航匹配（与浏览器侧同源）、content-image.ts 文章图片解析
-src/pages/               路由（admin/ 是后台：仪表盘 / 文章列表 / 编辑器 / 分类管理 / 网站设置）
+src/pages/               路由（admin/ 是后台：仪表盘 / 文章列表 / 编辑器 / 分类管理 / 网站设置；admin/_admin/ 是后台自包含本体，下划线目录不被路由）
 tests/                   自检脚本（Node，零第三方依赖）：quality/=代码质量（leaks/docs/contracts/registry）、behavior/=业务逻辑测试、run.mjs=汇总门禁
 ```

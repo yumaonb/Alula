@@ -3,8 +3,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  import { commitStaged } from '../../assets/js/admin/github';
-  import { adminStore, type StagedChange } from '../../assets/js/admin/store';
+  import { commitStaged } from '../js/github';
+  import { adminStore, type StagedChange } from '../js/store';
 
   let connected = $state(false);
   let changes = $state<StagedChange[]>([]);

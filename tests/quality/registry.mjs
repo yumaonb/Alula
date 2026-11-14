@@ -16,7 +16,8 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { walk, byExt, read, root, runCheck, isMain } from './lib/common.mjs';
 
-const COMPONENT_DIRS = ['src/components', 'src/layouts'];
+// 后台组件自包含在 src/pages/admin/_admin/（下划线目录不被路由），一并纳入清单
+const COMPONENT_DIRS = ['src/components', 'src/layouts', 'src/pages/admin/_admin'];
 const COMPONENT_EXT = byExt('.astro', '.svelte');
 const CSS_EXT = byExt('.css');
 
@@ -49,7 +50,9 @@ function collectComponents() {
 /** CSS 类清单：全局 CSS 文件里定义的选择器 */
 function collectCssClasses() {
   const classes = new Map();
-  for (const file of walk('src/assets/css', CSS_EXT)) {
+  for (const file of walk('src/assets/css', CSS_EXT).concat(
+    walk('src/pages/admin/_admin/css', CSS_EXT),
+  )) {
     // 注释、@import 路径、url() 里的文件名都不是类名，先剥掉再扫：
     // 注释里常写 `global.css`，@import 写 './variables.css'，不剥会扫出
     // `.css` / `.variables` 这类假类名。
@@ -83,7 +86,9 @@ function collectWindowMarkers() {
 /** 文档里的组件清单路径 */
 function docComponentPaths(text) {
   const set = new Set();
-  for (const m of text.matchAll(/`(components\/[A-Za-z0-9_\-./]+\.(?:astro|svelte))`/g)) {
+  for (const m of text.matchAll(
+    /`((?:components|pages\/admin\/_admin\/components)\/[A-Za-z0-9_\-./]+\.(?:astro|svelte))`/g,
+  )) {
     set.add(m[1]);
   }
   return set;
@@ -98,8 +103,11 @@ export function collect() {
   const docPaths = docComponentPaths(docText);
   const codePaths = new Set(components.map((c) => `${c.path}/${c.file}`));
 
-  // 布局不属于「组件清单」，它们登记在 ARCHITECTURE.md 里，分开校验
-  const isLayout = (p) => p.startsWith('layouts/');
+  // 布局不属于「组件清单」，它们登记在 ARCHITECTURE.md 里，分开校验；
+  // AdminLayout 随后台搬进了下划线目录，直接位于 pages/admin/_admin/ 根下（组件在 components/ 里）
+  const isLayout = (p) =>
+    p.startsWith('layouts/') ||
+    (p.startsWith('pages/admin/_admin/') && !p.startsWith('pages/admin/_admin/components/'));
   const layoutPaths = new Set([...codePaths].filter(isLayout));
   const componentPaths = new Set([...codePaths].filter((p) => !isLayout(p)));
 

@@ -4,17 +4,16 @@
 //
 // 关键结构：连接面板（AdminToken）与待提交面板（AdminChanges）放在 main#swup 之外，
 // 所以 swup 切页只替换 #swup 里的内容，这两块不会消失——连接状态与暂存队列得以跨页保留。
-import '../assets/css/global.css';
-import '../assets/css/admin/variables.css';
-import '../assets/css/admin/elements.css';
-import '../assets/css/admin/admin.css';
+import './css/base.css';
+import './css/elements.css';
+import './css/admin.css';
 import { Icon } from 'astro-icon/components';
-import Background from '../components/layout/Background.astro';
-import CustomScrollbar from '../components/layout/CustomScrollbar.astro';
-import AdminToken from '../components/admin/AdminToken.astro';
-import AdminNav from '../components/admin/AdminNav.astro';
-import AdminChanges from '../components/admin/AdminChanges.svelte';
-import { site } from '../data/site';
+import Background from './components/Background.astro';
+import CustomScrollbar from './components/CustomScrollbar.astro';
+import AdminToken from './components/AdminToken.astro';
+import AdminNav from './components/AdminNav.astro';
+import AdminChanges from './components/AdminChanges.svelte';
+import { site } from '../../../data/site';
 
 interface Props {
   title?: string;
@@ -72,9 +71,9 @@ const { title = '后台' } = Astro.props;
     <div class="admin-toast" id="admin-toast" role="status" aria-live="polite"></div>
 
     <script>
-      import '../assets/js/nav/shell-guard';
-      import '../assets/js/admin/shell';
-      import '../assets/js/admin/pages';
+      import './js/shell-guard';
+      import './js/shell';
+      import './js/pages';
     </script>
   </body>
 </html>

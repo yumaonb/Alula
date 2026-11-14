@@ -45,7 +45,7 @@
 
 ```
 - [ ] docs/reference/CSS.md 的文件表与 src/assets/css 实际一致
-- [ ] docs/reference/ARCHITECTURE.md 的脚本职责表与 src/assets/js 实际一致
+- [ ] docs/reference/ARCHITECTURE.md 的脚本职责表与 src/assets/js、src/pages/admin/_admin/js 实际一致
 - [ ] AGENTS.md 的规则 / 任务路由指向的文件都还存在
 - [ ] docs/reference/index.md 的文档列表没有指向已删除的文件
 - [ ] 没有把细节重复写进规则和文档两处

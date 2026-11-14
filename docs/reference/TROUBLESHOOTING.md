@@ -111,7 +111,7 @@
 
 - **症状**：从 `/` 点进 `/admin/`（或从后台点「回到站点」）后，页面内容换了、导航栏/页脚却没换——出现「站点顶栏 + 后台内容」或反过来的混搭。
 - **原因**：`@swup/astro` 把 swup 注入**所有**页面（含后台），而 swup 只替换 `containers`（本项目是 `#swup`）里的内容，站点页与后台页的外壳本就不同，不管就会混搭。**关键点：swup 也接管浏览器的前进/后退**，所以光靠 `ignoreVisit` 配置挡不住这条路径。
-- **处理**：两层。点击路径：后台「回到站点」链接（`AdminNav` 里）带静态 `data-no-swup`，swup 把这次点击交给浏览器整页加载。前进/后退路径：由 `assets/js/shell-guard.ts`（两个外壳各 import 一次）监听 `popstate`，发现当前外壳与目标地址对不上就掐掉 swup 的处理并整页 reload，`astro:after-swap` 上再兜一层 reload。
+- **处理**：两层。点击路径：后台「回到站点」链接（`AdminNav` 里）带静态 `data-no-swup`，swup 把这次点击交给浏览器整页加载。前进/后退路径：由前台 `src/assets/js/nav/shell-guard.ts` 与后台拷贝 `src/pages/admin/_admin/js/shell-guard.ts`（两个外壳各 import 自己那份）监听 `popstate`，发现当前外壳与目标地址对不上就掐掉 swup 的处理并整页 reload，`astro:after-swap` 上再兜一层 reload。
 - **怎么确认**：`pnpm build` 后 `dist/admin/**/*.html` 里能搜到 `data-no-swup`；在浏览器里用「前进/后退」在两个外壳间来回走一遍，外壳应与内容一致。
 
 ## 20. 玻璃模糊与 swup 切页（前台与后台）

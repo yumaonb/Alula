@@ -1,0 +1,92 @@
+---
+// CustomScrollbar.astro — 自定义悬浮滚动条（前台 components/layout/CustomScrollbar.astro 的独立拷贝，各自维护）
+// 用法：<CustomScrollbar />
+// 三个文件拼一套：本组件（结构 + 三态色）、_admin/js/scrollbar.ts（拖动 / 点击轨道）、
+// _admin/css/base.css 的 is-dragging-scrollbar 光标规则（拖动态）；
+// 滑块 30px 下限在组件 CSS 与 scrollbar.ts 各写一份，必须同改
+---
+
+<div class="scrollbar-hover-zone" id="scrollbar-hover-zone"></div>
+
+<div class="custom-scrollbar-container" id="custom-scrollbar">
+  <div class="custom-scrollbar-track" id="scrollbar-track">
+    <div class="custom-scrollbar-thumb" id="scrollbar-thumb"></div>
+  </div>
+</div>
+
+<script>
+  import '../js/scrollbar';
+</script>
+
+<style>
+  .scrollbar-hover-zone {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: var(--page-gutter);
+    height: 100vh;
+    z-index: 40;
+    pointer-events: auto;
+  }
+
+  .custom-scrollbar-container {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 8px;
+    /* 低于首载遮罩（9999）与抽屉遮罩（110）：装饰层不参与遮罩的层级竞争，
+       否则遮罩淡出期间滑块会浮在上面 */
+    z-index: 90;
+    padding: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    margin: 0;
+  }
+
+  .custom-scrollbar-container.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .custom-scrollbar-track {
+    position: relative;
+    width: 6px;
+    height: 100%;
+    margin: 0 auto;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .custom-scrollbar-thumb {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: var(--ring);
+    border-radius: 3px;
+    /* 悬停 / 拖动提亮的时长走 --t-hover（容器显隐的 0.3s opacity 是显隐动效，不动） */
+    transition: background var(--t-hover);
+    cursor: grab;
+    min-height: 30px;
+  }
+
+  .custom-scrollbar-thumb:hover {
+    background: var(--hover-line);
+  }
+
+  .custom-scrollbar-thumb.active {
+    cursor: grabbing;
+    background: var(--active-bg);
+  }
+
+  @media (max-width: 768px) {
+    .scrollbar-hover-zone {
+      display: none;
+    }
+    .custom-scrollbar-container {
+      display: none;
+    }
+  }
+</style>

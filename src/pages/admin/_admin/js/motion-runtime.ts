@@ -1,0 +1,8 @@
+// motion-runtime.ts — motion 的最小再导出面（只给懒加载入口用）
+// 用法：只由同目录 motion.ts 动态 import，业务代码不要直接引本文件
+// 前台 src/assets/js/util/motion-runtime.ts 的独立拷贝，各自维护。
+//
+// 为什么单独一层：`import('motion')` 拿到的是整个命名空间，Rollup 无法
+// tree-shake，会把 motion 全量（143 KB）打进分块；改成本文件只再导出
+// 实际用到的函数（animate），打包结果回到 54 KB。
+export { animate } from 'motion';

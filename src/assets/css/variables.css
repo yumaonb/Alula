@@ -1,5 +1,5 @@
 /* variables.css — 全站设计令牌
- * 只放全站都在用的值；后台专属令牌（--nav-* / --admin-shadow*）在 admin/variables.css，
+ * 只放全站都在用的值；后台专属令牌（--nav-* / --admin-shadow*）在 src/pages/admin/_admin/css/variables.css，
  * 随后台一起删除，不留残值。
  * 分组即文件顺序：几何 → 文字与图标 → 状态反馈 → 遮罩 → 投影 → 动效 → 代码高亮色板。 */
 
@@ -14,7 +14,7 @@
 
   /* ---- 几何：全局宽度（前台内容区宽度的唯一来源） ----
    * 执行点在 BaseLayout 的主内容行 .page-main（所有页面自动遵守，见 global.css），
-   * 页面不再自己声明外层宽度；后台独立布局，不用这两个令牌：
+   * 页面不再自己声明外层宽度；后台独立布局，不走 .page-main：
    * 桌面端两侧各空 --page-gutter；
    * 移动端（≤768px）两侧各空 --page-gutter-mobile。
    * 宽度类数值只写在这里，组件里不再出现 56 / 16 这类硬编码。 */

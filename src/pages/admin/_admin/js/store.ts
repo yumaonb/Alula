@@ -1,5 +1,5 @@
 // store.ts — 后台内存态（连接配置 / 登录身份 / 暂存变更）
-// 用法：import { adminStore } from "../../assets/js/admin/store"
+// 用法：import { adminStore } from "../js/store"（components 目录引入；js 目录内用 "./store"）
 //
 // 只存在内存里：不写 localStorage / sessionStorage / cookie，也没有服务端。
 // 因此整页刷新会清空（密钥靠浏览器密码管理器按表单的 autocomplete 标记保存），

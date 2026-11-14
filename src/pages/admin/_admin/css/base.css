@@ -1,0 +1,180 @@
+/* base.css — 后台基础样式（重置 / 背景容器 / 玻璃 / 悬停 / 进度条 / 拖拽态）
+ * 只由 AdminLayout 引入（随 _admin/ 目录一起进退），前台页面不加载。
+ * 前台基础规则（src/assets/css/global.css、utilities.css）的独立拷贝，各自维护：
+ * 后台不需要前台的 .page-main / 侧栏 / 搜索框等布局规则，也没有 .bg--clone 克隆层
+ * （那是站点时间轴专属）；要改这里时直接改本文件，不跨目录共用。 */
+@import './variables.css';
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  color: var(--ink);
+  line-height: 1.6;
+  min-height: 100vh;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 文字链接：静止与正文同色、下划线默认显示；悬停 / 聚焦时提亮、
+ * 下划线 var(--t-hover) 淡出。自带样式的链接（按钮、导航项）挂 .link-plain 退出。 */
+a:not(.link-plain) {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition:
+    color var(--t-hover),
+    text-decoration-color var(--t-hover);
+}
+
+a:not(.link-plain):hover,
+a:not(.link-plain):focus-visible {
+  color: var(--white);
+  text-decoration-color: transparent;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* 背景容器：定位与层叠在这里；图片方案由 Background.astro 写入 --bg-image 等变量。 */
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  /* 配合固定定位，避免移动端地址栏收放时按视口高度重新布局抖动 */
+  height: 100lvh;
+}
+
+/* 图片方案铺法：高度永远铺满视口；宽度取「容器宽」与「按高度缩放后的图宽」的较大者。
+ * --bg-ratio 是图片自身宽高比，由 Background.astro 写入，换图片不用改这里。 */
+.bg--image {
+  background-image: var(--bg-image, none);
+  /* 兜底：万一环境不支持下面的 max()，退回 cover，仍能铺满视口 */
+  background-size: cover;
+  background-size: max(100%, calc(100lvh * var(--bg-ratio, 1.5))) 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.bg--image.is-ready {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg--image {
+    /* 减动效：背景不淡入，图就绪直接显示 */
+    transition: none;
+  }
+}
+
+/* 压暗层 */
+.bg--image::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, var(--bg-scrim, 0));
+}
+
+/* 玻璃卡片：后台磨砂效果的唯一定义，凡需要磨砂观感的元素都挂 .glass。 */
+.glass {
+  background: transparent;
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  border: none;
+  border-radius: var(--radius);
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 1px var(--ring);
+}
+
+/* 悬浮反馈：需要悬停提亮的元素挂 .hoverable，不另写 :hover。
+ * 类名故意重复写两遍提到 (0,3,0)：组件作用域样式是 (0,2,0) 且排在全局样式之后，
+ * 只写一次会被组件的静止态盖掉（悬停看着像没反应）。 */
+.hoverable.hoverable {
+  transition:
+    background var(--t-hover),
+    box-shadow var(--t-hover),
+    border-color var(--t-hover),
+    color var(--t-hover);
+}
+
+.hoverable.hoverable:hover,
+.hoverable.hoverable:focus-visible {
+  --ring: var(--hover-line);
+  color: var(--white);
+  background: var(--hover-bg);
+  border-color: var(--hover-line);
+}
+
+/* 卡片本身是容器、点击目标在内层时，整卡跟着亮 */
+.hoverable.hoverable:has(:hover) {
+  --ring: var(--hover-line);
+  background: var(--hover-bg);
+  border-color: var(--hover-line);
+}
+
+/* 已选中的元素（--active 态）不被悬停盖回未选中观感；
+ * 必须排在上面两条悬停规则之后：三条特异性相同，靠顺序决定谁赢 */
+.hoverable.hoverable.chip--active,
+.hoverable.hoverable.psd-item--active {
+  color: var(--white);
+  background: var(--active-bg);
+  border-color: var(--hover-line);
+}
+
+/* swup 切页进度条：元素由 @swup/progress-plugin 动态插进 body 顶部，没有静态标记。
+ * 插件会注入一份默认样式（3px 黑条），用 body 提一档权重稳定压过。 */
+body .swup-progress-bar {
+  height: 2px;
+  background-color: #fff;
+}
+
+/* 根元素画布色：过度滚动回弹、背景未渲染时露出的底就是它。
+ * 图片方案没有 CSS 预设声明 --bg-base，回退深色与首载 loading 屏衔接。 */
+html {
+  background-color: var(--bg-base, #000);
+}
+
+/* 自定义滚动条拖拽态：滚动条只有 6px 宽，拖动中鼠标一离开滑块，
+ * 光标就按所在元素退回 pointer / 箭头；按住期间把整页光标固定成 grabbing。
+ * :root 前缀把权重抬到 (0,2,1)，压过组件作用域样式里的 cursor 规则。 */
+:root body.is-dragging-scrollbar,
+:root body.is-dragging-scrollbar * {
+  cursor: grabbing;
+}

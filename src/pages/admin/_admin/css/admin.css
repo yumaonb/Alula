@@ -1,8 +1,9 @@
-/* admin/admin.css — 后台专属布局（外壳 / 顶栏 / 侧栏 / 弹窗 / 编辑器）
- * 整个 admin/ 目录只由 src/layouts/AdminLayout.astro 引入，不进站点其他页面；
- * 不想要后台时把 admin/ 目录连同 AdminLayout / admin 路由与组件一起删掉即可，
- * 前台不依赖这里任何东西。
- * 后台令牌（--nav-* / --admin-shadow*）在同目录的 variables.css；
+/* admin.css — 后台专属布局（外壳 / 顶栏 / 侧栏 / 弹窗 / 编辑器）
+ * 整个 _admin/ 目录只由同目录的 AdminLayout.astro 引入，不进站点其他页面；
+ * 前台不依赖这里任何东西，后台也不 import 前台的组件 / 样式 / 脚本，
+ * 不想要后台时把 _admin/ 目录连同 AdminLayout / admin 路由一起删掉即可。
+ * 基础样式（重置 / 玻璃 / 悬停）在同目录的 base.css；
+ * 后台令牌（全站值拷贝 + --nav-* / --admin-shadow*）在同目录的 variables.css；
  * 元件样式（.card / .btn / .input / 文件列表 / 徽标）在同目录的 elements.css。 */
 
 .admin-body {

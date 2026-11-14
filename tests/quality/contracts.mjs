@@ -15,10 +15,12 @@
 
 import { walk, byExt, read, runCheck, isMain } from './lib/common.mjs';
 
-const COMPONENT_FILES = walk('src/components', byExt('.astro', '.svelte')).concat(
-  walk('src/layouts', byExt('.astro', '.svelte')),
+const COMPONENT_FILES = walk('src/components', byExt('.astro', '.svelte'))
+  .concat(walk('src/layouts', byExt('.astro', '.svelte')))
+  .concat(walk('src/pages/admin/_admin', byExt('.astro', '.svelte')));
+const SCRIPT_FILES = walk('src/assets/js', byExt('.ts', '.js')).concat(
+  walk('src/pages/admin/_admin/js', byExt('.ts', '.js')),
 );
-const SCRIPT_FILES = walk('src/assets/js', byExt('.ts', '.js'));
 const ALL_SOURCE = walk('src', byExt('.ts', '.js', '.astro', '.svelte'));
 
 /** 从 `{` 开始按括号配对取出整块，避免嵌套类型把块截断 */

@@ -6,17 +6,16 @@
 
 ## CSS 文件结构
 
-| 文件            | 职责                                                                                                                                                                                                                                                                                                                     |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `variables.css` | CSS 变量定义（**只放全站都在用的**；后台专属令牌在 `admin/variables.css`）                                                                                                                                                                                                                                               |
-| `global.css`    | 重置 + 页面基础结构（含全站背景容器 `.bg`），引入 `variables` / `utilities`                                                                                                                                                                                                                                              |
-| `backgrounds/`  | 全站背景方案预设（`css/` 纯 CSS 绘制、`images/` 图片），由 `src/data/background.ts` 选择，见下文                                                                                                                                                                                                                         |
-| `utilities.css` | 可复用的**元件级**类（玻璃拟态、悬停、页面标题等），**前台后台共用的元件放这里**；页面内容排版（描述/座右铭）不在这，写各页或页面组共享文件；页面结构（`.page`/`.page-main`）在 `global.css`                                                                                                                             |
-| `shared/`       | **全站可复用的组件级样式**（比较大的、能划成"组件"的文件）：`skeleton.css`（骨架屏加载动画）+ `lightbox.css`（PhotoSwipe 灯箱主题微调，随 `lightbox-core.ts` 懒加载）+ `drawer.css`（右侧抽屉骨架，`PostsDrawers` 里两个抽屉共用）。卡片/按钮这类小元件不在这，在根目录的 `utilities.css` 聚合文件里                     |
-| `admin/`        | **后台全部样式**：`variables.css`（后台令牌 `--nav-*` / `--admin-shadow*`，与根目录 `variables.css` 同名同职责、只服务后台）+ `admin.css`（布局）+ `elements.css`（`.card` / `.btn` / `.input` / 行列表 / 文件列表 / 徽标）。整个目录**只由 `AdminLayout` 引入**，不进站点其他页面；不想要后台时删掉目录即可，前台零依赖 |
-| `posts/`        | **文章相关样式**：`posts-listing.css`（列表/分类/标签页共享布局，由 `PostsShell` 引入）+ `markdown.css`（正文 Markdown 排版，about 页也经 `Markdown.astro` 用）。文章详情页的行内样式（正文卡、右侧目录、面包屑条）在 `PostsShell.astro` 的 `<style>` 里                                                                 |
+| 文件            | 职责                                                                                                                                                                                                                                                                                                 |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variables.css` | CSS 变量定义（**只放全站都在用的**；后台专属令牌在 `src/pages/admin/_admin/css/variables.css`）                                                                                                                                                                                                      |
+| `global.css`    | 重置 + 页面基础结构（含全站背景容器 `.bg`），引入 `variables` / `utilities`                                                                                                                                                                                                                          |
+| `backgrounds/`  | 全站背景方案预设（`css/` 纯 CSS 绘制、`images/` 图片），由 `src/data/background.ts` 选择，见下文                                                                                                                                                                                                     |
+| `utilities.css` | 可复用的**元件级**类（玻璃拟态、悬停、页面标题等）；页面内容排版（描述/座右铭）不在这，写各页或页面组共享文件；页面结构（`.page`/`.page-main`）在 `global.css`                                                                                                                                       |
+| `shared/`       | **全站可复用的组件级样式**（比较大的、能划成"组件"的文件）：`skeleton.css`（骨架屏加载动画）+ `lightbox.css`（PhotoSwipe 灯箱主题微调，随 `lightbox-core.ts` 懒加载）+ `drawer.css`（右侧抽屉骨架，`PostsDrawers` 里两个抽屉共用）。卡片/按钮这类小元件不在这，在根目录的 `utilities.css` 聚合文件里 |
+| `posts/`        | **文章相关样式**：`posts-listing.css`（列表/分类/标签页共享布局，由 `PostsShell` 引入）+ `markdown.css`（正文 Markdown 排版，about 页也经 `Markdown.astro` 用）。文章详情页的行内样式（正文卡、右侧目录、面包屑条）在 `PostsShell.astro` 的 `<style>` 里                                             |
 
-> 目录约定：css 根目录只放全站基础文件（`variables` / `global`）和**小元件聚合文件**（`utilities`，卡片/按钮这类）；**全站可复用的组件级大文件**（骨架屏/灯箱/抽屉这类）放 `shared/`；按功能归组的放对应文件夹（`posts/` 文章、`admin/` 后台）。
+> 目录约定：css 根目录只放全站基础文件（`variables` / `global`）和**小元件聚合文件**（`utilities`，卡片/按钮这类）；**全站可复用的组件级大文件**（骨架屏/灯箱/抽屉这类）放 `shared/`；按功能归组的放对应文件夹（`posts/` 文章）；后台样式不在这，自包含在 `src/pages/admin/_admin/css/`。
 
 > 全局样式文件由页面或布局 import（例如 `BaseLayout` 引入 `global.css`、`shared/skeleton.css`、`shared/image-fallback.css`；`PostsShell` 额外引入 `posts/posts-listing.css`，文章详情页额外引入 `posts/markdown.css`）。背景预设**不在**这里 import，由 `virtual:background` 虚拟模块按 `src/data/background.ts` 的选择引入。
 
@@ -65,7 +64,7 @@
 | `--astro-code-token-string`                                            | `#9ecbff`                        | 字符串                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `--astro-code-token-string-expression`                                 | `#85e89d`                        | 字符串里的表达式：HTML 标签名、CSS 选择器片段                                                                                                                                                                                                                                                                                                                                                                   |
 
-新增**全站**变量写在 `variables.css` 的 `:root` 里；后台专属令牌（`--nav-*` 侧栏 7 个 + `--admin-shadow*` 投影 2 个）写在 `admin/variables.css` 的 `:root` 里，随后台一起进退。
+新增**全站**变量写在 `variables.css` 的 `:root` 里；后台专属令牌（`--nav-*` 侧栏 7 个 + `--admin-shadow*` 投影 2 个）写在 `src/pages/admin/_admin/css/variables.css` 的 `:root` 里，随后台一起进退。
 
 文章区局部变量（`--posts-side-w` / `--posts-side-gap` / `--posts-offset-gap` / `--posts-side-offset`）定义在 `global.css` 的 `.page-main` 上（只有文章区行读它们），不进 `variables.css`，作用见下方「全局宽度规则」。
 
@@ -73,7 +72,7 @@
 
 **过渡时长原则上不做令牌**：动画时长按各处观感直接写死（位移 / 开合 / 显隐 / 图片缩放等，`0.18s` / `0.3s ease` / `0.34s cubic-bezier(...)` 等），不收敛、不统一。**唯一例外是悬停提亮**：「鼠标移入 → 提亮 / 淡入」的过渡时长统一令牌化为 `--t-hover`（见上表）——这一类悬停变过去一律写 `var(--t-hover)`，全站同一速度、渐变过去而不是跳变；同一规则里共用的 `:focus-visible` 随之同行，纯聚焦触发的反馈（输入框描边等）仍各自定。唯一要守的是媒体查询断点仍按规则第 5 条走。
 
-**磨砂统一挂 `.glass` 类**：全站磨砂效果只在 `utilities.css` 的 `.glass` 里定义一次（透明底 + `backdrop-filter` 取 `--blur` + 1px 内描边 + 统一投影），玻璃卡、悬浮小按钮、搜索胶囊 / 下拉、抽屉、后台按钮 / 卡片 / 侧栏都用它；组件与页面样式**不再自己写 `backdrop-filter`**，也不要硬编码模糊半径。想统一加浓/减淡全站磨砂，只改 `--blur` 这一个值。`-webkit-` 前缀那行同样用变量，两行成对（`.glass` 里已写好一份）。
+**磨砂统一挂 `.glass` 类**：全站磨砂效果只在 `utilities.css` 的 `.glass` 里定义一次（透明底 + `backdrop-filter` 取 `--blur` + 1px 内描边 + 统一投影），玻璃卡、悬浮小按钮、搜索胶囊 / 下拉、抽屉都用它（后台按钮 / 卡片 / 侧栏用 `src/pages/admin/_admin/css/base.css` 里这条规则的独立拷贝）；组件与页面样式**不再自己写 `backdrop-filter`**，也不要硬编码模糊半径。想统一加浓/减淡全站磨砂，只改 `--blur` 这一个值。`-webkit-` 前缀那行同样用变量，两行成对（`.glass` 里已写好一份）。
 
 例外：`src/assets/backgrounds/css/*.css` 里的 `filter: blur(56px)` / `blur(72px)` 是给色斑柔化边缘用的**背景预设自身**参数（不是玻璃采样），按预设各自的观感取值，**不接入 `--blur`**。
 
@@ -85,7 +84,7 @@
 
 **遮罩标准**：`--mask` 是页面级黑色遮罩的唯一来源（以手机端汉堡菜单遮罩为准），手机菜单、目录弹窗、筛选弹窗、后台抽屉、后台连接弹窗、卡片封面悬停遮罩（`.cover-overlay`）都走它。
 
-**投影标准**：黑色投影全部走令牌，不许硬编码——`--shadow`（唯一抬升：玻璃卡片 / 前台弹窗 / 按钮 / 搜索胶囊，页标题文字阴影也走它）、`--admin-shadow` / `--admin-shadow-drawer`（后台提示条 / 手机侧栏抽屉，定义在 `admin/variables.css`）。新增投影先找这三个里最贴的，都不贴再按「新增 CSS 的规则」提新令牌。白色辉光类（头像光环、进度环、后台错误提示描边）不是投影体系，按各自语义留原地。
+**投影标准**：黑色投影全部走令牌，不许硬编码——`--shadow`（唯一抬升：玻璃卡片 / 前台弹窗 / 按钮 / 搜索胶囊，页标题文字阴影也走它）、`--admin-shadow` / `--admin-shadow-drawer`（后台提示条 / 手机侧栏抽屉，定义在 `src/pages/admin/_admin/css/variables.css`）。新增投影先找这三个里最贴的，都不贴再按「新增 CSS 的规则」提新令牌。白色辉光类（头像光环、进度环、后台错误提示描边）不是投影体系，按各自语义留原地。
 
 **按钮按下标准**：`:active` 按下反馈全站只有一条——`admin/elements.css` 的 `.btn:active:not(:disabled)`（背景硬编码 `rgba(255, 255, 255, 0.12)`）。前台按钮没有按下态；`--active-bg`（0.24）是**选中态**填底（chip / psd-item），别拿它当按下色。
 
@@ -96,7 +95,7 @@
 3. **机制文件（自成体系的观感值）**：骨架屏（0.06 / 0.14）、swup 进度条、首载 loading 屏（站点名 0.92 / 轨道 0.1 / 高光 0.85 + 兜底底色 `#000`）、时钟（独立仪表配色 0.15 / 0.55 / 0.7 + 自身黑投影）、阅读进度环（轨道 0.08 / 进度 0.9）、头像光环（0.9 白环 + 0.25 白辉光，4 处各自持）
 4. **markdown 正文局部排版值**（按规则留在 `posts/markdown.css`）：行内代码 0.08 / 0.1、引用 0.2 / 0.03、表格 0.1 / 0.06 / 0.03（行悬停）、hr 0.1、脚注 0.1、复选框 accent 0.6。**代码块的底色与正文色已令牌化**（`--astro-code-background` / `--astro-code-foreground`），不在此列
 5. **单点局部值**：内容内小滚动条（`.thin-scroll` 0.1、目录 `.toc-scroll` 0.1、搜索下拉 0.15）、搜索 mark 高亮 0.18、赞助页分隔线 0.18、图片占位底 0.06（`shared/image-fallback.css` 的详情页封面 / 卡片封面 / 正文图占位 / 占位块四处）——单独出现、无共性，留原地
-6. **后台的同值硬编码**：`admin/elements.css` 的 `.input` 圆角 6px、`AdminChanges.svelte` 的 6px / 9px 圆角——后台未引入 `--radius-sm` 令牌，先留原地
+6. **后台的同值硬编码**：后台拷贝 `src/pages/admin/_admin/css/elements.css` 的 `.input` 圆角 6px、`AdminChanges.svelte` 的 6px / 9px 圆角——后台未引入 `--radius-sm` 令牌，先留原地
 7. **纯机制值**：`disabled` 透明度、`select option` 底色、徽章状态填底（0.2）这类语义浓淡，不是设计色阶
 
 后台侧栏层级（`--nav-*`）已令牌化，不在此列。
@@ -284,14 +283,14 @@ export const background = {
 - **图片占位与失败降级**（`shared/image-fallback.css`）：降级逻辑在 `src/assets/js/ui/image-fallback.ts`——封面类（详情页封面 / 列表卡片封面）失败时把 `<img>` 从 DOM 摘掉、露出容器自带的占位图标与底色；其余图片失败时替换为图标占位块。本地图与外链图都适用。
 - **Markdown 正文**（`posts/markdown.css`）：排版留在本文件（标题、列表、代码块、表格、脚注），组件不需要额外处理；引用块左侧竖条用 `::before` 伪元素画并带圆角（`border-left` 是直角，与圆角并排会在角落露出缺口），表格用 `border-collapse: separate` + `border-spacing: 0` 才兑现得了 `border-radius`。**代码高亮色板在 `variables.css`**：`astro.config.ts` 的 `markdown.shikiConfig` 用 Shiki 的 `css-variables` 主题，Shiki 不写死 hex、只输出 `var(--astro-code-*)` 引用，色值全部由 `--astro-code-*` 令牌定义（见「令牌」表），改配色只改 `variables.css`，不动构建配置；变量名是 Shiki 固定的一套，换主题配置时这些名字要跟着核对。
 - **页面标题**：项目 / 友链 / 赞助 / 文章列表共用的入口标题（左图标 + 文字，字号 / 颜色全站一份，改一处全站生效，文字阴影走 `--shadow`）；文章区页头标题同时挂 `.posts-title`（36px 左缘条，见「文章区几何」），手机端标题居左、上下间距 16px 与标准页统一。
-- **后台**（`src/assets/css/admin/`）：`variables.css`（后台令牌 `--nav-*` / `--admin-shadow*`）+ `admin.css`（布局）+ `elements.css`（元件）。整个目录**只由 `AdminLayout` 引入**、前台零依赖，不想要后台时删掉目录（连同 `AdminLayout`、`admin/` 路由与组件、`js/admin/`）即可；元件语言与 `utilities.css` 的 `.glass` / `.hoverable` 同套——透明底 + 模糊 + 白描边，黑白灰里靠「描边浓淡」和「填底浓淡」分层次。公共的标准是「高频可复用的元件」（卡片/按钮/输入框这种到处要拼的积木）：页面内容排版哪怕 7 个页面用，也写各页自己的 `<style>`；以后前台要用同样的按钮/卡片，先把对应规则提升进 `utilities.css`，再让两边共用。
+- **后台**（`src/pages/admin/_admin/css/`）：`base.css`（前台基础样式的独立拷贝：重置 + `.glass` / `.hoverable` 工具类，经 `@import` 引 `variables.css`）+ `variables.css`（后台令牌 `--nav-*` / `--admin-shadow*` + 全站令牌独立拷贝）+ `admin.css`（布局）+ `elements.css`（元件）。整个目录**只由 `AdminLayout` 引入**，不想要后台时删掉 `_admin/` 目录即可；不 import 前台任何 `src/assets/css/`——元件语言与 `utilities.css` 的 `.glass` / `.hoverable` 同套（透明底 + 模糊 + 白描边，黑白灰里靠「描边浓淡」和「填底浓淡」分层次），但两边各持一份拷贝、各自维护。公共的标准是「高频可复用的元件」（卡片/按钮/输入框这种到处要拼的积木）：页面内容排版哪怕 7 个页面用，也写各页自己的 `<style>`；前台与后台需要同一元件时，把规则拷进各自目录，不跨目录 import。
 
 ---
 
 ## 新增 CSS 的规则
 
-1. **高频复用的元件**（卡片/按钮/输入框这种积木）写 `utilities.css`；**后台专属**的写在 `src/assets/css/admin/`（布局进 `admin.css`、元件进 `elements.css`）；**页面内容排版**（标题/描述/座右铭）写各页 `<style>` 或页面组共享文件；组件私有的写在组件 `<style scoped>` 里
-2. **新变量**：全站用的写 `variables.css`，后台用的写 `admin/variables.css` 的 `:root`，命名用 `--xxx` 前缀
+1. **高频复用的元件**（卡片/按钮/输入框这种积木）写 `utilities.css`；**后台专属**的写在 `src/pages/admin/_admin/css/`（基础样式进 `base.css`、布局进 `admin.css`、元件进 `elements.css`）；**页面内容排版**（标题/描述/座右铭）写各页 `<style>` 或页面组共享文件；组件私有的写在组件 `<style scoped>` 里
+2. **新变量**：全站用的写 `variables.css`，后台用的写 `src/pages/admin/_admin/css/variables.css` 的 `:root`，命名用 `--xxx` 前缀
 3. **骨架屏相关**写在 `shared/skeleton.css`
 4. **文章列表共享样式**写在 `posts/posts-listing.css`
 5. **全站背景**改 `src/data/background.ts` 一处即可；预设写在 `src/assets/backgrounds/` 下，别在组件里另起背景层
