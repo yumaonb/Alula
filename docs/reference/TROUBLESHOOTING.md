@@ -544,6 +544,26 @@ if (!animatedElements.length) {
 
 **怎么确认**：按钮基础态的 `getComputedStyle` 中 `transitionProperty` 含 opacity / transform / visibility 加四个悬停属性；移除 `.visible` 后 opacity / transform 平滑过渡到 0 / 80px，播完 visibility 才切 hidden。
 
+## 67. 首载进度条首帧「直接就在最后面」
+
+**症状**：冷启 / 慢机上主线程在首帧前卡顿较久，用户真正看到首载屏时，进度条已经走了相当一截（五成到九成），像是动画跑到一半才看见。
+
+**原因**：条形时钟的零点锚在脚本执行时刻，而用户看见屏幕的首帧晚于脚本执行；中间空转的时间被算成了进度。「最少展示 200ms」的起算也锚在同一零点，被同样吃掉。
+
+**修法**：零点（含最少展示的起算）改锚首个 rAF 帧：`tick` 开头发现零点未初始化就用该帧的 `performance.now()` 初始化，进度自此起按 `0.9 * (1 - exp(-t/1200))` 推进；减动效下 tick 不跑，零点回落脚本执行时刻。文件：`src/layouts/BaseLayout.astro`。
+
+**怎么确认**：CDP 合成 2500ms 首帧延迟（取证脚本为临时文件，已随取证删除）：零点锚脚本执行时刻时首帧采样为 `scaleX(0.7757)`；零点锚首帧后首帧为 `scaleX(0)`，随后正常推进。
+
+## 68. 隐藏标签页时首载屏不渐隐、遮罩滞留
+
+**症状**：页面在加载屏停留期间用户切走了标签页（后台打开 / 窗口最小化 / 切应用），首载屏永不渐隐，数秒后仍整屏遮挡，直到切回标签页才消失。
+
+**原因**：reveal 与 5 秒兜底都只挂 rAF，隐藏标签页的 rAF 回调永不执行，渐隐路径一次都跑不到。
+
+**修法**：`reveal` 在 `document.visibilityState === 'hidden'` 时另挂 200ms `setTimeout` 兜底触发 fade；fade 有 `finished` 闸，重复触发是 no-op，不会叠加。文件：`src/layouts/BaseLayout.astro`。
+
+**怎么确认**：CDP 禁用全部 rAF 回调并覆盖 `visibilityState` 为 `hidden`：无兜底时 7s 后遮罩仍在、条形零写入；有兜底时 load 后 700ms（200ms 兜底触发 + 500ms 条形走完）加 `.is-done` 渐隐、节点移除。
+
 ## 决定台账（刻意设计 / 已知不修 / 排查过不是 bug）
 
 > 收「看起来有问题、其实不是，或已决定不改」的事。看到对应现象**别修**，按表处理。不记变更史，只记现行决定与理由；同类只登记一处。

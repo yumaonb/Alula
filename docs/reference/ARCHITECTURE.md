@@ -92,7 +92,7 @@ BlogData { meta, posts, allPosts, chronological, entries, categoryTree, tags, al
 **`BaseLayout.astro`** —— 全站外壳：背景（`<Background />` 渲染 `div.bg`，方案由 `src/data/background.ts` 决定；时间轴两端渐隐层里还有一份同样类的 `.bg--clone` 克隆，用来跟任意背景方案对齐，见 `CSS.md` 的容器表）、`NavBar`、主内容行 `.page-main`（全站宽度的唯一执行点，见 CSS.md）、`Footer`、侧边按钮列、灯箱/图片占位的模板节点，以及一批 `<script>`。
 
 - `<slot />` 主内容；`<slot name="head" />` 往 `<head>` 塞东西。`<head>` 里固定输出一条 `rel="alternate"` 的 RSS 自动发现链接，指向 `/posts/rss.xml`，阅读器据此找到订阅源。
-- **首载 loading 屏 `#boot-splash`**（仅前台；后台走 `AdminLayout`，没有）：body 第一个元素 + head 里自足的 `<style is:inline>` 样式块 + head 顶部给 `html` 加 `js` 类的 `<script is:inline>`（门：无 JS 不显示，避免整屏盖死）+ body 尾部淡出脚本（等 `window load` 才揭幕——CSS 背景图、首屏图片、脚本包全就绪，揭开后第一帧即加载完整的页面；脚本执行时文档已 `complete` 则立即揭幕；`load` 后再等一帧 rAF，保证揭幕画在已绘制的一帧上；最少展示 200ms 防快网闪屏；5s 超时兜底——个别资源卡死时遮罩不永久盖住页面）。背景图经 `Image` 预热走缓存、就绪后给 `.bg--image` 加 `.is-ready` 自行 0.8s 淡入（见 `CSS.md`）；`load` 本身会等 CSS 背景图，揭幕时图已就位，兜底超时路径（图未就绪）下背景图到位后自行淡入，也不 pop。只在首次加载出现：swup 切页只换 `#swup`、不重建 body 壳，节点也已在首次加载后被移除。类明细见 `CSS.md`「首载 loading 屏」。
+- **首载 loading 屏 `#boot-splash`**（仅前台；后台走 `AdminLayout`，没有）：body 第一个元素 + head 里自足的 `<style is:inline>` 样式块 + head 顶部给 `html` 加 `js` 类的 `<script is:inline>`（门：无 JS 不显示，避免整屏盖死）+ body 尾部淡出脚本（等 `window load` 才揭幕——CSS 背景图、首屏图片、脚本包全就绪，揭开后第一帧即加载完整的页面；脚本执行时文档已 `complete` 则立即揭幕；`load` 后再等一帧 rAF，保证揭幕画在已绘制的一帧上；隐藏标签页 rAF 不跑，该状态下改挂 200ms 计时兜底，渐隐不拖到切回标签页，见 `TROUBLESHOOTING.md` 第 68 条；揭幕时进度条先 0.5s 过渡滑满、走完后整屏才 0.5s 渐隐（减动效下条形不画、直接渐隐）；进度条与最少 200ms 展示的时钟零点在**首个 rAF 帧**（用户第一次看见屏幕），按脚本执行时刻量的话主线程卡顿下首帧已 57%–92%、条形「直接就在最后面」，见第 67 条；减动效下 rAF 不跑、零点回落脚本执行时刻；5s 超时兜底——个别资源卡死时遮罩不永久盖住页面）。背景图经 `Image` 预热走缓存、就绪后给 `.bg--image` 加 `.is-ready` 自行 0.8s 淡入（见 `CSS.md`）；`load` 本身会等 CSS 背景图，揭幕时图已就位，兜底超时路径（图未就绪）下背景图到位后自行淡入，也不 pop。只在首次加载出现：swup 切页只换 `#swup`、不重建 body 壳，节点也已在首次加载后被移除。类明细见 `CSS.md`「首载 loading 屏」。
 - `.page-main` 行 = 常驻侧边栏 `GlobalSidebar` + `main#swup`（swup 的替换容器）。侧栏在 `#swup` **之外**、渲染在**每一个**站点页的壳里（普通页隐藏、文章区显示）：swup 只换 `#swup` 内容，所以文章区界面之间切换时侧栏永不重建——分类树手动开合的状态保留、不闪。
 - `shellVariant` prop（`plain` / `listing` / `post`）决定行的变体类首帧（侧栏显隐）；swup 切页后由 `posts-shell.ts` 按内容标记（`.posts-page` / `.post-content`）重新同步。
 - **放进 `main#swup` 的 Svelte 岛在切页时会被重新插入 DOM**，这决定了水合指令的选择（见 `docs/rules/40-astro-svelte.md`）。
@@ -106,7 +106,7 @@ BlogData { meta, posts, allPosts, chronological, entries, categoryTree, tags, al
 
 > Pagefind 只索引带 `data-pagefind-body` 的容器，所以搜索命中的是**文章正文**，分类页与列表页不进索引；隐藏文章因为整个页面没有这个属性，同样不进索引。
 
-**`AdminLayout.astro`** —— 后台独立外壳，**不继承 `BaseLayout`**（后台不要全站导航与页脚），自己输出整份 `<html>`/`<head>`/`<body>`，只引入 `src/pages/admin/_admin/css/` 下三个文件：`base.css`（前台基础样式的独立拷贝：重置与 `.glass`/`.hoverable` 工具类，经 `@import` 引 `variables.css`——后台令牌 + 全站令牌的独立拷贝）、`elements.css` 元件、`admin.css` 布局，不 import 前台任何 `src/assets/css/`；删后台时连 `_admin/` 目录一起删。
+**`AdminLayout.astro`** —— 后台独立外壳，**不继承 `BaseLayout`**（后台不要全站导航与页脚），自己输出整份 `<html>`/`<head>`/`<body>`，只引入 `src/pages/admin/_admin/css/` 下三个文件：`base.css`（重置 / 文字链接 / swup 进度条 / 滚动条拖拽态，经 `@import` 引 `variables.css`）、`elements.css` 元件、`admin.css` 布局；令牌全在 `_admin/css/variables.css`（蓝白商业风独立一套，与前台零共用零拷贝），不 import 前台任何 `src/assets/css/`，也没有磨砂与背景容器（页面底色是平铺的 `--page-bg`）；删后台时连 `_admin/` 目录一起删。
 
 - 结构是「顶栏 + 侧栏 + `main#swup`」，其中 `AdminToken`（连接面板）与 `AdminNav`（侧栏）放在 `main#swup` **之外**，`AdminChanges` 也挂在容器外：swup 只替换 `#swup` 里的内容，所以切页时连接状态、填到一半的密钥与待提交队列都不会消失。
 - 切页直接替换内容（swup 配置 `animationClass: false`，不等待动画；`native: false` 关原生 View Transition），加载反馈是顶部细进度条（`progress` 插件）。顶栏与侧栏在 `main#swup` 之外，切页不动。要加切页动画前先读 `docs/reference/TROUBLESHOOTING.md` 第 20 条的两个长期约束（backdrop root 现只约束仍用 `backdrop-filter` 的元素，见该节说明 / animationSelector）。

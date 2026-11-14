@@ -7,8 +7,8 @@
 | 内容                                                         | 位置                                                               |
 | ------------------------------------------------------------ | ------------------------------------------------------------------ |
 | 设计令牌（圆角、模糊半径、悬停色、悬停提亮时长 `--t-hover`） | `src/assets/css/variables.css` 的 `:root`                          |
-| 后台专属令牌（`--nav-*` / `--admin-shadow*`）                | `src/pages/admin/_admin/css/variables.css` 的 `:root`              |
-| 后台样式（布局 / 元件 / 令牌，含全站基础类的独立拷贝）       | `src/pages/admin/_admin/css/`（只由 `AdminLayout` 引入，不进前台） |
+| 后台令牌（全部，蓝白商业风独立一套）                         | `src/pages/admin/_admin/css/variables.css` 的 `:root`              |
+| 后台样式（布局 / 元件 / 令牌，自包含，非前台拷贝）           | `src/pages/admin/_admin/css/`（只由 `AdminLayout` 引入，不进前台） |
 | 高频复用的元件级类（玻璃卡片、按钮、头像等）                 | `src/assets/css/utilities.css`                                     |
 | 只服务单个组件的样式                                         | 该组件的 `<style>`（Astro 默认 scoped）                            |
 | Markdown 正文排版                                            | `src/assets/css/posts/markdown.css`                                |

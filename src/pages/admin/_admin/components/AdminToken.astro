@@ -2,9 +2,8 @@
 // AdminToken.astro — 后台连接弹窗（未连接填仓库与令牌，已连接看仓库状态）
 // 用法：由 AdminLayout 渲染两次——顶栏里 part="trigger"，外壳外 part="modal"
 //
-// 拆成两部分是因为弹窗不能待在 .admin-topbar 里面：顶栏带 .glass 的 backdrop-filter，
-// 而 backdrop-filter / transform / filter 会给后代 position: fixed 造新的包含块，
-// 弹窗就变成相对顶栏那条窄条居中。触发按钮留在顶栏，弹窗挂到外壳外，各自只渲染一次。
+// 拆成两部分：触发按钮留在顶栏，弹窗挂到外壳之外
+// （定位与层级见 ../css/admin.css 的 .admin-modal 注释），各自只渲染一次。
 //
 // 密钥只进内存，不写任何浏览器存储；表单按登录表单标记（username + current-password），
 // 交给浏览器密码管理器保存，本站自己不落盘。
@@ -23,7 +22,7 @@ const { part } = Astro.props;
 {part === 'trigger' ? (
   <div class="admin-conn">
     <button
-      class="btn glass btn--ghost admin-conn-toggle"
+      class="btn btn--ghost admin-conn-toggle"
       id="admin-conn-toggle"
       type="button"
       aria-expanded="false"
@@ -37,12 +36,7 @@ const { part } = Astro.props;
   <div class="admin-modal" id="admin-conn-panel">
     <button class="admin-modal-backdrop" type="button" data-conn-close aria-label="关闭" />
 
-    <div
-      class="admin-modal-box glass"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="admin-conn-title"
-    >
+    <div class="admin-modal-box" role="dialog" aria-modal="true" aria-labelledby="admin-conn-title">
       <div class="admin-modal-head">
         <h2 class="admin-modal-title admin-modal-title--form" id="admin-conn-title">
           连接 GitHub
@@ -87,7 +81,7 @@ const { part } = Astro.props;
         </p>
 
         <div class="admin-conn-actions">
-          <button class="btn glass" id="admin-conn-submit" type="submit">
+          <button class="btn btn--primary" id="admin-conn-submit" type="submit">
             连接
           </button>
         </div>
@@ -141,7 +135,7 @@ const { part } = Astro.props;
         </dl>
 
         <div class="admin-conn-actions">
-          <button class="btn glass" id="admin-disconnect" type="button">
+          <button class="btn" id="admin-disconnect" type="button">
             断开
           </button>
         </div>

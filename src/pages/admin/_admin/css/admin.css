@@ -2,8 +2,8 @@
  * 整个 _admin/ 目录只由同目录的 AdminLayout.astro 引入，不进站点其他页面；
  * 前台不依赖这里任何东西，后台也不 import 前台的组件 / 样式 / 脚本，
  * 不想要后台时把 _admin/ 目录连同 AdminLayout / admin 路由一起删掉即可。
- * 基础样式（重置 / 玻璃 / 悬停）在同目录的 base.css；
- * 后台令牌（全站值拷贝 + --nav-* / --admin-shadow*）在同目录的 variables.css；
+ * 基础样式（重置 / 链接 / 拖拽态）在同目录的 base.css；
+ * 后台令牌（全部只在此定义，蓝白商业风）在同目录的 variables.css；
  * 元件样式（.card / .btn / .input / 文件列表 / 徽标）在同目录的 elements.css。 */
 
 .admin-body {
@@ -39,7 +39,8 @@
   width: 100%;
 }
 
-/* ---- 顶栏 ---- */
+/* ---- 顶栏 ----
+ * 白底 + 1px 底边：把内容列「顶住」的那条横线。 */
 
 .admin-topbar {
   position: sticky;
@@ -49,11 +50,13 @@
   align-items: center;
   gap: 16px;
   /* height 而不是 min-height：侧栏顶格的 1px 下边框是算在 62px 里的（border-box），
-   * 顶栏若用 min-height 就会按内容再撑高一点点，两条线便对不齐。 */
+   * 顶栏若用 min-height 就会按内容再撑高一点点，两条线便对不齐。
+   * 顶栏自己的 1px 底边同样算在 62px 里。 */
   height: var(--admin-topbar-h);
   margin: 0 -24px;
   padding: 12px 24px;
-  border-radius: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 /* 顶栏左侧显示当前页面名；吃掉中间空档，把右侧按钮推到最右 */
@@ -64,7 +67,7 @@
   margin-right: auto;
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--ink);
 }
 
 .admin-topbar-right {
@@ -79,8 +82,8 @@
   position: relative;
 }
 
-/* 连接按钮：顶栏里唯一的按钮，尺寸与观感由下方「顶栏连接按钮的尺寸锁定」
- * 的 .btn.admin-conn-toggle 锁定，这里不再单独定义。 */
+/* 连接按钮：顶栏里唯一的按钮，尺寸由下方「顶栏连接按钮的尺寸锁定」
+ * 的 .btn.admin-conn-toggle 锁定，观感走 .btn--ghost。 */
 
 .admin-conn-icon {
   width: 15px;
@@ -88,10 +91,8 @@
   opacity: 0.7;
 }
 
-/* ---- 连接弹窗 ----
- * 弹窗在 .admin-shell 之外（见 AdminLayout），所以这里的 fixed 是相对视口定位。
- * 别把它挪回 .admin-topbar 里：那个元素带 .glass（backdrop-filter），会给后代
- * fixed 元素造新的包含块，弹窗就变成相对顶栏那条窄条居中了。 */
+/* 弹窗在 .admin-shell 之外（见 AdminLayout），所以这里的 fixed 是相对视口定位。
+ * 若发现弹窗没在视口居中，先从这里查起，别改 z-index 以外的定位方式。 */
 .admin-modal {
   position: fixed;
   inset: 0;
@@ -121,7 +122,10 @@
   max-height: calc(100vh - 40px);
   overflow-y: auto;
   padding: 20px;
+  border: 1px solid var(--border);
   border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--admin-shadow);
 }
 
 .admin-modal-head {
@@ -135,7 +139,7 @@
 .admin-modal-title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--ink);
 }
 
 /* 弹窗按连接状态换内容：未连接只给表单，已连接只给仓库状态。
@@ -152,13 +156,12 @@
 .admin-conn-hint {
   margin-top: 6px;
   font-size: 0.72rem;
-  color: var(--ink);
+  color: var(--ink-muted);
   line-height: 1.6;
 }
 
-/* 图标按钮（弹窗的 ×、顶栏汉堡、抽屉关闭）：不要按钮框，只让图标亮起来。
- * 动效对齐首页汉堡（.hamburger-btn .icon-bars/.icon-close）：0.3s 的
- * opacity + transform，悬停时图标转一下，按下时给一个明确的回弹。 */
+/* 图标按钮（弹窗的 ×、顶栏汉堡、抽屉关闭）：不要按钮框，
+ * 悬停铺一档浅灰底、文字加深表示可点。 */
 .admin-modal-close,
 .admin-drawer-toggle,
 .admin-nav-close {
@@ -169,15 +172,17 @@
   height: 30px;
   padding: 0;
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-size: 17px;
   cursor: pointer;
-  transition: color var(--t-hover);
+  transition:
+    color var(--t-hover),
+    background var(--t-hover);
 }
 
-/* 图标本体不做任何位移或旋转，悬停只把颜色提亮（由下面的 :hover 规则给出）。
+/* 图标本体不做任何位移或旋转，悬停只改颜色（由下面的 :hover 规则给出）。
  * 这里显式声明 transition 只覆盖 color：万一将来有人给 <use> 加了别的
  * transform，也不会在这儿被悄悄带上动画。 */
 .admin-modal-close use,
@@ -192,9 +197,8 @@
 .admin-drawer-toggle:focus-visible,
 .admin-nav-close:hover,
 .admin-nav-close:focus-visible {
-  color: var(--white);
-  background: transparent;
-  box-shadow: none;
+  color: var(--ink);
+  background: var(--hover-bg);
 }
 
 .admin-conn-actions {
@@ -216,23 +220,23 @@
   gap: 10px;
 }
 
-/* 与 .admin-stat 同一套「白面板」观感，弹窗里的数据格不另起底 */
+/* 与 .admin-stat 同一套「面板灰」观感，弹窗里的数据格不另起底 */
 .admin-status-item {
   padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 0 1px var(--ring);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg);
 }
 
 .admin-status-item dt {
   margin-bottom: 4px;
   font-size: 0.7rem;
-  color: var(--ink);
+  color: var(--ink-muted);
 }
 
 .admin-status-item dd {
   font-size: 0.84rem;
-  color: var(--white);
+  color: var(--ink);
   overflow-wrap: anywhere;
 }
 
@@ -241,8 +245,8 @@
   grid-column: 1 / -1;
 }
 
-/* 提交编号做成链接：等宽字体；颜色与下划线走 global.css 的全站链接规则
- * （静止下划线默认显示，悬停/聚焦淡出并提亮），所以这里只留字体，不挂 .link-plain */
+/* 提交编号做成链接：等宽字体；颜色与下划线走同目录 base.css 的文字链接规则
+ * （静止下划线默认显示，悬停/聚焦淡出并加深），所以这里只留字体，不挂 .link-plain */
 .admin-status-link {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
@@ -251,14 +255,14 @@
 .admin-rate-value {
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
 .admin-rate-total {
   margin-left: 4px;
   font-size: 0.75rem;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -268,22 +272,9 @@
 
 .btn.admin-conn-toggle {
   padding: 8px 16px;
-  border-radius: var(--radius);
-  box-shadow:
-    var(--shadow),
-    inset 0 0 0 1px var(--ring);
 }
 
-.btn.admin-conn-toggle:hover:not(:disabled),
-.btn.admin-conn-toggle:focus-visible {
-  background: var(--hover-bg);
-  box-shadow:
-    var(--shadow),
-    inset 0 0 0 1px var(--hover-line);
-}
-
-/* 后台按钮的图标尺寸：跟着 .btn 的紧凑字号走。前台圆形按钮 .glass-btn 的
- * 图标是 22px（在 index.astro 页面样式里，带 .glass-btn 作用域），两边互不干扰。 */
+/* 后台按钮的图标尺寸：跟着 .btn 的紧凑字号走。 */
 .btn .btn-icon {
   width: 14px;
   height: 14px;
@@ -293,9 +284,8 @@
 /* ---- 工作区 ---- */
 
 /* 桌面端侧栏：外壳的左侧一列，从顶到底顶满、贴死左边缘不留白。
- * 观感参考首页手机端下拉菜单（NavBar 的 .mobile-menu/.mobile-link）：
- * 同样的顶部分隔线、同样的 0.78 白字、同样的 0.6 图标、同样的行高与左内边距。
- * 本体直角（只有里面的每一项是圆角按钮）：磨砂走 .glass，圆角显式取 0 压掉它的 10px。 */
+ * 白底，右侧一条 1px 分隔线（inset -1px 0 0 画在侧栏自己的右内沿），
+ * 顶边与顶栏底线对齐。 */
 .admin-nav {
   display: flex;
   flex-direction: column;
@@ -305,8 +295,8 @@
   align-self: stretch;
   /* 顶部不留内边距：顶部那格要从 0 开始，才能和顶栏同高、底边齐平 */
   padding: 0 0 14px;
-  border-radius: 0;
-  box-shadow: inset -1px 0 0 var(--ring);
+  background: var(--surface);
+  box-shadow: inset -1px 0 0 var(--border);
 }
 
 /* 侧栏顶部：站点名那一格。高度对齐 --admin-topbar-h，底边与顶栏齐平。
@@ -319,13 +309,60 @@
   flex-shrink: 0;
   height: var(--admin-topbar-h);
   padding: 0 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 
+/* 站点名占满头格剩余宽度：放得下时水平居中，放不下时贴左缘、由跑马灯滚动；
+ * container-type 为内层跑马灯提供宽度基准。 */
 .admin-nav-title {
-  font-size: 1rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  container-type: inline-size;
+  font-size: 1.15rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--ink);
+}
+
+/* 站名宽度贴合文字：过长时不折行，改为左右往返滚动。
+ * 超宽时静止位贴左缘（居中行的溢出只向右，不会两边对称），
+ * 右端位移 = 容器宽（100cqw）− 内容宽（100%），放得下时被 min 钳到 0，等效静态居中；
+ * 整圈 20s：左行 5s、右端停 5s、右行 5s、左端停 5s。
+ * 侧栏在 #swup 之外，切页不重启动画，延迟只在首次加载时生效。 */
+.admin-nav-title-text {
+  display: inline-block;
+  width: max-content;
+  white-space: nowrap;
+  animation: admin-nav-marquee 20s infinite;
+  animation-delay: 2s;
+}
+
+@keyframes admin-nav-marquee {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  25% {
+    transform: translateX(min(0px, calc(100cqw - 100%)));
+  }
+  50% {
+    transform: translateX(min(0px, calc(100cqw - 100%)));
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  75% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* 用户偏好减少动态时停掉跑马灯：放得下保持居中，放不下保持贴左、右侧被裁。 */
+@media (prefers-reduced-motion: reduce) {
+  .admin-nav-title-text {
+    animation: none;
+  }
 }
 
 /* 关闭按钮只有抽屉里需要（宽屏侧栏常驻，没有可关的） */
@@ -394,10 +431,10 @@
     opacity 0.18s ease,
     transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
 }
-/* 悬停：铺一档白，不换字重、不动位置（动位置会和选中的位移撞在一起） */
+/* 悬停：铺一档浅底，不换字重、不动位置（动位置会和选中的位移撞在一起） */
 .admin-nav-link:hover,
 .admin-nav-link:focus-visible {
-  color: var(--white);
+  color: var(--blue);
   background: var(--nav-bg-hover);
 }
 
@@ -406,7 +443,7 @@
 .admin-nav-link.is-active,
 .admin-nav-link.is-active:hover,
 .admin-nav-link.is-active:focus-visible {
-  color: var(--white);
+  color: var(--blue);
   /* 整行内容右移，让开左侧竖线 */
   padding-left: var(--nav-indent);
 }
@@ -419,7 +456,7 @@
 .admin-nav-icon {
   width: 17px;
   height: 17px;
-  color: var(--ink);
+  color: var(--nav-ink-muted);
   flex-shrink: 0;
   transition: color var(--t-hover);
 }
@@ -460,7 +497,7 @@
   width: 13px;
   height: 13px;
   margin-left: auto;
-  color: var(--ink);
+  color: var(--nav-ink-muted);
   flex-shrink: 0;
   transition:
     transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
@@ -469,21 +506,12 @@
 
 .admin-nav-group.is-open .admin-nav-arrow {
   transform: rotate(90deg);
-  color: var(--white);
 }
 
-/* 父项提亮只由「身后有当前项」触发，与展开与否无关：
- * 展开只是把内容摊开，不代表你在这一支里；真正该亮的是「你正待在下面某一页」。
- * 所以收起状态下、只要组里有当前项，父项同样是亮的——用户收起菜单后
- * 依然能看出自己在这个分区里。 */
-.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent {
-  color: var(--nav-ink-strong);
-}
-
-/* 图标跟着一起提亮：.admin-nav-icon 的静态色是 0.6 白，不显式改的话
- * 文字亮了图标还暗着，一整行看着像没点全。 */
-.admin-nav-group:has(.admin-nav-child.is-active) .admin-nav-parent .admin-nav-icon {
-  color: currentColor;
+/* 箭头只在「悬停/聚焦父项」时亮蓝；展开与否、组内有无当前项都不算理由 */
+.admin-nav-parent:hover .admin-nav-arrow,
+.admin-nav-parent:focus-visible .admin-nav-arrow {
+  color: var(--blue);
 }
 
 /* 展开容器：让出/收回空间的那扇「窗」。
@@ -547,20 +575,20 @@
     color var(--t-hover);
 }
 
-/* 悬停：与一级项同样只给一档白底 */
+/* 悬停：与一级项同样只给一档浅底 */
 .admin-nav-child:hover,
 .admin-nav-child:focus-visible {
-  color: var(--white);
+  color: var(--blue);
   background: var(--nav-bg-hover);
 }
 
-/* 当前子项：白字 + 左侧竖线（::before 与一级项共用同一套），同样不铺底，
+/* 当前子项：主色蓝字 + 左侧竖线（::before 与一级项共用同一套），同样不铺底，
  * 所以鼠标移开后它仍然清楚地标着当前位置。位移量与一级项一致，
  * 对齐关系不变（两边同时 +6px）。 */
 .admin-nav-child.is-active,
 .admin-nav-child.is-active:hover,
 .admin-nav-child.is-active:focus-visible {
-  color: var(--white);
+  color: var(--blue);
   padding-left: calc(var(--nav-indent) + 31px);
 }
 
@@ -578,7 +606,8 @@
 }
 
 /* 「回到站点」和上面的分区不是一类：一条分隔线拉距离，
- * 本身不做成按钮，悬停只把字提亮（跟 .admin-nav-link 的悬停一致）。
+ * 本身不做成按钮，悬停只把字变成主色蓝（跟 .admin-nav-link 的悬停不同：
+ * 那是「进入」，这是「离开」）。
  * 左内边距取 --nav-pad，和上面各项的文字列对齐；
  * 分隔线通到侧栏两边内沿（导航项已无左右外边距，这里跟着归零）。 */
 .admin-nav-back {
@@ -586,20 +615,20 @@
   margin-right: 0;
   margin-left: 0;
   padding-left: var(--nav-pad);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border);
   border-radius: 0;
-  color: var(--ink);
+  color: var(--nav-ink-muted);
 }
 
-/* 悬停只提亮文字，也不给白底：它是「离开」而不是「进入」某一区，
- * 给白底会和上面的导航项混淆。 */
+/* 悬停只变文字颜色，也不给底：它是「离开」而不是「进入」某一区，
+ * 给底会和上面的导航项混淆。 */
 .admin-nav-back:hover,
 .admin-nav-back:focus-visible {
-  color: var(--white);
+  color: var(--blue);
   background: transparent;
 }
 
-/* 返回首页的图标要和文字一样提亮：.admin-nav-icon 的默认色是 0.6 白，
+/* 返回首页的图标要跟着文字一起变蓝：.admin-nav-icon 的默认色偏弱，
  * 单独定死会压过父级的 currentColor，所以这里显式让它跟随父级。 */
 .admin-nav-back:hover .admin-nav-icon,
 .admin-nav-back:focus-visible .admin-nav-icon {
@@ -615,7 +644,7 @@
  * 卡与卡之间的间距由 .admin-page 的 gap 承担。 */
 
 /* ---- 统计格 ----
- * 格子底色比卡片高（浅）一档，做出「垫一层白面板」的效果：卡里摆数据时先垫一层白底。 */
+ * 格子底色比卡片浅一档，做出「卡里再垫一层面板」的效果。 */
 
 .admin-stats {
   display: grid;
@@ -625,23 +654,23 @@
 
 .admin-stat {
   padding: 12px 14px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 0 1px var(--ring);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg);
 }
 
 .admin-stat-label {
   display: block;
   margin-bottom: 4px;
   font-size: 0.7rem;
-  color: var(--ink);
+  color: var(--ink-muted);
 }
 
 .admin-stat-value {
   display: block;
   font-size: 0.88rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--ink);
   overflow-wrap: anywhere;
   font-variant-numeric: tabular-nums;
 }
@@ -673,10 +702,10 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1px var(--hover-line);
+  background: var(--blue-soft);
   font-size: 0.66rem;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--blue-strong);
 }
 
 /* 快捷入口：列表行，不做一组卡片 */
@@ -693,26 +722,29 @@
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   color: var(--ink);
-  transition: background var(--t-hover);
+  transition:
+    background var(--t-hover),
+    color var(--t-hover);
 }
 
 .admin-quick-item:hover,
 .admin-quick-item:focus-visible {
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--blue);
+  background: var(--hover-bg);
 }
 
 .admin-quick-icon {
   width: 17px;
   height: 17px;
   flex-shrink: 0;
-  color: var(--ink);
+  color: var(--nav-ink-muted);
   transition: color var(--t-hover);
 }
 
 .admin-quick-item:hover .admin-quick-icon {
-  color: var(--white);
+  color: var(--blue);
 }
 
 .admin-quick-text {
@@ -730,22 +762,28 @@
 
 .admin-quick-desc {
   font-size: 0.72rem;
-  color: var(--ink);
+  color: var(--ink-muted);
+  transition: color var(--t-hover);
+}
+
+.admin-quick-item:hover .admin-quick-desc {
+  color: var(--blue);
 }
 
 .admin-quick-arrow {
   width: 15px;
   height: 15px;
   flex-shrink: 0;
-  color: var(--ink);
+  color: var(--nav-ink-muted);
   transition: color var(--t-hover);
 }
 
 .admin-quick-item:hover .admin-quick-arrow {
-  color: var(--white);
+  color: var(--blue);
 }
 
-/* ---- 未连接遮罩 ---- */
+/* ---- 未连接遮罩 ----
+ * 空态做成一张白卡：主色蓝的图标 + 居中文字，读起来是「待连接」而不是「页面坏了」。 */
 
 .admin-gate {
   display: none;
@@ -753,6 +791,10 @@
   align-items: center;
   gap: 6px;
   padding: 44px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
   text-align: center;
   color: var(--ink);
 }
@@ -769,7 +811,7 @@
   width: 26px;
   height: 26px;
   margin-bottom: 4px;
-  opacity: 0.8;
+  color: var(--blue);
 }
 
 .admin-gate p {
@@ -845,7 +887,7 @@
   min-width: 120px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.76rem;
-  color: var(--ink);
+  color: var(--ink-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -853,15 +895,15 @@
   text-align: left;
 }
 
-/* 正文域同样走白色玻璃底，与输入框一致 */
+/* 正文域：底取数据格同款的面板灰，与输入框同一套聚焦语言 */
 .admin-editor-text {
   width: 100%;
   flex: 1;
   min-height: 52vh;
   padding: 14px;
-  border: 1px solid var(--ring);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg);
   color: var(--ink);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.8rem;
@@ -870,12 +912,14 @@
   tab-size: 2;
   transition:
     border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 }
 
 .admin-editor-text:focus-visible {
   outline: none;
-  border-color: var(--hover-line);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--focus-halo);
 }
 
 .admin-editor-actions {
@@ -893,13 +937,12 @@
   left: 50%;
   z-index: 200;
   padding: 8px 16px;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--admin-shadow);
   font-size: 0.8rem;
-  color: var(--white);
-  background: rgba(18, 20, 26, 0.94);
-  box-shadow:
-    var(--admin-shadow),
-    inset 0 0 0 1px var(--hover-line);
+  color: var(--ink);
   opacity: 0;
   transform: translate(-50%, -8px);
   pointer-events: none;
@@ -913,12 +956,11 @@
   transform: translate(-50%, 0);
 }
 
-/* 错误提示：深底不变，白描边提亮一档、文字加粗，靠「描边浓淡」和正常提示区分 */
+/* 错误提示：红字 + 红描边 + 加粗，和正常提示区分 */
 .admin-toast.is-error {
+  border-color: var(--red);
+  color: var(--red);
   font-weight: 600;
-  box-shadow:
-    var(--admin-shadow),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.55);
 }
 
 /* ---- 手机端 ----
@@ -936,7 +978,7 @@
 @media (max-width: 768px) {
   /* 内边距统一由 .admin-content 承担（和桌面端一致）。
    * 这里不能再给 .admin-shell 加 padding，否则顶栏的 margin 负值只抵消掉
-   * .admin-content 的那份，外壳这份会把顶栏玻璃背景从两侧顶进来、撑不满。 */
+   * .admin-content 的那份，外壳这份会把顶栏白底从两侧顶进来、撑不满。 */
   .admin-content {
     padding: 0 14px 24px;
   }
@@ -963,7 +1005,7 @@
   }
 
   /* 抽屉：从左侧滑出，本体是直角抽屉（圆角只加在里面每一项上），
-   * 缓动与全站手机端菜单一致。磨砂走 .glass，不加白色薄层。 */
+   * 缓动与全站手机端菜单一致。白底 + 右侧 inset 分隔线 + 右侧投影。 */
   .admin-nav {
     position: fixed;
     top: 0;
@@ -975,10 +1017,9 @@
     padding: 0 12px 12px;
     flex-direction: column;
     overflow-y: auto;
-    border-radius: 0;
     box-shadow:
       var(--admin-shadow-drawer),
-      inset -1px 0 0 var(--ring);
+      inset -1px 0 0 var(--border);
     transform: translate(-100%);
     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
@@ -1005,8 +1046,8 @@
     gap: 2px;
   }
 
-  /* 抽屉里的导航项沿用桌面端那套（已在上面按 NavBar 手机菜单调好），
-   * 这里不再覆盖——两边观感统一，也就不会出现「抽屉一个样、宽屏另一个样」。 */
+  /* 抽屉里的导航项沿用桌面端那套，这里不再覆盖——
+   * 两边观感统一，也就不会出现「抽屉一个样、宽屏另一个样」。 */
 
   /* 遮罩只在抽屉打开时铺出来 */
   .admin-drawer-backdrop {

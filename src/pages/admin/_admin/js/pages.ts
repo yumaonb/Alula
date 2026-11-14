@@ -107,14 +107,6 @@ function initPostsList(): Cleanup {
       link.textContent = file.path.slice(POSTS_PREFIX.length);
       li.appendChild(link);
 
-      const staged = adminStore.changeOf(file.path);
-      if (staged) {
-        const chip = document.createElement('span');
-        chip.className = 'badge is-staged';
-        chip.textContent = staged.content === null ? '待删除' : '已暂存';
-        li.appendChild(chip);
-      }
-
       list.appendChild(li);
     }
   }
@@ -294,14 +286,6 @@ function initEditor(): Cleanup {
       button.textContent = file.path.slice(POSTS_PREFIX.length);
       button.addEventListener('click', () => void openFile(file.path));
       li.appendChild(button);
-
-      const staged = adminStore.changeOf(file.path);
-      if (staged) {
-        const chip = document.createElement('span');
-        chip.className = 'badge is-staged';
-        chip.textContent = staged.content === null ? '待删除' : '已暂存';
-        li.appendChild(chip);
-      }
 
       fileList.appendChild(li);
     }

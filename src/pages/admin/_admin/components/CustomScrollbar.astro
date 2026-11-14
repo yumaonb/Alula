@@ -35,7 +35,7 @@
     top: 0;
     height: 100vh;
     width: 8px;
-    /* 低于首载遮罩（9999）与抽屉遮罩（110）：装饰层不参与遮罩的层级竞争，
+    /* 低于抽屉遮罩（130）与连接弹窗（150）：装饰层不参与遮罩的层级竞争，
        否则遮罩淡出期间滑块会浮在上面 */
     z-index: 90;
     padding: 0;
@@ -64,7 +64,7 @@
     left: 0;
     top: 0;
     width: 100%;
-    background: var(--ring);
+    background: var(--border-strong);
     border-radius: 3px;
     /* 悬停 / 拖动提亮的时长走 --t-hover（容器显隐的 0.3s opacity 是显隐动效，不动） */
     transition: background var(--t-hover);
@@ -73,12 +73,12 @@
   }
 
   .custom-scrollbar-thumb:hover {
-    background: var(--hover-line);
+    background: var(--ink-muted);
   }
 
   .custom-scrollbar-thumb.active {
     cursor: grabbing;
-    background: var(--active-bg);
+    background: var(--blue);
   }
 
   @media (max-width: 768px) {

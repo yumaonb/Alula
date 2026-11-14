@@ -120,13 +120,13 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 
 ### 5. 样式
 
-- 设计令牌（颜色、圆角、模糊、时长）只在 `src/assets/css/variables.css` 定义；后台专属令牌（`--nav-*` / `--admin-shadow*`）放 `src/pages/admin/_admin/css/variables.css`（连同全站令牌的独立拷贝）；组件不硬编码。
+- 设计令牌（颜色、圆角、模糊、时长）只在 `src/assets/css/variables.css` 定义；后台令牌全部在 `src/pages/admin/_admin/css/variables.css`（蓝白商业风独立一套，与前台零共用零拷贝）；组件不硬编码。
 - 圆角分两档，按元件角色判定：小标签 / chip 用 `--radius-sm`，卡片与按钮用 `--radius`（细则见 `docs/reference/CSS.md`「令牌」节）。
 - 是否立令牌以语义为准，不以「重复次数」为判据：值承载稳定设计含义、会在多处持续复用时才立（由设计者定夺），单纯重复不强制。
 - 不用 `!important`；要覆盖就调选择器权重或换类名。
-- 磨砂一律挂 `.glass`（`utilities.css` 全站唯一定义），组件不自己写 `backdrop-filter`。
-- 确需 `backdrop-filter` 时必须与 `-webkit-` 前缀成对写；不要打开 `astro.config.ts` 里 `compress` 的 CSS 压缩。
-- 悬停效果一律 `.hoverable` + `--hover-*` 令牌，不另写 `:hover` 提亮；挂 `.hoverable` 的元素不自己写 `transition`；悬停提亮（颜色 / 填底 / 描边变亮、淡入）时长一律 `var(--t-hover)`，位移 / 开合 / 显隐 / 图片缩放等其他动效各自定义，不硬编码数字。
+- 前台磨砂一律挂 `.glass`（`utilities.css` 全站唯一定义），组件不自己写 `backdrop-filter`；后台无磨砂语言，底色全部平铺。
+- 前台确需 `backdrop-filter` 时必须与 `-webkit-` 前缀成对写；不要打开 `astro.config.ts` 里 `compress` 的 CSS 压缩。
+- 前台悬停效果一律 `.hoverable` + `--hover-*` 令牌，不另写 `:hover` 提亮；挂 `.hoverable` 的元素不自己写 `transition`；悬停提亮（颜色 / 填底 / 描边变亮、淡入）时长一律 `var(--t-hover)`，位移 / 开合 / 显隐 / 图片缩放等其他动效各自定义，不硬编码数字；后台没有 `.glass` / `.hoverable` 体系，悬停与聚焦效果在 `src/pages/admin/_admin/css/` 里自写。
 - 断点**不是全站统一的一套，也不要求统一**：`768px` / `769px` 是全站手机 ↔ 桌面分界（`nav/breakpoint.ts` 与各 CSS 同值）；`850` / `1150`（含互补的 `1151px`）只出现在 `nav/swup-widgets.ts`、`posts/toc.ts`、`posts/row-state.ts` 与 `PostsShell.astro` / `global.css`；页面还会按自己版面另设专属值（如首页 `827px`：两栏最小总宽 716 + 两侧 112 = 828，装不下就转单栏）。版面专属断点是**刻意的**，别拉齐到别的页面的值。改某处断点只同步「同一条版面规则」的其它处（写死处都有注释指向），**不抽成共享常量**——多一个文件、多一层跳转，利小于弊。分批表与推导见 `docs/reference/CSS.md` 的「断点」。
 - 页面外层宽度只由 `.page-main` 执行；要收窄内容列写 `width: 100%` + `max-width`（只写 `max-width` 会让纯中文页面塌成窄缝）。
 - 类名不跨组件复用同名异义；避免裸元素选择器影响全局。

@@ -3,7 +3,7 @@
 > 本文件由 `pnpm registry:write` 生成，**不要手工编辑**。
 > 人写的说明在 `docs/reference/COMPONENTS.md`，本文件只列代码里真实存在的东西。
 
-## Astro 组件（29）
+## Astro 组件（28）
 
 | 路径                                                  |
 | ----------------------------------------------------- |
@@ -34,7 +34,6 @@
 | `pages/admin/_admin/AdminLayout.astro`                |
 | `pages/admin/_admin/components/AdminNav.astro`        |
 | `pages/admin/_admin/components/AdminToken.astro`      |
-| `pages/admin/_admin/components/Background.astro`      |
 | `pages/admin/_admin/components/CustomScrollbar.astro` |
 
 ## Svelte 组件（7）
@@ -49,7 +48,7 @@
 | `components/widgets/Timeline.svelte`                | client:load |
 | `pages/admin/_admin/components/AdminChanges.svelte` | client:idle |
 
-## 全局 CSS 类（175）
+## 全局 CSS 类（177）
 
 | 类名                         | 定义于                                                                            |
 | ---------------------------- | --------------------------------------------------------------------------------- |
@@ -133,11 +132,13 @@
 | `.back-to-widget-icon`       | `src/assets/css/global.css`                                                       |
 | `.badge`                     | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.bg--clone`                 | `src/assets/css/global.css`                                                       |
-| `.bg--image`                 | `src/assets/css/global.css`、`src/pages/admin/_admin/css/base.css`                |
+| `.bg--image`                 | `src/assets/css/global.css`                                                       |
 | `.bg-scrim`                  | `src/assets/css/global.css`                                                       |
 | `.btn`                       | `src/pages/admin/_admin/css/admin.css`、`src/pages/admin/_admin/css/elements.css` |
 | `.btn--block`                | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.btn--dashed`               | `src/pages/admin/_admin/css/elements.css`                                         |
+| `.btn--ghost`                | `src/pages/admin/_admin/css/elements.css`                                         |
+| `.btn--primary`              | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.btn--sm`                   | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.btn-icon`                  | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.card`                      | `src/pages/admin/_admin/css/admin.css`、`src/pages/admin/_admin/css/elements.css` |
@@ -150,7 +151,7 @@
 | `.cat-item--active`          | `src/assets/css/posts/posts-listing.css`                                          |
 | `.cat-name`                  | `src/assets/css/posts/posts-listing.css`                                          |
 | `.chip`                      | `src/assets/css/utilities.css`                                                    |
-| `.chip--active`              | `src/assets/css/utilities.css`、`src/pages/admin/_admin/css/base.css`             |
+| `.chip--active`              | `src/assets/css/utilities.css`                                                    |
 | `.cover-ph-icon`             | `src/assets/css/shared/image-fallback.css`                                        |
 | `.drawer`                    | `src/assets/css/shared/drawer.css`                                                |
 | `.drawer-body`               | `src/assets/css/shared/drawer.css`                                                |
@@ -168,13 +169,13 @@
 | `.file-row`                  | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.footnotes`                 | `src/assets/css/posts/markdown.css`                                               |
 | `.form-grid`                 | `src/pages/admin/_admin/css/elements.css`                                         |
-| `.glass`                     | `src/assets/css/utilities.css`、`src/pages/admin/_admin/css/base.css`             |
+| `.glass`                     | `src/assets/css/utilities.css`                                                    |
 | `.glass-tall`                | `src/assets/css/utilities.css`                                                    |
 | `.global-sidebar`            | `src/assets/css/global.css`                                                       |
 | `.hero`                      | `src/assets/css/global.css`                                                       |
 | `.hint`                      | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.hover-brighten`            | `src/assets/css/utilities.css`                                                    |
-| `.hoverable`                 | `src/assets/css/utilities.css`、`src/pages/admin/_admin/css/base.css`             |
+| `.hoverable`                 | `src/assets/css/utilities.css`                                                    |
 | `.img-loaded`                | `src/assets/css/shared/image-fallback.css`                                        |
 | `.img-ph`                    | `src/assets/css/shared/image-fallback.css`                                        |
 | `.img-ph--inline`            | `src/assets/css/shared/image-fallback.css`                                        |
@@ -187,7 +188,7 @@
 | `.is-dragging-scrollbar`     | `src/assets/css/global.css`、`src/pages/admin/_admin/css/base.css`                |
 | `.is-error`                  | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.is-open`                   | `src/pages/admin/_admin/css/admin.css`                                            |
-| `.is-ready`                  | `src/assets/css/global.css`、`src/pages/admin/_admin/css/base.css`                |
+| `.is-ready`                  | `src/assets/css/global.css`                                                       |
 | `.is-staged`                 | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.is-visible`                | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.link-plain`                | `src/assets/css/global.css`、`src/pages/admin/_admin/css/base.css`                |
@@ -214,7 +215,7 @@
 | `.posts-page`                | `src/assets/css/posts/posts-listing.css`                                          |
 | `.posts-search-float`        | `src/assets/css/global.css`                                                       |
 | `.posts-title`               | `src/assets/css/posts/posts-listing.css`                                          |
-| `.psd-item--active`          | `src/assets/css/utilities.css`、`src/pages/admin/_admin/css/base.css`             |
+| `.psd-item--active`          | `src/assets/css/utilities.css`                                                    |
 | `.pswp`                      | `src/assets/css/shared/lightbox.css`                                              |
 | `.row`                       | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.row-remove`                | `src/pages/admin/_admin/css/elements.css`                                         |

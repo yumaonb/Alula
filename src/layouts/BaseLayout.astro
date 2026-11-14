@@ -155,7 +155,7 @@ const blog = await loadBlogData();
   </head>
   <body>
     <!-- 首载 loading 屏：body 第一个元素 + head 内联样式，不依赖任何外部资源即可画出；
-         只在首次加载显示（swup 切页不重建 body 壳），页面就绪后 0.5s 渐隐并移除节点 -->
+         只在首次加载显示（swup 切页不重建 body 壳），页面就绪后进度条走完再 0.5s 渐隐并移除节点 -->
     <div class="boot-splash" id="boot-splash" aria-hidden="true">
       <div class="boot-splash-inner">
         <span class="boot-splash-name">{site.name}</span>
@@ -240,9 +240,13 @@ const blog = await loadBlogData();
       // 首载 loading 屏：等页面资源（window load：CSS 背景图、首屏图片、脚本包）就绪才揭幕，
       // 揭开后第一帧就是加载完整的页面；最少展示 200ms 防快网闪屏。
       // 5s 超时兜底：个别资源卡死时遮罩不永久盖住页面。
-      // 进度条：遮罩期间按等待时长增长（快起慢收、渐近不越界），揭幕时滑满到整条，永不跳变；
-      // rAF 驱动，减少动态效果下不跑（条形留空）。
-      // load 后再等一帧 rAF：揭幕画在已绘制的一帧上，不揭开到未绘制的帧。
+      // 进度条：遮罩期间按等待时长增长（快起慢收、渐近不越界），揭幕时先滑满到整条、
+      // 走完后整屏才渐隐，永不跳变；rAF 驱动，减少动态效果下不跑（条形留空、直接渐隐）。
+      // 进度条与最少展示的时钟零点在**首个 rAF 帧**（用户第一次看见屏幕的时刻），不是脚本执行时刻：
+      // 主线程卡顿时按脚本时刻量，首帧可见时已 57%–92%，条形像「直接就在最后面」（见 TROUBLESHOOTING 67）；
+      // 减动效下 rAF 不跑，回落到脚本执行时刻。
+      // load 后再等一帧 rAF：揭幕画在已绘制的一帧上，不揭开到未绘制的帧；
+      // 隐藏标签页 rAF 不跑，该状态下补一个 setTimeout 兜底，渐隐不等到切回标签页（见 TROUBLESHOOTING 68）。
       // 背景图用 Image 预热：同一 URL 走缓存，加 .is-ready 时图已就位，不闪。
       (function () {
         const splash = document.getElementById('boot-splash');
@@ -250,11 +254,14 @@ const blog = await loadBlogData();
         const fillEl = splash.querySelector('.boot-splash-bar-fill');
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const started = performance.now();
+        // 用户第一次看见 loading 屏的时刻（首个 rAF 帧）；-1 = 还没画出过
+        let shownAt = -1;
         let finished = false;
         let rafId = 0;
         const tick = (now) => {
-          const t = now - started;
-          const p = 0.9 * (1 - Math.exp(-t / 1200));
+          if (finished) return;
+          if (shownAt < 0) shownAt = now;
+          const p = 0.9 * (1 - Math.exp(-(now - shownAt) / 1200));
           if (fillEl) fillEl.style.transform = 'scaleX(' + p + ')';
           if (!finished) rafId = requestAnimationFrame(tick);
         };
@@ -266,20 +273,23 @@ const blog = await loadBlogData();
             cancelAnimationFrame(rafId);
             rafId = 0;
           }
-          if (fillEl && !reduced) {
-            // 揭幕时当前值可能远小于 1，直接赋值会一帧跳满，走 transition 滑过去
-            fillEl.style.transition = 'transform 0.5s ease';
-            fillEl.style.transform = 'scaleX(1)';
-          }
-          // 快网下防闪：至少展示 200ms
+          // 最少展示 200ms（从首帧可见起算，首帧前的未绘制卡顿不算「已展示」）之后
+          // 再把条形走完、才整屏渐隐；隐藏标签页下 transition 不画，计时链照样走完
           const minShown = 200;
-          setTimeout(
-            () => {
+          const visibleFor = performance.now() - (shownAt > 0 ? shownAt : started);
+          const minDelay = Math.max(0, minShown - visibleFor);
+          const fillTime = fillEl && !reduced ? 500 : 0;
+          setTimeout(() => {
+            if (fillEl && !reduced) {
+              // 当前值可能远小于 1，直接赋值会一帧跳满，走 transition 滑满
+              fillEl.style.transition = 'transform 0.5s ease';
+              fillEl.style.transform = 'scaleX(1)';
+            }
+            setTimeout(() => {
               splash.classList.add('is-done');
               setTimeout(() => splash.remove(), 800);
-            },
-            Math.max(0, minShown - (performance.now() - started)),
-          );
+            }, fillTime);
+          }, minDelay);
         };
         const bgEl = document.querySelector('.bg--image');
         const bgUrl = /url\(['"]?([^'")]+)/.exec(
@@ -290,7 +300,11 @@ const blog = await loadBlogData();
           warm.onload = () => bgEl.classList.add('is-ready');
           warm.src = bgUrl;
         }
-        const reveal = () => requestAnimationFrame(fade);
+        const reveal = () => {
+          requestAnimationFrame(fade);
+          // 隐藏标签页 rAF 不跑：该状态下改挂计时器兜底（fade 有 finished 闸，重复触发是 no-op）
+          if (document.visibilityState === 'hidden') setTimeout(fade, 200);
+        };
         if (document.readyState === 'complete') {
           reveal();
         } else {

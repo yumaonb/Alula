@@ -8,7 +8,6 @@ import './css/base.css';
 import './css/elements.css';
 import './css/admin.css';
 import { Icon } from 'astro-icon/components';
-import Background from './components/Background.astro';
 import CustomScrollbar from './components/CustomScrollbar.astro';
 import AdminToken from './components/AdminToken.astro';
 import AdminNav from './components/AdminNav.astro';
@@ -32,13 +31,12 @@ const { title = '后台' } = Astro.props;
     <title>{title} - 后台 - {site.name}</title>
   </head>
   <body class="admin-body">
-    <Background />
     <!-- data-shell 是 shell-guard 识别后台外壳的唯一依据，改它会让守卫失效 -->
     <div class="admin-shell" id="admin-shell" data-shell="admin">
       <AdminNav />
 
       <div class="admin-content">
-        <header class="admin-topbar glass">
+        <header class="admin-topbar">
           <button
             class="admin-drawer-toggle"
             id="admin-drawer-toggle"

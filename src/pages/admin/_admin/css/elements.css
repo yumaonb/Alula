@@ -1,16 +1,15 @@
 /* elements.css — 后台 UI 元件（按钮 / 卡片 / 表单 / 文件列表 / 徽标）
  * 只由 AdminLayout 引入（随 _admin/ 目录一起进退），前台页面不加载。
- * 与本目录 variables.css / base.css 的令牌和工具类（--radius / .glass / .hoverable）同一套玻璃语言：
- * 透明底 + 模糊 + 白描边，黑白灰里靠「描边浓淡」和「填底浓淡」分层次。
+ * 蓝白商业风：白底 + 细边框 + 轻投影，层次靠「描边浓淡」和「底色深浅」表达，
+ * 不用磨砂；主操作是唯一一枚蓝底白字的按钮。
  * 这里只放「拿起来就能用」的最小元件；页面自己组合出来的布局
  * （后台编辑器、弹窗等）留在同目录的 admin.css 里。
  * 前台与后台解耦：以后前台要同样的按钮/卡片，把对应规则拷贝进前台各自维护，
  * 不跨外壳共用。 */
 
 /* ---- 按钮 ----
- * 与前台 .glass-btn 同一套语言：透明底 + 模糊 + 内描边，中间不填色。
- * 全套统一一档浅观感：文字与描边取前台标签按钮 .chip 的值（--ink 文字 + --ring 描边），
- * --primary / --ghost 不再区分观感，只留类名做语义标记。 */
+ * 统一一档浅观感：白底 + 细描边，--primary 是唯一的蓝底主命令，
+ * --ghost / --dashed 只做形态变体。 */
 
 .btn {
   display: inline-flex;
@@ -18,6 +17,9 @@
   justify-content: center;
   gap: 6px;
   padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-size: 0.8rem;
@@ -26,23 +28,22 @@
   cursor: pointer;
   white-space: nowrap;
   /* 悬停 / 聚焦提亮的时长走 --t-hover；border-color 一并收进过渡，
-   * 让 .btn--dashed 的虚线描边也渐变变亮而不是跳变 */
+   * 让 .btn--dashed 的虚线描边也渐变变深而不是跳变 */
   transition:
-    box-shadow var(--t-hover),
+    border-color var(--t-hover),
     background var(--t-hover),
-    border-color var(--t-hover);
+    color var(--t-hover);
 }
 
 .btn:hover:not(:disabled),
 .btn:focus-visible {
+  border-color: var(--border-strong);
   background: var(--hover-bg);
-  box-shadow:
-    var(--shadow),
-    inset 0 0 0 1px var(--hover-line);
 }
 
 .btn:active:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--panel-bg);
+  border-color: var(--border-strong);
 }
 
 .btn:disabled {
@@ -50,15 +51,36 @@
   cursor: not-allowed;
 }
 
-/* 虚线按钮：行列表的「添加一条」入口，只保留虚线样式，描边色与文字随全套统一 */
+/* 虚线按钮：行列表的「添加一条」入口，只换描边形态，颜色随全套统一 */
 .btn--dashed {
-  box-shadow: none;
-  border: 1px dashed var(--ring);
+  border-style: dashed;
 }
 
-.btn--dashed:hover:not(:disabled),
-.btn--dashed:focus-visible {
-  border-color: var(--hover-line);
+/* 主操作：蓝底白字 */
+.btn--primary {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--on-primary);
+}
+
+.btn--primary:hover:not(:disabled),
+.btn--primary:focus-visible {
+  border-color: var(--blue-strong);
+  background: var(--blue-strong);
+  color: var(--on-primary);
+}
+
+/* 无边框变体：顶栏连接按钮这类由尺寸锁定规则接管观感的入口，
+ * 悬停只给一档底、不画框 */
+.btn--ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn--ghost:hover:not(:disabled),
+.btn--ghost:focus-visible {
+  border-color: transparent;
+  background: var(--hover-bg);
 }
 
 .btn--sm {
@@ -70,10 +92,15 @@
   width: 100%;
 }
 
-/* ---- 卡片 ---- */
+/* ---- 卡片 ----
+ * 白底 + 细描边 + 轻投影是基础态，卡片不透明、不叠磨砂。 */
 
 .card {
   padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 /* 卡头：标题在左，计数 / 状态在右 */
@@ -98,13 +125,13 @@
   margin-top: 3px;
   font-size: 0.76rem;
   line-height: 1.6;
-  color: var(--ink);
+  color: var(--ink-muted);
 }
 
 /* 卡头右侧的计数 / 状态文字 */
 .card-extra {
   font-size: 0.74rem;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -115,8 +142,8 @@
 }
 
 /* ---- 表单 ----
- * 输入框走白色玻璃底（浅白半透明，不是黑凹槽）；
- * 聚焦时白描边提亮 + 外圈白色光晕，唯一的「当前在这里」信号。 */
+ * 输入框白底细描边；聚焦时主色蓝描边 + 外圈柔蓝光晕，
+ * 唯一的「当前在这里」信号。 */
 
 .field {
   display: block;
@@ -134,10 +161,10 @@
 .input {
   width: 100%;
   padding: 6px 10px;
-  border: 1px solid var(--ring);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
   font: inherit;
   font-size: 0.8rem;
   transition:
@@ -147,29 +174,29 @@
 }
 
 .input::placeholder {
-  color: var(--ink);
+  color: var(--ink-muted);
 }
 
 .input:focus-visible {
   outline: none;
-  border-color: var(--hover-line);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--focus-halo);
 }
 
-/* 下拉框：去掉系统箭头换成统一的白描边箭头，深色底下的原生箭头太脏 */
+/* 下拉框：去掉系统箭头换成统一的次色箭头 */
 select.input {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 30px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 14px;
 }
 
 select.input option {
-  background: #17191f;
-  color: var(--white);
+  background: var(--surface);
+  color: var(--ink);
 }
 
 /* 多行输入（自我介绍、正文这类）：沿用 .input 的观感，只放开高度与行距 */
@@ -191,7 +218,7 @@ select.input option {
 }
 
 /* 可增删的行列表（社交链接、友链、一言……）：
- * 每行是一个「托盘」——外框圈住一排无边框输入，整行随 focus-within 提亮描边，
+ * 每行是一个「托盘」——外框圈住一排无边框输入，整行随 focus-within 加深描边，
  * 单个输入聚焦时自己画圈。 */
 .rows {
   display: flex;
@@ -205,27 +232,31 @@ select.input option {
   align-items: center;
   gap: 4px;
   padding: 4px;
-  border: 1px solid var(--ring);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
   transition: border-color 0.15s ease;
+}
+
+.row:focus-within {
+  border-color: var(--border-strong);
 }
 
 .row > .input {
   flex: 1;
   min-width: 0;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
   padding: 6px 8px;
 }
 
 .row > .input:focus-visible {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px var(--blue);
+  background: var(--panel-bg);
 }
 
-/* 行内删除按钮：不抢宽度也不抢视觉，hover 铺一档白底 */
+/* 行内删除按钮：不抢宽度也不抢视觉，hover 铺一档红底 */
 .row-remove {
   flex-shrink: 0;
   display: inline-flex;
@@ -234,9 +265,9 @@ select.input option {
   width: 26px;
   height: 26px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: none;
-  color: var(--ink);
+  color: var(--ink-muted);
   cursor: pointer;
   transition:
     color var(--t-hover),
@@ -249,8 +280,8 @@ select.input option {
 }
 
 .row-remove:hover {
-  color: var(--white);
-  background: rgba(255, 255, 255, 0.12);
+  color: var(--red);
+  background: var(--red-soft);
 }
 
 /* 卡片里的补充说明：比 .status 更轻，用于解释字段含义 */
@@ -258,7 +289,7 @@ select.input option {
   margin-top: 10px;
   font-size: 0.74rem;
   line-height: 1.7;
-  color: var(--ink);
+  color: var(--ink-muted);
 }
 
 /* ---- 文件列表 ---- */
@@ -286,7 +317,7 @@ select.input option {
 /* 列表旁的小字计数（条数、行数），等宽数字避免跳动 */
 .status {
   font-size: 0.74rem;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -314,9 +345,9 @@ select.input option {
   min-width: 0;
   padding: 6px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.76rem;
   text-align: left;
@@ -330,40 +361,40 @@ select.input option {
 }
 
 .file-row:hover .file-link {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--white);
+  background: var(--hover-bg);
+  color: var(--ink);
 }
 
 .file-row.is-active .file-link {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--white);
+  background: var(--blue-soft);
+  color: var(--blue-strong);
 }
 
-/* 状态徽标：胶囊形，黑白灰里靠「填底浓淡 + 删除线」分状态 */
+/* 状态徽标：胶囊形，靠「填底浓淡 + 删除线」分状态 */
 .badge {
   flex-shrink: 0;
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 0.68rem;
   line-height: 1.5;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink-muted);
+  background: var(--hover-bg);
 }
 
 .badge.is-staged {
-  color: var(--white);
-  background: rgba(255, 255, 255, 0.2);
+  color: var(--blue-strong);
+  background: var(--blue-soft);
 }
 
 .badge.is-dirty {
-  color: var(--ink);
+  color: var(--ink-muted);
   background: transparent;
-  box-shadow: inset 0 0 0 1px var(--hover-line);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
 }
 
 .badge.is-delete {
-  color: var(--white);
-  background: rgba(255, 255, 255, 0.2);
+  color: var(--red);
+  background: var(--red-soft);
   text-decoration: line-through;
 }
 
@@ -371,7 +402,7 @@ select.input option {
   padding: 20px 10px;
   text-align: center;
   font-size: 0.8rem;
-  color: var(--ink);
+  color: var(--ink-muted);
 }
 
 /* ---- 手机端 ---- */
