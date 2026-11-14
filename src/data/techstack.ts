@@ -9,7 +9,7 @@ export interface TechCategory {
 export const techStack: TechCategory[] = [
   {
     category: '前端',
-    items: ['HTML', 'CSS', 'JavaScript', 'TypeScript', 'Svelte', 'Astro'],
+    items: ['HTML', 'CSS', 'JavaScript', 'TypeScript', 'Vite', 'Svelte', 'Astro'],
   },
   {
     category: '后端',
@@ -29,6 +29,10 @@ export const techStack: TechCategory[] = [
   },
   {
     category: '工具',
-    items: ['Git', 'GitHub', 'pnpm', 'npm'],
+    items: ['Git', 'GitHub', 'node:test', 'pnpm', 'npm', 'Markdown'],
+  },
+    {
+    category: 'AI工具',
+    items: ['Chat GPT（Codex）', 'Cursor', 'Claude Code', 'DeepSeek', 'Kimi'],
   },
 ];
