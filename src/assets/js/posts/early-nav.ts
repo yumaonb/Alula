@@ -15,9 +15,6 @@ export interface EarlyNavEnv {
 export interface EarlyNav {
   onEarlyClick(e: MouseEvent): void;
   onDocClick(): void;
-  bindSwupHooks(): void;
-  /** 切页已提交 / 导航失败：在途的早期点击等待作废 */
-  cancel(): void;
 }
 
 export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
@@ -75,7 +72,7 @@ export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
   /** 首屏实例未就绪时点区内链接：swup 点击委托还没挂载，原生跳转 = 整页加载，
    *  落地首屏不播转场（首次访问时点卡片，动效不播）。
    *  拦截点击、等实例就绪后 navigate() 转成正常切页——转场照常播；
-   *  超时回退原生跳转（整页加载，与现状一致）。跨区目的地本就无转场，不拦截 */
+   *  超时回退原生跳转（整页加载，与现状一致） */
   function onEarlyClick(e: MouseEvent): void {
     // 实例已就绪：swup 自己的委托接管
     if (reduceMotion || realSwup()) return;
@@ -102,7 +99,7 @@ export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
     const poll = (): void => {
       const s = realSwup();
       if (s) {
-        // 导航已正式发起：早期点击等待结束（before-swap 时统一清掉）
+        // 导航已正式发起：早期点击等待结束（成功分支不再排新定时器，无残留等待）
         try {
           s.navigate(href);
         } catch {
@@ -123,14 +120,10 @@ export function createEarlyNav(env: EarlyNavEnv): EarlyNav {
 
   /** 点击只绑 swup 钩子（fetch 失败兜底）。搜索框显隐不在点击时动——
    *  点击时动会旧内容仍在屏上，搜索框比新页面加载完先消失；
-   *  显隐全部由 playTransition 在 after-swap 用 settle 统一落位
+   *  显隐全部由 posts-shell.ts 在 swup:content:replace 时 settle 统一落位
    *  （切到列表系界面显示、其他界面隐藏，即时生效） */
   function onDocClick(): void {
     bindSwupHooks();
   }
-  function cancel(): void {
-    stopPolling();
-  }
-
-  return { onEarlyClick, onDocClick, bindSwupHooks, cancel };
+  return { onEarlyClick, onDocClick };
 }

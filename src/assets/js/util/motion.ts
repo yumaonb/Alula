@@ -2,8 +2,8 @@
 // 用法：import { motionSync, preloadMotion } from "../util/motion"
 //
 // 为什么懒加载：motion 整包 54 KB（gzip 19 KB），而首屏没有任何动画——
-// 搜索框钉位、侧栏高亮、页面变体类全是直接写样式。真正要用动画的是
-// 切页转场（transition / strip）与交互（导航下划线、
+// 搜索框钉位、侧栏高亮、页面变体类全是直接写样式，切页转场是 CSS
+//（global.css 的 .transition-page）。真正要用的是交互（导航下划线、
 // 汉堡菜单、分类树开合），全都在用户动作之后。
 //
 // 取用方式分两种：
@@ -104,7 +104,6 @@ function prefersReducedMotion(): boolean {
  *
  * reduceMotion 由这里从 matchMedia 统一读入并入 options——各调用点不再各自传，
  * 漏传就会让开了「减少动态效果」的用户看到平移动画。
- * 这样 20 多个调用点一行都不用改——动画是增强不是功能，
  * 未就绪时元素直接落到最终位置，不会卡在半途。
  */
 export function animateLazy(

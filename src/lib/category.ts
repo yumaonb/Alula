@@ -109,6 +109,12 @@ export function postPathSegments(pathname: string): string[] {
   return at >= 0 ? segments.slice(at + 1) : [];
 }
 
+/** 判断路径是否落在文章区下（首段为文章根路由）；带 search 参数的 URL 只取首段，同样成立 */
+export function isPostAreaPath(pathname: string): boolean {
+  const segments = pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+  return segments[0] === postRoute;
+}
+
 /** 在已知分类路径里找 URL 对应的最长前缀，即「当前所在分类」；找不到返回空串 */
 export function activeCategoryOf(segments: string[], known: Set<string>): string {
   for (let i = segments.length; i > 0; i--) {

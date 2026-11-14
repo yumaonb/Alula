@@ -397,14 +397,15 @@ export default defineConfig({
       // 平滑滚动何时结束，依赖的就是这个插件——它默认开启，但依赖关系在配置里看不见，
       // 将来升级或改配置把它关掉时，按钮的显隐时机会静默退化成 250ms 兜底。
       smoothScrolling: true,
-      // animationClass: false —— 关掉 swup 的「动画等待」：不找 [class*="transition-"] 元素，
-      // 新页面一到就替换内容。若保留默认选择器又不留 transition- 类，
-      // 每次切页都会打一条 "No elements found matching animationSelector" 警告。
-      animationClass: false,
-      // progress: true —— 官方 @swup/progress-plugin（@swup/astro 自带）：
-      // 页面顶部一条细进度条，切页快于 300ms 不出现，加载期间逐渐填充，
-      // 新页面渲染完（page:view）后走到 100% 并淡出。
-      // 默认是 3px 黑条，高度与颜色在 global.css 里覆盖。
+      // animationClass: 'transition-' —— swup 等待 [class*="transition-"] 元素上的动画（全站只有
+      // #swup 的 .transition-page，见 global.css「切页转场」）：旧页退出动画播完才替换 DOM，
+      // 新页进入动画播完才收尾。等待时长读该元素的 animationDuration（令牌 --t-page-exit /
+      // --t-page-enter）；减动效把时长压到 0.01s 但不设 none——none 会让 swup 不等且打警告
+      //（TROUBLESHOOTING 20.2）。
+      animationClass: 'transition-',
+      // progress: true —— 官方 @swup/progress-plugin（@swup/astro 自带）：页面顶部一条细
+      // 进度条。出现时机（visit:start 起 300ms 延迟）与切页转场动画的关系见 global.css
+      //「Swup 切页进度条」节；默认是 3px 黑条，高度与颜色也在 global.css 里覆盖。
       progress: true,
       // globalInstance：把实例挂到 window.swup。posts-shell.ts 需要订阅 swup 原生钩子
       //（fetch:error / visit:abort）——@swup/astro 只在 document 上桥接
@@ -419,7 +420,8 @@ export default defineConfig({
       // 整页快照挂到覆盖整个视口的 ::view-transition 顶层，动画期间
       // 指针事件全落在快照上、到不了真实 DOM——后台侧栏在 #swup 之外、视觉上根本没动，
       // 却同样点不动，必须等动画播完或点第二次，这就是「切页时侧栏点不了」的根因。
-      // 关掉后内容直接替换（animationClass: false），不再吞掉点击。
+      // 关掉后不再吞掉点击；切页动画由 #swup 自身的 CSS 动画（.transition-page）承担，
+      // 与原生 View Transition 无关。
       native: false,
     }),
     // HTML 深度压缩（含内联 CSS/JS）；removeComments 保持 false 以保护 Svelte 水合锚点。

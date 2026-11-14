@@ -1,4 +1,4 @@
-/* base.css — 后台基础样式（重置 / 链接 / 进度条 / 拖拽态）
+/* base.css — 后台基础样式（重置 / 链接 / 进度条 / 切页等待占位 / 拖拽态）
  * 只由 AdminLayout 引入（随 _admin/ 目录一起进退），前台页面不加载。
  * 与前台基础规则（src/assets/css/global.css、utilities.css）无关，各自维护；
  * 后台没有磨砂与背景容器，页面底色是平铺的 --page-bg。 */
@@ -74,6 +74,25 @@ ol {
 body .swup-progress-bar {
   height: 2px;
   background-color: var(--blue);
+}
+
+/* swup 切页等待占位：全站 astro.config.ts 设 animationClass: 'transition-'，
+ * swup 要找到 [class*="transition-"] 元素并按其 animationDuration 等播完才换 DOM。
+ * 后台刻意无转场动画（内容即时替换），这里给一个 0.01s 的不可见占位动画，
+ * 避免每次后台切页打 "No elements found matching animationSelector" 警告。 */
+html.is-leaving .transition-page,
+html.is-rendering .transition-page {
+  animation: admin-transition-noop 0.01s forwards;
+}
+
+@keyframes admin-transition-noop {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* 自定义滚动条拖拽态：滚动条只有 6px 宽，拖动中鼠标一离开滑块，

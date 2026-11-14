@@ -150,8 +150,7 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 
 <style>
   /* ---- 列表页 ---- */
-  /* 包裹槽：包住左缘条（页头/面包屑），转场期 posts-shell.ts 的条带模糊渐显/手机端
-     反推 counter 都作用在条/槽上。负边距通栏 + z-index 20 抬升（高于侧栏的 10）在槽上：
+  /* 包裹槽：包住左缘条（页头/面包屑）。负边距通栏 + z-index 20 抬升（高于侧栏的 10）在槽上：
      槽才是压过侧栏区的全宽元素（侧栏盒的顶部 padding 落在槽的左段，没有这层抬升左段
      点击会被侧栏拦截） */
   .posts-edge-slot {
@@ -230,8 +229,7 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
 
   /* 目录顶到行顶（82 = 文章变体行 padding-top，见 global.css 的 .page-main--listing / --post），
      与面包屑条顶边同一水平线——顶差 4px 在切页时会闪；sticky 滚动吸附位也随这一起取 82。
-     改这个 82 要同改另外两处：global.css 变体的 padding-top、assets/js/posts/strip.ts 的
-     入场落位判定（`scrollY <= yToc - 82`） */
+     改这个 82 要同改 global.css 变体的 padding-top */
   .post-sidebar {
     width: 240px;
     flex-shrink: 0;
@@ -254,10 +252,9 @@ const pagefindAttrs = hidden ? {} : { 'data-pagefind-body': true };
        空窗内垂直居中（上面减小、下面增大）——行留白 70px（global.css 末尾规则）
        + 条 28px + 条下间隙 13px，条上下各留 13px；正文大框顶 70 + 28 + 13 = 111 不变，
        仍 ≈ 列表页搜索框顶（73 + 标题行高 21.6 + 16 = 110.6），切页时正文卡正好落在
-       搜索框消失的位置。面包屑顶（70）与列表标题（73）仅差 3px，条带模糊交叉渐隐
-       按同位处理；
+       搜索框消失的位置。面包屑顶（70）与列表标题（73）仅差 3px，左缘元素按同位处理；
        28px 仍容得下链接行盒（25.76px），压掉的只是上下留白。
-       槽保留转场口袋职责（posts-shell.ts 按实际几何自适应） ---- */
+   */
   @media (max-width: 768px) {
     .posts-article-main {
       gap: 13px;

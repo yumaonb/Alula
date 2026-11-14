@@ -73,10 +73,7 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
   let navOffset = NAV_HEIGHT;
 
   function measure(): void {
-    // 必须限定在真实目录节点里查：转场期间行内还挂着上一篇的目录克隆
-    // （strip.cloneIntoRow 的 cloneNode 连 .toc-item / data-target 一起复制），
-    // 全文档查询会把旧页的条目也量进来——旧 slug 在新页里找不到标题，
-    // 每次切页都刷一串假的「找不到对应标题」；新旧页有同名标题时还会量成同一段
+    // queryTocNav 按 DOM 序取目录（真实侧栏实例在抽屉宿主之前），不做全文档查询
     const nav = queryTocNav();
     const items = nav ? nav.querySelectorAll<HTMLElement>('.toc-item') : [];
     slugs = [];

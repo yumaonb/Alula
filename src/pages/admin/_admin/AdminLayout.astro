@@ -54,7 +54,8 @@ const { title = '后台' } = Astro.props;
           </div>
         </header>
 
-        <main class="admin-main" id="swup">
+        <!-- transition-page：swup animationClass 的等待目标占位类（后台无转场动画，见 base.css） -->
+        <main class="admin-main transition-page" id="swup">
           <slot />
         </main>
       </div>

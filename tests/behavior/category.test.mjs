@@ -18,6 +18,7 @@ import {
   activeCategoryOf,
   activeTagOf,
   visiblePosts,
+  isPostAreaPath,
 } from '../../src/lib/category.ts';
 
 /** 造一条最小文章记录，只覆盖被测字段 */
@@ -123,6 +124,17 @@ test('路径解析：只取文章区之后的部分', () => {
   ]);
   assert.deepEqual(postPathSegments('/about/'), []);
   assert.deepEqual(postPathSegments('/posts/'), []);
+});
+
+test('文章区判定：首段为文章根路由即为文章区', () => {
+  // 来历：区内切换标记 is-post-swap 的目标页判定（swup 的 visit.to.url 带 search 参数）
+  assert.equal(isPostAreaPath('/posts/'), true);
+  assert.equal(isPostAreaPath('/posts/devnotes/css/at-rule/'), true);
+  assert.equal(isPostAreaPath('/posts/tag/css/'), true);
+  assert.equal(isPostAreaPath('/posts/about?foo=bar'), true);
+  assert.equal(isPostAreaPath('/'), false);
+  assert.equal(isPostAreaPath('/about/'), false);
+  assert.equal(isPostAreaPath('/projects/'), false);
 });
 
 test('当前分类：取已知分类里的最长前缀', () => {

@@ -174,9 +174,8 @@ ol {
  * 偏移默认值贴合常见首帧（两变体页锚均为 36px 高、间隙 14px，即 50px），防 JS 前的闪跳。
  * --posts-offset-gap 是 .posts-page / .posts-article-main 的 flex gap 的镜像（侧栏偏移测算用），
  * 改那两处的 gap 必须同步改这里。
- * 桌面端这个 82（两个变体同值）还有两个读取点，改这里必须三处同改：
- * `layouts/PostsShell.astro` 的 `.post-sidebar { top }`（目录吸顶位）、
- * `assets/js/posts/strip.ts` 的入场落位判定（`scrollY <= yToc - 82`） */
+ * 桌面端这个 82（两个变体同值）还有一个读取点，改这里必须两处同改：
+ * `layouts/PostsShell.astro` 的 `.post-sidebar { top }`（目录吸顶位） */
 .page-main--listing {
   --posts-offset-gap: 14px;
   --posts-side-offset: 50px;
@@ -195,7 +194,7 @@ ol {
  * 行留白 73→70px、面包屑条压到 28px、条下间隙 10→13px（见 PostsShell.astro 末尾规则），
  * 条上下各留 13px；正文大框顶 70 + 28 + 13 = 111 不变，仍与列表页搜索框顶
  * （73 + 标题行高 21.6 + 16 = 110.6）对齐。面包屑顶（70）与列表标题（73）仅差 3px，
- * 条带模糊交叉渐隐按同位处理。桌面端 82/132 几何不变 */
+ * 左缘元素按同位处理。桌面端 82/132 几何不变 */
 @media (max-width: 768px) {
   .page-main--listing,
   .page-main--post {
@@ -240,12 +239,12 @@ ol {
  * 的层不重建，切页零闪零重建。
  * 位置按页头占位符计算写内联 top/left/width（叠在占位上，各宽适配）：首帧由
  * BaseLayout body 尾 is:inline 脚本先写（无网络依赖；带 data-swup-ignore-script，
- * swup 切页不重跑——重跑会抢在转场编排前显出搜索框，见 TROUBLESHOOTING 52），
+ * swup 切页不重跑——重跑会抢在切页 settle 落位前显出搜索框，见 TROUBLESHOOTING 52），
  * posts-shell.ts 加载后重测接管。
  * visibility/pointer-events 随行变体类**瞬时**翻转（列表变体显示、其他隐藏），
- * opacity 由 posts-shell.ts 按目标态直接落位（切页 settle，即时生效、无出入场
- * 动画）——这里不写 opacity 过渡。
- * z-index 30 压过转场舞台（20）与侧栏（10）；搜索下拉在自身层叠上下文里 z-60，盖过栅格 */
+ * opacity 由 posts-shell.ts 按目标态直接落位（切页 settle，即时生效）；出入场
+ * 动画由「切页转场」块挂在它身上（动画期覆盖内联 opacity）——这里不写 opacity 过渡。
+ * z-index 30 压过包裹槽（20）与侧栏（10）；搜索下拉在自身层叠上下文里 z-60，盖过栅格 */
 .posts-search-float {
   position: absolute;
   z-index: 30;
@@ -270,9 +269,126 @@ ol {
   align-self: stretch;
 }
 
-/* 左缘元素（列表页头 / 文章面包屑条）：切页转场由 motion 在 posts-shell.ts ⑤ 驱动，
- * 本文件只保留端点状态（元素自然位置），不写 keyframes/transition——动画终帧会写进
- * 内联样式，CSS 端点必须与动画终态一致。旧带原地模糊渐隐、新带原地渐显，条带自身不位移。 */
+/* ---- 切页转场（swup 的 html 类驱动） ----
+ * swup 切页时 html 依次带三类：is-changing 覆盖整个窗口（退出开始 → 进入结束）、
+ * 退出期 is-leaving、进入期 is-rendering（astro.config.ts 的 animationClass 让 swup
+ * 按 .transition-page 的 animationDuration 等播完再继续）。
+ * 退出：整块下移渐隐，forwards 钉住终帧，防 DOM 替换间隙回闪；
+ * 进入：新内容从下方上移渐显，终态即元素自然状态，无需 fill。
+ * 行级侧栏 / 搜索框在 #swup 外，按行变体类跟上同曲线：退出期行上还是源页的
+ * 变体、进入期已翻成目标页的变体（content:replace 同帧翻），规则各自只命中
+ * 该侧本来就该动的那个元素。
+ * 区内切换（行带 is-post-swap，posts-shell.ts 在 visit:start 标记、visit:end 摘除）：
+ * 左缘条（页头 / 面包屑）用反向位移抵消容器位移，原地渐隐渐显，不挂 filter（逐帧
+ * blur 的栅格重建代价太大），改用白色瞬幕（--page-veil 在条底上退出期 0.05s 渐显、
+ * 进入期 0.05s 渐隐，速度写死不立令牌）。规则挂在
+ * 条自身而不是包裹槽——子元素 transform 不参与槽的盒测量，placeFloat 叠放测算不受影响。
+ * 玻璃平铺（veil）：动画窗口内 #swup 里与侧栏 / 搜索框里所有 .glass 的磨砂换成
+ * 不透明白填底（--page-veil）。原因：opacity < 1 会新建 backdrop root，其后代
+ * 的 backdrop-filter 全部失效（TROUBLESHOOTING 20.1 实测标准差 78.9 vs 基线 1.58）；
+ * 磨砂平铺后 opacity 动画窗口内不存在「模糊跟着变淡」。 */
+html.is-leaving .transition-page,
+html.is-leaving .page-main--listing .posts-search-float,
+html.is-leaving .page-main--listing > .global-sidebar,
+html.is-leaving .page-main--post > .global-sidebar {
+  animation: page-exit var(--t-page-exit) forwards;
+}
+
+html.is-rendering .transition-page,
+html.is-rendering .page-main--listing .posts-search-float,
+html.is-rendering .page-main--listing > .global-sidebar,
+html.is-rendering .page-main--post > .global-sidebar {
+  animation: page-enter var(--t-page-enter);
+}
+
+html.is-leaving .page-main.is-post-swap .posts-header,
+html.is-leaving .page-main.is-post-swap .posts-breadcrumb {
+  animation:
+    page-exit-edge var(--t-page-exit) forwards,
+    page-edge-veil-in 0.05s forwards;
+}
+
+html.is-rendering .page-main.is-post-swap .posts-header,
+html.is-rendering .page-main.is-post-swap .posts-breadcrumb {
+  animation:
+    page-enter-edge var(--t-page-enter),
+    page-edge-veil-out 0.05s;
+}
+
+html.is-changing #swup .glass,
+html.is-changing .global-sidebar .glass,
+html.is-changing .posts-search-float .glass {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--page-veil);
+}
+/* .glass-tall 的模糊在 sticky ::before 上（见 utilities.css），一并平铺 */
+html.is-changing #swup .glass-tall::before {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@keyframes page-exit {
+  to {
+    opacity: 0;
+    transform: translateY(var(--page-shift));
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--page-shift));
+  }
+}
+
+@keyframes page-exit-edge {
+  to {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--page-shift)));
+  }
+}
+
+@keyframes page-enter-edge {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--page-shift)));
+  }
+}
+
+/* 白色瞬幕：条底快速（0.05s 写死）变到 --page-veil 再变回，替代逐帧 blur。
+ * 退出用 forwards 钉住终帧到 DOM 替换；进入终点即自然态，无需 fill */
+@keyframes page-edge-veil-in {
+  to {
+    background-color: var(--page-veil);
+  }
+}
+
+@keyframes page-edge-veil-out {
+  from {
+    background-color: var(--page-veil);
+  }
+}
+
+/* 减动效：时长压到 0.01s（近似瞬时切页）但保留动画本身——swup 按
+ * animationDuration 等待，none / 0s 会让它不等且打警告（TROUBLESHOOTING 20.2）。
+ * 上面每一组动画规则这里都要镜像收全，少一条就有元素在减动效下播满速 */
+@media (prefers-reduced-motion: reduce) {
+  html.is-leaving .transition-page,
+  html.is-rendering .transition-page,
+  html.is-leaving .page-main--listing .posts-search-float,
+  html.is-rendering .page-main--listing .posts-search-float,
+  html.is-leaving .page-main--listing > .global-sidebar,
+  html.is-rendering .page-main--listing > .global-sidebar,
+  html.is-leaving .page-main--post > .global-sidebar,
+  html.is-rendering .page-main--post > .global-sidebar,
+  html.is-leaving .page-main.is-post-swap .posts-header,
+  html.is-rendering .page-main.is-post-swap .posts-header,
+  html.is-leaving .page-main.is-post-swap .posts-breadcrumb,
+  html.is-rendering .page-main.is-post-swap .posts-breadcrumb {
+    animation-duration: 0.01s;
+  }
+}
 
 /* ---- 侧边悬浮按钮列 ---- */
 .side-widgets {
@@ -376,9 +492,11 @@ ol {
 
 /* ---- Swup 切页进度条 ----
  * 元素由 @swup/progress-plugin 动态插进 body 顶部（astro.config.ts 的 progress: true 启用），
- * 没有静态标记。切页快于 300ms（缓存页）不出现；加载期间进度条逐渐增长，
- * 新内容替换完（page:view）后走到 100% 再淡出。
- * 内容本身直接替换、不做渐隐渐显，旧内容在加载期间也不需要先隐藏。
+ * 没有静态标记。出现时机：切页发起（visit:start）起满 300ms（插件默认 delay）仍在
+ * 加载才显示；加载期间逐渐增长，新内容替换并渲染完（page:view）走到 100% 再淡出。
+ * 访问时长含转场动画（swup 等 .transition-page 播完才收尾，page:view 在其后），
+ * 缓存页快切也要 --t-page-exit + --t-page-enter ≈ 0.38s，超过 300ms，所以进度条
+ * 现在几乎每次切页都会出现一瞬，属预期表现。
  * 插件会在 head 开头注入一份默认样式（3px 黑条），这里裸类名与它同权重、
  * 生效与否取决于源码顺序，用 body 提一档权重稳定压过。 */
 body .swup-progress-bar {

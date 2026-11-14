@@ -35,7 +35,7 @@
 
 - **症状**：脚本能加载，事件监听却永不触发。
 - **原因**：swup 切页只替换 `#swup` 里的内容，`<script>` 不会重新执行；模块脚本只在首次加载时运行一次。另有一个隐蔽变体：`astro:before-swap` / `astro:after-swap` / `astro:page-load` 由 `@swup/astro` 用 `document.dispatchEvent(new Event(name))` 派发，`new Event` 默认 `bubbles: false`——**监听挂在 `window` 上永远收不到**，必须挂 `document`。
-- **处理**：把逻辑写成监听 swup 钩子的形式（swup 钩子本身挂在 `document` 上派发的也照此办理）。本项目里侧边按钮列由 `assets/js/swup-widgets.ts` 统一管理，随切页重新初始化；`posts-shell.ts` 用 `astro:before-swap`（转场起点，要在内容替换前抓旧内容）与 `swup:content:replace`（新内容已插入）两个事件；**其余站点脚本一律用 `swup:content:replace`**，不要用 `astro:after-swap`（同一时机的别名，混用会让模块间先后关系只存在于「目前碰巧是对的」里）。
+- **处理**：把逻辑写成监听 swup 钩子的形式（swup 钩子本身挂在 `document` 上派发的也照此办理）。本项目里侧边按钮列由 `assets/js/swup-widgets.ts` 统一管理，随切页重新初始化；`posts-shell.ts` 只监听 `swup:content:replace`（新内容已插入，随后落位壳）；**其余站点脚本一律用 `swup:content:replace`**，不要用 `astro:after-swap`（同一时机的别名，混用会让模块间先后关系只存在于「目前碰巧是对的」里）。
 
 ## 6. 正文图片不显示，或没走优化（HTML 里出现异常标签）
 
@@ -111,15 +111,15 @@
 
 - **症状**：从 `/` 点进 `/admin/`（或从后台点「回到站点」）后，页面内容换了、导航栏/页脚却没换——出现「站点顶栏 + 后台内容」或反过来的混搭。
 - **原因**：`@swup/astro` 把 swup 注入**所有**页面（含后台），而 swup 只替换 `containers`（本项目是 `#swup`）里的内容，站点页与后台页的外壳本就不同，不管就会混搭。**关键点：swup 也接管浏览器的前进/后退**，所以光靠 `ignoreVisit` 配置挡不住这条路径。
-- **处理**：两层。点击路径：后台「回到站点」链接（`AdminNav` 里）带静态 `data-no-swup`，swup 把这次点击交给浏览器整页加载。前进/后退路径：由前台 `src/assets/js/nav/shell-guard.ts` 与后台拷贝 `src/pages/admin/_admin/js/shell-guard.ts`（两个外壳各 import 自己那份）监听 `popstate`，发现当前外壳与目标地址对不上就掐掉 swup 的处理并整页 reload，`astro:after-swap` 上再兜一层 reload。
+- **处理**：两层。点击路径：后台「回到站点」链接（`AdminNav` 里）带静态 `data-no-swup`，swup 把这次点击交给浏览器整页加载。前进/后退路径：由前台 `src/assets/js/nav/shell-guard.ts` 与后台拷贝 `src/pages/admin/_admin/js/shell-guard.ts`（两个外壳各 import 自己那份）监听 `popstate`，发现当前外壳与目标地址对不上就掐掉 swup 的处理并整页 reload，`swup:content:replace` 上再兜一层 reload。
 - **怎么确认**：`pnpm build` 后 `dist/admin/**/*.html` 里能搜到 `data-no-swup`；在浏览器里用「前进/后退」在两个外壳间来回走一遍，外壳应与内容一致。
 
 ## 20. 玻璃模糊与 swup 切页（前台与后台）
 
-这一节是踩坑最多的。当前切页做法是「内容直接替换 + 顶部进度条」，
+这一节是踩坑最多的。当前切页做法是 #swup 整块 CSS 转场（下移渐隐 / 上移渐显 + 白色平铺，见 `global.css`「切页转场」），
 下面两个坑是**长期约束**，动切页路径上的任何动画前先过一遍。
 
-> **适用范围**：全站磨砂统一走 `.glass` 类（`backdrop-filter` 实时采样绘制在背后的像素），所以 **20.1 的 backdrop root 约束作用于所有挂 `.glass` 的元素**（卡片 / 顶栏 / 后台 / 弹窗）。下面实测数据保留，动这些元素的动画前仍要先过一遍。
+> **适用范围**：全站磨砂统一走 `.glass` 类（`backdrop-filter` 实时采样绘制在背后的像素），所以 **20.1 的 backdrop root 约束作用于所有挂 `.glass` 的元素**（卡片 / 顶栏 / 后台 / 弹窗）。下面实测数据保留，动这些元素的动画前仍要先过一遍。现行切页给 `#swup` 挂 opacity 动画，但 `is-changing` 期间其内部 `.glass` 全部平铺成半透明白底（veil，见 20.3），20.1 因此不触发；改 veil 或给其他元素挂 opacity 动画前，这条坑仍适用。
 
 ### 20.1 坑：`backdrop-filter` 的采样范围会被祖先的 `opacity` 关掉
 
@@ -127,7 +127,7 @@
 
 玻璃的模糊靠 `backdrop-filter`，它**只能采样「同一个 backdrop root 之内、绘制在它背后」的像素**。而 `opacity < 1`（以及 `filter` / `will-change: opacity`）会让元素**新建 backdrop root**。
 
-曾把进场动画挂在 `main#swup` 上（`opacity: 0 → 1`）。动画期间整个 `#swup` 成了新的 backdrop root，它内部的后代（所有玻璃卡片）就再也采样不到页面背后那层固定的 `.bg`，只能采样 `#swup` 自己的透明背景 —— 模糊因此消失；动画结束、backdrop root 撤销，模糊才恢复。
+曾给 `main#swup` 挂 opacity 动画（进场 `opacity: 0 → 1` 或任何 `opacity < 1`）。动画期间整个 `#swup` 成了新的 backdrop root，它内部的后代（所有玻璃卡片）就再也采样不到页面背后那层固定的 `.bg`，只能采样 `#swup` 自己的透明背景 —— 模糊因此消失；动画结束、backdrop root 撤销，模糊才恢复。
 
 实测（Chromium headless，高频斜纹背景，测卡片区域亮度标准差；越低越模糊）：
 
@@ -138,7 +138,7 @@
 | 祖先跑 `opacity` 动画   | 78.9   | **失效** |
 | 祖先跑 `transform` 动画 | 2.01   | 正常     |
 
-**结论：破坏模糊的是 `opacity`，不是 `transform`。** 所以 `main#swup` 与其祖先上**只能挂 transform 类动画，不能挂 opacity**。
+**结论：破坏模糊的是 `opacity`，不是 `transform`。** 所以 `main#swup` 与其祖先挂 opacity 动画前必须先让后代玻璃失效（现行切页用 veil，见 20.3）；其余元素只能挂 transform 类动画。
 
 试过但**都绕不过去**的写法：`isolation: isolate`、`clip-path`、让玻璃自己再跑一遍 `backdrop-filter` 动画。实测这三个在高频细节量上分别是 3.48 / 2.17 / 3.48，而正常基准是 0.50。
 
@@ -162,18 +162,19 @@ if (!animatedElements.length) {
 
 顺带一个有用的性质：`awaitAnimations` 是把所有匹配元素 `Promise.all` 起来等的，所以**同时有多个匹配元素时，swup 等最长的那条**。
 
-当前配置已写 `animationClass: false`（见 `astro.config.ts` 的 swup 段）：swup 完全不等待动画、直接替换内容。
-将来若要加切页动画，需同时恢复 `animationClass`（或在等待目标元素上留一个带真实时长的 `transition-` 类），且 20.1 的坑仍然适用。
+当前配置已写 `animationClass: 'transition-'`（见 `astro.config.ts` 的 swup 段）：全站唯一等待目标是 `#swup` 的 `.transition-page`（时长令牌 `--t-page-exit` / `--t-page-enter`，见 `global.css`「切页转场」）；后台无转场，用 0.01s 不可见占位动画消警告（见 `src/pages/admin/_admin/css/base.css`）。
 
-### 20.3 当前切页做法：直接替换 + 顶部进度条
+### 20.3 当前切页做法：整块 CSS 转场 + 白色平铺 + 顶部进度条
 
-- 新页面一到就替换内容：不做渐隐渐显、没有遮罩，加载期间旧内容也不需要先隐藏（隐藏即 opacity 动画，会踩 20.1 的坑）。
-- 加载反馈是官方 `@swup/progress-plugin`（`astro.config.ts` 的 `progress: true` 启用）：页面顶部一条细白条，
-  切页快于 300ms 不出现，加载期间逐渐填充，新页面渲染完后走到 100% 再淡出。
+- swup 切页时给 html 依次挂类：`is-changing` 覆盖整个窗口（含 fetch），退出期 `is-leaving`、进入期 `is-rendering`；`#swup` 的 `.transition-page` 播 `page-exit`（整块下移渐隐，`forwards` 钉终帧）与 `page-enter`（自下方上移渐显），时长令牌 `--t-page-exit` / `--t-page-enter`、位移 `--page-shift` 都在 `variables.css`。
+- 行级侧栏 / 搜索框（`#swup` 外）按行变体类挂同一组 `page-exit` / `page-enter`：退出期行上还是源页变体、进入期已翻目标变体（`swup:content:replace` 同帧翻），各自只命中该侧本来就该动的元素；区内切换时行带 `is-post-swap`（`posts-shell.ts` 在 `swup:visit:start` 按「源页变体 + 目标 URL」标记、`visit:end` 摘除），左缘条（页头 / 面包屑）用反向位移 + 白色瞬幕原地渐隐渐显（见「切页转场」的 `global.css` 块与 37 条）。
+- `is-changing` 期间 `#swup` 内、行级侧栏与搜索框里所有 `.glass` 平铺成半透明白底（veil，`--page-veil`，0.02 的白）——`#swup` 自身带 opacity 动画，必须先让后代玻璃失效（20.1）；转场结束磨砂恢复。
+- 加载反馈是官方 `@swup/progress-plugin`（`astro.config.ts` 的 `progress: true` 启用）：页面顶部一条细白条，`visit:start` 起 300ms 延迟才出现；访问时长现在含转场动画（swup 等 `.transition-page` 播完才收尾，`page:view` 在其后），缓存快切也要 ≈0.38s，所以进度条几乎每次切页都会出现一瞬（预期）。
 - 进度条的默认样式（3px 黑条）由插件自己注入，高度与颜色在 `global.css` 覆盖（`body .swup-progress-bar`）。
+- 历史前进 / 后退（popstate）仍瞬时替换、无动画（swup 的 `animateHistoryBrowsing` 默认关闭）。
 
-**怎么确认**：`pnpm dev` 后切页：顶部细白条逐渐增长，切完走满即消失，内容直接替换；
-**全程挂 `.glass` 的玻璃（卡片 / 顶栏 / 后台）都应保持模糊**（不会出现「切页那一下变透明、显完才恢复」）。
+**怎么确认**：`pnpm dev` 后切页：旧内容整块下移渐隐、新内容上移渐显，期间玻璃为半透明白底、转场结束后磨砂恢复无「闪一下」；进 / 出文章区时行级侧栏与搜索框同曲线一起动、区内切换时左缘条带白色瞬幕原地渐隐渐显；
+**挂 `.glass` 的玻璃（卡片 / 顶栏 / 后台）转场后仍保持模糊**（不会出现「切页那一下变透明、显完才恢复」）。
 
 ### 20.4 不成立的方案（别再犯）
 
@@ -182,7 +183,7 @@ if (!animatedElements.length) {
 3. **给固定背景做整屏的 `filter: blur()` 副本** —— 会溢出整屏糊掉；加 `contain: paint` 能治溢出，但 `opacity` 仍会稀释模糊。
 4. **模糊只放在动画后半段追** —— 内容已实显却没模糊，像「忘了应用玻璃」，随后又像「突然被糊了一下」。而且性能根本不是瓶颈。
 5. **以为这是后台独有的问题** —— 不对，前台 `#swup` 内的 `.glass` 同样会失效。
-6. **只把等待目标元素的动画设成 `none`** —— 忘了 swup 是靠它判断「要等多久」的，等于告诉 swup「没有动画要等」，切页直接变成下一帧完成，控制台还会打警告。干净的做法是配置里写 `animationClass: false`。
+6. **只把等待目标元素的动画设成 `none`** —— 忘了 swup 是靠它判断「要等多久」的，等于告诉 swup「没有动画要等」，切页直接变成下一帧完成，控制台还会打警告。减动效也要保留 0.01s 占位时长（压时长、不取消动画），不写 `none` / `0s`。
 7. **只给 `.glass` 挂动画来做整页效果** —— 页面上非玻璃的内容不参与，会出现「一部分渐显、一部分瞬移」。这是最先必须换掉的方案。
 
 ### 20.5 验证时的陷阱（踩过，别再踩）
@@ -201,7 +202,7 @@ if (!animatedElements.length) {
 
 - **症状**：后台切页的那一瞬间，点侧栏项或顶栏按钮没反应，要点第二次才生效。
 - **原因**：`astro.config.ts` 的 swup 段 `native: true`（默认值）时，swup 会用浏览器原生 View Transition（`document.startViewTransition`）包住整次 renderPage。原生 VT 把整页快照挂到覆盖整个视口的 `::view-transition` 顶层，动画期间指针事件全落在快照上、到不了真实 DOM——侧栏在 `#swup` 之外、视觉上根本没动，却同样点不动。
-- **处理**：swup 段设 `native: false`（配合 `animationClass: false`，内容直接替换、无转场动画）。日后要加切页动画，不要把 `native` 换回 `true`，用页面内 CSS 动画做（见第 20 条）。
+- **处理**：swup 段设 `native: false`。切页动画由 `#swup` 自身的 CSS 动画（`.transition-page`，见第 20 条）承担，与原生 View Transition 无关——调切页动画不要把 `native` 换回 `true`。
 
 ## 23. Astro `<script>` 加了属性（如 `lang="ts"`）后脚本变 `is:inline`
 
@@ -303,7 +304,7 @@ if (!animatedElements.length) {
 ## 35. 文章区侧栏在**所有**站点页的 DOM 里（普通页只是隐藏），行为分在三处
 
 - **症状**（开发文章区新功能时可能遇到）：普通页（首页 / 关于等）里 `#category-tree` 的标记明明在 DOM 里，点箭头却无反应；从普通页 swup 切进文章区后的头几百毫秒里点树也没反应；把侧栏显示断点只改了 `global.css`，文章页的筛选抽屉按钮在 1000~1150px 区间该出现却没出现（或该隐藏却没隐藏）。
-- **原因**：`GlobalSidebar` 由 `BaseLayout` 渲染在 `#swup` **之外**、且渲染在**每个**站点页的壳里——swup 只换 `#swup` 内容，这样文章区界面之间切换侧栏永不重建（分类树手动开合状态保留、不闪）。两个推论：① **标记常驻、脚本不常驻**——`category-tree.ts`（带 motion 共享块约 19.6 kB gzip）由 `posts-shell.ts` 懒加载：普通页侧栏隐藏、树无交互，根本不加载；第一次 swup 切进文章区时由 `astro:after-swap` 触发 `import()`，import 完成前树没有点击委托（首帧的展开窗口用 600px 兜底值，模块落地后量真实高度修正）。② **壳状态与断点分在两处**——行变体类（`--plain/--listing/--post`）、侧栏顶偏移（`--posts-side-offset` 实测页锚高度）、高亮/展开同步都由 `posts-shell.ts` 在每次 `astro:after-swap` 后维护（首帧由 `BaseLayout` 的 `shellVariant` prop 定）；侧栏显隐断点（列表 ≥769px / 文章 ≥1151px）写在 `global.css`，而筛选/目录抽屉按钮的互补出现区间（≤768 / ≤1150 / ≤850）写在 `swup-widgets.ts` 的 probe 数值里。
+- **原因**：`GlobalSidebar` 由 `BaseLayout` 渲染在 `#swup` **之外**、且渲染在**每个**站点页的壳里——swup 只换 `#swup` 内容，这样文章区界面之间切换侧栏永不重建（分类树手动开合状态保留、不闪）。两个推论：① **标记常驻、脚本不常驻**——`category-tree.ts`（带 motion 共享块约 19.6 kB gzip）由 `posts-shell.ts` 懒加载：普通页侧栏隐藏、树无交互，根本不加载；第一次 swup 切进文章区时由 `swup:content:replace` 触发 `import()`，import 完成前树没有点击委托（首帧的展开窗口用 600px 兜底值，模块落地后量真实高度修正）。② **壳状态与断点分在两处**——行变体类（`--plain/--listing/--post`）、侧栏顶偏移（`--posts-side-offset` 实测页锚高度）、高亮/展开同步都由 `posts-shell.ts` 在每次 `swup:content:replace` 后维护（首帧由 `BaseLayout` 的 `shellVariant` prop 定）；侧栏显隐断点（列表 ≥769px / 文章 ≥1151px）写在 `global.css`，而筛选/目录抽屉按钮的互补出现区间（≤768 / ≤1150 / ≤850）写在 `swup-widgets.ts` 的 probe 数值里。
 - **处理**：新功能依赖树脚本时，要么照 `ensureCategoryTree` 的懒加载模式（`window` 幂等守卫，`src/env.d.ts` 声明标记），要么直接操作 DOM、不假设 `category-tree.ts` 在所有页面已加载。**改侧栏 / 抽屉按钮的断点必须两处同改**（`global.css` 媒体查询 + `swup-widgets.ts` probe 数值），两处注释互相指认。
 - **怎么确认**：任一站点页的 HTML 里都有 `.page-main > .global-sidebar`（普通页 `display: none`）；普通页 `window.__postCatTreeBound` 为 undefined，swup 切进文章区后变 true；文章页 1150px 时侧栏隐藏且筛选按钮可用、1151px 时侧栏显示且按钮隐藏，两条互补无死角。
 
@@ -314,16 +315,16 @@ if (!animatedElements.length) {
 - **处理**：负边距通栏的左缘元素都带 `position: relative; z-index: 20`（高于侧栏的 10）：`.posts-header`（≥769px 负边距）、`.posts-breadcrumb`（≥1151px 负边距）。新增同类「向左压过侧栏区」的元素时照抄这两个声明。
 - **怎么确认**：`document.elementFromPoint(页头/条左段坐标)` 命中的是该元素自身（或其子节点）而不是 `.global-sidebar`；真实鼠标点击左段链接能正常导航。
 
-## 37. 转场克隆生命周期与条带模糊交叉渐隐（别再改回 CSS 动画类方案）
+## 37. 切页转场：swup 的 html 类 + #swup 整块 CSS 动画
 
-- **现行口径**：全部左缘条带切换（桌面 + 手机）走**模糊变过去**——旧带克隆原地渐隐（opacity 1→0，160ms，退出侧不写 filter）、新带原地渐显（**不挂任何 filter**）+ 静态 blur(4px) 模糊副本渐隐、淡尽后移除（纯 alpha 交叉，260ms）；两条带同位交叉渐隐，无位移、无口袋裁切。几何见 `CSS.md`「文章区几何」。
-- **常驻规则**（动克隆 / 条带路径前逐条过）：
-  - 清理克隆一律**查 DOM**（`clearClones` 按标记类查全部），移除回调里用局部引用接元素，不读会被置 null 的模块级变量——动画中途二次切页 cancel 后依赖模块变量，克隆会残留到 5s 兜底。
-  - 下一轮切换前克隆**全程不能带过滤层**：克隆钉死 `filter: none` 且退出侧纯 opacity 渐隐——带过滤层的克隆被移除时下方新标题重栅格闪一帧。
-  - 推入根 / counter 槽的 transform 层**保活不拆**：motion 把端点 0 解析成 `transform: none` 会拆层，`finished` 后显式写回恒等 `translateY(0)`——拆层重栅格整列内容（长列表十几张玻璃卡），压在新标题入场收尾上就闪（见第 51 条）。
-  - 克隆前把旧条带残留内联 transform 清零（cancel 不清内联），克隆 `margin: '0'`（负 margin-left 在绝对定位克隆上照样生效，整条会左偏 284px）。
-  - 量槽 / 占位用**与 transform 无关的布局坐标**（槽 rect + 占位 `offsetTop`），动画中按 `getBoundingClientRect` 量会把错值写死进内联（见第 42 条）。
-- **为什么不用 CSS 动画类**：类必须在首个绘制帧前挂上动画才有起点，dev 主线程被 Vite 转换 / 水合占住时挂类时机漂移，动画整段无声丢失（生产好 dev 坏的来源）；转场一律 motion 的 `animate()`（`astro:after-swap` 与 DOM 插入同任务）。
+- **现行口径**：切页统一走 `global.css`「切页转场」——swup 切页时给 html 挂类：`is-changing` 覆盖整个窗口、退出期 `is-leaving`、进入期 `is-rendering`；`#swup` 的 `.transition-page` 播 `page-exit`（下移渐隐）与 `page-enter`（自下方上移渐显），行级侧栏 / 搜索框按行变体类挂同一组曲线，区内切换（行带 `is-post-swap`，`posts-shell.ts` 在 `swup:visit:start` 标记、`visit:end` 摘除）时左缘条（页头 / 面包屑）用反向位移 + 白色瞬幕原地渐隐渐显；`is-changing` 期间 `#swup` 内、侧栏与搜索框里所有 `.glass` 平铺成半透明白底（veil，`--page-veil`）。无 JS 编排（`is-post-swap` 只是给 CSS 规则开门控）、无临时 DOM。
+- **为什么是 CSS 动画类**（JS 编排被放弃的原因）：motion 的 `animate()` 时钟从调用时刻起算，换内容后主线程被占（dev 按需编译 / 岛屿水合 / 懒加载 import），墙钟在停顿里空转、动画被整段吃掉（「一瞬间跳过」，环境现象见第 40 条）；CSS 动画由文档时间线驱动，swup 的等待按 `animationDuration` 定长计时（不听 `animationend`），退出终帧被 `forwards` 钉住——停顿再长，最差转场被压缩、不会消失，也不会卡中间值。类由 swup 自己的 visit 流程挂（`is-leaving` 在换 DOM 前、`is-rendering` 在换 DOM 后），站点脚本不挂类，不存在「挂类晚丢起点帧」的时机问题。
+- **常驻规则**（动切页路径前逐条过）：
+  - 等待目标时长必须是真实值：减动效压到 0.01s 不写 `none` / `0s`（不等则控制台警告 + 转场被跳过，第 20.2 条）；后台无转场，0.01s 占位动画只为消警告（见 `src/pages/admin/_admin/css/base.css`）。
+  - 退出必须 `forwards` 钉终帧：DOM 替换间隙旧块要保持在 opacity 0 终帧，不钉会在替换前回闪一帧旧内容。
+  - veil 窗口必须与 `is-changing` 一致（覆盖整个动画期）：玻璃暴露而 `#swup` 仍带 opacity < 1 时模糊失效、结尾「啪」地恢复（第 20.1 条）；veil 与动画同起同落，不设独立时序。
+  - 转场元素默认只做 opacity + transform，不挂 filter 类效果：veil 摘下瞬间 N 张玻璃卡批量重建栅格（第 51 条教训）。区内切换左缘条的白色瞬幕是 background-color 渐显渐隐，不是 filter。
+  - 转场令牌（`--t-page-exit` / `--t-page-enter` / `--page-shift` / `--page-veil`）只定义在 `variables.css`；搜索浮层 dy 修正（`posts/search-float.ts`，第 42 条）与首帧脚本（`src/layouts/BaseLayout.astro`）跟着读。
 
 ## 38. 侧栏标签 chip 高亮残留（切页后状态没清除）
 
@@ -349,15 +350,15 @@ if (!animatedElements.length) {
 
 - **症状**：切页后，常驻搜索框 `.posts-search-float` 的内联 top 停在错值上、且不再被重测——错值恰好差一个「量槽那一帧正在跑的动画位移」。
 - **原因**：`posts-shell.ts` 的 `syncSearchPos()` 用「槽 rect − 行 rect + 占位 `offsetTop`」写搜索框位置。`offsetTop/offsetWidth` 是布局坐标（不受 transform 影响），但 **`getBoundingClientRect` 包含祖先的 transform 位移**。被动画移动的可能是槽自身、也可能是槽到行之间的祖先——量槽那一帧若恰在位移途中，读到的就是带位移的坐标；动画不改变锚尺寸，RO 不再触发，错值永久驻留（transform 变化不触发 RO）。
-- **处理**：量槽改用**与 transform 无关的布局坐标**：`posts/search-float.ts` 的 `placeFloat` 用槽 rect 差 + 占位 `offsetTop/offsetLeft/offsetWidth` 还原行相对坐标，槽与行都不再被动画移动（转场只渐隐渐显、无位移）。通用结论：**只要被量元素自身或其某个祖先正在被动画移动，rect 就是脏的**——需要随时重测的叠放元素，量布局坐标（`offsetTop/offsetLeft/offsetWidth`）而不是 rect。
-- **怎么确认**：转场中途（条带渐显窗口内）读 `.posts-search-float` 内联 top：任何时刻都收敛到与占位符一致的布局值，不出现「差一个位移量」的驻留值；静止态复查不变。
+- **处理**：槽与行自身不再被动画移动，但 `#swup` 整块在转场中位移——`posts/search-float.ts` 的 `placeFloat` 先取 `new DOMMatrixReadOnly(getComputedStyle(main).transform).f` 解析 `#swup` 当前 translateY、从 rect 差里减掉（静止 0、进入期 0 → `--page-shift`）：浮层写在 `#swup` 之外、按行相对坐标落位，槽与占位在 `#swup` 之内，不减就会把进入位移写进内联且不再被重测（transform 不触发 RO）；首帧副本（`src/layouts/BaseLayout.astro`）同式。通用结论：**只要被量元素自身或其某个祖先正在被动画移动，rect 就是脏的**——要么量布局坐标（`offsetTop/offsetLeft/offsetWidth`），要么减去已知祖先位移。
+- **怎么确认**：转场进入窗口内读 `.posts-search-float` 内联 top：任何时刻都收敛到与占位符一致的布局值，不出现「差一个位移量」的驻留值；静止态复查不变。
 
 ## 43. 同一元素上并发多个 motion 动画：后结束动画的端点提交会把值写回内联
 
-- **症状**：转场收尾后静止态抽查，动画元素的内联样式残留着动画端点值（`finished` 提交后未被清理），与静止 CSS 态不一致。
+- **症状**：一组并发动画收尾后静止态抽查，动画元素的内联样式残留着动画端点值（`finished` 提交后未被清理），与静止 CSS 态不一致。
 - **原因**：motion 在动画完成时会把**关键帧端点提交成内联样式**（`finished` 时内联已是端点值）。同一元素上并发多个 `animate()` 时，若收尾清理只挂在其中一个动画的 `finished` 上：那个先结束时清了内联，其余动画继续跑、结束后把端点提交回内联 → 永久残留。
 - **处理**：收尾写成**幂等**函数，**每个并发动画的 `finished` 各挂一次**——谁后结束谁负责最后清一遍，后完成动画的端点提交被下一次清理盖掉；`cancel`（reject）走 catch 不清理，残留内联由下次动作的幂等落位（如 `settle`）兜底。通用化：同元素并发多个 `animate()` 时，凡需要「动画后清内联」的，清理必须挂到**所有**可能最后结束的动画上，或直接每个都挂（清理写成幂等即可）。
-- **怎么确认**：转场结束后读相关元素内联 `style`：无动画端点残留；再切一次页、静止态复查仍干净。
+- **怎么确认**：一组并发动画收尾后读相关元素内联 `style`：无动画端点残留；再触发一轮动画、静止态复查仍干净。
 
 ## 44. astro-icon 的 symbol/use 引用在 swup 切页后悬空：持久壳里的图标「没颜色/不显示」，整页刷新恢复
 
@@ -374,28 +375,21 @@ if (!animatedElements.length) {
 - **处理**：给触发跨界翻转的两条 MQL（`(max-width: 768px)` / `(min-width: 1151px)`）挂 `change` 监听，回调里立刻 `syncOffset() + syncSearchPos()`——MQL change 在样式重算翻转的同一时刻同步派发，回调内 `getBoundingClientRect` 强制布局读到的是**新**媒体状态，内联新值与布局翻转同帧写入，错位帧清零（`posts-shell.ts`，RO 保留负责跨界后的连续缩放/标题换行重测）。同类「实测值滞后于媒体查询翻转」的叠放元素（将来若有）照此加 MQL 监听。
 - **怎么确认**：页面内 rAF 逐帧记浮层与占位符 rect，跨界前后对比——修复前出现 `fl.top ≠ ph.top`（且宽度不同）的中间帧，修复后两个 rect 逐帧相等（无中间帧）。
 
-## 47. 首访时 swup 实例就绪前点区内链接 = 原生整页跳转，落地首屏不播转场（条带「没动效」）
+## 47. 首访时 swup 实例就绪前点区内链接 = 原生整页跳转，落地首屏不播转场（整块转场不播）
 
-- **症状**：第一次访问文章区（整页首载）时，预加载好之前点卡片 / 上下篇 / 面包屑等区内链接，页面照常跳转，但落地首屏的条带转场动画完全不播；实例就绪之后（约 1.8s，生产）同样的点击一切正常。文章详情页的首屏早期点击（PostNav / 面包屑）同样中招。
+- **症状**：第一次访问文章区（整页首载）时，预加载好之前点卡片 / 上下篇 / 面包屑等区内链接，页面照常跳转，但落地首屏的切页转场（整块位移 + 渐隐渐显）完全不播；实例就绪之后（约 1.8s，生产）同样的点击一切正常。文章详情页的首屏早期点击（PostNav / 面包屑）同样中招。
 - **原因**：两个坑叠加。① swup 实例在 `onIdleAfterLoad`（`load` 事件 + idle）才创建，从首屏画出到实例就绪之间存在「未就绪窗口」；窗口内点击时 swup 的点击委托还没挂载，走浏览器**原生整页导航**，而落地首屏的代码路径（整页加载走 `initializeShell`）按设计不播转场——转场只在 swup 切页（`swup:content:replace`）时播，所以「不播」是整页导航的预期表现。② `globalInstance: true` 暴露的 `window.swup` 在实例赋值前会经 Window 代理的 **DOM id 查询**回退到 `<main id="swup">` 元素——一个真值的 HTMLElement，`!!window.swup` 从首屏 DOM 解析起就是 `true`，而 `window.swup.cache` / `hooks` 一直 undefined——用 `!!window.swup` 判不出就绪，必须按实例自身特征甄别（`posts-shell.ts` 的 `realSwup()` 查 `hooks` + `navigate`；探针法：`Object.getOwnPropertyDescriptor(window, 'swup')` 无自有描述符 = id 回退）。
-- **处理**：`posts-shell.ts` 加早期点击拦截（`onEarlyClick`，注册在 `onDocClick` 之前）：实例未就绪时点区内链接（`/posts/` 前缀 + 行在列表/文章变体，排除 `_blank` / `data-no-swup` / 修饰键 / 同页），`preventDefault` 拦掉原生导航，每 100ms 轮询实例，就绪后 `swup.navigate(href)` 转成正常 swup 切页——转场照常播；10s 超时回退原生跳转（覆盖实例创建失败的慢首载：load + idle 在冷缓存 / 慢网下可超 5s）。等待期间 `pendingEarlyNav` 保持到 `astro:before-swap`（`captureOld` 处清零）；`fetch:error` / `visit:abort` 时一并作废。跨区目的地本就无转场，不拦截；减动效（`REDUCE_MOTION`）不拦截。同批修掉一个潜伏 bug：`bindSwupHooks` 原来直接取 `window.swup`（未就绪时拿到 `<main>` 元素），手机端首次点击会在 `swup.hooks.on` 抛 TypeError 且已打上 `swupHooksBound` 污染标记，钩子从此绑不上（fetch 失败兜底失效）——改为 `realSwup()` 为空时直接返回、不打标记。
-- **怎么确认**：CDP 持有 swup 核心 chunk（`_astro/Swup.*.js`）的动态 import 强制实例「未就绪」，等 boot splash 移除后 trusted 点击卡片——修复前：原生整页跳转、落地首屏无 `astro:before-swap` / `astro:after-swap`；修复后：无整页跳转，`navigate()` 在实例就绪后 ≤1 轮询周期触发，before/after-swap 正常触发，条带「模糊变过去」完整播放（旧条带渐隐 / 新条带渐显 + 模糊副本渐隐，列表→文章与文章→列表双向实测）。注意 headless 长主线程停顿后 WAAPI 帧可能滞后几十到几百毫秒（currentTime 先为负值再补上），属环境现象，非代码问题。
+- **处理**：`posts-shell.ts` 加早期点击拦截（`onEarlyClick`，注册在 `onDocClick` 之前）：实例未就绪时点区内链接（`/posts/` 前缀 + 行在列表/文章变体，排除 `_blank` / `data-no-swup` / 修饰键 / 同页），`preventDefault` 拦掉原生导航，每 100ms 轮询实例，就绪后 `swup.navigate(href)` 转成正常 swup 切页——转场照常播；10s 超时回退原生跳转（覆盖实例创建失败的慢首载：load + idle 在冷缓存 / 慢网下可超 5s）。`pendingEarlyNav` 的作废路径：下次点击 / 超时分支自清（`stopPolling`）、`fetch:error` / `visit:abort` 的 `restoreAfterFail` 一并作废；成功分支不再排新定时器、无残留等待。拦截范围是文章区行（listing / post 变体）+ 区内目的地（href 带 `/posts/` 前缀），之外不拦截；减动效（`REDUCE_MOTION`）不拦截。同批修掉一个潜伏 bug：`bindSwupHooks` 原来直接取 `window.swup`（未就绪时拿到 `<main>` 元素），手机端首次点击会在 `swup.hooks.on` 抛 TypeError 且已打上 `swupHooksBound` 污染标记，钩子从此绑不上（fetch 失败兜底失效）——改为 `realSwup()` 为空时直接返回、不打标记。
+- **怎么确认**：CDP 持有 swup 核心 chunk（`_astro/Swup.*.js`）的动态 import 强制实例「未就绪」，等 boot splash 移除后 trusted 点击卡片——修复前：原生整页跳转；修复后：无整页跳转，`navigate()` 在实例就绪后 ≤1 轮询周期触发，`swup:content:replace` 正常触发、落地首屏切页转场完整播放（列表→文章与文章→列表双向实测）。注意 headless 长主线程停顿后 CSS 动画 currentTime 可能先为负再补帧，属环境现象，非代码问题。
 - **同源先例**：第 24 条（head 资源孤儿化）、第 44 条（图标 symbol 悬空）——swup 环境里「资源 / 引用 / 状态跨越就绪或替换边界」都要想一遍生命周期。
 
-## 48. 快速连切保护：搜索框落位 + 条带克隆的残留内联清零
+## 48. 快速连切保护：搜索框落位无条件幂等，转场中断恢复靠 CSS 无残留
 
-- **症状**：快速连切（上一轮转场未播完又切页）时，搜索框可能停在中间态（半显半隐 / 残留内联），或旧条带克隆按中途位置裁切、新旧两条标题在半空中重叠（用户反馈「切换快了左上角标题重叠」）。
-- **原因**：motion 的 `cancel()` 不清内联样式——被取消动画的途中 transform / opacity 残留在元素上。旧条带带着残留内联被克隆时，克隆量盒按中途位置来；搜索框若在途状态与本轮目的地冲突，落位会错。
-- **处理**：三处收口，全部在每次切页无条件执行、落位以最后一次为准，任意快慢的连切都不会停在中间态：① `captureOld` 克隆前先把旧条带的残留内联 transform / opacity 清零再量盒（这些元素马上被 swup 换掉，清零那一帧不会被看见）；② 搜索框显隐不走转场动画：`playTransition` 末尾无条件 `floatCtl.settle(newHadSearch)` 直接落位（列表系界面显示、其他隐藏，`settle` 幂等——清残留内联可见态、opacity 钉目标值）；③ 条带克隆带标记类 `.posts-edge-clone`，`clearClones` 查 DOM 清理（被 cancel 动画的 `finished` 不跑，模块变量不可信；5s 兜底只覆盖「visit 被中断、after-swap 永不来」的孤儿）。
-- **怎么确认**：列表↔文章快速连切（一轮动画窗口内连点多次）——终态搜索框显隐与行变体类一致（列表 opacity 1 / 文章隐藏），行内无 `.posts-edge-clone` 残留（孤儿最多 5s 兜底移除）。
-- **同源先例**：第 43 条（motion 的 `finished` 端点提交内联、收尾清理竞态）、第 49 条（克隆子树不参与测量）——swup 快速连切场景下，凡「在途动画残留内联」都要在下一轮 `captureOld` 里清零，落位逻辑必须幂等且每轮无条件执行。
-
-## 49. 转场克隆的同名节点不许参与测量
-
-- **症状**：首次切页后搜索框摆位错——量到的是条带克隆里的占位符，而不是真实页头的。
-- **原因**：条带克隆保留原类名（`.posts-header` / `.posts-breadcrumb`，内含占位符 `.posts-header-search`），在行内存活 160–260ms 渐隐期；`syncSearchPos` 的锚 ResizeObserver 首次回调可能恰落在这个窗口内，朴素 `querySelector` 先命中克隆里的占位符。
-- **处理**：占位符只认真实页头的——`posts-shell.ts` 的 `syncSearchPos` 查 `.posts-header-search` 时用 `closest('.posts-edge-clone')` 排除克隆里的命中（目录 / 抽屉类查询同理走 `util/post-sidebar.ts`，见第 61 条）。
-- **共点**：克隆子树里的同名节点不许参与测量与节点查找；凡对会被克隆的节点做文档级查询，必须走标记类排除。
+- **症状**：快速连切（上一轮转场未播完又切页）时，搜索框可能停在中间态（半显半隐 / 残留内联），或新旧两条标题在半空中重叠（用户反馈「切换快了左上角标题重叠」）。
+- **原因**：搜索框的显隐由内联样式维护（不走转场动画）：上一轮在途状态若与本轮目的地冲突，不主动落位就会错。转场本身是 CSS 动画，没有残留路径。
+- **处理**：两处收口，全部在每次切页无条件执行、以最后一次为准，任意快慢的连切都不会停在中间态：① 转场是 CSS 动画——swup 摘掉 html 类时动画（含 `forwards` 终帧）随之移除、元素回自然态，下一轮从自然态起播，无内联、无模块变量，结构上无中间态残留；② 搜索框显隐不走转场动画：`posts-shell.ts` 在 `swup:content:replace` 后无条件 `floatCtl.settle(...)` 直接落位（列表系界面显示、其他隐藏，`settle` 幂等——清残留内联可见态、opacity 钉目标值），连切以最后一次为准。
+- **怎么确认**：列表↔文章快速连切（一轮转场窗口内连点多次）——终态搜索框显隐与行变体类一致（列表可见 / 文章隐藏），转场不卡中间值（在途进入被中断时内容回自然态、下一轮退出从全可见起播）。
+- **同源先例**：第 43 条（motion 的 `finished` 端点提交内联、收尾清理竞态）——swup 快速连切场景下，落位逻辑（如 `settle`）必须幂等且每轮无条件执行。
 
 ## 50. 侧边「阅读进度」按钮圆角外侧冒出方形的直角亮块（进度条白辉光被矩形滤镜区域裁边）
 
@@ -407,10 +401,10 @@ if (!animatedElements.length) {
 ## 51. 一类受限内核（系统 WebView）：离屏栅格预算小
 
 - **症状 A**：部分手机浏览器上文章**过长**时玻璃卡模糊「没了」（卡变透明）——元素超过每层栅格纹理上限（~4096px，GPU 纹理上限）时 `backdrop-filter` 被**静默丢弃**；修法见 `utilities.css` 的 `.glass-tall` 注释（模糊改由 100vh sticky 伪元素承担，采样区恒 ≤ 一屏）。
-- **症状 B**：手机文章→完整列表，新列表标题渐显收尾处「闪一帧」，只有列表长到一屏放不下时可见。根因：闪 = **玻璃卡**（切页瞬间 N 卡 backdrop 缓冲建立挤占串行栅格预算）× **标题行的过滤层**（栅格预算被挤占时过滤层重提交丢一帧）。处理：新条带渐显**不挂任何 filter**（标题行过滤层是受害者；纯 alpha 交叉——新带渐显 + 同位静态 blur(4px) 副本渐隐，无位移、无逐帧重采样突发），机制见 `posts/transition.ts` 注释。
+- **症状 B**：手机文章→完整列表，新列表标题渐显收尾处「闪一帧」，只有列表长到一屏放不下时可见。根因：闪 = **玻璃卡**（切页瞬间 N 卡 backdrop 缓冲建立挤占串行栅格预算）× **过滤层**（栅格预算被挤占时过滤层重提交丢一帧）。现行处理：转场本身只做 opacity + transform、不给 `#swup` 内元素挂 filter——现在的闪触发点是 veil 摘下瞬间 N 卡批量重建栅格，将来给 `#swup` 内元素加 filter 类效果前先真机复查。
 - **这类内核的共性（后续排查入口）**：① 每层栅格纹理上限 ~4096px，超了 backdrop 静默丢弃；② 离屏栅格内存预算小，backdrop 缓冲计入预算，超预算 → 静态场景整个效果丢弃、动态场景帧被推迟；③ backdrop 采样走串行、低优先级、每帧预算小的栅格路径，切页瞬间是新屏 N 卡缓冲建立突发、推入每帧位移又令 N 卡重采样；④ 范畴：系统 WebView 内核（小米自带浏览器、Via 走系统内核）中招，浏览器自带内核（夸克、雨见）预算更大无症状。
 - **为什么面包屑不闪（面积大却没事）**：成本不在模糊「面积」，在**独立采样层数量**——文章页大卡是 `.glass-tall`、采样缓冲恒一屏；列表页是 N 张独立 `.post-card.glass`（实测 10 张 + 搜索胶囊）；面包屑无磨砂、出现不依赖 backdrop 栅格化。
-- **已排除（别再重复劳动）**：条带 blur 终帧 `none ↔ blur(0px)` 重栅格（终帧保留 `blur(0px)`，见第 37 条）；退出克隆移除拆过滤层（克隆钉死 `filter: none`）；水合（首帧标记全在 HTML）；进入侧逐帧 blur 关键帧（静态模糊副本 + 纯 alpha 交叉）；「动画结束」事件本身——关键是标题行不挂过滤层、渐显收尾处无位移突发，不是结束事件。
+- **已排除（别再重复劳动）**：水合（首帧标记全在 HTML）；「动画结束」事件本身——关键是 `#swup` 内元素不挂 filter、veil 摘下瞬间无批量重采样突发，不是结束事件；成本在独立采样层数量、不在模糊面积（见上）；需长期稳定的元素不挂 filter 类效果。
 
 ## 52. `is:inline` 首帧脚本被 swup 切页重跑（搜索框「移两次 / 闪一下」）
 
@@ -418,14 +412,6 @@ if (!animatedElements.length) {
 - **原因**：`BaseLayout` body 尾的搜索框首帧叠放脚本（`is:inline`）被 **`@swup/scripts-plugin`**（`SwupScriptsPlugin`，默认 `reloadScripts: true`）在**每次切页**时重跑：插件以 `document` 为作用域，内联脚本经 `replaceWith` 重执行（module 脚本按 URL 去重不重跑）。脚本的首帧职责只对整页加载成立；切页时 `posts-shell.ts` 已全权负责定位与显隐，重跑纯冲突。
 - **处理**：脚本标签加 `data-swup-ignore-script`（该插件官方 opt-out）——只跑整页首帧、切页不重跑。
 - **排查入口**：任何「切页后某个首帧脚本的副作用又执行了一次」，先查 `@swup/scripts-plugin` 的全 document 重跑；需要只跑一次的内联脚本必须带 `data-swup-ignore-script` 豁免。
-
-## 53. 电脑端首次切页：转场动画「一瞬间跳过」不播放
-
-- **症状**：电脑端**首次** swup 切进文章区：转场动画不播，新条带直接跳到终帧（「一瞬间出现 / 消失」）。第二、三次及以后的切换（热态）一切正常——「只有首次」。
-- **原因**：motion 的 `animate()`（JS 引擎路径）**墙钟从调用时刻起算**：构造时 `play()` 以 `driver.now()` 为起点，rAF tick 按 `currentTime = 帧时间戳 − 起点` 推进，rAF 只在合成器真正出帧时才跑。**首次**切进文章区时 `astro:after-swap` 之后主线程还忙几百 ms（dev：Vite 按需编译 + `PostSearch` 岛水合 + `category-tree` 懒加载 import；生产冷首载同理）——动画墙钟在卡顿里「空转」，出帧恢复后第一次 tick 的 `currentTime` 已越过整个时长（或大半），motion 一次性跳到终帧：用户所见「动画没播、一瞬间直接到终帧」；跳终帧的场景里 `finished` 要等出帧后才 resolve，等它的收尾回调（克隆移除）跟着推迟。第二次切换全部热态、停顿窗口短于动画时长，照常播放。dev 下实测：after-swap 后主线程卡 ~900ms，远超条带渐显时长（260ms）——整段动画被吃掉。
-- **处理**：`posts-shell.ts` 的全部转场动画改**延迟起播**（见文件头注释与「动画登记」节）：一律 `autoplay: false` 创建（时钟冻在首关键帧；起播前位姿由调用方在**同任务**内先同步 pre-pin——无绘制间隙、不闪），再等**下一个真正出帧的 rAF** 才 `play()`（`deferPlay`，并入 `track` 登记）——rAF 回调只在合成器出帧时运行，出帧时起播保证动画每一帧都被画出来；卡顿再长也只是动画推迟到卡顿结束，不再被吃掉。配套三处：① 首关键帧 ≠ 元素自然态的动画补**同步 pre-pin** 填延迟起播的空窗帧（新条带渐显 `opacity: 0`——同位模糊副本盖着）；② `captureOld` 量克隆前清掉旧条带被 cancel 动画残留的内联 transform / opacity（见第 48 条）；③ 延迟 `play()` 以 `state === 'paused'` 为闸——`cancel()` 会走 `teardown` 把 state 置 `idle`，已取消的动画自然跳过、**不会复活**（motion 的 `cancel()` 不设 `isStopped`，无闸的 `play()` 会把它从 0 重启）。动画生命周期零改动：`animate()` 同步返回控制对象，`finished` 收尾、`captureOld` 的 cancel 全部照旧，只是起播时刻从「after-swap 任务内」推迟到「下一出帧」。
-- **怎么确认**：CDP 逐帧采样（headless 1440×900）。dev（bug 场景，首次列表→文章）：修复前 after-swap 后新条带直接停在终帧、渐显中间帧缺失；修复后 stall 结束的第一个出帧上条带三动画完整起播（旧条带渐隐 160ms、新条带渐显 + 模糊副本渐隐 260ms，中间帧齐全）。生产回归（headless 静态服务器）：首次切换中间帧齐全；文章→列表渐隐渐显正常；列表↔列表（分类卡）无条带转场属设计。已知环境现象：headless 无真实 vsync，合成器偶发在转场中途暂停发帧，动画会冻结在中间值、下一帧到达后恢复——真实浏览器由显示器 vsync 持续供帧、不会发生。
-- **同源先例**：第 47 条（「headless 长主线程停顿后 WAAPI 帧可能滞后」——同一「动画时钟与出帧脱钩」家族的现象）、文件头注释（延迟起播是全站转场动画的通用前置）。
 
 ## 54. 切页到分类 / 文章后，侧边栏分类树「只有箭头转了、内容不出来」（自动展开失效）
 
@@ -483,16 +469,6 @@ if (!animatedElements.length) {
 - **原因**：`lib/posts-data.ts` 的 `loadBlogData()` 缓存的是**构建 Promise 本身**。那次失败后，缓存里躺着一个已经 rejected 的 Promise，之后每次调用都直接返回它——不会重新构建，也就永远拿不到修正后的数据。
 - **处理**：失败时把缓存清空，让下次调用重新构建。清空前要核对缓存里仍是本次那个 Promise（`if (cache === pending)`），否则会把别处刚建好的新缓存误清掉。
 - **怎么确认**：断点停在 `loadBlogData`，故意让 `buildData()` 抛一次错；下次调用应重新进入 `buildData()`，而不是原地返回同一个 rejected Promise。
-
-## 61. 转场克隆保留原类名：朴素查询会先命中静态副本
-
-**症状**：转场窗口内（条带克隆存活的 160–260ms），对克隆里存在的同名节点做文档级朴素查询 / 测量，会落到那个不可交互的静态副本上。刷新即恢复，只在转场窗口内出现。
-
-**原因**：`strip.cloneIntoRow` 做视觉副本时是 `cloneNode(true)`，克隆**保留原类名**（`.posts-header`、`.posts-breadcrumb`）并追加标记类 `.posts-edge-clone` 挂进行内；而行的位置在 `main#swup` 之外、文档顺序比真节点更靠前。于是 `document.querySelector('.posts-header')` 一类的朴素查询在克隆存活期间会**先命中克隆**——那是一个 `pointer-events: none` + `aria-hidden` 的静态副本：测量读到克隆的几何（`position: absolute`、脱离文档流），占位 / 摆位全部错位。
-
-**修法**：查这类节点一律走 `src/assets/js/util/post-sidebar.ts`——`isTransitionClone()` 跳过 `closest('.posts-edge-clone')` 的命中，`queryPostSidebar()` / `queryTocNav()` 等查询同一判据。自己新写查询时别再直接 `document.querySelector` 克隆里存在过的同名节点。
-
-同理，`.posts-header` 里的搜索占位符也有克隆副本，`posts-shell.ts` 的 `syncSearchPos` 已按 `closest('.posts-edge-clone')` 排除（见第 49 条）。
 
 ## 62. 长文里同屏出现两条滚动条（页面滚动条 + 目录滚动条）
 
@@ -598,11 +574,10 @@ if (!animatedElements.length) {
 
 ### 排查过、确认不是 bug
 
-| 疑点                                        | 结论                                                                                                                               |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `row-state.ts` 的 MQL 监听不销毁 → 会累积？ | 不会。模块脚本每文档只执行一次（ESM 缓存），swup 切页不重跑 module 脚本，无累积路径                                                |
-| PostSearch 的 Pagefind 加载失败是静默的？   | 不是。带 `[PostSearch]` 前缀的 `console.error` + UI 错误态 + 2 次重试                                                              |
-| `strip.ts` 的 5s 定时器是孤儿泄漏？         | 不是。有注释的兜底设计（「visit 被中断、after-swap 永不来」的孤儿克隆）；节点被 `clearClones` 移除后，定时回调对已脱离节点是 no-op |
-| `body-scroll-lock` 会解锁成负数？           | 不会。`unlock` 有 0 下限                                                                                                           |
-| `row-state.ts` 的标签文本匹配是宽判定？     | 刻意。注释明确「chip 只渲染真实标签，按文本匹配即可」，且每次必跑 toggle 防高亮残留                                                |
-| `toc.ts` 空目录页会崩？                     | 不会。`measure()` 有空条目早返回                                                                                                   |
+| 疑点                                        | 结论                                                                                |
+| ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `row-state.ts` 的 MQL 监听不销毁 → 会累积？ | 不会。模块脚本每文档只执行一次（ESM 缓存），swup 切页不重跑 module 脚本，无累积路径 |
+| PostSearch 的 Pagefind 加载失败是静默的？   | 不是。带 `[PostSearch]` 前缀的 `console.error` + UI 错误态 + 2 次重试               |
+| `body-scroll-lock` 会解锁成负数？           | 不会。`unlock` 有 0 下限                                                            |
+| `row-state.ts` 的标签文本匹配是宽判定？     | 刻意。注释明确「chip 只渲染真实标签，按文本匹配即可」，且每次必跑 toggle 防高亮残留 |
+| `toc.ts` 空目录页会崩？                     | 不会。`measure()` 有空条目早返回                                                    |

@@ -31,7 +31,7 @@ export const techStack: TechCategory[] = [
     category: '工具',
     items: ['Git', 'GitHub', 'node:test', 'pnpm', 'npm', 'Markdown'],
   },
-    {
+  {
     category: 'AI工具',
     items: ['Chat GPT（Codex）', 'Cursor', 'Claude Code', 'DeepSeek', 'Kimi'],
   },

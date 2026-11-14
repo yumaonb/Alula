@@ -76,6 +76,21 @@
   /* 悬停提亮过渡时长（含缓动） */
   --t-hover: 0.2s ease;
 
+  /* ---- 动效：页面转场（swup 切页） ----
+   * #swup 整块的下移渐隐（退出）/ 上移渐显（进入），由 global.css 的 .transition-page
+   * 动画执行；行级侧栏 / 搜索框与区内切换的左缘条同曲线参与（见 global.css「切页转场」）。
+   * 时长同时是 swup 的「等动画播完」目标（animationClass 机制按
+   * animationDuration 计时）。减动效压到 0.01s 但不设 none / 0s：那样 swup 不等且
+   * 打警告（TROUBLESHOOTING 20.2）。要整体调快 / 调慢切页只改这里。 */
+  /* 退出（旧页面下移渐隐）时长与缓动 */
+  --t-page-exit: 0.15s cubic-bezier(0.4, 0, 1, 1);
+  /* 进入（新页面上移渐显）时长与缓动 */
+  --t-page-enter: 0.15s cubic-bezier(0, 0, 0.2, 1);
+  /* 退 / 进位移量（同值：退出向下移、进入从下方移入） */
+  --page-shift: 24px;
+  /* 玻璃平铺（veil）填底色：转场窗口内替换磨砂的那层不透明白 */
+  --page-veil: rgba(255, 255, 255, 0.02);
+
   /* ---- 代码高亮色板（Shiki 的 css-variables 主题） ----
    * astro.config.ts 的 markdown.shikiConfig 用 css-variables 主题，
    * Shiki 不再把颜色写死成 hex，而是输出 var(--astro-code-*) 引用，

@@ -12,7 +12,7 @@
 // 位置按页头占位符（.posts-header-search）计算写内联 top/left/width：首帧由 body 尾
 // is:inline 脚本先写（无网络依赖，慢网下搜索框不等 JS 包即可见），posts-shell.ts
 // 加载后重测接管。该脚本带 data-swup-ignore-script——swup 切页不重跑，否则切到列表页
-// 会在转场编排前强制显出搜索框（「移两次 / 闪一下」，见 TROUBLESHOOTING 52）。
+// 会在切页 settle 落位前强制显出搜索框（「移两次 / 闪一下」，见 TROUBLESHOOTING 52）。
 import '../assets/css/global.css';
 import '../assets/css/shared/skeleton.css';
 import '../assets/css/shared/image-fallback.css';
@@ -169,7 +169,7 @@ const blog = await loadBlogData();
       <NavBar />
       <div class:list={['page-main', `page-main--${shellVariant}`]}>
         <GlobalSidebar tree={blog.categoryTree} tags={blog.tags} />
-        <main class="hero" id="swup" data-shell="site">
+        <main class="hero transition-page" id="swup" data-shell="site">
           <slot />
         </main>
         <div class="posts-search-float">
@@ -210,10 +210,11 @@ const blog = await loadBlogData();
       // 被 CSS opacity: 0 隐着——慢网下搜索框要等 JS 包加载完才出现（观感像延迟水合）。
       // 本脚本随文档执行（无网络依赖），在首帧绘制前按页头占位符计算叠放并显出搜索框；
       // posts-shell.ts 加载后重测接管（值一致，无跳变）。仅列表页有占位符，其余页面跳过。
-      // 带 data-swup-ignore-script：swup 切页不重跑（重跑会抢在转场编排前显出搜索框）。
+      // 带 data-swup-ignore-script：swup 切页不重跑（重跑会让搜索框抢在切页 settle 落位前多露一帧）。
       // 下面的摆位算式是 posts/search-float.ts 里 placeFloat() 的复制品（is:inline 不过
-      // 构建期处理、不能 import），改一处要同改另一处；首帧还没有 transform，
-      // 所以这里不减槽及其祖先的位移。
+      // 构建期处理、不能 import），改一处要同改另一处；占位与槽在 #swup 内、切页进入期
+      // 容器带 translateY（global.css 的 .transition-page），rect 含该位移、要减掉，
+      // 否则浮层永久偏低（首帧尚无动画，此时值为 0）。
       (function () {
         const ph = document.querySelector('.page-main .posts-header-search');
         if (!ph) return;
@@ -221,14 +222,16 @@ const blog = await loadBlogData();
         const f = row ? row.querySelector('.posts-search-float') : null;
         if (!f) return;
         const r = row.getBoundingClientRect();
+        const main = row.querySelector('main#swup');
+        const dy = main ? new DOMMatrixReadOnly(getComputedStyle(main).transform).f : 0;
         const slot = ph.closest('.posts-edge-slot');
         if (slot) {
           const s = slot.getBoundingClientRect();
-          f.style.top = s.top - r.top + ph.offsetTop + 'px';
+          f.style.top = s.top - r.top - dy + ph.offsetTop + 'px';
           f.style.left = s.left - r.left + ph.offsetLeft + 'px';
         } else {
           const a = ph.getBoundingClientRect();
-          f.style.top = a.top - r.top + 'px';
+          f.style.top = a.top - r.top - dy + 'px';
           f.style.left = a.left - r.left + 'px';
         }
         f.style.width = ph.offsetWidth + 'px';
