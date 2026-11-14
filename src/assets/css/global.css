@@ -426,28 +426,6 @@ html.is-changing #swup .glass-tall::before {
   }
 }
 
-/* 减动效：时长压到 0.01s（近似瞬时切页）但保留动画本身——swup 按
- * animationDuration 等待，none / 0s 会让它不等且打警告（TROUBLESHOOTING 20.2）。
- * 上面每一组动画规则这里都要镜像收全，少一条就有元素在减动效下播满速 */
-@media (prefers-reduced-motion: reduce) {
-  html.is-leaving .transition-page,
-  html.is-rendering .transition-page,
-  html.is-leaving .page-main--listing:not(.is-swap-list-list) .posts-search-float,
-  html.is-rendering .page-main--listing:not(.is-swap-list-list) .posts-search-float,
-  html.is-leaving .page-main--listing > .global-sidebar,
-  html.is-rendering .page-main--listing > .global-sidebar,
-  html.is-leaving .page-main--post > .global-sidebar,
-  html.is-rendering .page-main--post > .global-sidebar,
-  html.is-leaving .page-main--listing > .posts-edge-float,
-  html.is-rendering .page-main--listing > .posts-edge-float,
-  html.is-leaving .page-main--post > .posts-edge-float,
-  html.is-rendering .page-main--post > .posts-edge-float,
-  html.is-leaving .page-main.is-post-swap .posts-edge-float .posts-edge-content,
-  html.is-rendering .page-main.is-post-swap .posts-edge-float .posts-edge-content {
-    animation-duration: 0.01s;
-  }
-}
-
 /* ---- 侧边悬浮按钮列 ---- */
 .side-widgets {
   position: fixed;

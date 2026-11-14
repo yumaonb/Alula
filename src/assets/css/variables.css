@@ -119,3 +119,13 @@
   /* 字符串里的表达式（HTML 标签名、CSS 选择器里的片段）：淡绿 */
   --astro-code-token-string-expression: #85e89d;
 }
+
+/* 减动效：转场时长压到 0.01s（近似瞬时）但保留动画本身——转场四条动画的
+ * 时长全读 --t-page-exit / --t-page-enter，覆写即整体压缩；设 none / 0s
+ * 会让 swup 不等且打警告（TROUBLESHOOTING 20.2） */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-page-exit: 0.01s;
+    --t-page-enter: 0.01s;
+  }
+}

@@ -183,7 +183,7 @@ swup 切页时 `html` 依次挂三类：`is-changing`（覆盖整个窗口：退
 - **区内切换的车道**：行带 `is-post-swap`（`posts-shell.ts` 在 `swup:visit:start` 按「源页变体 + 目标 URL」标记、`visit:end` 摘除）时，盒用 `animation: none` 压过上面的跨区同曲线规则（不位移），盒内车道原地模糊渐隐渐显（`edge-blur-out` / `edge-blur-in`，半径 `--page-edge-blur`；车道是单条小栏不是栅格，逐帧 blur 代价可接受）；驱动条本体在 `#swup` 内随整块位移，但被 `is-edge-live` 隐着、不参与视觉；
 - **玻璃平铺（veil）**：动画窗口内 `#swup` 里、侧栏与搜索框里所有 `.glass` 的磨砂换半透明白填底（`--page-veil`、`backdrop-filter: none`，`.glass-tall` 的 sticky 伪元素一并处理）。原因：opacity < 1 会新建 backdrop root，其后代 `.glass` 的 backdrop-filter 全部失效（TROUBLESHOOTING 20.1）；磨砂平铺后 opacity 窗口内不存在「模糊跟着变淡」。区内不播曲线的常驻玻璃（`is-post-swap` 期间的侧栏、`is-swap-list-list` 期间的搜索框）opacity 恒 1、磨砂不失效，另行豁免平铺（恢复磨砂与透明底），免得白填底那一帧闪一下。
 
-`prefers-reduced-motion` 把时长压到 0.01s（近似瞬时）但保留动画——设 `none` / `0s` 会让 swup 不等且打警告（20.2），上面每一组动画规则在减动效块里镜像收全（少一条就有元素在减动效下播满速）。后台自身无动画：`_admin/css/base.css` 用 0.01s 空动画满足 swup 等待目标，切页仍瞬时（同时消 "No elements found matching animationSelector" 警告）。完整机制与取舍见 `TROUBLESHOOTING.md` 第 20 / 37 条。
+`prefers-reduced-motion` 把时长压到 0.01s（近似瞬时）但保留动画——设 `none` / `0s` 会让 swup 不等且打警告（20.2）。转场四条动画的时长全读 `--t-page-exit` / `--t-page-enter`，`variables.css` 在减动效块覆写这两个令牌即整体压缩，无需逐元素镜像。后台自身无动画：`_admin/css/base.css` 用 0.01s 空动画满足 swup 等待目标，切页仍瞬时（同时消 "No elements found matching animationSelector" 警告）。完整机制与取舍见 `TROUBLESHOOTING.md` 第 20 / 37 条。
 
 ---
 
