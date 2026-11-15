@@ -101,6 +101,7 @@
   cursor: pointer;
 }
 
+/* 与上方 .hoverable.hoverable.chip--active 的选中态是同一组值，两处须同改 */
 .chip--active {
   color: var(--white);
   background: var(--active-bg);

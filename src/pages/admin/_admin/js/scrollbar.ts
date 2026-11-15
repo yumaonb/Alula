@@ -154,5 +154,6 @@
   document.addEventListener('swup:content:replace', queueScrollbarUpdate);
 
   updateScrollbar();
+  // 首屏字体与图片还在撑文档高度，布局稳定后补跑一次兜底
   setTimeout(updateScrollbar, 600);
 })();

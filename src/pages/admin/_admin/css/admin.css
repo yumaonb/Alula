@@ -376,8 +376,6 @@
   gap: 4px;
   /* 侧栏本体顶部不留白（为了头部与顶栏齐平），间距挪到这里 */
   padding-top: 10px;
-  /* 侧栏整体是一列，父项与子项之间靠 .admin-nav-sub 撑开；这里不设 gap，
-   * 否则展开动画的每一帧里，父项与子项之间会多出一条 4px 的缝。 */
 }
 
 /* 导航项：左右顶满侧栏内沿的直角行。
@@ -994,7 +992,7 @@
   }
 
   /* 按钮文字保持完整，不做截断/隐藏 */
-  .admin-conn-toggle {
+  .btn.admin-conn-toggle {
     padding: 7px 10px;
     white-space: nowrap;
   }
@@ -1078,11 +1076,6 @@
    * 用 auto-fit + minmax 而不是写死列数：窄到每个格子不足 130px 时自动掉成单列。 */
   .admin-status-grid {
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  }
-
-  /* 窄屏：侧栏脱离文档流变成抽屉，内容列自己占满 */
-  .admin-content {
-    padding: 0 14px 24px;
   }
 
   .admin-editor {

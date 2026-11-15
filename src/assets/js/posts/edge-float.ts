@@ -68,6 +68,8 @@ export function createEdgeFloat(env: EdgeFloatEnv): EdgeFloatCtl {
       else box.replaceChildren();
       clone?.classList.add('is-edge-in');
     };
+    // 先摘去模糊类，避免 is-edge-in 与 is-edge-out 同车道共存
+    old.classList.remove('is-edge-in');
     old.classList.add('is-edge-out');
     const onOutEnd = (e: Event): void => {
       if (e.target !== old) return;

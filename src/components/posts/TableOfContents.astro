@@ -182,19 +182,11 @@ if (hasH1 && hasH2) {
   .toc-sub .toc-link {
     padding-left: 24px;
     font-size: 0.76rem;
-    color: var(--ink);
   }
 
-  /* 悬停不走全站 .hoverable（那会加白底描边）：
-   * 只提亮文字、不要轮廓，统一走亮色令牌。
-   * 两条都排在 .active 规则之前，悬停在活动项上时规则一致。 */
+  /* 悬停不走全站 .hoverable（那会加白底描边）：只提亮文字、不要轮廓，统一走亮色令牌 */
   .toc-link:hover,
   .toc-link:focus-visible {
-    color: var(--white);
-  }
-
-  .toc-sub .toc-link:hover,
-  .toc-sub .toc-link:focus-visible {
     color: var(--white);
   }
 

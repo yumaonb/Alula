@@ -392,9 +392,8 @@ html.is-rendering
 }
 
 /* 区内切换：左缘盒被标 still 不位移，车道等新页落地才变——edge-float.ts 给旧车道
- * 标 is-edge-out 播渐模糊（forwards 钉住终帧到换克隆），新克隆带 is-edge-in 播
- * 去模糊。去模糊规则写在渐模糊前：旧车道播完去模糊后类不摘，再被标渐模糊时
- * 渐模糊生效 */
+ * 标 is-edge-out 前已摘 is-edge-in，两类不会同车道共存；播渐模糊
+ * （forwards 钉住终帧到换克隆），新克隆带 is-edge-in 播去模糊 */
 .page-main > .posts-edge-float .posts-edge-content.is-edge-in {
   animation: edge-blur-in var(--t-page-enter);
 }
