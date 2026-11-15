@@ -1,0 +1,96 @@
+---
+// 404.astro — 后台 404 页：后台地址不存在时的兜底（后台布局内）
+// 用法：路由 /admin/404/；前台 404 页检测到 /admin/ 路径时整页转发到这里
+//
+// 纯静态只有一份 404.html（前台那份），admin 路径没法按请求分流，
+// 所以前台 404 的 head 里提前转发到本页；本页真实存在（直访是 200），随后台 noindex 不收录。
+import AdminLayout from './_admin/AdminLayout.astro';
+import { Icon } from 'astro-icon/components';
+---
+
+<AdminLayout title="404">
+  <div class="admin-notfound" data-admin-title="页面未找到">
+    <div class="admin-notfound-code" aria-hidden="true">
+      404
+    </div>
+    <h1 class="admin-notfound-title">页面未找到</h1>
+    <p class="admin-notfound-desc">抱歉，您访问的页面不存在或已被移动。</p>
+    <div class="admin-notfound-actions">
+      <button class="btn admin-notfound-btn" id="admin-notfound-refresh" type="button">
+        <Icon is:inline name="la:sync-alt" class="admin-notfound-icon" />
+        刷新一下
+      </button>
+      <a class="btn btn--primary admin-notfound-btn link-plain" href="/admin/">
+        <Icon is:inline name="la:home" class="admin-notfound-icon" />
+        返回首页
+      </a>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // 本页只整页加载（站内没有链接指向它，不走 swup 切页），直接绑定无需考虑重绑
+  document
+    .querySelector<HTMLButtonElement>('#admin-notfound-refresh')
+    ?.addEventListener('click', () => location.reload());
+</script>
+
+<style>
+  /* 404 内容在内容列里垂直居中：.admin-main 平时是块级流，本页改列向 flex，
+   * 内容盒撑满剩余高度再居中。样式随本页加载，不影响其它后台页 */
+  :global(.admin-main) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .admin-notfound {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: center;
+  }
+
+  .admin-notfound-code {
+    font-size: 6rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    color: var(--blue);
+  }
+
+  .admin-notfound-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .admin-notfound-desc {
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: var(--ink-muted);
+  }
+
+  .admin-notfound-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  /* 按钮尺寸与前台 404 页对齐（前台 .notfound-btn：10px 20px / 0.95rem / 18px 图标） */
+  .admin-notfound-btn {
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+
+  .admin-notfound-icon {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+</style>

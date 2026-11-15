@@ -1,16 +1,24 @@
 ---
-// 404.astro — 自定义 404 页：大 404 + 页面未找到 + 刷新 / 返回首页
+// 404.astro — 自定义 404 页：大 404 + 页面未找到 + 描述 + 刷新 / 返回首页
 // 用法：命中不存在的路径时由 Astro 构建期生成的兜底页，整页加载、不走 swup 切页
 import { Icon } from 'astro-icon/components';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout noindex>
+  <Fragment slot="head">
+    <!-- 纯静态只有一份 404.html：后台路径的 404 单独成页（/admin/404/，后台布局内）。
+         head 里执行、抢在 body 首帧前整页转发，前台观感最多闪一帧 -->
+    <script is:inline>
+      if (location.pathname.startsWith('/admin/')) location.replace('/admin/404/');
+    </script>
+  </Fragment>
   <div class="notfound">
     <div class="notfound-code" aria-hidden="true">
       404
     </div>
     <h1 class="notfound-title">页面未找到</h1>
+    <p class="notfound-desc">抱歉，您访问的页面不存在或已被移动。</p>
     <div class="notfound-actions">
       <button class="notfound-btn glass hoverable" id="notfound-refresh" type="button">
         <Icon is:inline name="la:sync-alt" class="notfound-icon" />
@@ -70,6 +78,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .notfound-title {
     font-size: 1.15rem;
     font-weight: 600;
+    color: var(--white);
+    text-shadow: var(--shadow);
+  }
+
+  .notfound-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
     color: var(--white);
     text-shadow: var(--shadow);
   }

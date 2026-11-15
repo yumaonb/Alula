@@ -32,20 +32,6 @@ const items: NavItem[] = [
       { href: '/admin/categories/', label: '管理分类' },
     ],
   },
-  {
-    label: '网站设置',
-    icon: 'mdi:cog-outline',
-    children: [
-      { href: '/admin/settings/site/', label: '站点信息' },
-      { href: '/admin/settings/profile/', label: '个人信息' },
-      { href: '/admin/settings/background/', label: '外观背景' },
-      { href: '/admin/settings/home/', label: '首页组件' },
-      { href: '/admin/settings/friends/', label: '友情链接' },
-      { href: '/admin/settings/quotes/', label: '随机一言' },
-      { href: '/admin/settings/sponsor/', label: '赞助页面' },
-      { href: '/admin/settings/integrations/', label: '技术与集成' },
-    ],
-  },
 ];
 
 const current = Astro.url.pathname.replace(/\/+$/, '') || '/admin';

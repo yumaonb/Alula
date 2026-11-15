@@ -27,12 +27,6 @@ const quickLinks = [
     desc: '目录结构即分类，编辑各目录的 index.json',
     href: '/admin/categories/',
   },
-  {
-    icon: 'mdi:cog-outline',
-    name: '网站设置',
-    desc: '站点信息、个人信息、外观背景等八组配置',
-    href: '/admin/settings/site/',
-  },
 ];
 ---
 
@@ -69,6 +63,8 @@ const quickLinks = [
         </div>
       </div>
 
+      <!-- 六项与连接弹窗里的「仓库状态」同一口径（见 _admin/components/AdminToken.astro），
+         取值由 pages.ts 的 initDashboard 与 shell.ts 的 renderRateLimit / renderHead 渲染 -->
       <dl class="admin-stats admin-dash-on">
         <div class="admin-stat">
           <dt class="admin-stat-label">仓库</dt>
@@ -83,15 +79,42 @@ const quickLinks = [
           </dd>
         </div>
         <div class="admin-stat">
-          <dt class="admin-stat-label">最新提交</dt>
-          <dd class="admin-stat-value" id="admin-dash-head">
-            —
+          <dt class="admin-stat-label">最新提交编号</dt>
+          <dd class="admin-stat-value">
+            <a
+              class="admin-status-link"
+              id="admin-dash-head-link"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              hidden
+            >
+              —
+            </a>
+            <span id="admin-dash-head">—</span>
           </dd>
         </div>
         <div class="admin-stat">
           <dt class="admin-stat-label">待提交</dt>
           <dd class="admin-stat-value" id="admin-dash-staged">
             0
+          </dd>
+        </div>
+        <div class="admin-stat">
+          <dt class="admin-stat-label">GitHub API 剩余次数</dt>
+          <dd class="admin-stat-value">
+            <span class="admin-rate-value" id="admin-dash-rate-value">
+              —
+            </span>
+            <span class="admin-rate-total" id="admin-dash-rate-total">
+              ／ —
+            </span>
+          </dd>
+        </div>
+        <div class="admin-stat">
+          <dt class="admin-stat-label">GitHub API 重置时间</dt>
+          <dd class="admin-stat-value" id="admin-dash-rate-reset">
+            —
           </dd>
         </div>
       </dl>

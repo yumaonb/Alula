@@ -48,7 +48,7 @@
 | `components/widgets/Timeline.svelte`                | client:load |
 | `pages/admin/_admin/components/AdminChanges.svelte` | client:idle |
 
-## 全局 CSS 类（177）
+## 全局 CSS 类（183）
 
 | 类名                         | 定义于                                                                            |
 | ---------------------------- | --------------------------------------------------------------------------------- |
@@ -99,6 +99,7 @@
 | `.admin-nav-sub-clip`        | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.admin-nav-text`            | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.admin-nav-title`           | `src/pages/admin/_admin/css/admin.css`                                            |
+| `.admin-nav-title-text`      | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.admin-needs-conn`          | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.admin-page`                | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.admin-quick`               | `src/pages/admin/_admin/css/admin.css`                                            |
@@ -136,14 +137,12 @@
 | `.bg-scrim`                  | `src/assets/css/global.css`                                                       |
 | `.btn`                       | `src/pages/admin/_admin/css/admin.css`、`src/pages/admin/_admin/css/elements.css` |
 | `.btn--block`                | `src/pages/admin/_admin/css/elements.css`                                         |
-| `.btn--dashed`               | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.btn--ghost`                | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.btn--primary`              | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.btn--sm`                   | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.btn-icon`                  | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.card`                      | `src/pages/admin/_admin/css/admin.css`、`src/pages/admin/_admin/css/elements.css` |
 | `.card-actions`              | `src/pages/admin/_admin/css/elements.css`                                         |
-| `.card-desc`                 | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.card-extra`                | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.card-head`                 | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.card-title`                | `src/pages/admin/_admin/css/elements.css`                                         |
@@ -168,9 +167,8 @@
 | `.file-list`                 | `src/pages/admin/_admin/css/admin.css`、`src/pages/admin/_admin/css/elements.css` |
 | `.file-row`                  | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.footnotes`                 | `src/assets/css/posts/markdown.css`                                               |
-| `.form-grid`                 | `src/pages/admin/_admin/css/elements.css`                                         |
-| `.glass`                     | `src/assets/css/utilities.css`                                                    |
-| `.glass-tall`                | `src/assets/css/utilities.css`                                                    |
+| `.glass`                     | `src/assets/css/global.css`、`src/assets/css/utilities.css`                       |
+| `.glass-tall`                | `src/assets/css/global.css`、`src/assets/css/utilities.css`                       |
 | `.global-sidebar`            | `src/assets/css/global.css`                                                       |
 | `.hero`                      | `src/assets/css/global.css`                                                       |
 | `.hint`                      | `src/pages/admin/_admin/css/elements.css`                                         |
@@ -180,16 +178,22 @@
 | `.img-ph`                    | `src/assets/css/shared/image-fallback.css`                                        |
 | `.img-ph--inline`            | `src/assets/css/shared/image-fallback.css`                                        |
 | `.input`                     | `src/pages/admin/_admin/css/elements.css`                                         |
-| `.input--area`               | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.is-active`                 | `src/pages/admin/_admin/css/admin.css`、`src/pages/admin/_admin/css/elements.css` |
+| `.is-changing`               | `src/assets/css/global.css`                                                       |
 | `.is-connected`              | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.is-delete`                 | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.is-dirty`                  | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.is-dragging-scrollbar`     | `src/assets/css/global.css`、`src/pages/admin/_admin/css/base.css`                |
+| `.is-edge-in`                | `src/assets/css/global.css`                                                       |
+| `.is-edge-live`              | `src/assets/css/global.css`                                                       |
+| `.is-edge-out`               | `src/assets/css/global.css`                                                       |
 | `.is-error`                  | `src/pages/admin/_admin/css/admin.css`                                            |
+| `.is-leaving`                | `src/assets/css/global.css`、`src/pages/admin/_admin/css/base.css`                |
 | `.is-open`                   | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.is-ready`                  | `src/assets/css/global.css`                                                       |
+| `.is-rendering`              | `src/assets/css/global.css`、`src/pages/admin/_admin/css/base.css`                |
 | `.is-staged`                 | `src/pages/admin/_admin/css/elements.css`                                         |
+| `.is-transition-still`       | `src/assets/css/global.css`                                                       |
 | `.is-visible`                | `src/pages/admin/_admin/css/admin.css`                                            |
 | `.link-plain`                | `src/assets/css/global.css`、`src/pages/admin/_admin/css/base.css`                |
 | `.markdown-body`             | `src/assets/css/posts/markdown.css`、`src/assets/css/shared/image-fallback.css`   |
@@ -208,18 +212,19 @@
 | `.post-card-cover`           | `src/assets/css/shared/image-fallback.css`                                        |
 | `.post-card-slot`            | `src/assets/css/posts/posts-listing.css`                                          |
 | `.post-cover`                | `src/assets/css/shared/image-fallback.css`、`src/assets/css/shared/lightbox.css`  |
+| `.posts-breadcrumb`          | `src/assets/css/global.css`                                                       |
 | `.posts-count`               | `src/assets/css/posts/posts-listing.css`                                          |
+| `.posts-edge-content`        | `src/assets/css/global.css`                                                       |
+| `.posts-edge-float`          | `src/assets/css/global.css`                                                       |
+| `.posts-edge-slot`           | `src/assets/css/global.css`                                                       |
 | `.posts-grid`                | `src/assets/css/posts/posts-listing.css`                                          |
-| `.posts-header`              | `src/assets/css/posts/posts-listing.css`                                          |
+| `.posts-header`              | `src/assets/css/global.css`、`src/assets/css/posts/posts-listing.css`             |
 | `.posts-header-search`       | `src/assets/css/posts/posts-listing.css`                                          |
 | `.posts-page`                | `src/assets/css/posts/posts-listing.css`                                          |
 | `.posts-search-float`        | `src/assets/css/global.css`                                                       |
 | `.posts-title`               | `src/assets/css/posts/posts-listing.css`                                          |
 | `.psd-item--active`          | `src/assets/css/utilities.css`                                                    |
 | `.pswp`                      | `src/assets/css/shared/lightbox.css`                                              |
-| `.row`                       | `src/pages/admin/_admin/css/elements.css`                                         |
-| `.row-remove`                | `src/pages/admin/_admin/css/elements.css`                                         |
-| `.rows`                      | `src/pages/admin/_admin/css/elements.css`                                         |
 | `.side-widgets`              | `src/assets/css/global.css`                                                       |
 | `.skeleton`                  | `src/assets/css/shared/skeleton.css`                                              |
 | `.status`                    | `src/pages/admin/_admin/css/elements.css`                                         |
@@ -227,6 +232,7 @@
 | `.thin-scroll`               | `src/assets/css/utilities.css`                                                    |
 | `.title-count-sep`           | `src/assets/css/posts/posts-listing.css`                                          |
 | `.toolbar`                   | `src/pages/admin/_admin/css/elements.css`                                         |
+| `.transition-page`           | `src/assets/css/global.css`、`src/pages/admin/_admin/css/base.css`                |
 | `.unavailable`               | `src/assets/css/global.css`                                                       |
 | `.visible`                   | `src/assets/css/global.css`                                                       |
 

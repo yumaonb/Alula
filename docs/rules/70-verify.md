@@ -71,7 +71,7 @@ pnpm build
 - **文章数**
 - **分类数**（含文章或 `index.json` 的目录，含中间层级）
 - **标签数**（去重）
-- **12**（后台页面：`/admin/` 加 11 个 `settings` / `posts` / `categories` 子页）
+- **5**（后台页面：`/admin/` 加 `posts` / `categories` / `404` 4 个子页）
 
 对上构建日志的总页数。页数变少通常是路由或内容集合出问题（例如内容集合 loader 配错、`getStaticPaths` 没返回条目），要立刻查：
 

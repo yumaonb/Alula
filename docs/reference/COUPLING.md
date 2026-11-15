@@ -14,7 +14,7 @@
 | `src/lib/category.ts`                      | 扇入最大，唯一被构建侧与浏览器侧同时 import 的 lib 模块                     | 塞构建期依赖炸客户端构建；塞浏览器 API 炸 frontmatter；逻辑错切页后才露 |
 | `src/data/site.ts`                         | 前台 7 处 + 后台 3 处共用，站点标题 / OG / RSS / 评论参数 / 后台设置全挂它  | 结构错构建期炸；取值错运行时静默                                        |
 | `src/assets/js/posts/posts-shell.ts`       | 文章区切页编排枢纽，四个子件都挂在它下面                                    | 全部 /posts 页的搜索框 / 左缘条 / 行状态同时错位                        |
-| `src/pages/admin/_admin/AdminLayout.astro` | 后台扇入 11，全部后台页面经过                                               | 后台 11 页全灭，不外溢前台                                              |
+| `src/pages/admin/_admin/AdminLayout.astro` | 后台扇入 5，全部后台页面经过                                                | 后台 5 页全灭，不外溢前台                                               |
 
 **动清单内文件的守则**：必须跑完整 `pnpm verify` + `pnpm build`，并抽查产物（页面数、切页、图片优化）；「改动很小」不是跳过理由（AGENTS §9）。
 
@@ -27,4 +27,4 @@
 
 ## 后台 → 全站的唯一跨墙通道
 
-后台「网站设置」的 8 个页面在运行时通过 GitHub API 直接改写 `src/data/` 目录下的数据文件（见 `src/pages/admin/_admin/js/pages.ts` 注释）。这是后台影响前台的唯一路径，也是唯一绕过本地验证的路径：经它改出的数据文件，在下次构建前必须过一次 `pnpm build`。
+后台文章编辑器在运行时通过 GitHub API 直接改写 `src/content/posts/` 目录下的文章与各分类的 `index.json`（流程见 `docs/reference/ARCHITECTURE.md` 的「后台的数据流」节）。这是后台影响前台的唯一路径，也是唯一绕过本地验证的路径：经它改出的内容，在下次构建前必须过一次 `pnpm build`。

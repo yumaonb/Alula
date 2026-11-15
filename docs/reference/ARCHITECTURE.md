@@ -61,31 +61,24 @@ BlogData { meta, posts, allPosts, chronological, entries, categoryTree, tags, al
 
 ## 路由
 
-| URL                                                      | 文件                                                                                                 |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `/`                                                      | `pages/index.astro`                                                                                  |
-| `/about/` `/friends/` `/projects/` `/sponsor/` `/tools/` | 同名页面                                                                                             |
-| `/posts/`                                                | `pages/posts/index.astro`                                                                            |
-| `/posts/<分类路径>/`                                     | `pages/posts/[...slug].astro`（`type: 'category'`）                                                  |
-| `/posts/<分类路径>/<文件名>/`                            | `pages/posts/[...slug].astro`（`type: 'post'`）                                                      |
-| `/posts/tag/<标签>/`                                     | `pages/posts/tag/[tag].astro`                                                                        |
-| `/posts/rss.xml`                                         | `pages/posts/rss.xml.ts`（RSS 2.0 订阅源，不含隐藏文章）                                             |
-| `/sitemap.xml`                                           | `pages/sitemap.xml.ts`（站点地图：顶层页 / 文章 / 分类 / 标签，不含隐藏文章）                        |
-| 不存在的路径（404）                                      | `pages/404.astro`（自定义 404 页，noindex）                                                          |
-| `/admin/`                                                | `pages/admin/index.astro`（后台仪表盘）                                                              |
-| `/admin/posts/list/`                                     | `pages/admin/posts/list.astro`（文章列表）                                                           |
-| `/admin/posts/edit/?path=...`                            | `pages/admin/posts/edit.astro`（编辑器）                                                             |
-| `/admin/categories/`                                     | `pages/admin/categories.astro`（分类管理）                                                           |
-| `/admin/settings/site/`                                  | `pages/admin/settings/site.astro`（站点信息，对应 `data/site.ts`）                                   |
-| `/admin/settings/profile/`                               | `pages/admin/settings/profile.astro`（个人信息，对应 `data/profile.ts`）                             |
-| `/admin/settings/background/`                            | `pages/admin/settings/background.astro`（外观背景，对应 `data/background.ts`）                       |
-| `/admin/settings/home/`                                  | `pages/admin/settings/home.astro`（首页组件，对应 `data/dayscounter.ts`）                            |
-| `/admin/settings/friends/`                               | `pages/admin/settings/friends.astro`（友情链接，对应 `data/friends.ts`）                             |
-| `/admin/settings/quotes/`                                | `pages/admin/settings/quotes.astro`（随机一言，对应 `data/quotes.ts`）                               |
-| `/admin/settings/sponsor/`                               | `pages/admin/settings/sponsor.astro`（赞助页面，对应 `data/sponsor.ts`）                             |
-| `/admin/settings/integrations/`                          | `pages/admin/settings/integrations.astro`（技术与集成，对应 `data/techstack.ts` + `data/github.ts`） |
+| URL                                                      | 文件                                                                                    |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `/`                                                      | `pages/index.astro`                                                                     |
+| `/about/` `/friends/` `/projects/` `/sponsor/` `/tools/` | 同名页面                                                                                |
+| `/posts/`                                                | `pages/posts/index.astro`                                                               |
+| `/posts/<分类路径>/`                                     | `pages/posts/[...slug].astro`（`type: 'category'`）                                     |
+| `/posts/<分类路径>/<文件名>/`                            | `pages/posts/[...slug].astro`（`type: 'post'`）                                         |
+| `/posts/tag/<标签>/`                                     | `pages/posts/tag/[tag].astro`                                                           |
+| `/posts/rss.xml`                                         | `pages/posts/rss.xml.ts`（RSS 2.0 订阅源，不含隐藏文章）                                |
+| `/sitemap.xml`                                           | `pages/sitemap.xml.ts`（站点地图：顶层页 / 文章 / 分类 / 标签，不含隐藏文章）           |
+| 不存在的路径（404）                                      | `pages/404.astro`（自定义 404 页，noindex；`/admin/` 下的路径整页转发到 `/admin/404/`） |
+| `/admin/`                                                | `pages/admin/index.astro`（后台仪表盘）                                                 |
+| `/admin/posts/list/`                                     | `pages/admin/posts/list.astro`（文章列表）                                              |
+| `/admin/posts/edit/?path=...`                            | `pages/admin/posts/edit.astro`（编辑器）                                                |
+| `/admin/categories/`                                     | `pages/admin/categories.astro`（分类管理）                                              |
+| `/admin/404/`                                            | `pages/admin/404.astro`（后台 404，前台 404 的转发目标）                                |
 
-后台子页一律直接用 `xxx.astro` 文件当路由，不单开「文件夹 + index.astro」；`/admin/`、`/admin/posts/`、`/admin/settings/` 这类纯前缀不放页面。`admin/_admin/` 是后台本体（布局 / 组件 / 样式 / 脚本），下划线目录不被 Astro 路由——后台自包含在这里，不 import 前台任何 `src/components/` / `src/layouts/` / `src/assets/`（需要相同的东西就拷进来各自维护；共享的只有构建期配置 `src/data/`）。
+后台子页一律直接用 `xxx.astro` 文件当路由，不单开「文件夹 + index.astro」；`/admin/`、`/admin/posts/` 这类纯前缀不放页面。`admin/_admin/` 是后台本体（布局 / 组件 / 样式 / 脚本），下划线目录不被 Astro 路由——后台自包含在这里，不 import 前台任何 `src/components/` / `src/layouts/` / `src/assets/`（需要相同的东西就拷进来各自维护；共享的只有构建期配置 `src/data/`）。
 
 `about.astro` 用 `import { Content } from '../content/about.md'` 直接当组件渲染，不走 posts 集合。
 
@@ -196,10 +189,6 @@ motion 用法守两条约定：
 > 断点数值不设共享常量模块，直接写在用到的文件里（769 在 `nav/breakpoint.ts` / `ui/drawer.ts`，1150 / 768 / 850 在 `nav/swup-widgets.ts`），各自的注释标明要同改哪些 CSS 与组件。
 
 > 后台页面控制器新增一页时：在页面根元素上写 `data-admin-page="<名字>"`，再到 `admin/_admin/js/pages.ts` 的 `boot()` 里加一个 `init<名字>()` 分支。侧栏高亮与二级菜单展开由 `syncNavActive()` 按 `data-nav-path` 与 `data-nav-accordion` 自动跟上，不需要改侧栏组件。
-
-> **「网站设置」八页目前只有表单骨架**：页面结构与字段都按 `src/data/` 里的实际配置摆好了，但没有接 `adminStore`，也没有读写逻辑。
-> 卡住的原因是 `src/data/*.ts` 是 TS 源码而不是 JSON，按表单回写要保持类型与导出结构，风险高。
-> 建议的下一步：把数据迁到 `src/data/*.json`，`.ts` 只留 `import` + 类型断言，前端渲染代码一行不改，后台就能按 JSON 直接读写。
 
 > `NavBar` 的七个导航项已提为 **`src/data/nav.ts`**（唯一来源：桌面 / 移动导航 + 各界面页头标题都按 key 取 `navItem(key)`——图标与访问路径同源，页面不写死自己的路径，改一处全站生效）。
 > **还有两处配置写死在组件里、没进 `src/data/`**：`Comments.astro` 的 giscus 仓库 ID / 分类 ID / 语言（`data-repo-id`、`data-category-id`、`data-lang`）、`projects.astro` 的标题与描述。

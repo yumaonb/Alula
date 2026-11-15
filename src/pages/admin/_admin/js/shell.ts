@@ -56,29 +56,76 @@ function formatReset(at: Date): string {
   return `${at.getFullYear()}-${p(at.getMonth() + 1)}-${p(at.getDate())} ${p(at.getHours())}:${p(at.getMinutes())}`;
 }
 
+/**
+ * 速率限制的两处展示：连接弹窗与后台首页仓库状态，id 成对登记在这里，
+ * 新增一处往数组里加一行即可。未取到额度时的兜底文案按场景各给。
+ */
+const RATE_TARGETS = [
+  {
+    value: 'admin-rate-value',
+    total: 'admin-rate-total',
+    reset: 'admin-rate-reset',
+    resetIdle: '连接后显示',
+  },
+  {
+    value: 'admin-dash-rate-value',
+    total: 'admin-dash-rate-total',
+    reset: 'admin-dash-rate-reset',
+    resetIdle: '—',
+  },
+] as const;
+
 /** 把速率限制画出来：剩余次数突出，总量做次要信息，重置时间单独一格 */
 export function renderRateLimit(): void {
   const limit = getRateLimit();
-  const value = document.getElementById('admin-rate-value');
-  const total = document.getElementById('admin-rate-total');
-  const reset = document.getElementById('admin-rate-reset');
-  if (!value || !total || !reset) return;
+  for (const target of RATE_TARGETS) {
+    const value = document.getElementById(target.value);
+    const total = document.getElementById(target.total);
+    const reset = document.getElementById(target.reset);
+    if (!value || !total || !reset) continue;
 
-  if (!limit) {
-    value.textContent = '—';
-    total.textContent = '／ —';
-    reset.textContent = '连接后显示';
+    if (!limit) {
+      value.textContent = '—';
+      total.textContent = '／ —';
+      reset.textContent = target.resetIdle;
+      continue;
+    }
+
+    value.textContent = String(limit.remaining);
+    total.textContent = `／ ${limit.limit}`;
+    reset.textContent = formatReset(limit.resetAt);
+  }
+}
+
+/**
+ * 「最新提交编号」的两种形态：有提交地址就做成可点链接（点开去 GitHub 看这次提交），
+ * 没地址（读失败）就退回纯文本。
+ * 注意：链接里的文字也得自己写——模板初始是「—」，只设 href 会显示成破折号。
+ * 连接弹窗与后台首页仓库状态共用，展示口径改一处两处同时生效。
+ */
+export function renderHead(linkId: string, textId: string): void {
+  const { connected, head, headUrl } = adminStore.state;
+  const link = document.getElementById(linkId) as HTMLAnchorElement | null;
+  const text = document.getElementById(textId);
+  if (!link || !text) return;
+
+  if (connected && headUrl) {
+    link.href = headUrl;
+    link.textContent = shortSha(head);
+    link.hidden = false;
+    text.hidden = true;
     return;
   }
 
-  value.textContent = String(limit.remaining);
-  total.textContent = `／ ${limit.limit}`;
-  reset.textContent = formatReset(limit.resetAt);
+  link.hidden = true;
+  text.hidden = false;
+  link.removeAttribute('href');
+  text.textContent = connected ? shortSha(head) : '—';
 }
 
 /** 把 store 里的状态画到弹窗上：未连接显示表单，已连接显示仓库状态 */
 function renderState(): void {
-  const { connected, config, head, headUrl, changes } = adminStore.state;
+  const { connected, config, changes } = adminStore.state;
   shell?.classList.toggle('is-connected', connected);
   // 弹窗挂在外壳之外，拿不到 .admin-shell 的类，所以自己同步一份；
   // admin.css 里表单/仓库状态的互斥就是认这个类。
@@ -87,25 +134,9 @@ function renderState(): void {
   setText('admin-conn-label', connected ? '已连接' : '未连接');
   setText('admin-status-repo', connected ? `${config.owner}/${config.repo}` : '—');
   setText('admin-status-branch', connected ? config.branch : '—');
-  setText('admin-status-head', connected ? shortSha(head) : '—');
   setText('admin-status-staged', String(changes.length));
 
-  // 有地址就把「最新提交编号」变成可点的链接，没地址（读失败）就退回纯文本。
-  // 注意：链接里的文字也得自己写——模板初始是「—」，只设 href 会显示成破折号。
-  const link = document.getElementById('admin-status-head-link') as HTMLAnchorElement | null;
-  const text = document.getElementById('admin-status-head');
-  if (link && text) {
-    if (connected && headUrl) {
-      link.href = headUrl;
-      link.textContent = shortSha(head);
-      link.hidden = false;
-      text.hidden = true;
-    } else {
-      link.hidden = true;
-      text.hidden = false;
-      link.removeAttribute('href');
-    }
-  }
+  renderHead('admin-status-head-link', 'admin-status-head');
 
   renderRateLimit();
 }
