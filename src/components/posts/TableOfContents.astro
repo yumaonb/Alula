@@ -108,16 +108,17 @@ if (hasH1 && hasH2) {
     overflow-y: auto;
     overflow-x: hidden;
     padding-left: 6px;
-    /* 默认隐藏，悬停或聚焦目录时才显现：否则长文里它会与全站页面滚动条同屏，
-     * 一条挨着侧栏边缘、一条挨着视口边缘，像卡出来两条。
-     * 三件套齐全才跨浏览器一致：scrollbar-width / scrollbar-color 管 Firefox，
-     * ::-webkit-scrollbar 管 Chromium 与 Safari。 */
+    /* 默认隐藏，悬停或键盘聚焦目录时才显现：否则长文里它会与全站页面滚动条
+     * 同屏，一条挨着侧栏边缘、一条挨着视口边缘，像卡出来两条。指针点击不
+     * 触发 :focus-visible，显隐门控由这里单一承担（见 TROUBLESHOOTING 第 62 /
+     * 64 条）。三件套齐全才跨浏览器一致：scrollbar-width / scrollbar-color
+     * 管 Firefox，::-webkit-scrollbar 管 Chromium 与 Safari。 */
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
   }
 
   .toc-scroll:hover,
-  .toc-scroll:focus-within {
+  .toc-scroll:focus-visible {
     scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
 
@@ -133,7 +134,7 @@ if (hasH1 && hasH2) {
   }
 
   .toc-scroll:hover::-webkit-scrollbar-thumb,
-  .toc-scroll:focus-within::-webkit-scrollbar-thumb {
+  .toc-scroll:focus-visible::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
   }
 

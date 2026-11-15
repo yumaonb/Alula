@@ -21,6 +21,9 @@
 // 共用过渡：竖线静止目标与轨道滚动用**同一条进度 p**（0→1、easeOut）推进，
 // 中途重定向从当前值续接，每帧唯一写入者，无离散 tween、无「旧目标先写回
 // 再矫正」的竞态。
+// 竖线位置只有一个写入点：任何路径改完 barPos（帧循环 / 状态矫正 / 减少动态
+// / 点击接管）都走 writeBar() 写 DOM，结构上不存在「只改变量不写 DOM」的
+// 分支（见 TROUBLESHOOTING #34）。
 // 轨道只在切项 / 首次落位 / 重测重定向时动；手动滚动（滚轮 / 触摸）= 显式
 // 接管：关闭跟随（滑走不拉回），接管期间竖线贴住活动项的当前视觉位随内容
 // 走（滚轮现算、触摸走轨道 scroll 监听），下一次切项恢复居中；点击窗口内
@@ -128,10 +131,8 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
   let lastT = 0;
   // 竖线当前轨道坐标位
   let barPos = 0;
-  // 竖线是否完成首次落位
-  let barPlaced = false;
-  // 轨道是否完成首次落位
-  let trackPlaced = false;
+  // 竖线与轨道是否完成首次落位（两者始终同步置位，一个标志即可）
+  let placed = false;
   // 轨道居中是否生效（手动滚轮关闭，切项恢复）
   let trackFollow = true;
   let lastActiveIdx = -1;
@@ -142,6 +143,12 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
 
   // 先快后缓（≈ easeOutQuart）：切项时列表快速起滑、轻柔落位
   const EASE_OUT = (t: number): number => 1 - Math.pow(1 - t, 4);
+
+  /** 竖线位置的唯一写入点：改完 barPos 的路径必须走这里写 DOM */
+  function writeBar(): void {
+    const bar = queryTocBar();
+    if (bar) bar.style.transform = `translateY(${barPos}px)`;
+  }
 
   /**
    * 重定向共用过渡（从当前位置续接）：trackEl 为 null 时只动竖线通道
@@ -168,24 +175,18 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
       // 减少动态效果：与状态矫正同一套写入，直接落终态
       barPos = barTo;
       if (trackEl) trackEl.scrollTop = trackTo;
-      const bar = queryTocBar();
-      if (bar) bar.style.transform = `translateY(${barPos}px)`;
-      barPlaced = true;
-      trackPlaced = true;
+      writeBar();
+      placed = true;
       p = 1;
       return;
     }
-    if ((!barPlaced || !trackPlaced) && dist > SNAP_MAX_PX) {
-      // 状态矫正：仅首次落位且距离大（深链进入 / 切页后）——立刻对齐。
-      // 必须同帧写入竖线 transform：此分支不走帧循环，只改变量竖线会停在
-      // 旧位等下次切项；落位完成，两个 placed 标志一并置位（后续大距离
-      // 走平滑过渡而非再次瞬移）
+    if (!placed && dist > SNAP_MAX_PX) {
+      // 状态矫正：仅首次落位且距离大（深链进入 / 切页后）——立刻对齐，
+      // 后续大距离走平滑过渡而非再次瞬移
       barPos = barTo;
       if (trackEl) trackEl.scrollTop = trackTo;
-      const bar = queryTocBar();
-      if (bar) bar.style.transform = `translateY(${barPos}px)`;
-      barPlaced = true;
-      trackPlaced = true;
+      writeBar();
+      placed = true;
       p = 1;
       return;
     }
@@ -409,14 +410,10 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
       p = Math.min(1, p + dt / (dur * 1000));
       const v = EASE_OUT(p);
       barPos = barFrom + (barTo - barFrom) * v;
-      const bar = queryTocBar();
-      if (bar) bar.style.transform = `translateY(${barPos}px)`;
+      writeBar();
       const trackEl = queryTocList();
       if (trackEl && trackFollow) trackEl.scrollTop = trackFrom + (trackTo - trackFrom) * v;
-      if (p >= 1) {
-        barPlaced = true;
-        trackPlaced = true;
-      }
+      if (p >= 1) placed = true;
     }
     return p < 1;
   }
@@ -435,8 +432,8 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
   document.addEventListener('click', (e: MouseEvent) => {
     const link = e.target instanceof Element ? e.target.closest('.toc-link') : null;
     if (!link) return;
-    // 指针点击后失焦：焦点留在目录项上会让 :focus-within 常驻，
-    // 目录滚动条随之常显，与页面滚动条同屏；键盘激活（detail 为 0）保留焦点
+    // 指针点击后失焦：焦点留在按钮上会让 Space 重新触发点击而不是滚动页面；
+    // 键盘激活（detail 为 0）保留焦点
     if (e.detail > 0 && link instanceof HTMLElement) link.blur();
     const item = link.closest('.toc-item');
     if (!item) return;
@@ -463,8 +460,7 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
   function syncBarToActive(track: HTMLElement): void {
     if (lastActiveIdx < 0 || lastActiveIdx >= slugs.length) return;
     barPos = itemTops[lastActiveIdx] - track.scrollTop;
-    const bar = queryTocBar();
-    if (bar) bar.style.transform = `translateY(${barPos}px)`;
+    writeBar();
   }
 
   // 目录内容自身滚动（滚轮 / 触摸）：只接管滚动行为，活动项由页面滚动决定，
@@ -485,8 +481,7 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
       if (p < 1) {
         // 过渡飞行中也被接管：轨道停止被驱动，竖线直接落到活动项当前位
         p = 1;
-        barPlaced = true;
-        trackPlaced = true;
+        placed = true;
       }
       track.scrollTop += e.deltaY;
       syncBarToActive(track);
@@ -551,8 +546,7 @@ import { queryPostSidebar, queryTocBar, queryTocList, queryTocNav } from '../uti
     navEl = fresh;
     lastActiveIdx = -1;
     // 目录整块重建，竖线是全新元素
-    barPlaced = false;
-    trackPlaced = false;
+    placed = false;
     trackFollow = true;
     p = 1;
     requestAnimationFrame(() => {
