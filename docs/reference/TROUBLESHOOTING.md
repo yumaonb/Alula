@@ -167,8 +167,8 @@ if (!animatedElements.length) {
 ### 20.3 当前切页做法：整块 CSS 转场 + 白色平铺 + 顶部进度条
 
 - swup 切页时给 html 依次挂类：`is-changing` 覆盖整个窗口（含 fetch），退出期 `is-leaving`、进入期 `is-rendering`；`#swup` 的 `.transition-page` 播 `page-exit`（整块下移渐隐，`forwards` 钉终帧）与 `page-enter`（自下方上移渐显），时长令牌 `--t-page-exit` / `--t-page-enter`、位移 `--page-shift` 都在 `variables.css`。
-- 行级侧栏 / 搜索框 / 左缘常驻盒（`#swup` 外）按行变体类挂同一组 `page-exit` / `page-enter`：退出期行上还是源页变体、进入期已翻目标变体（`swup:content:replace` 同帧翻），各自只命中该侧本来就该动的元素；区内切换时行带 `is-post-swap`（`posts-shell.ts` 在 `swup:visit:start` 按「源页变体 + 目标 URL」标记、`visit:end` 摘除），左缘常驻盒（页头 / 面包屑的显示实例）不位移，盒内车道（驱动条深克隆）原地模糊渐隐渐显，侧栏同样豁免曲线（两种变体同位常驻、全程原地，见「切页转场」的 `global.css` 块与 37 条）；列表页之间再叠 `is-swap-list-list`，搜索框由规则上的 `:not` 摘出曲线、全程原地不隐不显（只在列表 ↔ 详情之间才隐显）。
-- `is-changing` 期间 `#swup` 内、行级侧栏与搜索框里所有 `.glass` 平铺成半透明白底（veil，`--page-veil`，0.02 的白）——`#swup` 自身带 opacity 动画，必须先让后代玻璃失效（20.1）；转场结束磨砂恢复。区内不播曲线的常驻玻璃（`is-post-swap` 期间的侧栏、`is-swap-list-list` 期间的搜索框）豁免平铺（opacity 恒 1、磨砂不失效，免得白填底那一帧闪一下）。
+- 行级侧栏 / 搜索框 / 左缘常驻盒（`#swup` 外）默认与整块挂同一组 `page-exit` / `page-enter`，规则上的 `:not(.is-transition-still)` 把本次应原地站住的元素摘出；仍标记由 `posts-shell.ts` 在 `swup:visit:start` 标、`visit:end` 摘除（源页按行变体判——变体在 `swup:content:replace` 同帧翻成目标页的——目标页按 URL 判）：区内切换（源页与目标页都在文章区）标侧栏与左缘常驻盒（页头 / 面包屑的显示实例），盒不位移、盒内车道（驱动条深克隆）原地模糊渐隐渐显，侧栏两种变体同位常驻、全程原地（见「切页转场」的 `global.css` 块与 37 条）；列表页之间再标搜索框、全程原地不隐不显（只在列表 ↔ 详情之间才隐显）。
+- `is-changing` 期间 `#swup` 内、行级侧栏与搜索框里所有 `.glass` 平铺成半透明白底（veil，`--page-veil`，0.02 的白）——`#swup` 自身带 opacity 动画，必须先让后代玻璃失效（20.1）；转场结束磨砂恢复。被标 `is-transition-still` 的常驻玻璃（区内切换的侧栏、列表页之间的搜索框）豁免平铺，豁免读同一标记（opacity 恒 1、磨砂不失效，免得白填底那一帧闪一下）。
 - 加载反馈是官方 `@swup/progress-plugin`（`astro.config.ts` 的 `progress: true` 启用）：页面顶部一条细白条，`visit:start` 起 300ms 延迟才出现；访问时长现在含转场动画（swup 等 `.transition-page` 播完才收尾，`page:view` 在其后），缓存快切也要 ≈0.3s，所以进度条几乎每次切页都会出现一瞬（预期）。
 - 进度条的默认样式（3px 黑条）由插件自己注入，高度与颜色在 `global.css` 覆盖（`body .swup-progress-bar`）。
 - 历史前进 / 后退（popstate）仍瞬时替换、无动画（swup 的 `animateHistoryBrowsing` 默认关闭）。
@@ -317,7 +317,7 @@ if (!animatedElements.length) {
 
 ## 37. 切页转场：swup 的 html 类 + #swup 整块 CSS 动画
 
-- **现行口径**：切页统一走 `global.css`「切页转场」——swup 切页时给 html 挂类：`is-changing` 覆盖整个窗口、退出期 `is-leaving`、进入期 `is-rendering`；`#swup` 的 `.transition-page` 播 `page-exit`（下移渐隐）与 `page-enter`（自下方上移渐显），行级搜索框 / 左缘常驻盒按行变体类挂同一组曲线（侧栏也挂、区内切换时豁免），区内切换（行带 `is-post-swap`，`posts-shell.ts` 在 `swup:visit:start` 标记、`visit:end` 摘除）时侧栏原地不动、左缘常驻盒（页头 / 面包屑的显示实例）不位移、盒内车道（驱动条深克隆）原地模糊渐隐渐显，列表页之间行另带 `is-swap-list-list`、搜索框全程原地（只在列表 ↔ 详情之间才隐显）；`is-changing` 期间 `#swup` 内、侧栏与搜索框里所有 `.glass` 平铺成半透明白底（veil，`--page-veil`），区内不播曲线的常驻玻璃（侧栏、列表页搜索框）豁免。无 JS 编排（`is-post-swap` / `is-swap-list-list` 只是给 CSS 规则开门控）、无临时 DOM。
+- **现行口径**：切页统一走 `global.css`「切页转场」——swup 切页时给 html 挂类：`is-changing` 覆盖整个窗口、退出期 `is-leaving`、进入期 `is-rendering`；`#swup` 的 `.transition-page` 播 `page-exit`（下移渐隐）与 `page-enter`（自下方上移渐显），行级侧栏 / 搜索框 / 左缘常驻盒默认同曲线；「谁站住」的决策集中在 `posts-shell.ts`：`swup:visit:start` 给本次应站住的元素标 `is-transition-still`——区内切换（源页与目标页都在文章区）标侧栏与左缘常驻盒（页头 / 面包屑的显示实例）：盒不位移、盒内车道（驱动条深克隆）按同一标记播原地模糊曲线；列表页之间再标搜索框（只在列表 ↔ 详情之间才隐显，列表页的目标页按常驻侧栏分类树 `data-category` 集精确命中判，函数 `isListingUrl`）；源页按行变体判、目标页按 URL 判（`lib/category.ts` 的 `isPostAreaPath`），`visit:end` 一并摘除；`is-changing` 期间 `#swup` 内、侧栏与搜索框里所有 `.glass` 平铺成半透明白底（veil，`--page-veil`），被标 still 的常驻玻璃豁免、豁免读同一标记。无 JS 编排（标记只是给 CSS 规则开门控）、无临时 DOM。
 - **为什么是 CSS 动画类**（JS 编排被放弃的原因）：motion 的 `animate()` 时钟从调用时刻起算，换内容后主线程被占（dev 按需编译 / 岛屿水合 / 懒加载 import），墙钟在停顿里空转、动画被整段吃掉（「一瞬间跳过」，环境现象见第 40 条）；CSS 动画由文档时间线驱动，swup 的等待按 `animationDuration` 定长计时（不听 `animationend`），退出终帧被 `forwards` 钉住——停顿再长，最差转场被压缩、不会消失，也不会卡中间值。类由 swup 自己的 visit 流程挂（`is-leaving` 在换 DOM 前、`is-rendering` 在换 DOM 后），站点脚本不挂类，不存在「挂类晚丢起点帧」的时机问题。
 - **常驻规则**（动切页路径前逐条过）：
   - 等待目标时长必须是真实值：减动效压到 0.01s 不写 `none` / `0s`（不等则控制台警告 + 转场被跳过，第 20.2 条）；后台无转场，0.01s 占位动画只为消警告（见 `src/pages/admin/_admin/css/base.css`）。

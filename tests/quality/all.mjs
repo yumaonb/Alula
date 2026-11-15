@@ -1,12 +1,13 @@
-// tests/quality/all.mjs — 四类代码质量检查的汇总入口
+// tests/quality/all.mjs — 五类代码质量检查的汇总入口
 // 用法：node tests/quality/all.mjs（也可由 tests/run.mjs import 后调用）
 //
-// 四个检查各管一类事，一个进程跑完——分开起进程光 Node 启动就要多花好几秒。
+// 五个检查各管一类事，一个进程跑完——分开起进程光 Node 启动就要多花好几秒。
 // 任一检查失败 → 整体返回 1（全部走报错拦住）。
 
 import { collect as collectLeaks } from './leaks.mjs';
 import { collect as collectDocs } from './docs.mjs';
 import { collect as collectContracts } from './contracts.mjs';
+import { collect as collectTransition } from './transition.mjs';
 import { collect as collectRegistry } from './registry.mjs';
 import { runCheck, isMain } from './lib/common.mjs';
 
@@ -25,6 +26,11 @@ const CHECKS = [
     title: 'check-contracts',
     fn: collectContracts,
     hint: '这些是「有声明没人用」的死代码。真需要留（例如给将来用），在那一行写 "// check-contracts: allow" 并写清理由。',
+  },
+  {
+    title: 'check-transition',
+    fn: collectTransition,
+    hint: '切页转场词汇表已焊死：「站住」的情况在 posts-shell.ts 加 is-transition-still 标记；global.css 转场块禁止引用行变体类等原因类。',
   },
   {
     title: 'gen-registry',

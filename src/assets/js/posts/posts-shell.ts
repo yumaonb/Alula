@@ -5,7 +5,7 @@
 // 左缘条常驻盒（.posts-edge-float）克隆换入 → posts/edge-float.ts
 // 行变体类 / 侧栏顶偏移 / 侧栏高亮 → posts/row-state.ts
 // 搜索浮层摆位与显隐落位 → posts/search-float.ts
-// 区内切换标记 is-post-swap / is-swap-list-list → 本文件（swup:visit:start 开、visit:end 关）
+// 转场仍标记 is-transition-still → 本文件（swup:visit:start 标、visit:end 摘）
 // 本文件只做环境探测、motion 预取与接线。切页转场本身是 CSS（html 的
 // is-leaving / is-rendering 类 + .transition-page，见 global.css「切页转场」），
 // 无需 JS 编排；swup 换内容后这里落位壳（左缘克隆换入 + 搜索框到目标态）。
@@ -109,12 +109,16 @@ import { isPostAreaPath, postPathSegments } from '../../../lib/category';
     if (r) floatCtl.settle(!!r.querySelector('.posts-header-search'));
   }
 
-  /* ---- 6. 区内切换标记（is-post-swap / is-swap-list-list，动效见 global.css「切页转场」） ---- */
-  // 左缘常驻盒内车道的原地模糊渐隐渐显、侧栏不播曲线，只在源页与目标页都在文章区时
-  // 生效（is-post-swap）；visit:start 时行变体类还是源页的（翻变体在 content:replace），
-  // 源页按变体判、目标页按 URL 判；visit:end 摘标记，生命周期与一次转场窗口对齐。
-  // is-swap-list-list 更窄：源页是列表变体且目标也是列表页，搜索框退出 / 进入规则
-  // 上的 :not 据此把它摘出曲线（全程不动，只有列表↔详情才隐显）。
+  /* ---- 6. 转场仍标记（is-transition-still，动效见 global.css「切页转场」） ---- */
+  // 本次切换中应原地站住的元素标 still，visit:end 一并摘除，生命周期与一次转场
+  // 窗口对齐。visit:start 时行变体类还是源页的（翻变体在 content:replace），源页
+  // 按变体判、目标页按 URL 判。标记真值表：
+  //   源页在文章区 × 目标页在文章区 → 侧栏 + 左缘常驻盒（盒不位移，盒内车道按同一
+  //     标记播原地模糊渐隐渐显）
+  //   再叠加：源页是列表变体 × 目标页是列表页（isListingUrl）→ 搜索框也标（只有
+  //     列表↔详情才隐显）
+  //   其余组合不标：常驻元素随整块同曲线。转场块的词汇表由质检 check-transition
+  //  焊死：新增「站住」的情况在这里加标记，不在 CSS 加一组选择器。
   function onVisitStart(e: Event): void {
     const r = row();
     if (!r) return;
@@ -122,16 +126,21 @@ import { isPostAreaPath, postPathSegments } from '../../../lib/category';
     const targetUrl = detail?.visit?.to?.url ?? '';
     const fromInPosts =
       r.classList.contains('page-main--listing') || r.classList.contains('page-main--post');
-    const inPostSwap = fromInPosts && isPostAreaPath(targetUrl);
-    r.classList.toggle('is-post-swap', inPostSwap);
-    r.classList.toggle(
-      'is-swap-list-list',
-      inPostSwap && r.classList.contains('page-main--listing') && isListingUrl(targetUrl),
-    );
+    if (!fromInPosts || !isPostAreaPath(targetUrl)) return;
+    const mark = (selector: string): void => {
+      r.querySelector<HTMLElement>(selector)?.classList.add('is-transition-still');
+    };
+    mark('.global-sidebar');
+    mark('.posts-edge-float');
+    if (r.classList.contains('page-main--listing') && isListingUrl(targetUrl)) {
+      mark('.posts-search-float');
+    }
   }
 
   function onVisitEnd(): void {
-    row()?.classList.remove('is-post-swap', 'is-swap-list-list');
+    for (const el of document.querySelectorAll<HTMLElement>('.is-transition-still')) {
+      el.classList.remove('is-transition-still');
+    }
   }
 
   /** 目标 URL 是不是文章列表页（根 / 分类 / 标签）。visit:start 只有源页变体 + 目标 URL，

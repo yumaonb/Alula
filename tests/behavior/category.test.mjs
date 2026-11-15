@@ -127,7 +127,7 @@ test('路径解析：只取文章区之后的部分', () => {
 });
 
 test('文章区判定：首段为文章根路由即为文章区', () => {
-  // 来历：区内切换标记 is-post-swap 的目标页判定（swup 的 visit.to.url 带 search 参数）
+  // 来历：转场仍标记的目标页判定（swup 的 visit.to.url 带 search 参数）
   assert.equal(isPostAreaPath('/posts/'), true);
   assert.equal(isPostAreaPath('/posts/devnotes/css/at-rule/'), true);
   assert.equal(isPostAreaPath('/posts/tag/css/'), true);
