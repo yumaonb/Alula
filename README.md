@@ -1,6 +1,6 @@
 # Alula
 
-![Node.js 18.20.8+](https://img.shields.io/badge/node.js-18.20.8%20%7C%20%5E20.3.0%20%7C%20%3E%3D22-339933?logo=node.js&logoColor=white)
+![Node.js >= 22.18.0](https://img.shields.io/badge/node.js->%3D22.18.0-339933?logo=node.js&logoColor=white)
 ![pnpm >= 11](https://img.shields.io/badge/pnpm->=11-F69220?logo=pnpm&logoColor=white)
 
 > 以羽之轻，驭速之行
@@ -42,9 +42,9 @@
 src/
 ├── assets/
 │   ├── backgrounds/     # 全站背景预设（css/ 绘制方案 + images/ 图片）
-│   ├── css/             # 全局样式：variables/global/utilities + shared/ + posts/ + admin/
+│   ├── css/             # 全局样式：variables/global/utilities + shared/ + posts/
 │   ├── images/          # 头像
-│   └── js/              # 客户端脚本：nav/ posts/ ui/ util/ data/ admin/
+│   └── js/              # 客户端脚本：nav/ posts/ ui/ util/ data/
 ├── components/
 │   ├── layout/          # NavBar、Footer、SideWidgets、Background
 │   ├── posts/           # 文章区：卡片、目录、分类树、搜索、筛选抽屉

@@ -7,21 +7,22 @@ Alula：Astro 5 + Svelte 5 + TypeScript 的静态个人站点，深色毛玻璃�
 
 ## 命令
 
-| 命令                   | 作用                                                                |
-| ---------------------- | ------------------------------------------------------------------- |
-| `pnpm dev`             | 开发服务器                                                          |
-| `pnpm verify`          | 代码质量 + 业务测试 + `astro check`：收工硬门槛，任一项不过就是没过 |
-| `pnpm test`            | 只跑两类检测（quality + behavior），不含格式与类型                  |
-| `pnpm test:quality`    | 只跑四类代码质量检查                                                |
-| `pnpm test:behavior`   | 只跑业务逻辑测试                                                    |
-| `pnpm build`           | 构建到 `dist/`，改完必跑                                            |
-| `pnpm format`          | Prettier 全量重排（收工固定第一步，见 AGENTS §9；不要先问，直接跑） |
-| `pnpm format:check`    | 只检查是否已格式化，不写入                                          |
-| `pnpm check:leaks`     | 只查调试残留与类型逃逸（`console.log` / `any` / `!important` 等）   |
-| `pnpm check:docs`      | 只查文档里的路径与命令是否真实存在                                  |
-| `pnpm check:contracts` | 只查死 Prop、无人引用的导出、无人使用的组件                         |
-| `pnpm check:registry`  | 只查组件清单 / 水合指令 / `window` 标记与代码是否一致               |
-| `pnpm registry:write`  | 重新生成 `docs/REGISTRY.md`（机器清单，可随时重建）                 |
+| 命令                    | 作用                                                                                                                    |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`              | 开发服务器                                                                                                              |
+| `pnpm verify`           | 代码质量 + 业务测试 + `astro check`：收工硬门槛，任一项不过就是没过                                                     |
+| `pnpm test`             | 只跑两类检测（quality + behavior），不含格式与类型                                                                      |
+| `pnpm test:quality`     | 只跑五类代码质量检查                                                                                                    |
+| `pnpm test:behavior`    | 只跑业务逻辑测试                                                                                                        |
+| `pnpm build`            | 构建到 `dist/`，改完必跑                                                                                                |
+| `pnpm format`           | Prettier 全量重排（收工固定第一步，见 AGENTS §9；不要先问，直接跑）                                                     |
+| `pnpm format:check`     | 只检查是否已格式化，不写入                                                                                              |
+| `pnpm check:leaks`      | 只查调试残留与类型逃逸（`console.log` / `any` / `!important` 等）                                                       |
+| `pnpm check:docs`       | 只查文档里的路径与命令是否真实存在                                                                                      |
+| `pnpm check:contracts`  | 只查死 Prop、无人引用的导出、无人使用的组件                                                                             |
+| `pnpm check:transition` | 只查 `global.css`「切页转场」块守不守稳定词汇表（块内不写行变体类等原因类，`is-transition-still` 只出现在两处指定文件） |
+| `pnpm check:registry`   | 只查组件清单 / 水合指令 / `window` 标记与代码是否一致                                                                   |
+| `pnpm registry:write`   | 重新生成 `docs/REGISTRY.md`（机器清单，可随时重建）                                                                     |
 
 ## 目录地图
 

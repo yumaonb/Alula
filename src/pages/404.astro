@@ -1,0 +1,104 @@
+---
+// 404.astro — 自定义 404 页：大 404 + 页面未找到 + 刷新 / 返回首页
+// 用法：命中不存在的路径时由 Astro 构建期生成的兜底页，整页加载、不走 swup 切页
+import { Icon } from 'astro-icon/components';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout noindex>
+  <div class="notfound">
+    <div class="notfound-code" aria-hidden="true">
+      404
+    </div>
+    <h1 class="notfound-title">页面未找到</h1>
+    <div class="notfound-actions">
+      <button class="notfound-btn glass hoverable" id="notfound-refresh" type="button">
+        <Icon is:inline name="la:sync-alt" class="notfound-icon" />
+        刷新一下
+      </button>
+      <a class="notfound-btn glass hoverable link-plain" href="/">
+        <Icon is:inline name="la:home" class="notfound-icon" />
+        返回首页
+      </a>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // 404 页是整页加载（不在 swup 切页目标里），直接绑定无需考虑重绑
+  document
+    .querySelector<HTMLButtonElement>('#notfound-refresh')
+    ?.addEventListener('click', () => location.reload());
+</script>
+
+<style>
+  /* 内容块在「导航底 → 页脚顶」之间垂直居中（上下距离相等）：
+   * main#swup 本已拉伸填满整行（global.css 的 .page-main > .hero align-self: stretch），
+   * .notfound 再填满 main；.page-main 的上下留白改成「导航高 + 0」的对称组合，
+   * 内容盒的中点即导航底与页脚顶的中点。导航底让位不足时会贴导航底，不会钻进导航下 */
+  :global(.page-main) {
+    padding-top: 68px;
+    padding-bottom: 0;
+  }
+
+  @media (max-width: 768px) {
+    :global(.page-main) {
+      padding-top: 56px;
+    }
+  }
+
+  .notfound {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .notfound-code {
+    font-size: 6rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    color: var(--white);
+    text-shadow: var(--shadow);
+  }
+
+  .notfound-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--white);
+    text-shadow: var(--shadow);
+  }
+
+  .notfound-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  /* 按钮走前台磨砂体系（.glass + .hoverable），这里只定尺寸与布局 */
+  .notfound-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.95rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .notfound-icon {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+</style>

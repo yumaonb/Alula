@@ -18,31 +18,32 @@ pnpm format
 pnpm verify
 ```
 
-**任一组不过就是没过**，不要以"改动很小"为由跳过或只跑一半。它内部按顺序跑，任意一组失败即以退出码 1 结束：
+**任一组不过就是没过**，不要以"改动很小"为由跳过或只跑一半。它内部按顺序跑（质检 → 格式 → 行为 → 类型检查，类型检查最慢放最后），中途失败只记录、继续跑完，最后一次性列出全部失败并以退出码 1 结束：
 
 | 组             | 查什么                                  |
 | -------------- | --------------------------------------- |
-| `format:check` | Prettier 格式一致                       |
 | **quality**    | 代码写得合不合规范，见下表              |
+| `format:check` | Prettier 格式一致                       |
 | **behavior**   | 业务逻辑对不对（`node --test`），见下表 |
 | `astro check`  | 类型检查，必须 0 error                  |
 
 两类检测各自的检查项：
 
-| 类       | 检查              | 查什么                                                                                             |
-| -------- | ----------------- | -------------------------------------------------------------------------------------------------- |
-| quality  | `check-leaks`     | `console.log` / `any` / `@ts-ignore` / `var` / `!important` / `DOMContentLoaded` / Svelte 4 老语法 |
-| quality  | `check-docs`      | 文档里提到的路径与命令真实存在                                                                     |
-| quality  | `check-contracts` | 必填 Prop 没人传、脚本导出没人引用、组件无人使用                                                   |
-| quality  | `gen-registry`    | 组件清单与代码一致、水合指令一致、`window` 标记与 `env.d.ts` 一致                                  |
-| behavior | `category`        | 分类树计数与排序、分类/标签 URL 编码、日期时区、分类链、文章区路径判定                             |
-| behavior | `nav`             | 导航命中的边界（同前缀兄弟路径、末尾斜杠）                                                         |
-| behavior | `code-blocks`     | 代码块范围识别：结束标签只在字符串 / 模板串 / 注释 / 正则之外才被认                                |
-| behavior | `motion-reduce`   | 动画统一并入 reduceMotion：偏好开时 motion 收到 reduceMotion: true，关后同一单例现读回 false       |
+| 类       | 检查               | 查什么                                                                                                             |
+| -------- | ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| quality  | `check-leaks`      | `console.log` / `any` / `@ts-ignore` / `var` / `!important` / `DOMContentLoaded` / Svelte 4 老语法                 |
+| quality  | `check-docs`       | 文档里提到的路径与命令真实存在                                                                                     |
+| quality  | `check-contracts`  | 必填 Prop 没人传、脚本导出没人引用、组件无人使用                                                                   |
+| quality  | `check-transition` | `global.css`「切页转场」块守不守稳定词汇表（块内不写行变体类等原因类，`is-transition-still` 只出现在两处指定文件） |
+| quality  | `gen-registry`     | 组件清单与代码一致、水合指令一致、`window` 标记与 `env.d.ts` 一致                                                  |
+| behavior | `category`         | 分类树计数与排序、分类/标签 URL 编码、日期时区、分类链、文章区路径判定                                             |
+| behavior | `nav`              | 导航命中的边界（同前缀兄弟路径、末尾斜杠）                                                                         |
+| behavior | `code-blocks`      | 代码块范围识别：结束标签只在字符串 / 模板串 / 注释 / 正则之外才被认                                                |
+| behavior | `motion-reduce`    | 动画统一并入 reduceMotion：偏好开时 motion 收到 reduceMotion: true，关后同一单例现读回 false                       |
 
 - **报错就改代码，不要改检查脚本去迁就代码。** 确实需要豁免时，在那行写 `// check-xxx: allow`（对应脚本名），并在交付说明里写清理由。
-- 单独跑：`pnpm test:quality`（四类质检）/ `pnpm test:behavior`（业务测试）/ `pnpm test`（两类都跑，不含格式与类型）。
-- 单个质检项：`pnpm check:leaks` / `pnpm check:docs` / `pnpm check:contracts` / `pnpm check:registry`。
+- 单独跑：`pnpm test:quality`（五类质检）/ `pnpm test:behavior`（业务测试）/ `pnpm test`（两类都跑，不含格式与类型）。
+- 单个质检项：`pnpm check:leaks` / `pnpm check:docs` / `pnpm check:contracts` / `pnpm check:transition` / `pnpm check:registry`。
 - `gen-registry` 报「清单缺失」= 新加了组件没登记，去 `docs/reference/COMPONENTS.md` 补一行（含水合指令）；报「水合指令不符」= 文档与代码写的不是同一个，改其中一处。全表见 `docs/rules/80-doc-sync.md`「机器会替你核的部分」。
 - behavior 失败说明业务逻辑真的错了，不是格式问题：先看断言里的中文用例名，再去对应的 `src/lib/` 文件。
 - 业务测试直接 import `src/lib/` 下的生产代码（Node ≥ 22.18 的默认类型擦除），测的是本体，不是复制品。
@@ -65,6 +66,7 @@ pnpm build
 
 期望总页数 = **6**（首页 / 关于 / 友链 / 项目 / 赞助 / 工具）
 
+- **1**（404 页）
 - **1**（文章列表 `/posts/`）
 - **文章数**
 - **分类数**（含文章或 `index.json` 的目录，含中间层级）

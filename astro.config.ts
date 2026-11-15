@@ -11,7 +11,7 @@ import svelte from '@astrojs/svelte';
 import icon from 'astro-icon';
 import swup from '@swup/astro';
 import rehypeSlug from 'rehype-slug';
-import pagefind from 'astro-pagefind';
+import { createIndex } from 'pagefind';
 import htmlMinifier from 'astro-html-minifier-next';
 import compress from '@playform/compress';
 
@@ -369,13 +369,86 @@ function backgroundPreset() {
   };
 }
 
+/* ---- Pagefind 全文搜索：只索引文章页 ----
+ * Pagefind 的目录索引（addDirectory）没有「只收一部分页面」的开关，整站喂进去
+ * 会把列表 / 分类 / 后台全带上，所以这里直接调 pagefind 包的服务端 API：
+ * 遍历 src/content/posts，把每篇未隐藏文章的构建产物喂给索引，写到 dist/pagefind。
+ * 命中内容仍由正文卡的 data-pagefind-body 标记限定在文章正文（PostsShell 输出）；
+ * 隐藏文章在构建期就不进索引（与 noindex 一致）。
+ * 这是构建期集成，dev 下没有索引：搜索框显示「搜索索引不可用」，pnpm build 后可用。
+ * 注册位置必须在 pruneUnusedAssets 之前：prune 负责删掉 dist/pagefind 里
+ * 站点不用的官方 UI 包，钩子顺序即注册顺序。
+ */
+/** src/content/posts 下的全部 .md（递归） */
+function collectPostMdFiles(dir: string): string[] {
+  const files: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      files.push(...collectPostMdFiles(full));
+    } else if (entry.toLowerCase().endsWith('.md')) {
+      files.push(full);
+    }
+  }
+  return files;
+}
+
+/** frontmatter（首个 --- 块之间的文本），取不到返回空串 */
+function postFrontmatter(file: string): string {
+  const parts = readFileSync(file, 'utf8').split(/^---$/m);
+  return parts.length >= 3 ? parts[1] : '';
+}
+
+function pagefindArticles(): AstroIntegration {
+  return {
+    name: 'pagefind-articles',
+    hooks: {
+      'astro:build:done': async ({ dir: outDir }) => {
+        const root = fileURLToPath(outDir);
+        const contentDir = join('src', 'content', 'posts');
+        const posts = collectPostMdFiles(contentDir).filter(
+          (file) => !/^hidden:\s*true\s*$/m.test(postFrontmatter(file)),
+        );
+        const created = await createIndex();
+        if (created.index === undefined) {
+          throw new Error(`[build] Pagefind 服务启动失败：${created.errors.join('; ')}`);
+        }
+        let indexed = 0;
+        for (const file of posts) {
+          const slug = relative(contentDir, file).replace(/\.md$/i, '').split('\\').join('/');
+          const html = join(root, 'posts', slug, 'index.html');
+          if (!existsSync(html)) {
+            throw new Error(
+              `[build] 搜索索引找不到文章页产物：${html}\n` +
+                `  核对文章文件名（即 URL 尾段）是否被改动过`,
+            );
+          }
+          const result = await created.index.addHTMLFile({
+            sourcePath: `posts/${slug}/index.html`,
+            content: readFileSync(html, 'utf8'),
+          });
+          if (result.errors.length > 0) {
+            throw new Error(`[build] Pagefind 索引 ${slug} 失败：${result.errors.join('; ')}`);
+          }
+          indexed += 1;
+        }
+        const written = await created.index.writeFiles({ outputPath: join(root, 'pagefind') });
+        if (written.errors.length > 0) {
+          throw new Error(`[build] Pagefind 索引写入失败：${written.errors.join('; ')}`);
+        }
+        console.log(`[pagefind] 已索引 ${indexed} 篇文章（隐藏文章不索引）`);
+      },
+    },
+  };
+}
+
 export default defineConfig({
   site: site.url,
   integrations: [
     svelte(),
     icon(),
-    // Pagefind 全文搜索：构建后自动索引 dist/，开发服务器也会把 /pagefind/* 指向 dist/（需先构建一次）
-    pagefind(),
+    // Pagefind 全文搜索：只把未隐藏文章页喂给索引（机制见上方 pagefindArticles 注释）
+    pagefindArticles(),
     swup({
       containers: ['#swup'],
       cache: true,

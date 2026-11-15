@@ -89,7 +89,7 @@ hidden: false
 | 侧栏分类树、标签云                 | 不统计它（只有隐藏文章的分类不会凭空冒出来）            |
 | 其它文章页的上一篇 / 下一篇        | 不出现（隐藏文章自己的页面也没有导航）                  |
 | RSS `/posts/rss.xml`               | 不收录                                                  |
-| 站内搜索（Pagefind）               | 不索引（页面不输出 `data-pagefind-body`）               |
+| 站内搜索（Pagefind）               | 不索引（构建期不进索引）                                |
 | 搜索引擎                           | 页面带 `<meta name="robots" content="noindex, follow">` |
 | 直链 `/posts/<分类>/<文件名>/`     | **正常访问**，正文、目录、评论都在                      |
 

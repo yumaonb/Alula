@@ -32,6 +32,8 @@ const vars = optimized
 
 <!-- 背景变量同时挂到 :root，供需要复刻背景的局部效果（如时间轴两端渐隐）读取 -->
 {vars && <style is:inline set:html={`:root{${vars}}`}></style>}
+<!-- 背景图提前预载：url() 藏在样式变量里要等样式计算才发现，preload 让解析到这一行就以高优先级发起请求 -->
+{optimized && <link rel="preload" as="image" href={optimized.src} fetchpriority="high" />}
 <!-- 结构（.bg / .bg--image / .bg--clone / .bg-scrim）被 widgets/Timeline.svelte 的渐隐层手抄一份，
      改类名或结构两处同改，漏改时间线背景静默不渲染 -->
 <div

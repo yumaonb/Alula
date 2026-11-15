@@ -27,8 +27,8 @@
 ## 4. `pnpm dev` 下搜不到新文章
 
 - **症状**：开发服务器里 Pagefind 搜不到刚写的文章。
-- **原因**：Pagefind 的索引是 `pnpm build` 时生成的，dev 服务器只是把 `/pagefind/*` 指向 `dist/`。
-- **处理**：先跑一次 `pnpm build`。dev 下搜索的是上次构建的索引。
+- **原因**：Pagefind 的索引是 `pnpm build` 时由 `astro.config.ts` 的 `pagefindArticles()` 钩子生成的，dev 服务器没有索引。
+- **处理**：dev 下搜索框会提示「搜索索引不可用（站点构建中或尚未构建）」，跑一次 `pnpm build` 即可用。
 - **构建窗口「搜索像失效」**：`pnpm build` 重写 `dist/` 期间 `dist/pagefind` 短暂缺失，此时若搜索模块尚未加载成功，加载会 404。`PostSearch` 已做两道防护：加载失败重试（2 次 × 1.5s）+ 页面空闲时预取一次（首查只付查询成本，不再等 1–3s 冷启动）。若提示「搜索索引不可用（站点构建中或尚未构建）」，等构建结束重试即可。
 
 ## 5. 客户端脚本挂了事件却从来不触发
@@ -97,7 +97,7 @@
 ## 16. 隐藏文章还是出现在了列表 / 搜索里
 
 - **原因**：`BlogData` 有两份文章数组——`posts`（已排除 `hidden: true`）与 `allPosts`（全量）。`allPosts` **只该出现在** `[...slug].astro` 的 `getStaticPaths` 与"取当前文章"两处；新写的列表、统计、订阅源若顺手用了 `allPosts`（或直接用 `getCollection('posts')`），隐藏文章就会漏出去。
-- **处理**：凡是"列出来给人看"的地方一律用 `posts`（或 `visiblePosts()`）。另外 Pagefind 只索引带 `data-pagefind-body` 的页面，隐藏文章的正文卡由 `PostsShell` 的 `hidden` 属性关掉这个标记——别在别处又给它加上。
+- **处理**：凡是"列出来给人看"的地方一律用 `posts`（或 `visiblePosts()`）。搜索索引同样只喂未隐藏文章（`pagefindArticles()` 钩子跳过它们）；命中内容由 `data-pagefind-body` 限定在正文卡——别在别处又给它加上这个标记。
 - **怎么确认**：加一篇 `hidden: true` 的临时文章 → `pnpm build` → 在构建产物 `dist/` 里的文章列表页 HTML、RSS 源、Pagefind 入口 JSON 中搜它的 slug，都应该是 0 命中；而该文章自己的页面 HTML 存在且带 `noindex`。验完记得删掉临时文章。
 
 ## 17. 传给组件 prop 的 class 被当成"未使用选择器"裁掉，图标尺寸失效

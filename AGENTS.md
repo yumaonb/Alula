@@ -192,7 +192,7 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 ### 9. 验证与交付
 
 - 改动收尾的固定顺序：**先 `pnpm format`，再 `pnpm verify`，最后 `pnpm build`**，三步结果如实报告。
-- `pnpm verify` 是硬门槛：格式检查 + **quality**（`check-leaks` / `check-docs` / `check-contracts` / `gen-registry`）+ **behavior**（业务逻辑测试）+ `astro check`。**任一项不过就是没过**，不要因为「改动很小」跳过或只跑一半——这些检查拦下的都是规范里明令禁止、但人眼容易漏的东西。
+- `pnpm verify` 是硬门槛：格式检查 + **quality**（`check-leaks` / `check-docs` / `check-contracts` / `check-transition` / `gen-registry`）+ **behavior**（业务逻辑测试）+ `astro check`。**任一项不过就是没过**，不要因为「改动很小」跳过或只跑一半——这些检查拦下的都是规范里明令禁止、但人眼容易漏的东西。
 - 报错就改代码，不要改检查脚本去迁就代码。真需要豁免时，在那行写 `// check-xxx: allow` 并在交付说明里写清理由。
 - **不要为了赶时间绕过质检**：删检查、改 `package.json` 的脚本、写 `allow` 豁免、把失败项注释掉——这些只有在「这个场景确实必须这样写、规范本身不适用」时才允许，且必须同时说明是哪条规范不适用、为什么。因为「先用 `!important` 顶上」「先留个 `console.log` 方便调」「先不管类型用一个 `any`」这类理由而绕过，一律禁止；赶时间不是理由，赶时间就少改点功能。
 - 新增质检项要**从真实故障长出来**：某类问题真的发生过（`docs/reference/TROUBLESHOOTING.md` 里有记录）、或规范里差点被踩穿，才补一条检查。凭空想象「将来可能会有人这么写」的检查不要加——它们在现有代码上就是假阳性，一次假阳性就足够让人开始习惯性加 `allow`，之后所有检查都失效。加完必须满足：现有代码零告警、只管一类事、单独可跑。
