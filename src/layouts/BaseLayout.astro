@@ -10,7 +10,7 @@
 // 非文章页搜索靠 global.css 的 .page-main--* 变体类隐藏（visibility + opacity）；
 // 变体类首屏由 shellVariant 决定，切页后由 posts-shell.ts 按内容同步。
 // 左缘条（页头 / 面包屑）的显示实例也在行级常驻盒（.posts-edge-float，swup 永不重建）：
-// posts/edge-float.ts 把 #swup 里的驱动条深克隆进盒（区内切页车道原地模糊渐隐渐显、
+// posts/edge-float.ts 把 #swup 里的驱动条深克隆进盒（区内切页车道等新页落地才渐模糊再去模糊、
 // 跨区切页整盒随页退场出场，见 global.css「切页转场」）；驱动条本体只留布局空间。
 // 位置两层：CSS 基线（global.css 的 .posts-search-float，与页头占位符重合）让首帧直接
 // 就位，posts-shell.ts 运行时实测覆写。body 尾 is:inline 脚本只负责首帧显出

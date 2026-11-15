@@ -212,6 +212,18 @@ ol {
     --posts-side-offset: 41px;
     --posts-edge-top: 70px;
   }
+
+  /* 左缘盒的顶跟盒内车道走，不跟行变体走：区内切页时行变体先翻、--posts-edge-top 随之变，
+   * 但盒内旧车道要播完渐模糊才换入（见 edge-float.ts），盒顶若跟变体走会在换入前先跳
+   * 3px，观感是旧标题/面包屑模糊时微微上/下移。改按盒内车道类型取位（73/70 与上面两变体
+   * 的 padding-top 同值，改那两处必须同步改这里）：换入前盒停在旧车道位、换入时随新车道落位 */
+  .posts-edge-float:has(> .posts-header) {
+    top: 73px;
+  }
+
+  .posts-edge-float:has(> .posts-breadcrumb) {
+    top: 70px;
+  }
 }
 
 /* 侧栏显隐：普通页默认隐藏；列表变体 ≥769px 显示、文章变体 ≥1151px 显示——
@@ -249,7 +261,8 @@ ol {
  * 压过驱动条），低于搜索浮层（30）——搜索框照常叠在占位区上。
  * visibility 默认 hidden、仅文章区变体可见（普通页盒是空的、不参与转场）。
  * 转场见下方「切页转场」：跨区切页盒随 page-exit / page-enter 曲线；
- * 区内切页（盒被标 is-transition-still）盒不位移、车道原地模糊渐隐渐显 */
+ * 区内切页（盒被标 is-transition-still）盒不位移、车道等新页落地才变：
+ * 旧车道渐模糊（is-edge-out）→ 播完换入新克隆再去模糊（is-edge-in） */
 .posts-edge-float {
   position: absolute;
   left: 0;
@@ -349,8 +362,10 @@ ol {
  * 行级侧栏 / 搜索框 / 左缘常驻盒在 #swup 外，默认与整块同曲线；本次切换中应原地
  * 站住的元素由 posts-shell.ts 标 is-transition-still（visit:start 标、visit:end 摘）：
  * 区内切换（源页与目标页都在文章区）标侧栏（两变体同位常驻）与左缘盒（盒不位移、
- * 盒内车道按同一标记播原地模糊，edge-blur-out / edge-blur-in，半径 --page-edge-blur；
- * 车道是单条小栏不是栅格，逐帧 blur 的代价可接受）；列表页之间再标搜索框
+ * 盒内车道等新页落地才变：fetch 等待期旧车道保持可见，content:replace 后
+ * edge-float.ts 给旧车道标 is-edge-out 播 edge-blur-out，播完换入新克隆再以
+ * is-edge-in 播 edge-blur-in，半径 --page-edge-blur；车道是单条小栏不是栅格，
+ * 逐帧 blur 的代价可接受）；列表页之间再标搜索框
  * （只有列表↔详情才隐显）。驱动条本体在 #swup 内随整块位移，但被 is-edge-live
  * 隐着、不参与视觉。
  * 玻璃平铺（veil）：动画窗口内 #swup 里与侧栏 / 搜索框里所有 .glass 的磨砂换成
@@ -376,13 +391,16 @@ html.is-rendering
   animation: page-enter var(--t-page-enter);
 }
 
-/* 区内切换：左缘盒被标 still 不位移，盒内车道原地模糊渐隐渐显 */
-html.is-leaving .page-main > .posts-edge-float.is-transition-still .posts-edge-content {
-  animation: edge-blur-out var(--t-page-exit) forwards;
+/* 区内切换：左缘盒被标 still 不位移，车道等新页落地才变——edge-float.ts 给旧车道
+ * 标 is-edge-out 播渐模糊（forwards 钉住终帧到换克隆），新克隆带 is-edge-in 播
+ * 去模糊。去模糊规则写在渐模糊前：旧车道播完去模糊后类不摘，再被标渐模糊时
+ * 渐模糊生效 */
+.page-main > .posts-edge-float .posts-edge-content.is-edge-in {
+  animation: edge-blur-in var(--t-page-enter);
 }
 
-html.is-rendering .page-main > .posts-edge-float.is-transition-still .posts-edge-content {
-  animation: edge-blur-in var(--t-page-enter);
+.page-main > .posts-edge-float .posts-edge-content.is-edge-out {
+  animation: edge-blur-out var(--t-page-exit) forwards;
 }
 
 html.is-changing #swup .glass,
@@ -419,18 +437,16 @@ html.is-changing #swup .glass-tall::before {
   }
 }
 
-/* 区内切换车道：模糊渐隐 / 渐显（退出用 forwards 钉住终帧到 DOM 替换；
- * 进入终点即自然态，无需 fill） */
+/* 区内切换车道：渐模糊 / 去模糊，纯 filter 过渡不动 opacity（渐模糊用 forwards
+ * 钉住终帧，edge-float.ts 播完换入新克隆；去模糊终点即自然态，无需 fill） */
 @keyframes edge-blur-out {
   to {
-    opacity: 0;
     filter: blur(var(--page-edge-blur));
   }
 }
 
 @keyframes edge-blur-in {
   from {
-    opacity: 0;
     filter: blur(var(--page-edge-blur));
   }
 }

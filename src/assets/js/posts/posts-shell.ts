@@ -84,9 +84,20 @@ import { isPostAreaPath, postPathSegments } from '../../../lib/category';
   }
 
   // 两个生命周期共用的同步步骤：按新内容重测行变体、左缘克隆、侧栏偏移与高亮
+  // 区内转场落地（左缘车道要不要播渐模糊换舞）：本次 visit 标过盒 still（onVisitStart），
+  // 且 swup 当前处于 is-rendering 期（popstate 无动画无此类，落回立即换）
+  function regionLanding(): boolean {
+    const box = row()?.querySelector<HTMLElement>('.posts-edge-float');
+    return (
+      !!box &&
+      box.classList.contains('is-transition-still') &&
+      document.documentElement.classList.contains('is-rendering')
+    );
+  }
+
   function syncShellState(): void {
     syncVariant();
-    edgeFloat.sync();
+    edgeFloat.sync(regionLanding());
     syncOffset();
     observeAnchor();
     syncSearchPos();
@@ -113,8 +124,9 @@ import { isPostAreaPath, postPathSegments } from '../../../lib/category';
   // 本次切换中应原地站住的元素标 still，visit:end 一并摘除，生命周期与一次转场
   // 窗口对齐。visit:start 时行变体类还是源页的（翻变体在 content:replace），源页
   // 按变体判、目标页按 URL 判。标记真值表：
-  //   源页在文章区 × 目标页在文章区 → 侧栏 + 左缘常驻盒（盒不位移，盒内车道按同一
-  //     标记播原地模糊渐隐渐显）
+  //   源页在文章区 × 目标页在文章区 → 侧栏 + 左缘常驻盒（盒不位移，盒内车道等新页
+  //     落地才变：旧车道标 is-edge-out 播渐模糊 → 播完换入新克隆再去模糊，见
+  //     edge-float.ts）
   //   再叠加：源页是列表变体 × 目标页是列表页（isListingUrl）→ 搜索框也标（只有
   //     列表↔详情才隐显）
   //   其余组合不标：常驻元素随整块同曲线。转场块的词汇表由质检 check-transition
