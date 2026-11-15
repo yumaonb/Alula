@@ -278,7 +278,7 @@ export const background = {
 - **右侧目录**：sticky top 82px 夹持（与面包屑顶共线，顶差切页时会闪）、≤850px 隐藏、宽 240px。
 - **手机端（≤768px）**：导航 57px 更矮 → 列表行 `padding-top` 73px、文章行 70px + 面包屑 28px + 间隙 13px = **正文大框顶 111px**（对齐列表搜索框顶 110.6，切页时正文卡正好落在搜索框消失的位置）；双行页头 = 标题 21.6 + 间隙 16 + 搜索 36 = 73.6。
 - **切页转场**：`#swup` 整块下移渐隐 / 上移渐显 + 玻璃平铺，行级侧栏 / 搜索框同曲线参与（侧栏区内切换豁免、原地不动），区内切换时左缘条（列表页头 / 面包屑条）原地模糊渐隐渐显（见「切页转场」节）。
-- **搜索框行级常驻**：真搜索框是 `BaseLayout` 渲染在行内（`main#swup` 之外）的 `.posts-search-float`，swup 永不触碰（节点不摘出 / 不重插，backdrop 层与投影不重建、切页零闪）；页头只留 `.posts-header-search` 空占位，`posts-shell.ts` 按行相对布局坐标叠上来（转场途中 `#swup` 的位移由 `placeFloat` 减掉，见 TROUBLESHOOTING 第 42 条）。
+- **搜索框行级常驻**：真搜索框是 `BaseLayout` 渲染在行内（`main#swup` 之外）的 `.posts-search-float`，swup 永不触碰（节点不摘出 / 不重插，backdrop 层与投影不重建、切页零闪）；页头只留 `.posts-header-search` 空占位；浮层基线位是 CSS（与占位重合：桌面 top = `--posts-edge-top`、右缘贴行右缘、宽度与占位同表达式，移动 = 缘顶 + 标题行高 1.35rem + 页头间隙 16px，同值契约见 global.css 该块注释），`posts-shell.ts` 的 `placeFloat` 走 offset 链覆写运行时实测（offset 是布局坐标，不受转场位移影响，见 TROUBLESHOOTING 第 42 条）。
 - **`.posts-search-float` 的 CSS 不写 opacity 过渡**：`settle` 仍即时落位 opacity（不走过渡），CSS 只管 `visibility / pointer-events` 随行变体类瞬时翻转；切页出入场由「切页转场」节的 `page-exit` / `page-enter` 动画承担，与 settle 的落位互不干扰（动画播放期压过内联值）。
 
 ---

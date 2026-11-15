@@ -281,10 +281,20 @@ ol {
 /* 搜索框行级常驻（BaseLayout 渲染在行内、main#swup 之外）：
  * swup 切页永不重建——节点不被 swup 移动，.glass 胶囊（backdrop-filter + 投影）
  * 的层不重建，切页零闪零重建。
- * 位置按页头占位符计算写内联 top/left/width（叠在占位上，各宽适配）：首帧由
- * BaseLayout body 尾 is:inline 脚本先写（无网络依赖；带 data-swup-ignore-script，
- * swup 切页不重跑——重跑会抢在切页 settle 落位前显出搜索框，见 TROUBLESHOOTING 52），
- * posts-shell.ts 加载后重测接管。
+ * 位置两层：
+ * ① CSS 基线位（下方）与页头占位符 `.posts-header-search` 重合（标题单行时）：
+ *    桌面 top = --posts-edge-top（= 行 padding-top，与左缘盒同值）、右缘贴行右缘，
+ *    宽度与占位符同表达式（min(360px, 100%)，页头通栏时两者容器等价，
+ *    改一处同改另一处：posts-listing.css 的 .posts-header-search 宽度）；
+ *    移动 = 缘顶 + 标题行高 1.35rem + 页头间隙 16px，1.35rem 与 utilities.css 的
+ *    .page-title 移动端字号同值（line-height 1，见 posts-listing.css 的 .posts-title）、
+ *    16px 与 posts-listing.css 的移动页头间隙同值，改一处同改另一处。
+ *    整页首帧（BaseLayout body 尾 is:inline 脚本只负责显出 opacity/visibility，
+ *    data-swup-ignore-script 使 swup 切页不重跑，见 TROUBLESHOOTING 52）与 5s 兜底
+ *    揭幕都直接落在基线位，不依赖实测。
+ * ② 运行时实测：posts-shell.ts 的 placeFloat 走 offset 链覆写内联 top/left/width
+ *    （offset 是布局坐标，不受转场 translateY 影响，见 TROUBLESHOOTING 42）；
+ *    标题换行 / 窗口变化时锚的 RO 跟着重测。
  * visibility/pointer-events 随行变体类**瞬时**翻转（列表变体显示、其他隐藏），
  * opacity 由 posts-shell.ts 按目标态直接落位（切页 settle，即时生效）；出入场
  * 动画由「切页转场」块挂在它身上（动画期覆盖内联 opacity）——这里不写 opacity 过渡。
@@ -295,6 +305,23 @@ ol {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+/* 基线位（与占位符重合）：桌面右对齐，宽度表达式与占位符同值 */
+@media (min-width: 769px) {
+  .posts-search-float {
+    top: var(--posts-edge-top, 82px);
+    right: 0;
+    width: min(360px, 100%);
+  }
+}
+/* 移动：占位在标题行（行高 1.35rem）下方隔 16px，左右贴行缘
+ * （该断点侧栏隐藏，行即内容列，占位 100% 宽） */
+@media (max-width: 768px) {
+  .posts-search-float {
+    top: calc(var(--posts-edge-top, 73px) + 1.35rem + 16px);
+    left: 0;
+    right: 0;
+  }
 }
 .page-main--listing .posts-search-float {
   visibility: visible;

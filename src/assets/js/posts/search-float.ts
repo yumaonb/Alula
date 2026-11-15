@@ -19,29 +19,25 @@ export interface SearchFloatCtl {
 
 /** 把浮层摆到页头占位符（`.posts-header-search`）的位置：写行相对 top / left / width。
  *
- *  占位与槽在 #swup 内，切页进入期该容器带 translateY（global.css 的
- *  .transition-page）——getBoundingClientRect 含此位移，按它量会把偏低
- *  --page-shift 的值写进内联且不再被重测，浮层永久偏低，故减去容器当前位移
- *（静止时为 0）。
- *
- *  首帧另有一份等价实现（BaseLayout.astro 的搜索框首帧内联脚本）：那段 `is:inline`
- *  不过构建期处理、不能 import，只能复制，改这里要同步改那边。 */
+ *  从占位符沿 offset 链累加到行：offset* 是布局坐标，不受 #swup 切页转场的
+ *  translateY 影响（见 TROUBLESHOOTING 42），静止 / 进入期量出的都是同一布局值，
+ *  无需量 rect 或减位移。JS 运行前的基线位是 global.css 的占位重合值（CSS 基线
+ *  的跨文件契约见该文件 .posts-search-float 注释），本函数只负责运行时覆写。 */
 export function placeFloat(r: HTMLElement, ph: HTMLElement, f: HTMLElement): void {
-  const b = r.getBoundingClientRect();
-  // #swup 当前 translateY（切页进入期 0 → --page-shift，静止为 0）
-  const main = r.querySelector<HTMLElement>('main#swup');
-  const dy = main ? new DOMMatrixReadOnly(getComputedStyle(main).transform).f : 0;
-  const slot = ph.closest<HTMLElement>('.posts-edge-slot');
-  if (slot) {
-    const s = slot.getBoundingClientRect();
-    f.style.top = `${s.top - b.top - dy + ph.offsetTop}px`;
-    f.style.left = `${s.left - b.left + ph.offsetLeft}px`;
-  } else {
-    const a = ph.getBoundingClientRect();
-    f.style.top = `${a.top - b.top - dy}px`;
-    f.style.left = `${a.left - b.left}px`;
+  let top = 0;
+  let left = 0;
+  let el: HTMLElement | null = ph;
+  while (el && el !== r) {
+    top += el.offsetTop;
+    left += el.offsetLeft;
+    el = el.offsetParent as HTMLElement | null;
   }
+  // 链中途断掉（隐藏祖先）时不写错值
+  if (el !== r) return;
+  f.style.top = `${top}px`;
+  f.style.left = `${left}px`;
   f.style.width = `${ph.offsetWidth}px`;
+  f.style.right = 'auto';
 }
 
 export function createSearchFloat(env: SearchFloatEnv): SearchFloatCtl {

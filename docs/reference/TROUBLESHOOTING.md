@@ -350,7 +350,7 @@ if (!animatedElements.length) {
 
 - **症状**：切页后，常驻搜索框 `.posts-search-float` 的内联 top 停在错值上、且不再被重测——错值恰好差一个「量槽那一帧正在跑的动画位移」。
 - **原因**：`posts-shell.ts` 的 `syncSearchPos()` 用「槽 rect − 行 rect + 占位 `offsetTop`」写搜索框位置。`offsetTop/offsetWidth` 是布局坐标（不受 transform 影响），但 **`getBoundingClientRect` 包含祖先的 transform 位移**。被动画移动的可能是槽自身、也可能是槽到行之间的祖先——量槽那一帧若恰在位移途中，读到的就是带位移的坐标；动画不改变锚尺寸，RO 不再触发，错值永久驻留（transform 变化不触发 RO）。
-- **处理**：槽与行自身不再被动画移动，但 `#swup` 整块在转场中位移——`posts/search-float.ts` 的 `placeFloat` 先取 `new DOMMatrixReadOnly(getComputedStyle(main).transform).f` 解析 `#swup` 当前 translateY、从 rect 差里减掉（静止 0、进入期 0 → `--page-shift`）：浮层写在 `#swup` 之外、按行相对坐标落位，槽与占位在 `#swup` 之内，不减就会把进入位移写进内联且不再被重测（transform 不触发 RO）；首帧副本（`src/layouts/BaseLayout.astro`）同式。通用结论：**只要被量元素自身或其某个祖先正在被动画移动，rect 就是脏的**——要么量布局坐标（`offsetTop/offsetLeft/offsetWidth`），要么减去已知祖先位移。
+- **处理**：槽与行自身不再被动画移动，但 `#swup` 整块在转场中位移——`posts/search-float.ts` 的 `placeFloat` 改量**布局坐标**：从占位符沿 offset 链累加到行（`offsetTop/offsetLeft`，宽用 `offsetWidth`），offset 不受任何祖先 transform 影响，静止（0）与进入期（0 → `--page-shift`）量出的都是同一布局值，无需减位移；JS 运行前的位置直接是 CSS 基线（global.css 的 `.posts-search-float`，与占位重合），`src/layouts/BaseLayout.astro` body 尾脚本只负责显出。通用结论：**只要被量元素自身或其某个祖先正在被动画移动，rect 就是脏的**——要么量布局坐标（`offsetTop/offsetLeft/offsetWidth`），要么减去已知祖先位移。
 - **怎么确认**：转场进入窗口内读 `.posts-search-float` 内联 top：任何时刻都收敛到与占位符一致的布局值，不出现「差一个位移量」的驻留值；静止态复查不变。
 
 ## 43. 同一元素上并发多个 motion 动画：后结束动画的端点提交会把值写回内联
@@ -372,7 +372,7 @@ if (!animatedElements.length) {
 
 - **症状**：不刷新页面，窗口/设备模拟跨越 768px（或 1151px）时，行级常驻搜索浮层（`.posts-search-float`）的位置/宽度**滞后**于布局翻转：桌面→手机方向浮层停在旧 top/left（手机宽下可能整个移出视口）持续约 10 帧（headless 实测 170ms），手机→桌面方向宽度停在旧值（358）约 2 帧。刷新后正常。
 - **原因**：媒体查询在一次样式重算里就翻转布局结构（页头行↔列、行 `padding-top` 82↔73、槽负边距全宽化），占位符 `.posts-header-search` 当帧就位；而浮层的内联 top/left/width 靠**实测**（`syncSearchPos`），实测的触发者是锚元素的 `ResizeObserver`——RO 回调在布局**之后**才派发，中间存在「占位已换位、浮层还没重测」的帧。连续拖动缩放时 RO 持续触发还能跟上，唯独**跨界那一跳**的间隙最明显（布局结构跳变远大于逐帧宽度变化）。
-- **处理**：给触发跨界翻转的两条 MQL（`(max-width: 768px)` / `(min-width: 1151px)`）挂 `change` 监听，回调里立刻 `syncOffset() + syncSearchPos()`——MQL change 在样式重算翻转的同一时刻同步派发，回调内 `getBoundingClientRect` 强制布局读到的是**新**媒体状态，内联新值与布局翻转同帧写入，错位帧清零（`posts-shell.ts`，RO 保留负责跨界后的连续缩放/标题换行重测）。同类「实测值滞后于媒体查询翻转」的叠放元素（将来若有）照此加 MQL 监听。
+- **处理**：给触发跨界翻转的两条 MQL（`(max-width: 768px)` / `(min-width: 1151px)`）挂 `change` 监听，回调里立刻 `syncOffset() + syncSearchPos()`——MQL change 在样式重算翻转的同一时刻同步派发，回调内 offset 量测强制布局读到的是**新**媒体状态，内联新值与布局翻转同帧写入，错位帧清零（`posts-shell.ts`，RO 保留负责跨界后的连续缩放/标题换行重测）。同类「实测值滞后于媒体查询翻转」的叠放元素（将来若有）照此加 MQL 监听。
 - **怎么确认**：页面内 rAF 逐帧记浮层与占位符 rect，跨界前后对比——修复前出现 `fl.top ≠ ph.top`（且宽度不同）的中间帧，修复后两个 rect 逐帧相等（无中间帧）。
 
 ## 47. 首访时 swup 实例就绪前点区内链接 = 原生整页跳转，落地首屏不播转场（整块转场不播）
@@ -409,7 +409,7 @@ if (!animatedElements.length) {
 ## 52. `is:inline` 首帧脚本被 swup 切页重跑（搜索框「移两次 / 闪一下」）
 
 - **症状**：文章→列表切页时，搜索框先以全不透明直接出现在页头终位、随后才 `settle` 回隐藏——首帧摆位 / 显出逻辑被重复执行了一次（「闪了一下」）。
-- **原因**：`BaseLayout` body 尾的搜索框首帧叠放脚本（`is:inline`）被 **`@swup/scripts-plugin`**（`SwupScriptsPlugin`，默认 `reloadScripts: true`）在**每次切页**时重跑：插件以 `document` 为作用域，内联脚本经 `replaceWith` 重执行（module 脚本按 URL 去重不重跑）。脚本的首帧职责只对整页加载成立；切页时 `posts-shell.ts` 已全权负责定位与显隐，重跑纯冲突。
+- **原因**：`BaseLayout` body 尾的搜索框首帧显出脚本（`is:inline`，只写 opacity/visibility；摆位是 CSS 基线 + `posts-shell.ts` 运行时实测）被 **`@swup/scripts-plugin`**（`SwupScriptsPlugin`，默认 `reloadScripts: true`）在**每次切页**时重跑：插件以 `document` 为作用域，内联脚本经 `replaceWith` 重执行（module 脚本按 URL 去重不重跑）。脚本的首帧职责只对整页加载成立；切页时 `posts-shell.ts` 已全权负责定位与显隐，重跑纯冲突。
 - **处理**：脚本标签加 `data-swup-ignore-script`（该插件官方 opt-out）——只跑整页首帧、切页不重跑。
 - **排查入口**：任何「切页后某个首帧脚本的副作用又执行了一次」，先查 `@swup/scripts-plugin` 的全 document 重跑；需要只跑一次的内联脚本必须带 `data-swup-ignore-script` 豁免。
 

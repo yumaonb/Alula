@@ -33,7 +33,7 @@ import { isPostAreaPath, postPathSegments } from '../../../lib/category';
   /* ---- 1. 行状态（变体类 / 侧栏偏移 / 侧栏高亮实现在 posts/row-state.ts） ---- */
 
   /** ④ 行级常驻搜索框的叠放位置：找出真实占位符，摆位交给 posts/search-float.ts
-   *  （占位随标题换行 / 窗口变，跟着重测；转场途中容器的位移由 placeFloat 减掉，仍准）。
+   *  （占位随标题换行 / 窗口变，跟着重测；offset 是布局坐标，转场途中也照准）。
    *  占位不存在（文章页 / 普通页）时不动：浮动搜索已被行变体类隐藏。 */
   function syncSearchPos(): void {
     const r = row();
