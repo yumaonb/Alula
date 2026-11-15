@@ -14,6 +14,7 @@
 | 搞清数据怎么流、路由怎么生成、脚本各自管什么                                          | [ARCHITECTURE.md](./ARCHITECTURE.md)                    |
 | 写文章、建分类、填 frontmatter、放图片                                                | [CONTENT.md](./CONTENT.md)                              |
 | 遇到诡异现象，或查已知雷区 + 决定台账（刻意设计 / 已知不修 / 排查过不是 bug）         | [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)              |
+| 动全站必经点文件、查文件间「两处同改」契约、后台改数据的跨墙通道                      | [COUPLING.md](./COUPLING.md)                            |
 | 新增 Astro / Svelte 组件，选水合指令                                                  | [COMPONENTS.md](./COMPONENTS.md)                        |
 | 加类名、改令牌、知道有哪些现成工具类                                                  | [CSS.md](./CSS.md)                                      |
 | 维护这套文档本身                                                                      | [CONTRIBUTING.md](./CONTRIBUTING.md)                    |
@@ -39,6 +40,7 @@ docs/                      项目文档，随仓库走
     ├── ARCHITECTURE.md          架构与数据流
     ├── CONTENT.md               内容体系（含新增文章流程与核对清单）
     ├── TROUBLESHOOTING.md       已知雷区 + 决定台账（刻意设计 / 已知不修 / 排查过不是 bug）
+    ├── COUPLING.md              全站必经点与文件间契约（耦合面与爆炸半径）
     ├── COMPONENTS.md            组件清单与选型（含新增组件流程与核对清单）
     ├── CSS.md                   样式机制与令牌规则（类名清单见 REGISTRY.md）
     └── CONTRIBUTING.md          规范维护准则

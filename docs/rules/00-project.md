@@ -35,7 +35,7 @@ src/
 ├── content/posts/       文章：目录结构即分类，各分类可放 index.json 定义分类名
 ├── data/                站点配置与数据（site / profile / quotes / github / background ...）
 ├── layouts/             BaseLayout（全站外壳，含文章区常驻侧栏）、PostsShell（文章区统一布局）
-├── lib/                 构建期专用（无浏览器 API）：category.ts 纯函数、posts-data.ts 数据入口、nav-match.ts 导航匹配（与浏览器侧同源）
+├── lib/                 构建期专用（无浏览器 API）：category.ts 纯函数、posts-data.ts 数据入口、posts-views.ts 文章视图口径、nav-match.ts 导航匹配（与浏览器侧同源）
 └── pages/               路由：index / about / friends / projects / sponsor / posts/** / admin/**（admin/_admin/ 是后台自包含本体，下划线目录不被路由）
 tests/                   自检脚本（纯 Node，无第三方依赖）：quality/=代码质量、behavior/=业务逻辑测试、run.mjs=汇总门禁
 ```

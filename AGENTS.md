@@ -245,6 +245,7 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 | 有哪些文档、结构怎么分                                   | `docs/reference/index.md`                                                                                                                  |
 | 文档体系本身怎么维护                                     | `docs/reference/CONTRIBUTING.md`                                                                                                           |
 | 动跨文件的代码前，或怀疑“改一处会漏改别处”               | 代码注释里的契约锚（「两处同改」/「见某文件头」式注释，按关键词搜）+ `docs/reference/TROUBLESHOOTING.md` 决定台账（刻意设计 / 不修，别动） |
+| 动「全站必经点清单」里的文件、查「两处同改」契约         | `docs/reference/COUPLING.md`（必经点与爆炸半径、文件间契约、后台改数据的跨墙通道）                                                         |
 | 看到 bug、想查是否修过 / 是不是刻意设计                  | `docs/reference/TROUBLESHOOTING.md`（雷区条目 + 决定台账）                                                                                 |
 | 想看代码里真实存在哪些组件 / CSS 类 / window 标记        | `docs/REGISTRY.md`（机器生成，`pnpm registry:write` 可重建）                                                                               |
 
@@ -258,7 +259,7 @@ src/components/          layout 布局 / posts 文章区 / widgets 小组件
 src/content/posts/       文章：目录结构即分类
 src/data/                站点配置与数据
 src/layouts/             BaseLayout（全站壳，含文章区常驻侧栏）、PostsShell（文章区统一布局）
-src/lib/                 构建期专用（无浏览器 API）：category.ts 纯函数、posts-data.ts 数据入口、nav-match.ts 导航匹配（与浏览器侧同源）、content-image.ts 文章图片解析
+src/lib/                 构建期专用（无浏览器 API）：category.ts 纯函数、posts-data.ts 数据入口、posts-views.ts 文章视图口径、nav-match.ts 导航匹配（与浏览器侧同源）、content-image.ts 文章图片解析
 src/pages/               路由（admin/ 是后台：仪表盘 / 文章列表 / 编辑器 / 分类管理 / 网站设置；admin/_admin/ 是后台自包含本体，下划线目录不被路由）
 tests/                   自检脚本（Node，零第三方依赖）：quality/=代码质量（leaks/docs/contracts/registry）、behavior/=业务逻辑测试、run.mjs=汇总门禁
 ```
