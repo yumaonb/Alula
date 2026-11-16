@@ -357,8 +357,7 @@ ol {
  * swup 切页时 html 依次带三类：is-changing 覆盖整个窗口（退出开始 → 进入结束）、
  * 退出期 is-leaving、进入期 is-rendering（astro.config.ts 的 animationClass 让 swup
  * 按 .transition-page 的 animationDuration 等播完再继续）。
- * 退出：整块下移渐隐，forwards 钉住终帧，防 DOM 替换间隙回闪；
- * 进入：新内容从下方上移渐显，终态即元素自然状态，无需 fill。
+ * 退出：整块下移渐隐；进入文章详情页时整块上移、框内正文渐显。
  * 行级侧栏 / 搜索框 / 左缘常驻盒在 #swup 外，默认与整块同曲线；本次切换中应原地
  * 站住的元素由 posts-shell.ts 标 is-transition-still（visit:start 标、visit:end 摘）：
  * 区内切换（源页与目标页都在文章区）标侧栏（两变体同位常驻）与左缘盒（盒不位移、
@@ -368,12 +367,7 @@ ol {
  * 逐帧 blur 的代价可接受）；列表页之间再标搜索框
  * （只有列表↔详情才隐显）。驱动条本体在 #swup 内随整块位移，但被 is-edge-live
  * 隐着、不参与视觉。
- * 玻璃平铺（veil）：动画窗口内 #swup 里与侧栏 / 搜索框里所有 .glass 的磨砂换成
- * 半透明白填底（--page-veil）。原因：opacity < 1 会新建 backdrop root，其后代
- * 的 backdrop-filter 全部失效（TROUBLESHOOTING 20.1 实测标准差 78.9 vs 基线 1.58）；
- * 磨砂平铺后 opacity 动画窗口内不存在「模糊跟着变淡」。被标 still 的常驻玻璃
- * （区内切换的侧栏、列表页之间的搜索框）opacity 恒 1、磨砂不失效，豁免读同一
- * 标记，恢复磨砂与透明底免得白填底那一帧闪一下。
+ * 进入详情页时透明度在玻璃框内部变化，玻璃容器从首帧起保留模糊。
  * 词汇表由质检 check-transition（tests/quality/transition.mjs）焊死：本块只引用
  * 稳定词汇（相位类、is-transition-still、常驻元素类名），行变体类等「原因类」
  * 禁止写进这里——新增「站住」的情况 = posts-shell.ts 加一个标记，不加一组选择器。 */
@@ -402,24 +396,20 @@ html.is-rendering
   animation: edge-blur-out var(--t-page-exit) forwards;
 }
 
-html.is-changing #swup .glass,
-html.is-changing .global-sidebar .glass,
-html.is-changing .posts-search-float .glass {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  background: var(--page-veil);
+html.is-leaving #swup .glass {
+  animation: page-glass-exit var(--t-page-exit) forwards;
 }
-/* 被标 still 的常驻元素：opacity 恒 1、磨砂不失效，平铺只会在白填底那一帧闪一下
- * ——豁免，恢复磨砂与透明底 */
-html.is-changing .page-main > .is-transition-still .glass {
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  background: transparent;
+
+html.is-rendering #swup .glass {
+  animation: page-glass-enter var(--t-page-enter);
 }
-/* .glass-tall 的模糊在 sticky ::before 上（见 utilities.css），一并平铺 */
-html.is-changing #swup .glass-tall::before {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+
+html.is-rendering #swup:has(.post-content) {
+  animation: page-enter-glass var(--t-page-enter);
+}
+
+html.is-rendering #swup .post-content-inner {
+  animation: page-content-enter var(--t-page-enter);
 }
 
 @keyframes page-exit {
@@ -429,10 +419,34 @@ html.is-changing #swup .glass-tall::before {
   }
 }
 
+@keyframes page-content-enter {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes page-enter {
   from {
     opacity: 0;
     transform: translateY(var(--page-shift));
+  }
+}
+
+@keyframes page-enter-glass {
+  from {
+    transform: translateY(var(--page-shift));
+  }
+}
+
+@keyframes page-glass-enter {
+  from {
+    background: var(--page-veil);
+  }
+}
+
+@keyframes page-glass-exit {
+  to {
+    background: var(--page-veil);
   }
 }
 

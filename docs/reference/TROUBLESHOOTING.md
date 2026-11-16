@@ -116,10 +116,10 @@
 
 ## 20. 玻璃模糊与 swup 切页（前台与后台）
 
-这一节是踩坑最多的。当前切页做法是 #swup 整块 CSS 转场（下移渐隐 / 上移渐显 + 白色平铺，见 `global.css`「切页转场」），
+这一节是踩坑最多的。当前切页让 `#swup` 只做位移，玻璃保留模糊并渐变白色填底，见 `src/assets/css/global.css` 的「切页转场」。
 下面两个坑是**长期约束**，动切页路径上的任何动画前先过一遍。
 
-> **适用范围**：全站磨砂统一走 `.glass` 类（`backdrop-filter` 实时采样绘制在背后的像素），所以 **20.1 的 backdrop root 约束作用于所有挂 `.glass` 的元素**（卡片 / 顶栏 / 后台 / 弹窗）。下面实测数据保留，动这些元素的动画前仍要先过一遍。现行切页给 `#swup` 挂 opacity 动画，但 `is-changing` 期间其内部 `.glass` 全部平铺成半透明白底（veil，见 20.3），20.1 因此不触发；改 veil 或给其他元素挂 opacity 动画前，这条坑仍适用。
+> **适用范围**：全站磨砂统一走 `.glass`。切页整块只做位移，玻璃始终保留 `backdrop-filter`；若重新给玻璃祖先加透明度动画，下面的 backdrop root 约束仍适用。
 
 ### 20.1 坑：`backdrop-filter` 的采样范围会被祖先的 `opacity` 关掉
 
@@ -138,7 +138,7 @@
 | 祖先跑 `opacity` 动画   | 78.9   | **失效** |
 | 祖先跑 `transform` 动画 | 2.01   | 正常     |
 
-**结论：破坏模糊的是 `opacity`，不是 `transform`。** 所以 `main#swup` 与其祖先挂 opacity 动画前必须先让后代玻璃失效（现行切页用 veil，见 20.3）；其余元素只能挂 transform 类动画。
+**结论：破坏模糊的是 `opacity`，不是 `transform`。** `main#swup` 与其祖先不做透明度动画，玻璃才能持续采样背景。
 
 试过但**都绕不过去**的写法：`isolation: isolate`、`clip-path`、让玻璃自己再跑一遍 `backdrop-filter` 动画。实测这三个在高频细节量上分别是 3.48 / 2.17 / 3.48，而正常基准是 0.50。
 
@@ -164,27 +164,27 @@ if (!animatedElements.length) {
 
 当前配置已写 `animationClass: 'transition-'`（见 `astro.config.ts` 的 swup 段）：全站唯一等待目标是 `#swup` 的 `.transition-page`（时长令牌 `--t-page-exit` / `--t-page-enter`，见 `global.css`「切页转场」）；后台无转场，用 0.01s 不可见占位动画消警告（见 `src/pages/admin/_admin/css/base.css`）。
 
-### 20.3 当前切页做法：整块 CSS 转场 + 白色平铺 + 顶部进度条
+### 20.3 当前切页做法：整块位移 + 玻璃白底过渡 + 顶部进度条
 
-- swup 切页时给 html 依次挂类：`is-changing` 覆盖整个窗口（含 fetch），退出期 `is-leaving`、进入期 `is-rendering`；`#swup` 的 `.transition-page` 播 `page-exit`（整块下移渐隐，`forwards` 钉终帧）与 `page-enter`（自下方上移渐显），时长令牌 `--t-page-exit` / `--t-page-enter`、位移 `--page-shift` 都在 `variables.css`。
+- swup 切页时所有页面的 `#swup` 下移渐隐；普通页面上移渐显，文章详情页进入时只上移、`.post-content-inner` 在玻璃框内渐显，让大框从首帧持续采样背景。
 - 行级侧栏 / 搜索框 / 左缘常驻盒（`#swup` 外）默认与整块挂同一组 `page-exit` / `page-enter`，规则上的 `:not(.is-transition-still)` 把本次应原地站住的元素摘出；仍标记由 `posts-shell.ts` 在 `swup:visit:start` 标、`visit:end` 摘除（源页按行变体判——变体在 `swup:content:replace` 同帧翻成目标页的——目标页按 URL 判）：区内切换（源页与目标页都在文章区）标侧栏与左缘常驻盒（页头 / 面包屑的显示实例），盒不位移、盒内车道（驱动条深克隆）等新页落地才变：`swup:content:replace` 后给旧车道标 `is-edge-out` 播渐模糊、播完换入新克隆再播去模糊（fetch 等待期旧车道保持可见），侧栏两种变体同位常驻、全程原地（见「切页转场」的 `global.css` 块与 37 条）；列表页之间再标搜索框、全程原地不隐不显（只在列表 ↔ 详情之间才隐显）。
-- `is-changing` 期间 `#swup` 内、行级侧栏与搜索框里所有 `.glass` 平铺成半透明白底（veil，`--page-veil`，0.02 的白）——`#swup` 自身带 opacity 动画，必须先让后代玻璃失效（20.1）；转场结束磨砂恢复。被标 `is-transition-still` 的常驻玻璃（区内切换的侧栏、列表页之间的搜索框）豁免平铺，豁免读同一标记（opacity 恒 1、磨砂不失效，免得白填底那一帧闪一下）。
+- `#swup` 内 `.glass` 的 `backdrop-filter` 全程保留；玻璃仅渐变 `--page-veil` 白色填底。行级常驻玻璃保持原样。
 - 加载反馈是官方 `@swup/progress-plugin`（`astro.config.ts` 的 `progress: true` 启用）：页面顶部一条细白条，`visit:start` 起 300ms 延迟才出现；访问时长现在含转场动画（swup 等 `.transition-page` 播完才收尾，`page:view` 在其后），缓存快切也要 ≈0.3s，所以进度条几乎每次切页都会出现一瞬（预期）。
 - 进度条的默认样式（3px 黑条）由插件自己注入，高度与颜色在 `global.css` 覆盖（`body .swup-progress-bar`）。
 - 历史前进 / 后退（popstate）仍瞬时替换、无动画（swup 的 `animateHistoryBrowsing` 默认关闭）。
 
-**怎么确认**：`pnpm dev` 后切页：旧内容整块下移渐隐、新内容上移渐显，期间玻璃为半透明白底、转场结束后磨砂恢复无「闪一下」；进 / 出文章区时行级侧栏与搜索框同曲线一起动、区内切换时侧栏原地不动、左缘条（页头 / 面包屑）等新页落地才渐模糊再去模糊；列表页之间切换时搜索框全程原地不隐不显、侧栏玻璃不闪白；
+**怎么确认**：`pnpm dev` 后从文章详情页切到列表或普通页：旧内容整块渐隐；进入文章详情页时正文渐显，大玻璃框从首帧起保持模糊。
 **挂 `.glass` 的玻璃（卡片 / 顶栏 / 后台）转场后仍保持模糊**（不会出现「切页那一下变透明、显完才恢复」）。
 
 ### 20.4 不成立的方案（别再犯）
 
 1. **把动画挪到顶栏** —— 内容会硬切，顶栏反而开始闪。
-2. **纯 `translateY` 位移** —— 能保住模糊，但观感是「弹一下」，不接受。
+2. **整页只做位移** —— 保住模糊，但可能显得突兀；玻璃的白色填底承担柔和过渡。
 3. **给固定背景做整屏的 `filter: blur()` 副本** —— 会溢出整屏糊掉；加 `contain: paint` 能治溢出，但 `opacity` 仍会稀释模糊。
 4. **模糊只放在动画后半段追** —— 内容已实显却没模糊，像「忘了应用玻璃」，随后又像「突然被糊了一下」。而且性能根本不是瓶颈。
 5. **以为这是后台独有的问题** —— 不对，前台 `#swup` 内的 `.glass` 同样会失效。
 6. **只把等待目标元素的动画设成 `none`** —— 忘了 swup 是靠它判断「要等多久」的，等于告诉 swup「没有动画要等」，切页直接变成下一帧完成，控制台还会打警告。减动效也要保留 0.01s 占位时长（压时长、不取消动画），不写 `none` / `0s`。
-7. **只给 `.glass` 挂动画来做整页效果** —— 页面上非玻璃的内容不参与，会出现「一部分渐显、一部分瞬移」。这是最先必须换掉的方案。
+7. **只给 `.glass` 挂动画来做整页效果** —— 非玻璃内容不会跟随位移；主位移仍由 `.transition-page` 承担。
 
 ### 20.5 验证时的陷阱（踩过，别再踩）
 
@@ -317,13 +317,12 @@ if (!animatedElements.length) {
 
 ## 37. 切页转场：swup 的 html 类 + #swup 整块 CSS 动画
 
-- **现行口径**：切页统一走 `global.css`「切页转场」——swup 切页时给 html 挂类：`is-changing` 覆盖整个窗口、退出期 `is-leaving`、进入期 `is-rendering`；`#swup` 的 `.transition-page` 播 `page-exit`（下移渐隐）与 `page-enter`（自下方上移渐显），行级侧栏 / 搜索框 / 左缘常驻盒默认同曲线；「谁站住」的决策集中在 `posts-shell.ts`：`swup:visit:start` 给本次应站住的元素标 `is-transition-still`——区内切换（源页与目标页都在文章区）标侧栏与左缘常驻盒（页头 / 面包屑的显示实例）：盒不位移、盒内车道（驱动条深克隆）等新页落地才变：`swup:content:replace` 后给旧车道标 `is-edge-out` 播渐模糊、播完换入新克隆再播去模糊（fetch 等待期旧车道保持可见、不空场）；列表页之间再标搜索框（只在列表 ↔ 详情之间才隐显，列表页的目标页按常驻侧栏分类树 `data-category` 集精确命中判，函数 `isListingUrl`）；源页按行变体判、目标页按 URL 判（`lib/category.ts` 的 `isPostAreaPath`），`visit:end` 一并摘除；`is-changing` 期间 `#swup` 内、侧栏与搜索框里所有 `.glass` 平铺成半透明白底（veil，`--page-veil`），被标 still 的常驻玻璃豁免、豁免读同一标记。主曲线无 JS 编排（标记只是给 CSS 规则开门控），区内车道换舞的时序由 `posts/edge-float.ts` 编排（见上），无临时 DOM。
-- **为什么是 CSS 动画类**（JS 编排被放弃的原因）：motion 的 `animate()` 时钟从调用时刻起算，换内容后主线程被占（dev 按需编译 / 岛屿水合 / 懒加载 import），墙钟在停顿里空转、动画被整段吃掉（「一瞬间跳过」，环境现象见第 40 条）；CSS 动画由文档时间线驱动，swup 的等待按 `animationDuration` 定长计时（不听 `animationend`），退出终帧被 `forwards` 钉住——停顿再长，最差转场被压缩、不会消失，也不会卡中间值。类由 swup 自己的 visit 流程挂（`is-leaving` 在换 DOM 前、`is-rendering` 在换 DOM 后），站点脚本不挂类，不存在「挂类晚丢起点帧」的时机问题。
+- **现行口径**：`src/assets/css/global.css` 中所有页面退出时整块渐隐；进入文章详情页时整块只位移、框内正文渐显，玻璃从首帧起保留模糊。
+- **为什么是 CSS 动画类**：swup 直接等待 `.transition-page` 的动画时长；页面替换或主线程短暂繁忙时，CSS 转场仍按文档时间线推进。
 - **常驻规则**（动切页路径前逐条过）：
   - 等待目标时长必须是真实值：减动效压到 0.01s 不写 `none` / `0s`（不等则控制台警告 + 转场被跳过，第 20.2 条）；后台无转场，0.01s 占位动画只为消警告（见 `src/pages/admin/_admin/css/base.css`）。
-  - 退出必须 `forwards` 钉终帧：DOM 替换间隙旧块要保持在 opacity 0 终帧，不钉会在替换前回闪一帧旧内容。
-  - veil 窗口必须与 `is-changing` 一致（覆盖整个动画期）：玻璃暴露而 `#swup` 仍带 opacity < 1 时模糊失效、结尾「啪」地恢复（第 20.1 条）；veil 与动画同起同落，不设独立时序。
-  - 转场元素默认只做 opacity + transform，不挂 filter 类效果：veil 摘下瞬间 N 张玻璃卡批量重建栅格（第 51 条教训）。例外：区内切换的左缘车道（`.posts-edge-content`，单条小栏）带 `filter: blur`（半径 `--page-edge-blur`），逐帧 blur 代价可接受；其余转场元素仍只 opacity + transform。
+  - 退出用 `forwards` 钉住位移终帧，直到 DOM 替换。
+  - `#swup` 不变透明度；玻璃白色填底只渐变背景，不能在玻璃祖先加 `opacity` 或 `filter` 动画（第 20.1 条）。
   - 转场令牌（`--t-page-exit` / `--t-page-enter` / `--page-shift` / `--page-veil` / `--page-edge-blur`）只定义在 `variables.css`；搜索浮层 dy 修正（`posts/search-float.ts`，第 42 条）与首帧脚本（`src/layouts/BaseLayout.astro`）跟着读。
   - 左缘常驻盒的顶跟盒内车道走，不跟行变体走：手机断点（≤768px）里 `:has(> .posts-header)` / `:has(> .posts-breadcrumb)` 取的 73/70 与两变体的 `padding-top` 同值，变体 `padding-top` 改了必须同步改（`global.css` 同块注释互指）。区内切页变体类在 `swup:content:replace` 同帧翻、盒克隆要等旧车道渐模糊播完才换入，盒顶若跟 `--posts-edge-top`（变体）走会在换入前先跳 3px，观感是旧标题/面包屑模糊时微微上/下移。
 
@@ -378,7 +377,7 @@ if (!animatedElements.length) {
 
 ## 47. 首访时 swup 实例就绪前点区内链接 = 原生整页跳转，落地首屏不播转场（整块转场不播）
 
-- **症状**：第一次访问文章区（整页首载）时，预加载好之前点卡片 / 上下篇 / 面包屑等区内链接，页面照常跳转，但落地首屏的切页转场（整块位移 + 渐隐渐显）完全不播；实例就绪之后（约 1.8s，生产）同样的点击一切正常。文章详情页的首屏早期点击（PostNav / 面包屑）同样中招。
+- **症状**：第一次访问文章区（整页首载）时，预加载好之前点卡片 / 上下篇 / 面包屑等区内链接，落地首屏的切页位移动画不播；实例就绪后正常。
 - **原因**：两个坑叠加。① swup 实例在 `onIdleAfterLoad`（`load` 事件 + idle）才创建，从首屏画出到实例就绪之间存在「未就绪窗口」；窗口内点击时 swup 的点击委托还没挂载，走浏览器**原生整页导航**，而落地首屏的代码路径（整页加载走 `initializeShell`）按设计不播转场——转场只在 swup 切页（`swup:content:replace`）时播，所以「不播」是整页导航的预期表现。② `globalInstance: true` 暴露的 `window.swup` 在实例赋值前会经 Window 代理的 **DOM id 查询**回退到 `<main id="swup">` 元素——一个真值的 HTMLElement，`!!window.swup` 从首屏 DOM 解析起就是 `true`，而 `window.swup.cache` / `hooks` 一直 undefined——用 `!!window.swup` 判不出就绪，必须按实例自身特征甄别（`posts-shell.ts` 的 `realSwup()` 查 `hooks` + `navigate`；探针法：`Object.getOwnPropertyDescriptor(window, 'swup')` 无自有描述符 = id 回退）。
 - **处理**：`posts-shell.ts` 加早期点击拦截（`onEarlyClick`，注册在 `onDocClick` 之前）：实例未就绪时点区内链接（`/posts/` 前缀 + 行在列表/文章变体，排除 `_blank` / `data-no-swup` / 修饰键 / 同页），`preventDefault` 拦掉原生导航，每 100ms 轮询实例，就绪后 `swup.navigate(href)` 转成正常 swup 切页——转场照常播；10s 超时回退原生跳转（覆盖实例创建失败的慢首载：load + idle 在冷缓存 / 慢网下可超 5s）。`pendingEarlyNav` 的作废路径：下次点击 / 超时分支自清（`stopPolling`）、`fetch:error` / `visit:abort` 的 `restoreAfterFail` 一并作废；成功分支不再排新定时器、无残留等待。拦截范围是文章区行（listing / post 变体）+ 区内目的地（href 带 `/posts/` 前缀），之外不拦截；减动效（`REDUCE_MOTION`）不拦截。同批修掉一个潜伏 bug：`bindSwupHooks` 原来直接取 `window.swup`（未就绪时拿到 `<main>` 元素），手机端首次点击会在 `swup.hooks.on` 抛 TypeError 且已打上 `swupHooksBound` 污染标记，钩子从此绑不上（fetch 失败兜底失效）——改为 `realSwup()` 为空时直接返回、不打标记。
 - **怎么确认**：CDP 持有 swup 核心 chunk（`_astro/Swup.*.js`）的动态 import 强制实例「未就绪」，等 boot splash 移除后 trusted 点击卡片——修复前：原生整页跳转；修复后：无整页跳转，`navigate()` 在实例就绪后 ≤1 轮询周期触发，`swup:content:replace` 正常触发、落地首屏切页转场完整播放（列表→文章与文章→列表双向实测）。注意 headless 长主线程停顿后 CSS 动画 currentTime 可能先为负再补帧，属环境现象，非代码问题。
@@ -402,10 +401,10 @@ if (!animatedElements.length) {
 ## 51. 一类受限内核（系统 WebView）：离屏栅格预算小
 
 - **症状 A**：部分手机浏览器上文章**过长**时玻璃卡模糊「没了」（卡变透明）——元素超过每层栅格纹理上限（~4096px，GPU 纹理上限）时 `backdrop-filter` 被**静默丢弃**；修法见 `utilities.css` 的 `.glass-tall` 注释（模糊改由 100vh sticky 伪元素承担，采样区恒 ≤ 一屏）。
-- **症状 B**：手机文章→完整列表，新列表标题渐显收尾处「闪一帧」，只有列表长到一屏放不下时可见。根因：闪 = **玻璃卡**（切页瞬间 N 卡 backdrop 缓冲建立挤占串行栅格预算）× **过滤层**（栅格预算被挤占时过滤层重提交丢一帧）。现行处理：转场本身只做 opacity + transform、不给 `#swup` 内元素挂 filter——现在的闪触发点是 veil 摘下瞬间 N 卡批量重建栅格，将来给 `#swup` 内元素加 filter 类效果前先真机复查。
+- **症状 B**：受限内核在列表页同时建立多张玻璃卡的采样缓冲时可能短暂掉帧。正文大框的 `.glass-tall` 只采样一屏，列表页则有多张独立 `.post-card.glass`，负担更高。
 - **这类内核的共性（后续排查入口）**：① 每层栅格纹理上限 ~4096px，超了 backdrop 静默丢弃；② 离屏栅格内存预算小，backdrop 缓冲计入预算，超预算 → 静态场景整个效果丢弃、动态场景帧被推迟；③ backdrop 采样走串行、低优先级、每帧预算小的栅格路径，切页瞬间是新屏 N 卡缓冲建立突发、推入每帧位移又令 N 卡重采样；④ 范畴：系统 WebView 内核（小米自带浏览器、Via 走系统内核）中招，浏览器自带内核（夸克、雨见）预算更大无症状。
-- **为什么面包屑不闪（面积大却没事）**：成本不在模糊「面积」，在**独立采样层数量**——文章页大卡是 `.glass-tall`、采样缓冲恒一屏；列表页是 N 张独立 `.post-card.glass`（实测 10 张 + 搜索胶囊）；面包屑无磨砂、出现不依赖 backdrop 栅格化。
-- **已排除（别再重复劳动）**：水合（首帧标记全在 HTML）；「动画结束」事件本身——关键是 `#swup` 内元素不挂 filter、veil 摘下瞬间无批量重采样突发，不是结束事件；成本在独立采样层数量、不在模糊面积（见上）；需长期稳定的元素不挂 filter 类效果。
+- **为什么面包屑不闪**：成本主要由独立采样层数量决定；文章页大框用 `.glass-tall`，采样缓冲恒一屏，面包屑没有磨砂。
+- **已排除（别再重复劳动）**：水合；成本主要随独立采样层数量增长，页面不再在转场结束时批量重建玻璃缓冲。
 
 ## 52. `is:inline` 首帧脚本被 swup 切页重跑（搜索框「移两次 / 闪一下」）
 
