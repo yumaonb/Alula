@@ -17,7 +17,7 @@ export const techStack: TechCategory[] = [
   },
   {
     category: '数据库',
-    items: ['MySQL'],
+    items: ['MySQL', 'Redis'],
   },
   {
     category: '运维',
