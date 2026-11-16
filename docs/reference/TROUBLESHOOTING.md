@@ -111,7 +111,7 @@
 
 - **症状**：从 `/` 点进 `/admin/`（或从后台点「回到站点」）后，页面内容换了、导航栏/页脚却没换——出现「站点顶栏 + 后台内容」或反过来的混搭。
 - **原因**：`@swup/astro` 把 swup 注入**所有**页面（含后台），而 swup 只替换 `containers`（本项目是 `#swup`）里的内容，站点页与后台页的外壳本就不同，不管就会混搭。**关键点：swup 也接管浏览器的前进/后退**，所以光靠 `ignoreVisit` 配置挡不住这条路径。
-- **处理**：两层。点击路径：后台「回到站点」链接（`AdminNav` 里）带静态 `data-no-swup`，swup 把这次点击交给浏览器整页加载。前进/后退路径：由前台 `src/assets/js/nav/shell-guard.ts` 与后台拷贝 `src/pages/admin/_admin/js/shell-guard.ts`（两个外壳各 import 自己那份）监听 `popstate`，发现当前外壳与目标地址对不上就掐掉 swup 的处理并整页 reload，`swup:content:replace` 上再兜一层 reload。
+- **处理**：两层。点击路径：后台「回到站点」链接（`AdminNav` 里）带静态 `data-no-swup`，swup 把这次点击交给浏览器整页加载。前进/后退路径：由前台 `src/assets/js/nav/shell-guard.ts` 与后台拷贝 `src/pages/admin/_admin/js/shell-guard.ts`（分别由 `BaseLayout` 与 `AdminLayout` 直接加载）监听 `popstate`，发现当前外壳与目标地址对不上就掐掉 swup 的处理并整页 reload，`swup:content:replace` 上再兜一层 reload。
 - **怎么确认**：`pnpm build` 后 `dist/admin/**/*.html` 里能搜到 `data-no-swup`；在浏览器里用「前进/后退」在两个外壳间来回走一遍，外壳应与内容一致。
 
 ## 20. 玻璃模糊与 swup 切页（前台与后台）
@@ -167,7 +167,7 @@ if (!animatedElements.length) {
 ### 20.3 当前切页做法：整块位移 + 玻璃白底过渡 + 顶部进度条
 
 - swup 切页时所有页面的 `#swup` 下移渐隐；普通页面上移渐显，文章详情页进入时只上移、`.post-content-inner` 在玻璃框内渐显，让大框从首帧持续采样背景。
-- 行级侧栏 / 搜索框 / 左缘常驻盒（`#swup` 外）默认与整块挂同一组 `page-exit` / `page-enter`，规则上的 `:not(.is-transition-still)` 把本次应原地站住的元素摘出；仍标记由 `posts-shell.ts` 在 `swup:visit:start` 标、`visit:end` 摘除（源页按行变体判——变体在 `swup:content:replace` 同帧翻成目标页的——目标页按 URL 判）：区内切换（源页与目标页都在文章区）标侧栏与左缘常驻盒（页头 / 面包屑的显示实例），盒不位移、盒内车道（驱动条深克隆）等新页落地才变：`swup:content:replace` 后给旧车道标 `is-edge-out` 播渐模糊、播完换入新克隆再播去模糊（fetch 等待期旧车道保持可见），侧栏两种变体同位常驻、全程原地（见「切页转场」的 `global.css` 块与 37 条）；列表页之间再标搜索框、全程原地不隐不显（只在列表 ↔ 详情之间才隐显）。
+- 行级侧栏 / 搜索框 / 左缘常驻盒（`#swup` 外）默认与整块挂同一组 `page-exit` / `page-enter`，规则上的 `:not(.is-transition-still)` 把本次应原地站住的元素摘出；仍标记由 `posts-shell.ts` 在 `swup:visit:start` 标、`visit:end` 摘除（源页按行变体判——变体在 `swup:content:replace` 同帧翻成目标页的——目标页按 URL 判）：区内切换（源页与目标页都在文章区）标侧栏与左缘常驻盒（页头 / 面包屑的显示实例），盒不位移、盒内车道（驱动条深克隆）等新页落地才变：`swup:content:replace` 后给旧车道标 `is-edge-out` 播渐模糊、播完换入新克隆再播去模糊（fetch 等待期旧车道保持可见），侧栏两种变体同位常驻、全程原地（见「切页转场」的 `src/features/posts/styles/shell.css` 块与 37 条）；列表页之间再标搜索框、全程原地不隐不显（只在列表 ↔ 详情之间才隐显）。
 - `#swup` 内 `.glass` 的 `backdrop-filter` 全程保留；玻璃仅渐变 `--page-veil` 白色填底。行级常驻玻璃保持原样。
 - 加载反馈是官方 `@swup/progress-plugin`（`astro.config.ts` 的 `progress: true` 启用）：页面顶部一条细白条，`visit:start` 起 300ms 延迟才出现；访问时长现在含转场动画（swup 等 `.transition-page` 播完才收尾，`page:view` 在其后），缓存快切也要 ≈0.3s，所以进度条几乎每次切页都会出现一瞬（预期）。
 - 进度条的默认样式（3px 黑条）由插件自己注入，高度与颜色在 `global.css` 覆盖（`body .swup-progress-bar`）。
@@ -249,7 +249,7 @@ if (!animatedElements.length) {
 
 - **症状 / 结论**：`@motionone/svelte` 最后发版 10.16.4（2023，Svelte 3 时代）——它的 `main` / `module` 入口（`dist/index.cjs.js` / `dist/index.es.js`）**在 tarball 里根本不存在**，Vite 与 Node 都直接解析失败；且其 `Motion` 是 Svelte 3 编译出的 class 组件，Svelte 5 SSR 按函数调用它，报 `Class constructor Motion cannot be invoked without 'new'`。统一包 `motion`（framer-motion 的继承者）在 v11–v14 **任何版本都没有** `./svelte` 子路径（逐一核对过 exports 字段）。
 - **处理**：用 `motion` 的 vanilla（框架无关）API——`animate(element, keyframes, options)` / `stagger()` / `inView()` / `scroll()`，在 `.ts` 脚本与 Svelte 岛的事件处理器里直接调用，不需要 React、不需要组件形态。本站即用此法（`hamburger.ts` / `nav-indicator.ts`），约定见 `ARCHITECTURE.md` 的「动画依赖：motion」。
-- **怎么确认**：改后 `pnpm build`，`dist/_astro/*.js` 里出现 motion 共享 chunk（约 19.6 kB gzip），随相应页面的脚本加载（NavBar 的两个动态 import 脚本，或 `BaseLayout` 全站静态引入的 `posts-shell.ts`）。
+- **怎么确认**：改后 `pnpm build`，`dist/_astro/*.js` 里出现 motion 共享 chunk（约 19.6 kB gzip），随相应页面的脚本加载（NavBar 的两个动态 import 脚本，或 `PostsRow` 全站静态引入的 `posts-shell.ts`）。
 
 ## 29. motion 动画的飞行中值与 CSS 类状态：读值顺序决定跳不跳
 
@@ -298,33 +298,33 @@ if (!animatedElements.length) {
 
 - **症状**：目录页大距离跳变（页首直跳文中、深链进入）后，列表已瞬移到居中，竖线却不跟到活动项、停在上一处位置，要等下一次切项的过渡才「跳回」；页首小距离落位（dist < 0.5）不走帧循环、placed 标志不置位，使后续任意一次大距离重定向都落进 snap 分支触发本问题。
 - **原因**：`toc.ts` 的 `retarget` 状态矫正分支（未落位且距离 > `SNAP_MAX_PX`）绕过帧循环直接对齐：更新 `barPos` 变量与轨道 `scrollTop`，但竖线 `transform` 只在帧循环 `p < 1` 分支里写——分支只改变量、DOM 没动，竖线视觉位停在旧值；placed 标志也未置位，后续大距离会反复走瞬移而非平滑过渡。该分支一直如此，竖线移出滚动内容（真固定改造）后旧位从「滚出可视区不可见」变成「停在轨道顶可见」，被无头验证脚本直接抓出。
-- **处理**：竖线位置只有唯一写入点 `writeBar()`（`src/assets/js/posts/toc.ts`）：所有改 `barPos` 的路径（帧循环 / 状态矫正 / 减少动态直落 / 点击接管）改完都走它写 DOM，状态矫正分支结构上写不成「只改变量」的形态。原则：**任何绕过帧循环直接改目标态的分支，必须同帧把 DOM 写到位，不能指望帧循环「补写」**；现行保障就是写入点唯一。
+- **处理**：竖线位置只有唯一写入点 `writeBar()`（`src/features/posts/scripts/toc.ts`）：所有改 `barPos` 的路径（帧循环 / 状态矫正 / 减少动态直落 / 点击接管）改完都走它写 DOM，状态矫正分支结构上写不成「只改变量」的形态。原则：**任何绕过帧循环直接改目标态的分支，必须同帧把 DOM 写到位，不能指望帧循环「补写」**；现行保障就是写入点唯一。
 - **怎么确认**：无头脚本按 页首 → 30% → 65% → 底部 顺序跳变，每处竖线视觉位与活动项逐位一致（取证脚本已清理）；深链进入直接落位，不等下次切项。
 
 ## 35. 文章区侧栏在**所有**站点页的 DOM 里（普通页只是隐藏），行为分在三处
 
-- **症状**（开发文章区新功能时可能遇到）：普通页（首页 / 关于等）里 `#category-tree` 的标记明明在 DOM 里，点箭头却无反应；从普通页 swup 切进文章区后的头几百毫秒里点树也没反应；把侧栏显示断点只改了 `global.css`，文章页的筛选抽屉按钮在 1000~1150px 区间该出现却没出现（或该隐藏却没隐藏）。
-- **原因**：`GlobalSidebar` 由 `BaseLayout` 渲染在 `#swup` **之外**、且渲染在**每个**站点页的壳里——swup 只换 `#swup` 内容，这样文章区界面之间切换侧栏永不重建（分类树手动开合状态保留、不闪）。两个推论：① **标记常驻、脚本不常驻**——`category-tree.ts`（带 motion 共享块约 19.6 kB gzip）由 `posts-shell.ts` 懒加载：普通页侧栏隐藏、树无交互，根本不加载；第一次 swup 切进文章区时由 `swup:content:replace` 触发 `import()`，import 完成前树没有点击委托（首帧的展开窗口用 600px 兜底值，模块落地后量真实高度修正）。② **壳状态与断点分在两处**——行变体类（`--plain/--listing/--post`）、侧栏顶偏移（`--posts-side-offset` 实测页锚高度）、高亮/展开同步都由 `posts-shell.ts` 在每次 `swup:content:replace` 后维护（首帧由 `BaseLayout` 的 `shellVariant` prop 定）；侧栏显隐断点（列表 ≥769px / 文章 ≥1151px）写在 `global.css`，而筛选/目录抽屉按钮的互补出现区间（≤768 / ≤1150 / ≤850）写在 `swup-widgets.ts` 的 probe 数值里。
-- **处理**：新功能依赖树脚本时，要么照 `ensureCategoryTree` 的懒加载模式（`window` 幂等守卫，`src/env.d.ts` 声明标记），要么直接操作 DOM、不假设 `category-tree.ts` 在所有页面已加载。**改侧栏 / 抽屉按钮的断点必须两处同改**（`global.css` 媒体查询 + `swup-widgets.ts` probe 数值），两处注释互相指认。
+- **症状**（开发文章区新功能时可能遇到）：普通页（首页 / 关于等）里 `#category-tree` 的标记明明在 DOM 里，点箭头却无反应；从普通页 swup 切进文章区后的头几百毫秒里点树也没反应；把侧栏显示断点只改了 `src/features/posts/styles/shell.css`，文章页的筛选抽屉按钮在 1000~1150px 区间该出现却没出现（或该隐藏却没隐藏）。
+- **原因**：`GlobalSidebar` 由 `PostsRow` 渲染在 `#swup` **之外**、且渲染在**每个**站点页的壳里——swup 只换 `#swup` 内容，这样文章区界面之间切换侧栏永不重建（分类树手动开合状态保留、不闪）。两个推论：① **标记常驻、脚本不常驻**——`category-tree.ts`（带 motion 共享块约 19.6 kB gzip）由 `posts-shell.ts` 懒加载：普通页侧栏隐藏、树无交互，根本不加载；第一次 swup 切进文章区时由 `swup:content:replace` 触发 `import()`，import 完成前树没有点击委托（首帧的展开窗口用 600px 兜底值，模块落地后量真实高度修正）。② **壳状态与断点分在两处**——行变体类（`--plain/--listing/--post`）、侧栏顶偏移（`--posts-side-offset` 实测页锚高度）、高亮/展开同步都由 `posts-shell.ts` 在每次 `swup:content:replace` 后维护（首帧由 `PostsRow` 的 `shellVariant` prop 定）；侧栏显隐断点（列表 ≥769px / 文章 ≥1151px）写在 `src/features/posts/styles/shell.css`，而筛选/目录抽屉按钮的互补出现区间（≤768 / ≤1150 / ≤850）写在 `swup-widgets.ts` 的 probe 数值里。
+- **处理**：新功能依赖树脚本时，要么照 `ensureCategoryTree` 的懒加载模式（`window` 幂等守卫，`src/env.d.ts` 声明标记），要么直接操作 DOM、不假设 `category-tree.ts` 在所有页面已加载。**改侧栏 / 抽屉按钮的断点必须两处同改**（`src/features/posts/styles/shell.css` 媒体查询 + `swup-widgets.ts` probe 数值），两处注释互相指认。
 - **怎么确认**：任一站点页的 HTML 里都有 `.page-main > .global-sidebar`（普通页 `display: none`）；普通页 `window.__postCatTreeBound` 为 undefined，swup 切进文章区后变 true；文章页 1150px 时侧栏隐藏且筛选按钮可用、1151px 时侧栏显示且按钮隐藏，两条互补无死角。
 
 ## 36. 负边距压到行左缘的元素点不动（被侧栏盒的 padding 拦截）
 
 - **症状**：列表页头 / 文章面包屑条左段（负边距压过侧栏区、与行左缘对齐的那一部分）里的链接点击无反应；视觉上完全正常，`elementFromPoint` 命中的却是侧栏。
 - **原因**：`.global-sidebar` 是行里的 flex 项且 `z-index: 10`——它的**盒**（包括顶部 `padding-top` 偏移区，那块区域里没有可见内容）覆盖在内容列负边距压过去的区域上。页头 / 面包屑条若没有自己的 stacking context（`position: relative` + 更高的 `z-index`），左段就压在侧栏盒底下，点击 / 文本选择被侧栏拦截。旧版面包屑是侧栏的**子元素**、天然在侧栏层级内，没这个问题；改成内容列顶部通栏条之后就暴露了。
-- **处理**：负边距通栏的左缘元素都带 `position: relative; z-index: 20`（高于侧栏的 10）：包裹槽 `.posts-edge-slot`（≥769px 页头槽、≥1151px 面包屑槽，`PostsShell.astro`）；行级左缘常驻盒 `.posts-edge-float`（`global.css`）同为 20、DOM 在槽之后压过驱动条。新增同类「向左压过侧栏区」的元素时照抄这两个声明。
+- **处理**：负边距通栏的左缘元素都带 `position: relative; z-index: 20`（高于侧栏的 10）：包裹槽 `.posts-edge-slot`（≥769px 页头槽、≥1151px 面包屑槽，`PostsShell.astro`）；行级左缘常驻盒 `.posts-edge-float`（`src/features/posts/styles/shell.css`）同为 20、DOM 在槽之后压过驱动条。新增同类「向左压过侧栏区」的元素时照抄这两个声明。
 - **怎么确认**：`document.elementFromPoint(页头/条左段坐标)` 命中的是该元素自身（或其子节点）而不是 `.global-sidebar`；真实鼠标点击左段链接能正常导航。
 
 ## 37. 切页转场：swup 的 html 类 + #swup 整块 CSS 动画
 
-- **现行口径**：`src/assets/css/global.css` 中所有页面退出时整块渐隐；进入文章详情页时整块只位移、框内正文渐显，玻璃从首帧起保留模糊。
+- **现行口径**：`src/assets/css/global.css` 定义通用退出与进入动画；`src/features/posts/styles/shell.css` 处理文章进入时的正文渐显和玻璃保留。
 - **为什么是 CSS 动画类**：swup 直接等待 `.transition-page` 的动画时长；页面替换或主线程短暂繁忙时，CSS 转场仍按文档时间线推进。
 - **常驻规则**（动切页路径前逐条过）：
   - 等待目标时长必须是真实值：减动效压到 0.01s 不写 `none` / `0s`（不等则控制台警告 + 转场被跳过，第 20.2 条）；后台无转场，0.01s 占位动画只为消警告（见 `src/pages/admin/_admin/css/base.css`）。
   - 退出用 `forwards` 钉住位移终帧，直到 DOM 替换。
   - `#swup` 不变透明度；玻璃白色填底只渐变背景，不能在玻璃祖先加 `opacity` 或 `filter` 动画（第 20.1 条）。
-  - 转场令牌（`--t-page-exit` / `--t-page-enter` / `--page-shift` / `--page-veil` / `--page-edge-blur`）只定义在 `variables.css`；搜索浮层 dy 修正（`posts/search-float.ts`，第 42 条）与首帧脚本（`src/layouts/BaseLayout.astro`）跟着读。
-  - 左缘常驻盒的顶跟盒内车道走，不跟行变体走：手机断点（≤768px）里 `:has(> .posts-header)` / `:has(> .posts-breadcrumb)` 取的 73/70 与两变体的 `padding-top` 同值，变体 `padding-top` 改了必须同步改（`global.css` 同块注释互指）。区内切页变体类在 `swup:content:replace` 同帧翻、盒克隆要等旧车道渐模糊播完才换入，盒顶若跟 `--posts-edge-top`（变体）走会在换入前先跳 3px，观感是旧标题/面包屑模糊时微微上/下移。
+  - 通用转场时长与位移令牌定义在 `src/assets/css/variables.css`，文章左缘模糊令牌定义在 `src/features/posts/styles/variables.css`；搜索浮层的首帧脚本位于 `src/features/posts/layouts/PostsRow.astro`。
+  - 左缘常驻盒的顶跟盒内车道走，不跟行变体走：手机断点（≤768px）里 `:has(> .posts-header)` / `:has(> .posts-breadcrumb)` 取的 73/70 与两变体的 `padding-top` 同值，变体 `padding-top` 改了必须同步改（`src/features/posts/styles/shell.css` 同块注释互指）。区内切页变体类在 `swup:content:replace` 同帧翻、盒克隆要等旧车道渐模糊播完才换入，盒顶若跟 `--posts-edge-top`（变体）走会在换入前先跳 3px，观感是旧标题/面包屑模糊时微微上/下移。
 
 ## 38. 侧栏标签 chip 高亮残留（切页后状态没清除）
 
@@ -350,7 +350,7 @@ if (!animatedElements.length) {
 
 - **症状**：切页后，常驻搜索框 `.posts-search-float` 的内联 top 停在错值上、且不再被重测——错值恰好差一个「量槽那一帧正在跑的动画位移」。
 - **原因**：`posts-shell.ts` 的 `syncSearchPos()` 用「槽 rect − 行 rect + 占位 `offsetTop`」写搜索框位置。`offsetTop/offsetWidth` 是布局坐标（不受 transform 影响），但 **`getBoundingClientRect` 包含祖先的 transform 位移**。被动画移动的可能是槽自身、也可能是槽到行之间的祖先——量槽那一帧若恰在位移途中，读到的就是带位移的坐标；动画不改变锚尺寸，RO 不再触发，错值永久驻留（transform 变化不触发 RO）。
-- **处理**：槽与行自身不再被动画移动，但 `#swup` 整块在转场中位移——`posts/search-float.ts` 的 `placeFloat` 改量**布局坐标**：从占位符沿 offset 链累加到行（`offsetTop/offsetLeft`，宽用 `offsetWidth`），offset 不受任何祖先 transform 影响，静止（0）与进入期（0 → `--page-shift`）量出的都是同一布局值，无需减位移；JS 运行前的位置直接是 CSS 基线（global.css 的 `.posts-search-float`，与占位重合），`src/layouts/BaseLayout.astro` body 尾脚本只负责显出。通用结论：**只要被量元素自身或其某个祖先正在被动画移动，rect 就是脏的**——要么量布局坐标（`offsetTop/offsetLeft/offsetWidth`），要么减去已知祖先位移。
+- **处理**：槽与行自身不再被动画移动，但 `#swup` 整块在转场中位移——`src/features/posts/scripts/search-float.ts` 的 `placeFloat` 改量**布局坐标**：从占位符沿 offset 链累加到行（`offsetTop/offsetLeft`，宽用 `offsetWidth`），offset 不受任何祖先 transform 影响，静止（0）与进入期（0 → `--page-shift`）量出的都是同一布局值，无需减位移；JS 运行前的位置直接是 CSS 基线（src/features/posts/styles/shell.css 的 `.posts-search-float`，与占位重合），`src/features/posts/layouts/PostsRow.astro` 首帧脚本只负责显出。通用结论：**只要被量元素自身或其某个祖先正在被动画移动，rect 就是脏的**——要么量布局坐标（`offsetTop/offsetLeft/offsetWidth`），要么减去已知祖先位移。
 - **怎么确认**：转场进入窗口内读 `.posts-search-float` 内联 top：任何时刻都收敛到与占位符一致的布局值，不出现「差一个位移量」的驻留值；静止态复查不变。
 
 ## 43. 同一元素上并发多个 motion 动画：后结束动画的端点提交会把值写回内联
@@ -400,7 +400,7 @@ if (!animatedElements.length) {
 
 ## 51. 一类受限内核（系统 WebView）：离屏栅格预算小
 
-- **症状 A**：部分手机浏览器上文章**过长**时玻璃卡模糊「没了」（卡变透明）——元素超过每层栅格纹理上限（~4096px，GPU 纹理上限）时 `backdrop-filter` 被**静默丢弃**；修法见 `utilities.css` 的 `.glass-tall` 注释（模糊改由 100vh sticky 伪元素承担，采样区恒 ≤ 一屏）。
+- **症状 A**：部分手机浏览器上文章**过长**时玻璃卡模糊「没了」（卡变透明）——元素超过每层栅格纹理上限（~4096px，GPU 纹理上限）时 `backdrop-filter` 被**静默丢弃**；修法见 `src/features/posts/styles/elements.css` 的 `.glass-tall` 注释（模糊改由 100vh sticky 伪元素承担，采样区恒 ≤ 一屏）。
 - **症状 B**：受限内核在列表页同时建立多张玻璃卡的采样缓冲时可能短暂掉帧。正文大框的 `.glass-tall` 只采样一屏，列表页则有多张独立 `.post-card.glass`，负担更高。
 - **这类内核的共性（后续排查入口）**：① 每层栅格纹理上限 ~4096px，超了 backdrop 静默丢弃；② 离屏栅格内存预算小，backdrop 缓冲计入预算，超预算 → 静态场景整个效果丢弃、动态场景帧被推迟；③ backdrop 采样走串行、低优先级、每帧预算小的栅格路径，切页瞬间是新屏 N 卡缓冲建立突发、推入每帧位移又令 N 卡重采样；④ 范畴：系统 WebView 内核（小米自带浏览器、Via 走系统内核）中招，浏览器自带内核（夸克、雨见）预算更大无症状。
 - **为什么面包屑不闪**：成本主要由独立采样层数量决定；文章页大框用 `.glass-tall`，采样缓冲恒一屏，面包屑没有磨砂。
@@ -409,7 +409,7 @@ if (!animatedElements.length) {
 ## 52. `is:inline` 首帧脚本被 swup 切页重跑（搜索框「移两次 / 闪一下」）
 
 - **症状**：文章→列表切页时，搜索框先以全不透明直接出现在页头终位、随后才 `settle` 回隐藏——首帧摆位 / 显出逻辑被重复执行了一次（「闪了一下」）。
-- **原因**：`BaseLayout` body 尾的搜索框首帧显出脚本（`is:inline`，只写 opacity/visibility；摆位是 CSS 基线 + `posts-shell.ts` 运行时实测）被 **`@swup/scripts-plugin`**（`SwupScriptsPlugin`，默认 `reloadScripts: true`）在**每次切页**时重跑：插件以 `document` 为作用域，内联脚本经 `replaceWith` 重执行（module 脚本按 URL 去重不重跑）。脚本的首帧职责只对整页加载成立；切页时 `posts-shell.ts` 已全权负责定位与显隐，重跑纯冲突。
+- **原因**：`PostsRow` body 尾的搜索框首帧显出脚本（`is:inline`，只写 opacity/visibility；摆位是 CSS 基线 + `posts-shell.ts` 运行时实测）被 **`@swup/scripts-plugin`**（`SwupScriptsPlugin`，默认 `reloadScripts: true`）在**每次切页**时重跑：插件以 `document` 为作用域，内联脚本经 `replaceWith` 重执行（module 脚本按 URL 去重不重跑）。脚本的首帧职责只对整页加载成立；切页时 `posts-shell.ts` 已全权负责定位与显隐，重跑纯冲突。
 - **处理**：脚本标签加 `data-swup-ignore-script`（该插件官方 opt-out）——只跑整页首帧、切页不重跑。
 - **排查入口**：任何「切页后某个首帧脚本的副作用又执行了一次」，先查 `@swup/scripts-plugin` 的全 document 重跑；需要只跑一次的内联脚本必须带 `data-swup-ignore-script` 豁免。
 
@@ -419,11 +419,11 @@ if (!animatedElements.length) {
 - **原因**：展开态是「类 + 端点高度」两件事，而端点高度的实现里有两个坑：
   1. **内联压住端点规则**：开合动画由 motion 驱动，`animate(wrap, { maxHeight })` / `animate(children, { y })` 把 `max-height` / `transform` 写成**内联**；内联优先级高于 `.cat-node--open > .cat-children-wrap { max-height: var(--cat-sub-h) }`。切页后由 `syncActive()` 补上的展开类撞上「上一轮动画留下的落点」（`max-height: 0px`、`translateY(-100%)`），视觉上就是箭头转了、内容不出来。
   2. **隐藏态量高写 0**：`#category-tree` 在 `.page-main--post`（≤1150px）与普通页、手机端抽屉未开时都是 `display: none`，此时 `offsetHeight` 全为 0；旧实现把 0 无条件写进 `--cat-sub-h`，上限归零 → 再可见时展开节点也是空的（等 ResizeObserver 重跑才恢复，慢一帧到几帧）。
-- **处理**：`posts/category-tree.ts` 的 `measureAll` 改成 `syncSizes`——从最里层往外，① 量到 0（不可见）就**跳过不写**；② 每个窗口同时写 `--cat-sub-h` 与**内联** `max-height`（open = 实高、closed = `0px`），并清掉内层残留的 `transform`，即「开合状态全部由类决定、每次同步都把结果落实成内联端点」。落点三处共用它：模块 init / `astro:after-swap`（`syncHeights`）、容器 ResizeObserver、以及新暴露的 `window.__catTreeSync()`。最后一处由 `row-state.ts` 的 `syncActive()` 在补完自动展开的类之后**立即**调用——否则「先补类、后同步」之间有内联端点空窗（类在位但内联仍是旧落点）。
+- **处理**：`src/features/posts/scripts/category-tree.ts` 的 `measureAll` 改成 `syncSizes`——从最里层往外，① 量到 0（不可见）就**跳过不写**；② 每个窗口同时写 `--cat-sub-h` 与**内联** `max-height`（open = 实高、closed = `0px`），并清掉内层残留的 `transform`，即「开合状态全部由类决定、每次同步都把结果落实成内联端点」。落点三处共用它：模块 init / `astro:after-swap`（`syncHeights`）、容器 ResizeObserver、以及新暴露的 `window.__catTreeSync()`。最后一处由 `row-state.ts` 的 `syncActive()` 在补完自动展开的类之后**立即**调用——否则「先补类、后同步」之间有内联端点空窗（类在位但内联仍是旧落点）。
 - **动效**：自动展开不是「啪一下到位」——`syncTree` 量之前先把每个窗口的当前高度记下（`before`），`syncSizes` 写完最终值后，把参与动画的窗口退回起点（刚展开的窗口 `max-height` 0、内层刚体 `translateY(-实高)`，祖先窗口退回展开前高度）再播，曲线 / 时长与点箭头完全同一套（同曲线同长，经 `util/expand-collapse.ts`）。`REDUCE_MOTION` 与首帧 `data-cat-init` 期间直接落位；容器不可见时标记留着，可见后由 ResizeObserver 补播。
   **换页同步必须单点**：`astro:after-swap` 上如果树自己也挂一个监听，同一次换页会同步两遍——第二遍在本任务里把动画起点改写成终值，浏览器先画一帧「已全展开」再从头播，看着是闪一下。所以换页同步只由 `posts-shell` 的 `syncActive()` → `__catTreeSync()` 驱动，树自己只在模块 init 同步一次。
 - **怎么确认**：headless Chrome（CDP，`dist` 静态服务器，逐条内联写入）。①列表→分类：`devnotes` 窗口 `clientHeight` 0 → 58；②列表→文章：同样 58；③人为注入残留（`wrap.style.maxHeight='0px'` + `children.style.transform='translateY(-100%)'`）后调用 `__catTreeSync()`：0 → 58 恢复；④1000px 文章页（侧栏 `display:none`）→ 回分类：`--cat-sub-h` 全为 58、无 0 值；⑤375px 抽屉打开后：58；⑥1000px 首页（普通页）→ 分类：58；⑦动效逐帧（MutationObserver 记录每次内联写入）：`0px`（起点）→ 3.1 → 9.6 → 24.3 → 28.6 → 29px，约 340ms 单调爬升，无中间帧落到终值。
-- **同源先例**：第 43 条（并发 motion 动画收尾会被另一条动画的端点提交写回——同一「内联端点与 CSS 端点谁说了算」家族）、第 42 条（不可见/位移中的祖先会污染量测）、条目「分类树开合」见 `ARCHITECTURE.md` 的 `posts/category-tree.ts` 行。
+- **同源先例**：第 43 条（并发 motion 动画收尾会被另一条动画的端点提交写回——同一「内联端点与 CSS 端点谁说了算」家族）、第 42 条（不可见/位移中的祖先会污染量测）、条目「分类树开合」见 `ARCHITECTURE.md` 的 `src/features/posts/scripts/category-tree.ts` 行。
 
 ## 55. 换到 CSS 背景方案后，时间轴两端没有渐隐（只有图片方案才有）
 
@@ -461,12 +461,12 @@ if (!animatedElements.length) {
 
 - **症状**：目录里的每一项看起来是链接，鼠标能点，但 Tab 键走不到，读屏也不把它当链接播报。
 - **原因**：渲染成 `<a>` 却没写 `href`。没有 `href` 的 `<a>` 既不进 Tab 序列，也不被辅助技术识别为链接。
-- **处理**：补上 `href={'#' + heading.slug}`。点击行为仍由 `posts/toc.ts` 接管（`preventDefault` + 平滑滚动），`href` 只负责语义与键盘可达，不改交互。
+- **处理**：补上 `href={'#' + heading.slug}`。点击行为仍由 `src/features/posts/scripts/toc.ts` 接管（`preventDefault` + 平滑滚动），`href` 只负责语义与键盘可达，不改交互。
 
 ## 60. dev 里改一篇文章就报错，刷新也不好了，只能重启 `pnpm dev`
 
 - **症状**：`pnpm dev` 期间某次加载抛了错（例如刚保存的 markdown 恰好语法不完整），之后每次刷新都还是同一个错误，改好文件也不恢复，必须重启 dev server。
-- **原因**：`lib/posts-data.ts` 的 `loadBlogData()` 缓存的是**构建 Promise 本身**。那次失败后，缓存里躺着一个已经 rejected 的 Promise，之后每次调用都直接返回它——不会重新构建，也就永远拿不到修正后的数据。
+- **原因**：`src/features/posts/lib/posts-data.ts` 的 `loadBlogData()` 缓存的是**构建 Promise 本身**。那次失败后，缓存里躺着一个已经 rejected 的 Promise，之后每次调用都直接返回它——不会重新构建，也就永远拿不到修正后的数据。
 - **处理**：失败时把缓存清空，让下次调用重新构建。清空前要核对缓存里仍是本次那个 Promise（`if (cache === pending)`），否则会把别处刚建好的新缓存误清掉。
 - **怎么确认**：断点停在 `loadBlogData`，故意让 `buildData()` 抛一次错；下次调用应重新进入 `buildData()`，而不是原地返回同一个 rejected Promise。
 
@@ -476,7 +476,7 @@ if (!animatedElements.length) {
 
 **原因**：目录内层滚动容器 `.toc-scroll` 原先溢出即常显细滚动条；页面滚动条则在页面滚动或悬停右侧留白时显示。长文目录溢出时两者恰好在同一时刻可见，观感像多卡出一条。
 
-**修法**：`.toc-scroll` 的滚动条默认隐藏，`:hover` / `:focus-visible` 时显现（键盘聚焦才触发，指针点击不触发；`src/components/posts/TableOfContents.astro` 的 scoped 样式：`scrollbar-color` 与 `::-webkit-scrollbar-thumb` 默认透明、悬停或键盘聚焦还原值，跨浏览器「三件套」保持齐全）。显隐门控只由这一处承担。指针停在目录上时 `src/assets/js/posts/toc.ts` 拦截 wheel 不传给页面，页面滚动条此时不会显示；指针在正文滚动页面时目录滚动条处于透明默认态。两条从此不同屏。
+**修法**：`.toc-scroll` 的滚动条默认隐藏，`:hover` / `:focus-visible` 时显现（键盘聚焦才触发，指针点击不触发；`src/features/posts/components/TableOfContents.astro` 的 scoped 样式：`scrollbar-color` 与 `::-webkit-scrollbar-thumb` 默认透明、悬停或键盘聚焦还原值，跨浏览器「三件套」保持齐全）。显隐门控只由这一处承担。指针停在目录上时 `src/features/posts/scripts/toc.ts` 拦截 wheel 不传给页面，页面滚动条此时不会显示；指针在正文滚动页面时目录滚动条处于透明默认态。两条从此不同屏。
 
 **怎么确认**：长文里指针停在正文滚动，只应看到页面滚动条；指针移到目录上，2px 细滚动条才出现，且此时滚动只滚目录、页面不动。
 
@@ -484,9 +484,9 @@ if (!animatedElements.length) {
 
 **症状**：桌面端点文章目录项，URL 尾部立刻多出 `#标题slug`（如 `/posts/devnotes/css/selector/#11-通配选择器-`）并保留；用这个地址重进页面，浏览器首载就会跳到对应标题。另一个同源表现：鼠标悬停目录项时，浏览器左下角状态栏显示链接地址（`…#slug`）——目录项是页内滚动定位，不是导航链接，地址提示是噪音。
 
-**原因**：目录项当时是真链接 `<a href="#slug">`。URL 问题：swup 4 内置同页锚点处理。swup 默认 `linkSelector` 是 `a[href]`，它在 document 上的点击委托也捕获目录链接：同页链接带 hash 时走 `link:anchor` 默认处理器——`updateHistoryRecord(url + hash)`（`history.pushState` 把 `#slug` 写进 URL，就是尾部锚点的直接来源）加 `scrollToContent`（它自己滚到锚点），与 `posts/toc.ts` 的平滑滚动并行、竞争落点。状态栏问题：Chromium 只对真链接（`a` / `area[href]`）显示悬停地址提示。
+**原因**：目录项当时是真链接 `<a href="#slug">`。URL 问题：swup 4 内置同页锚点处理。swup 默认 `linkSelector` 是 `a[href]`，它在 document 上的点击委托也捕获目录链接：同页链接带 hash 时走 `link:anchor` 默认处理器——`updateHistoryRecord(url + hash)`（`history.pushState` 把 `#slug` 写进 URL，就是尾部锚点的直接来源）加 `scrollToContent`（它自己滚到锚点），与 `src/features/posts/scripts/toc.ts` 的平滑滚动并行、竞争落点。状态栏问题：Chromium 只对真链接（`a` / `area[href]`）显示悬停地址提示。
 
-**修法**：目录项改为 `<button type="button">`（`src/components/posts/TableOfContents.astro`）。swup 的 `linkSelector`（`a[href]`）从此捕获不到它，同页锚点处理自然不发生；`posts/toc.ts` 的点击委托 + 平滑滚动不变，URL 不再变。button 无 href，状态栏不再显示地址。代价：目录项丢失中键 / 右键「在新标签打开标题」的深链能力（目录项本来就不是导航出口，刻意接受）。
+**修法**：目录项改为 `<button type="button">`（`src/features/posts/components/TableOfContents.astro`）。swup 的 `linkSelector`（`a[href]`）从此捕获不到它，同页锚点处理自然不发生；`src/features/posts/scripts/toc.ts` 的点击委托 + 平滑滚动不变，URL 不再变。button 无 href，状态栏不再显示地址。代价：目录项丢失中键 / 右键「在新标签打开标题」的深链能力（目录项本来就不是导航出口，刻意接受）。
 
 **怎么确认**：长文里连点数次目录项，URL 尾部不出现 hash；页面落到对应标题（按导航高度偏移），目录高亮同步；悬停目录项，状态栏无地址提示。
 
@@ -496,7 +496,7 @@ if (!animatedElements.length) {
 
 **原因**：指针点击目录项会把焦点带到该目录项上（点击的预激活阶段即完成聚焦，与是否拦截导航无关）。目录滚动条按第 62 条的修法在 `:focus-within` 时显现（给键盘用户滚动目录时的指示），焦点不离开目录它就恒真，滚动条一直可见。
 
-**修法**：显隐门控用 `:focus-visible`（见第 62 条修法），指针点击在结构上不触发它，「恒真」这条复发路径不存在。`src/assets/js/posts/toc.ts` 的点击委托里指针点击（`e.detail > 0`）仍然 `blur()`——防止焦点留在按钮上、Space 重新触发点击；键盘激活（Enter / 空格，detail 为 0）保留焦点，键盘用户滚动目录时的指示不丢。
+**修法**：显隐门控用 `:focus-visible`（见第 62 条修法），指针点击在结构上不触发它，「恒真」这条复发路径不存在。`src/features/posts/scripts/toc.ts` 的点击委托里指针点击（`e.detail > 0`）仍然 `blur()`——防止焦点留在按钮上、Space 重新触发点击；键盘激活（Enter / 空格，detail 为 0）保留焦点，键盘用户滚动目录时的指示不丢。
 
 **怎么确认**：点一次目录项后 `document.activeElement` 不再是目录项；指针在正文滚动时只看到页面滚动条，移回目录上 2px 细条才出现。
 
@@ -504,9 +504,9 @@ if (!animatedElements.length) {
 
 **症状**：桌面端长文，文章滑到最下方后把目录滑到最上方，目录右缘同时出现两条 2px 细滚动条并排——一条是目录内层滚动的悬停条（第 62 条的门控条），另一条从侧栏边缘「卡」出来。活动项仍在窗内时（目录居中跟随）不出现，只有活动项被推出目录可视窗才出现。
 
-**原因**：活动项竖线 `.toc-active-bar` 是绝对定位，`translateY` 由活动项 offset 减目录 `scrollTop` 现算。文章在底部时活动项是最后一项，目录滚到顶后竖线被定位到目录可视窗下方数百像素处；`.toc-track` 原先不裁剪，竖线溢出计入其最近的滚动容器——sticky 的 `.post-sidebar`（`overflow-y: auto`，`src/layouts/PostsShell.astro`）——侧栏 `scrollHeight` 瞬间大于 `clientHeight` 变可滚，它自带的无门控细滚动条（0.1 alpha、2px）随之弹出，与悬停的目录条并排。
+**原因**：活动项竖线 `.toc-active-bar` 是绝对定位，`translateY` 由活动项 offset 减目录 `scrollTop` 现算。文章在底部时活动项是最后一项，目录滚到顶后竖线被定位到目录可视窗下方数百像素处；`.toc-track` 原先不裁剪，竖线溢出计入其最近的滚动容器——sticky 的 `.post-sidebar`（`overflow-y: auto`，`src/features/posts/layouts/PostsShell.astro`）——侧栏 `scrollHeight` 瞬间大于 `clientHeight` 变可滚，它自带的无门控细滚动条（0.1 alpha、2px）随之弹出，与悬停的目录条并排。
 
-**修法**：`.toc-track` 加 `overflow: hidden`（`src/components/posts/TableOfContents.astro` 的 scoped 样式）。竖线在活动项出窗时被裁在轨道边缘（出窗本来就不该画在外面），溢出无从进入侧栏滚动区。单条 CSS 覆盖竖线位移的全部写入路径（滚轮现算、触摸 scroll 监听、retarget 过渡），不逐点改 JS 钳制；侧栏 `overflow-y: auto` 保留作防御。
+**修法**：`.toc-track` 加 `overflow: hidden`（`src/features/posts/components/TableOfContents.astro` 的 scoped 样式）。竖线在活动项出窗时被裁在轨道边缘（出窗本来就不该画在外面），溢出无从进入侧栏滚动区。单条 CSS 覆盖竖线位移的全部写入路径（滚轮现算、触摸 scroll 监听、retarget 过渡），不逐点改 JS 钳制；侧栏 `overflow-y: auto` 保留作防御。
 
 **怎么确认**：文章滑到底、目录滑到顶，侧栏 `scrollHeight === clientHeight`（不可滚），同屏只剩目录自己的悬停细条一条；把目录滑回活动项在窗内，竖线照常贴住活动项。
 
@@ -566,8 +566,8 @@ if (!animatedElements.length) {
 | `--posts-offset-gap` 的镜像写法                                                | 侧栏偏移由运行时实测写入行内联变量，CSS 里的值是首帧默认值的镜像，刻意的                                                                           |
 | `.hoverable.hoverable` 双类                                                    | 特异性 hack，原因见 `CSS.md`「悬浮反馈」                                                                                                           |
 | 5 个背景预设彼此独立（含 ocean/wave-dots、blueprint/honeycomb 两对观感相近的） | 预设是独立视觉设计，刻意不合并                                                                                                                     |
-| `BaseLayout` 首帧搜索框脚本复制                                                | `is:inline` 脚本不能 import、无法共享，复制是唯一解                                                                                                |
-| `row-state` / `BaseLayout` 的行变体「双源」                                    | 构建期初值 + 运行时更新，swup 的标准模式，不是双写                                                                                                 |
+| `PostsRow` 首帧搜索框脚本复制                                                  | `is:inline` 脚本不能 import、无法共享，复制是唯一解                                                                                                |
+| `row-state` / `PostsRow` 的行变体「双源」                                      | 构建期初值 + 运行时更新，swup 的标准模式，不是双写                                                                                                 |
 | `dayscounter.ts` / `techstack.ts` 旧文件名                                     | 存量豁免（AGENTS §2.1），禁止新增、允许保留                                                                                                        |
 | markdown 局部颜色、骨架 0.06/0.14、头像光环、时钟仪表配色                      | 在 `CSS.md`「硬编码值白名单」，不当遗漏                                                                                                            |
 | 图片方案兜底纯黑 `#000`                                                        | 与首载 loading 屏衔接，见 `CSS.md`「全站背景」                                                                                                     |

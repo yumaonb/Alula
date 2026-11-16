@@ -1,0 +1,188 @@
+/* shell.css — 文章常驻行布局、搜索定位与切页转场 */
+/* 用法：由 src/features/posts/layouts/PostsRow.astro 引入。 */
+.page-main {
+  --posts-side-w: 260px;
+  --posts-side-gap: 16px;
+  --posts-offset-gap: 0px;
+  --posts-side-offset: 0px;
+  gap: var(--posts-side-gap);
+}
+
+/* 变体覆盖 global.css 的通用行留白；统一留白后可撤掉这层变体权重。
+ * 桌面顶边与 src/features/posts/layouts/PostsShell.astro 的目录吸顶位同为 82px，两处须同改。
+ * 偏移间隙与列表、正文内容的纵向间隙须同改，避免首帧与实测偏移不一致。 */
+.page-main.page-main--listing {
+  --posts-offset-gap: 14px;
+  --posts-side-offset: 50px;
+
+  --posts-edge-top: 82px;
+  padding-top: 82px;
+}
+.page-main.page-main--post {
+  --posts-offset-gap: 14px;
+  --posts-side-offset: 50px;
+  --posts-edge-top: 82px;
+  padding-top: 82px;
+}
+
+@media (max-width: 768px) {
+  .page-main.page-main--listing,
+  .page-main.page-main--post {
+    --posts-edge-top: 73px;
+    padding-top: 73px;
+  }
+
+  .page-main.page-main--post {
+    padding-top: 70px;
+    --posts-offset-gap: 13px;
+    --posts-side-offset: 41px;
+    --posts-edge-top: 70px;
+  }
+
+  /* 旧车道模糊退出时仍停在原位；73/70 须与上方两种行留白同改。 */
+  .posts-edge-float:has(> .posts-header) {
+    top: 73px;
+  }
+
+  .posts-edge-float:has(> .posts-breadcrumb) {
+    top: 70px;
+  }
+}
+
+/* 侧栏断点与 swup-widgets.ts 的筛选按钮可用区间互补，两处须同改。 */
+.page-main > .global-sidebar {
+  display: none;
+}
+@media (min-width: 769px) {
+  .page-main--listing > .global-sidebar {
+    display: flex;
+  }
+}
+@media (min-width: 1151px) {
+  .page-main--post > .global-sidebar {
+    display: flex;
+  }
+}
+
+.page-main--listing > .global-sidebar,
+.page-main--post > .global-sidebar {
+  padding-top: var(--posts-side-offset, 0);
+  transition: padding-top 0.4s ease;
+}
+
+/* 常驻盒与驱动条同位，压过驱动条且低于搜索框；克隆接管后驱动条只留布局。 */
+.posts-edge-float {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--posts-edge-top, 82px);
+  z-index: 20;
+  visibility: hidden;
+}
+.page-main--listing > .posts-edge-float,
+.page-main--post > .posts-edge-float {
+  visibility: visible;
+}
+
+/* 240px 须与 src/features/posts/layouts/PostsShell.astro 的目录宽度同改。 */
+@media (min-width: 851px) {
+  .page-main--post > .posts-edge-float {
+    right: calc(240px + var(--card-gap));
+  }
+}
+
+.page-main.is-edge-live main#swup .posts-edge-slot > .posts-header,
+.page-main.is-edge-live main#swup .posts-edge-slot > .posts-breadcrumb {
+  visibility: hidden;
+}
+
+/* 首帧基线与 posts-listing.css 的搜索占位重合，运行时由搜索定位脚本实测接管。
+ * 桌面宽度、手机标题行高和间隙须与占位两处同改；显隐不额外加透明度过渡。 */
+.posts-search-float {
+  position: absolute;
+  z-index: 30;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (min-width: 769px) {
+  .posts-search-float {
+    top: var(--posts-edge-top, 82px);
+    right: 0;
+    width: min(360px, 100%);
+  }
+}
+
+@media (max-width: 768px) {
+  .posts-search-float {
+    top: calc(var(--posts-edge-top, 73px) + 1.35rem + 16px);
+    left: 0;
+    right: 0;
+  }
+}
+.page-main--listing .posts-search-float {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  .page-main {
+    gap: 0;
+  }
+}
+
+/* ---- 切页转场 ---- */
+/* 常驻元素消费文章外壳脚本的静止标记；共享进出场关键帧由 global.css 唯一定义。 */
+html.is-leaving
+  .page-main
+  > :is(.global-sidebar, .posts-search-float, .posts-edge-float):not(.is-transition-still) {
+  animation: page-exit var(--t-page-exit) forwards;
+}
+
+html.is-rendering
+  .page-main
+  > :is(.global-sidebar, .posts-search-float, .posts-edge-float):not(.is-transition-still) {
+  animation: page-enter var(--t-page-enter);
+}
+
+.page-main > .posts-edge-float .posts-edge-content.is-edge-in {
+  animation: edge-blur-in var(--t-page-enter);
+}
+
+.page-main > .posts-edge-float .posts-edge-content.is-edge-out {
+  animation: edge-blur-out var(--t-page-exit) forwards;
+}
+
+/* 正文容器覆盖通用进入动画以保留磨砂，透明度只在正文内部变化；效果统一后可撤掉覆盖。 */
+html.is-rendering #swup:has(.post-content) {
+  animation: page-enter-glass var(--t-page-enter);
+}
+
+html.is-rendering #swup .post-content-inner {
+  animation: page-content-enter var(--t-page-enter);
+}
+
+@keyframes page-content-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes page-enter-glass {
+  from {
+    transform: translateY(var(--page-shift));
+  }
+}
+
+@keyframes edge-blur-out {
+  to {
+    filter: blur(var(--page-edge-blur));
+  }
+}
+
+@keyframes edge-blur-in {
+  from {
+    filter: blur(var(--page-edge-blur));
+  }
+}

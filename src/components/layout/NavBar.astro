@@ -135,8 +135,8 @@ const items = navItems.map((item) => ({
   .nav-inner {
     width: calc(100% - var(--page-gutter) * 2);
     margin: 0 auto;
-    /* 导航高度另有两处读取：widgets/Comments.astro 的 scroll-margin-top: 78px（让位偏移）、
-       posts/toc.ts 的 NAV_HEIGHT = 80 兜底；改高度三处同改 */
+    /* 导航高度另有两处读取：src/features/posts/components/Comments.astro 的 scroll-margin-top: 78px（让位偏移）、
+       src/features/posts/scripts/toc.ts 的 NAV_HEIGHT = 80 兜底；改高度三处同改 */
     height: 68px;
     display: flex;
     align-items: center;

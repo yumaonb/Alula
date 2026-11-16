@@ -4,8 +4,9 @@
 //
 // 纯静态只有一份 404.html（前台那份），admin 路径没法按请求分流，
 // 所以前台 404 的 head 里提前转发到本页；本页真实存在（直访是 200），随后台 noindex 不收录。
-import AdminLayout from './_admin/AdminLayout.astro';
 import { Icon } from 'astro-icon/components';
+
+import AdminLayout from './_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="404">

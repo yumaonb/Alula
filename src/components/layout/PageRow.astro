@@ -1,0 +1,15 @@
+---
+// PageRow.astro — 通用页面内容行与切页容器
+// 用法：文章功能关闭时，由 BaseLayout 通过 'virtual:features/page-row.astro' 引入。
+interface Props {
+  shellVariant?: 'plain' | 'listing' | 'post';
+}
+
+const { shellVariant = 'plain' } = Astro.props;
+---
+
+<div class:list={['page-main', `page-main--${shellVariant}`]}>
+  <main class="hero transition-page" id="swup" data-shell="site">
+    <slot />
+  </main>
+</div>

@@ -5,8 +5,9 @@
 // 「未连接 / 已连接」两套内容靠外壳的 .is-connected 类互斥（见 admin.css）：
 // 未连接给三步连接引导，已连接给仓库状态格。状态文字由 admin/pages.ts 的
 // initDashboard 从 adminStore 取数渲染。
-import AdminLayout from './_admin/AdminLayout.astro';
 import { Icon } from 'astro-icon/components';
+
+import AdminLayout from './_admin/AdminLayout.astro';
 
 const quickLinks = [
   {

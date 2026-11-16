@@ -1,0 +1,112 @@
+---
+// Breadcrumb.astro — 面包屑导航
+// 用法：<Breadcrumb items={[...]} />
+import { Icon } from 'astro-icon/components';
+
+import type { BreadcrumbItem } from '../lib/category';
+
+interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+---
+
+{items.length > 0 && (
+  <nav class="breadcrumb" aria-label="面包屑导航">
+    {items.map((item, index) => (
+      <span class="breadcrumb-item">
+        {index > 0 && (
+          <span class="breadcrumb-sep" aria-hidden="true">
+            /
+          </span>
+        )}
+        {item.href ? (
+          <a href={item.href} class="breadcrumb-link link-plain hover-brighten">
+            {item.icon && <Icon is:inline name={item.icon} class="breadcrumb-icon" />}
+            {item.label}
+          </a>
+        ) : (
+          <span class="breadcrumb-current" aria-current="page">
+            {item.icon && <Icon is:inline name={item.icon} class="breadcrumb-icon" />}
+            {item.label}
+          </span>
+        )}
+      </span>
+    ))}
+  </nav>
+)}
+
+<style>
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 2px;
+    margin: 0;
+    font-size: 0.85rem;
+    min-width: 0;
+  }
+
+  .breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  /* 中间层级可压缩：深分类 + 窄屏时先省略靠前的分类，保留最后一级（当前文章名） */
+  .breadcrumb-item:not(:last-child) {
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+  }
+
+  .breadcrumb-item:last-child {
+    flex-shrink: 0;
+  }
+
+  .breadcrumb-link,
+  .breadcrumb-current {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .breadcrumb-current {
+    flex-shrink: 0;
+  }
+
+  .breadcrumb-sep {
+    color: var(--ink);
+    margin: 0 4px;
+    font-size: 0.8em;
+  }
+
+  .breadcrumb-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    position: relative;
+    top: -1px;
+  }
+
+  /* 悬停只「亮起来」（文字变亮），不加背景底：面包屑条是细左缘元素，
+     挂 .hoverable 会有底色，改用 .hover-brighten */
+  .breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 2px 6px;
+  }
+
+  .breadcrumb-current {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+</style>

@@ -1,0 +1,140 @@
+---
+// ToolsPage.astro — 实用工具页（分类工具集合，数据来自 src/data/tools.ts）
+// 用法：路由 /tools/
+import { Icon } from 'astro-icon/components';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { navItem } from '../../data/nav';
+import { toolCategories } from '../../data/tools';
+
+// 页头标题图标与导航同源（src/data/nav.ts），页面不写死自己的路径
+const pageNav = navItem('tools');
+---
+
+<BaseLayout title="实用工具">
+  <div class="tools-page page-top-standard">
+    <div class="page-head">
+      <h1 class="page-title">
+        <Icon is:inline name={pageNav.icon} class="page-title-icon" />
+        实用工具
+      </h1>
+    </div>
+    {toolCategories.map((category) => (
+      <>
+        <h2 class="tool-group-title">{category.title}</h2>
+        <div class="tools-grid">
+          {category.tools.map((tool) => (
+            <a
+              href={tool.url}
+              class="tool-card glass hoverable link-plain"
+              target="_blank"
+              rel="noopener"
+            >
+              <span class="tool-info">
+                <span class="tool-name">{tool.title}</span>
+                <span class="tool-desc">{tool.desc}</span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  /* width: 100% 必须有：.tools-page 是 flex 容器，只写 max-width 会塌成窄缝
+     页头用全站页面标题（.page-head / .page-title / .page-title-icon，见 utilities.css）；
+     分类标题与卡片网格直接平铺（无分组容器） */
+  .tools-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 标题上下各留 12px */
+  .tool-group-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  /* 标题前的竖条，给分类一个视觉起点 */
+  .tool-group-title::before {
+    content: '';
+    width: 4px;
+    height: 0.95em;
+    border-radius: 2px;
+    background: var(--white);
+  }
+
+  /* ---- 工具卡片网格 ----
+     列数由容器宽度决定（单卡最窄 210px）：1200px 内容宽时 5 列封顶，窄屏自动减列 */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr));
+    gap: var(--card-gap);
+  }
+
+  .tool-card {
+    padding: 16px 18px;
+    text-decoration: none;
+    color: inherit;
+    /* 网格项默认 min-width:auto，长标题会把列撑宽；置 0 让标题走省略号 */
+    min-width: 0;
+  }
+
+  .tool-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .tool-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color var(--t-hover);
+  }
+
+  .tool-desc {
+    font-size: 0.8rem;
+    color: var(--ink);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 悬停提亮走子元素（.hoverable 自身不写 transition，见 utilities.css） */
+  .tool-card:hover .tool-name {
+    color: var(--white);
+  }
+
+  /* ---- 小屏适配 ---- */
+  @media (max-width: 768px) {
+    /* 手机端固定一行俩 */
+    .tools-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tool-card {
+      padding: 14px 16px;
+    }
+  }
+
+  /* 再窄（小屏手机）一行俩会挤成碎行，退回一行一个 */
+  @media (max-width: 400px) {
+    .tools-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

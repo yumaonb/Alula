@@ -1,0 +1,202 @@
+---
+// TableOfContents.astro — 文章目录（编译期生成，滚动高亮）
+// 用法：<TableOfContents headings={headings} />
+// data-target（标题 slug）是目录与正文标题的唯一连接键（src/features/posts/scripts/toc.ts 读取），改 slug 规则两处同改
+import { Icon } from 'astro-icon/components';
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+
+const hasH1 = headings.some((h) => h.depth === 1);
+const hasH2 = headings.some((h) => h.depth === 2);
+const hasH3 = headings.some((h) => h.depth === 3);
+
+let tocItems: MarkdownHeading[] = [];
+
+if (hasH1 && hasH2) {
+  tocItems = headings.filter((h) => h.depth <= 2);
+} else if (hasH2 && hasH3) {
+  tocItems = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+} else if (hasH1) {
+  tocItems = headings.filter((h) => h.depth === 1);
+} else if (hasH2) {
+  tocItems = headings.filter((h) => h.depth === 2);
+} else if (hasH3) {
+  tocItems = headings.filter((h) => h.depth === 3);
+}
+---
+
+{tocItems.length > 0 && (
+  <nav class="toc-nav" aria-label="文章目录">
+    <div class="toc-header panel-title">
+      <Icon is:inline name="la:list" class="toc-icon" />
+      <span>文章目录</span>
+    </div>
+    <div class="toc-track">
+      <div class="toc-scroll" id="toc-list">
+        <!-- 目录项是 button 而非真链接：swup 不捕获、状态栏不显示地址，
+             点击由 src/features/posts/scripts/toc.ts 的委托接管平滑滚动（见 TROUBLESHOOTING.md 第 63 条） -->
+        <ul class="toc-list">
+          {tocItems.map((heading) => (
+            <li
+              class:list={['toc-item', { 'toc-sub': heading.depth > tocItems[0].depth }]}
+              data-target={heading.slug}
+            >
+              <button type="button" class="toc-link">
+                {heading.text.replace(/\s*#$/, '')}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <!-- 竖线在滚动内容之外：相对轨道真固定，不随内容滚动 -->
+      <div class="toc-active-bar" id="toc-bar"></div>
+    </div>
+  </nav>
+)}
+
+<script>
+  import '../scripts/toc';
+</script>
+
+<style>
+  .toc-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* 搬进抽屉时的布局差异：由组件自己负责，抽屉不必知道内部结构 */
+  /* 抽屉里的版式差异：变体类由 src/features/posts/scripts/toc.ts 增删，改类名两处同改 */
+  .toc-nav.toc-nav--in-drawer .toc-header {
+    display: none;
+  }
+
+  .toc-nav.toc-nav--in-drawer,
+  .toc-nav.toc-nav--in-drawer .toc-track,
+  .toc-nav.toc-nav--in-drawer .toc-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* 面板标题排布走全站 .panel-title，这里只留本面板的字号与字距 */
+  .toc-header {
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+  }
+
+  .toc-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.55;
+  }
+
+  /* 轨道只做竖线的定位盒；滚动在内层 .toc-scroll。
+   * 裁剪是必须的：活动项滚出可视窗时竖线会定位到轨道外，
+   * 溢出不裁就会撑爆 sticky 侧栏的滚动区，卡出第二条滚动条 */
+  .toc-track {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .toc-scroll {
+    max-height: calc(100vh - 211px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-left: 6px;
+    /* 默认隐藏，悬停或键盘聚焦目录时才显现：否则长文里它会与全站页面滚动条
+     * 同屏，一条挨着侧栏边缘、一条挨着视口边缘，像卡出来两条。指针点击不
+     * 触发 :focus-visible，显隐门控由这里单一承担（见 TROUBLESHOOTING 第 62 /
+     * 64 条）。三件套齐全才跨浏览器一致：scrollbar-width / scrollbar-color
+     * 管 Firefox，::-webkit-scrollbar 管 Chromium 与 Safari。 */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .toc-scroll:hover,
+  .toc-scroll:focus-visible {
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  }
+
+  .toc-scroll::-webkit-scrollbar {
+    width: 2px;
+  }
+  .toc-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .toc-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 2px;
+  }
+
+  .toc-scroll:hover::-webkit-scrollbar-thumb,
+  .toc-scroll:focus-visible::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .toc-active-bar {
+    position: absolute;
+    /* 位移由 toc.ts 的 translateY 驱动（合成器通道），这里只定锚点 */
+    top: 0;
+    left: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.85);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .toc-item {
+    border-radius: 4px;
+  }
+
+  .toc-link {
+    appearance: none;
+    background: none;
+    border: 0;
+    font: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--ink);
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--t-hover);
+  }
+
+  .toc-sub .toc-link {
+    padding-left: 24px;
+    font-size: 0.76rem;
+  }
+
+  /* 悬停不走全站 .hoverable（那会加白底描边）：只提亮文字、不要轮廓，统一走亮色令牌 */
+  .toc-link:hover,
+  .toc-link:focus-visible {
+    color: var(--white);
+  }
+
+  .toc-item.active .toc-link {
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  .toc-sub.active .toc-link {
+    font-weight: 400;
+  }
+</style>

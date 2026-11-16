@@ -56,58 +56,6 @@
   border-color: var(--hover-line);
 }
 
-/* 已选中的元素（chip / psd-item 的 --active 态）不被悬停盖回未选中观感。
- * 必须排在上面两条悬停规则之后：三条特异性同为 (0,3,0)，靠顺序决定谁赢 */
-.hoverable.hoverable.chip--active,
-.hoverable.hoverable.psd-item--active {
-  color: var(--white);
-  background: var(--active-bg);
-  border-color: var(--hover-line);
-}
-
-/* ---- 只提亮文字的悬停（不加背景底 / 描边） ----
- * 面包屑链接、卡片标题 / 分类、转载链接、分类项这类「悬停只让文字变亮、不要底色」的
- * 元素挂 .hover-brighten：静止色保留在各自组件里，本类只负责提亮到 --white 与过渡时长。
- * 类名重复写两遍提到 (0,3,0)：组件的静止 color 是 (0,2,0) 且排在全局样式之后，
- * 单类 :hover (0,2,0) 压不过（与 .hoverable 同一机制，见上）。
- * 挂 .hover-brighten 的元素不要再自己写 transition / :hover 的 color（会与本类打架）；
- * 静止色本身在 (0,3,0) 的元素（如目录子项）不挂这里，仍走各自的组件悬停。 */
-.hover-brighten {
-  transition: color var(--t-hover);
-}
-
-.hover-brighten.hover-brighten:hover,
-.hover-brighten.hover-brighten:focus-visible {
-  color: var(--white);
-}
-
-/* ---- 标签 chip ----
- * 小标签：淡底 + 内描边，选中态换成 --active-bg 填底。
- * 全站唯一定义：标签云（PostTagCloud）与筛选抽屉里的标签都用这一份，
- * 组件里不再各写一套。挂 .hoverable 时悬停与选中由上面几条统一接管。 */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--rest-bg);
-  box-shadow: inset 0 0 0 1px var(--ring);
-  color: var(--ink);
-  font: inherit;
-  font-size: 0.74rem;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-/* 与上方 .hoverable.hoverable.chip--active 的选中态是同一组值，两处须同改 */
-.chip--active {
-  color: var(--white);
-  background: var(--active-bg);
-  box-shadow: inset 0 0 0 1px var(--hover-line);
-}
-
 /* ---- 圆形头像 ----
  * 白描边 + 光晕的头像环，首页 / 关于 / 友链 / 作者名片共用。
  * 尺寸只调 --avatar-size（默认 100px）：调用处覆写该变量即可，
@@ -128,63 +76,6 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-}
-
-/* ---- 高玻璃容器 ----
- * 供内容可能超过手机 GPU 纹理上限（约 4096px）的玻璃容器使用：
- * 超高元素上的 backdrop-filter 会被部分手机浏览器静默丢弃（矮元素不受影响）。
- * 原理：模糊改由一个始终只有一屏高（100vh）的 sticky ::before 伪元素承担
- * （滚动时贴住视口，等效 backdrop-filter 的采样区域，不受容器高度限制），
- * 容器自身用 overflow: clip + 圆角裁剪模糊层（overflow: clip 不影响后代模糊；
- * 勿改用 clip-path，Chromium 中祖先 clip-path 会使后代 backdrop-filter 失效）。
- * 注意：容器自身不要设置 padding（模糊层只铺满内容盒，内边距请放到内部
- * 包裹层），自身需要滚动（overflow: auto/hidden）或内部依赖溢出显示的容器勿用。
- * 不支持 overflow: clip 的浏览器自动回退为容器直接模糊（.glass 原表现）。
- */
-@supports (overflow: clip) {
-  .glass-tall {
-    overflow: clip;
-    position: relative;
-    /* 模糊改由 ::before 伪元素承担，避免超高元素模糊失效 */
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  .glass-tall::before {
-    content: '';
-    display: block;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    /* 抵消自身高度，不占布局空间 */
-    margin-bottom: -100vh;
-    z-index: -1;
-    pointer-events: none;
-    backdrop-filter: blur(var(--blur));
-    -webkit-backdrop-filter: blur(var(--blur));
-  }
-}
-
-/* ---- 细滚动条（常显 2px，白 0.1 滑块） ----
- * 文章区里常驻可见的滚动容器（右侧目录栏、筛选侧栏）统一走这一份：
- * scrollbar-width / scrollbar-color 管 Firefox，::-webkit-scrollbar 管 Chromium 与 Safari。
- * 只服务「常显」的滚动条；悬停才显现的目录滚动条（.toc-scroll）自成一套，不挂这里。 */
-.thin-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-}
-
-.thin-scroll::-webkit-scrollbar {
-  width: 2px;
-}
-
-.thin-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.thin-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
 }
 
 /* ---- 页面标题（项目 / 友链 / 赞助 / 文章列表共用） ----
@@ -235,17 +126,4 @@
   .page-top-standard {
     margin-top: -11px;
   }
-}
-
-/* ---- 面板标题（侧栏分类 / 标签 / 文章目录的小标题共用） ----
- * 左图标 + 大写小字的区块标题：排布、字重、字距、颜色全站一份；
- * 各面板保留自己的字号 / 下间距 / 左缩进（覆写本类即可）。 */
-.panel-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink);
 }

@@ -47,6 +47,21 @@ export function byExt(...exts) {
   return (rel) => set.has(extname(rel));
 }
 
+/** 组件扫描共用目录边界；注入路由的页面入口不属于组件调用契约。 */
+export function componentFiles() {
+  const isComponent = byExt('.astro', '.svelte');
+  return walk('src/components', isComponent)
+    .concat(walk('src/layouts', isComponent))
+    .concat(walk('src/pages/admin/_admin', isComponent))
+    .concat(
+      walk(
+        'src/features',
+        (file) =>
+          isComponent(file) && /^src\/features\/[^/]+\/(?:components|layouts|_admin)\//.test(file),
+      ),
+    );
+}
+
 /**
  * 调用方是否被直接执行（而不是被 import）：用来兼顾「单独跑」与「汇总跑」。
  * 必须传调用方自己的 import.meta.url——本模块拿到的 url 永远指向 common.mjs 自己。

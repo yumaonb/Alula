@@ -3,8 +3,17 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
+import { features } from 'virtual:site-features';
+
 const posts = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
+  loader: features.pages.posts
+    ? glob({ pattern: '**/*.md', base: './src/content/posts' })
+    : {
+        name: 'disabled-posts',
+        load: async ({ store }) => {
+          store.clear();
+        },
+      },
   schema: z
     .object({
       title: z.string().optional(),
@@ -15,10 +24,9 @@ const posts = defineCollection({
       pinned: z.boolean().optional(),
       hidden: z.boolean().optional(),
     })
-    // 只认上面这 7 个字段：写错的字段名（description 少个 s、hide 之类）直接构建失败。
-    // 放行未知字段等于让拼写错误静默生效，字段看着写了、页面拿不到
+    // 未知字段直接报错，避免拼写错误静默生效。
     .strict()
-    // 缺字段默认值在 src/lib/posts-views.ts 还有一份，改默认值两处同改（漏改两层取到不同默认）
+    // 默认值与 src/features/posts/lib/posts-views.ts 两处同改，保持两层读取一致。
     .transform((fm) => {
       if (fm.title == null) fm.title = '无标题';
       if (fm.tags == null) fm.tags = [];

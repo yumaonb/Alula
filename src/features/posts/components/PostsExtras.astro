@@ -1,0 +1,71 @@
+---
+// PostsExtras.astro — 文章功能的悬浮按钮、常驻抽屉与灯箱入口
+// 用法：文章功能启用时，由 BaseLayout 通过 'virtual:features/page-extras.astro' 引入。
+// 目录和筛选按钮标识由 PostsDrawers 监听，按钮键与文章悬浮按钮脚本保持一致。
+import { Icon } from 'astro-icon/components';
+
+import SideWidgets from '../../../components/layout/SideWidgets.astro';
+import PostsDrawers from './PostsDrawers.svelte';
+---
+
+<SideWidgets>
+  <button
+    class="back-to-widget glass hoverable"
+    data-widget="toc"
+    id="toc-fab"
+    aria-label="文章目录"
+    aria-haspopup="dialog"
+    aria-expanded="false"
+  >
+    <Icon is:inline name="la:list" class="back-to-widget-icon" />
+  </button>
+
+  <button
+    class="back-to-widget glass hoverable"
+    data-widget="filter"
+    id="posts-filter-fab"
+    aria-label="分类与标签"
+    aria-haspopup="dialog"
+    aria-expanded="false"
+  >
+    <Icon is:inline name="la:tags" class="back-to-widget-icon" />
+  </button>
+
+  <button class="back-to-widget glass hoverable" data-widget="comments" aria-label="到评论">
+    <Icon is:inline name="la:comment" class="back-to-widget-icon" />
+  </button>
+</SideWidgets>
+<PostsDrawers client:idle />
+
+<script>
+  import '../scripts/swup-widgets';
+</script>
+<script>
+  import '../scripts/lightbox';
+</script>
+
+<style>
+  /* 紧凑态由文章悬浮按钮脚本按侧栏可见性设置。 */
+  #posts-filter-fab.compact {
+    width: 40px;
+    height: 40px;
+  }
+
+  #posts-filter-fab.compact :global(.back-to-widget-icon) {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* 单一插槽保留目录、筛选在进度前，评论在进度与到底部之间。 */
+  :global(#side-widgets [data-widget='progress']) {
+    order: 1;
+  }
+
+  [data-widget='comments'] {
+    order: 2;
+  }
+
+  :global(#side-widgets [data-widget='bottom']) {
+    order: 3;
+  }
+</style>

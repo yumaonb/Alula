@@ -1,11 +1,7 @@
 ---
-// SideWidgets.astro — 侧边悬浮按钮列（纯静态标记，交互由 swup-widgets.ts 控制）
-// 用法：<SideWidgets />（BaseLayout 引入）
-// DOM 约定：容器 #side-widgets；每个按钮 .back-to-widget +
-//   data-widget="top|toc|filter|progress|comments|bottom"；
-//   目录 / 筛选按钮 id 固定为 #toc-fab / #posts-filter-fab（由 PostsDrawers 监听）
-// data-widget 键必须与 assets/js/nav/swup-widgets.ts 的 WIDGET_ORDER 一致，增 / 删 / 改名同改；
-// 进度环 rect 的 pathLength="100" 是 swup-widgets.ts 里 stroke-dashoffset 的刻度，改刻度同改
+// SideWidgets.astro — 通用悬浮按钮列与功能按钮插槽
+// 用法：由 PageExtras 通过 './SideWidgets.astro' 引入，功能外壳可传入额外按钮。
+// 容器与按钮标记供悬浮按钮脚本读取；进度环的 pathLength 与脚本百分比刻度须同改。
 import { Icon } from 'astro-icon/components';
 ---
 
@@ -14,27 +10,7 @@ import { Icon } from 'astro-icon/components';
     <Icon is:inline name="la:arrow-up" class="back-to-widget-icon" />
   </button>
 
-  <button
-    class="back-to-widget glass hoverable"
-    data-widget="toc"
-    id="toc-fab"
-    aria-label="文章目录"
-    aria-haspopup="dialog"
-    aria-expanded="false"
-  >
-    <Icon is:inline name="la:list" class="back-to-widget-icon" />
-  </button>
-
-  <button
-    class="back-to-widget glass hoverable"
-    data-widget="filter"
-    id="posts-filter-fab"
-    aria-label="分类与标签"
-    aria-haspopup="dialog"
-    aria-expanded="false"
-  >
-    <Icon is:inline name="la:tags" class="back-to-widget-icon" />
-  </button>
+  <slot />
 
   <button class="back-to-widget glass hoverable" data-widget="progress" aria-label="阅读进度">
     <svg class="progress-ring" viewBox="0 0 54 54" aria-hidden="true">
@@ -53,30 +29,12 @@ import { Icon } from 'astro-icon/components';
     <span class="progress-text">0%</span>
   </button>
 
-  <button class="back-to-widget glass hoverable" data-widget="comments" aria-label="到评论">
-    <Icon is:inline name="la:comment" class="back-to-widget-icon" />
-  </button>
-
   <button class="back-to-widget glass hoverable" data-widget="bottom" aria-label="到底部">
     <Icon is:inline name="la:arrow-down" class="back-to-widget-icon" />
   </button>
 </div>
 
 <style>
-  /* 目录 / 筛选按钮的显隐全由 swup-widgets.ts 的 probe 按"侧栏/目录栏是否可见"控制
-     （挂 .unavailable 类），这里不再写静态媒体查询，避免断点两处漂移。 */
-
-  /* 列表页缩小为紧凑按钮 */
-  #posts-filter-fab.compact {
-    width: 40px;
-    height: 40px;
-  }
-
-  #posts-filter-fab.compact :global(.back-to-widget-icon) {
-    width: 18px;
-    height: 18px;
-  }
-
   /* ---- 阅读进度环 ---- */
   .progress-ring {
     position: absolute;
@@ -92,9 +50,7 @@ import { Icon } from 'astro-icon/components';
     stroke-width: 2;
   }
 
-  /* 环的圆角 = 按钮圆角（var(--radius)）：环按 54 视口缩放到实际渲染尺寸
-     （按钮 +2px，桌面 46px / 移动端 40px），视口单位 = 目标 px × 54 ÷ 实际尺寸；
-     以后改 --radius 自动跟随，改按钮尺寸或 viewBox 时同步分母。 */
+  /* 圆角按进度环视口缩放补偿；改按钮尺寸或视口时同步分母。 */
   .progress-ring rect {
     rx: calc(var(--radius) * 54 / 46);
   }
@@ -113,7 +69,6 @@ import { Icon } from 'astro-icon/components';
     transition: stroke-dashoffset 0.1s linear;
   }
 
-  /* 减少动态效果：进度环不逐帧补间，直接落到目标值 */
   @media (prefers-reduced-motion: reduce) {
     .progress-ring-bar {
       transition: none;

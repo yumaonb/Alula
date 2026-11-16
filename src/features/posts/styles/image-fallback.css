@@ -1,0 +1,82 @@
+/* image-fallback.css — 文章封面与正文图片的占位和加载状态 */
+/* 用法：由 src/features/posts/layouts/PostsRow.astro 引入。 */
+
+/* ---- 文章详情页封面 ---- */
+.post-cover {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* 图片盖在占位图标之上（图标为绝对定位，图片需相对定位提升层序） */
+.post-cover img {
+  position: relative;
+}
+
+.cover-ph-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: var(--white);
+  opacity: 0.5;
+}
+
+.post-cover .cover-ph-icon svg {
+  width: 84px;
+  height: 84px;
+}
+
+/* 无图片子元素（构建期缺失）或封面加载失败（img 被摘掉）时保留封面版式 */
+.post-cover:not(:has(img)) {
+  aspect-ratio: 21 / 9;
+  min-height: 200px;
+}
+
+@media (max-width: 768px) {
+  .post-cover:not(:has(img)) {
+    aspect-ratio: 16 / 9;
+    min-height: 120px;
+  }
+}
+
+/* ---- 文章列表卡片封面 ---- */
+.post-card-cover {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.post-card-cover img {
+  position: relative;
+}
+
+.post-card-cover .cover-ph-icon svg {
+  width: 44px;
+  height: 44px;
+}
+
+/* 卡片封面占位高度由卡片组件控制，额外设置最小高度会撑破卡片。 */
+
+/* ---- 正文图片 ---- */
+.markdown-body img:not(.img-loaded) {
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' fill-opacity='0.5' d='M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-5.04 9.29l-2.75 3.54l-1.96-2.36L6.5 17h11z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 84px 84px;
+  border-radius: var(--radius);
+}
+
+/* 无宽高属性的正文图片（外链图等）：加载完成前给一个最小占位盒子，
+ * 保证上面的占位底可见（带 width/height 属性的图片由 markdown.css
+ * 按属性预留等比例空间，无需此兜底） */
+.markdown-body img:not([width]):not([height]):not(.img-loaded) {
+  min-width: 100%;
+  min-height: 160px;
+}
+
+/* 正文图片可点击放大（配合 lightbox.ts 灯箱） */
+.markdown-body img {
+  cursor: zoom-in;
+}

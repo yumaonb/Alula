@@ -24,14 +24,14 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 
 ## 规则怎么读（规则不自动加载，靠这张表）
 
-| 要动的文件                                                       | 动手前先读                                                           |
-| ---------------------------------------------------------------- | -------------------------------------------------------------------- |
-| 项目总览、命令、目录地图、项目级硬约束                           | `docs/rules/00-project.md`                                           |
-| CSS / 样式放哪里                                                 | `docs/rules/30-css.md`                                               |
-| 组件选型与水合指令（`src/**/*.{astro,svelte}`）                  | `docs/rules/40-astro-svelte.md`                                      |
-| 文章内容（`src/content/**`）                                     | `docs/rules/50-content.md`                                           |
-| 客户端脚本（`src/assets/js/**`、`src/pages/admin/_admin/js/**`） | `docs/rules/60-client-script.md`                                     |
-| 收工前                                                           | `docs/rules/70-verify.md` 验证、`docs/rules/80-doc-sync.md` 同步文档 |
+| 要动的文件                                                                           | 动手前先读                                                           |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| 项目总览、命令、目录地图、项目级硬约束                                               | `docs/rules/00-project.md`                                           |
+| CSS / 样式放哪里                                                                     | `docs/rules/30-css.md`                                               |
+| 组件选型与水合指令（`src/**/*.{astro,svelte}`）                                      | `docs/rules/40-astro-svelte.md`                                      |
+| 文章内容（`src/content/**`）                                                         | `docs/rules/50-content.md`                                           |
+| 客户端脚本（`src/assets/js/`、`src/features/` 内脚本、`src/pages/admin/_admin/js/`） | `docs/rules/60-client-script.md`                                     |
+| 收工前                                                                               | `docs/rules/70-verify.md` 验证、`docs/rules/80-doc-sync.md` 同步文档 |
 
 ## 开发规范
 
@@ -45,6 +45,7 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 - 不写只在浏览器里成立的顶层代码：`.astro` 前置脚本在构建期执行，`window` / `document` 只能出现在 `<script>` 块或 Svelte 生命周期里。
 - 不用淘汰的语法：HTML 的淘汰标签与属性（`<font>` / `<center>` / `<marquee>` / `align=` / `bgcolor=`），CSS 的淘汰写法（IE 滤镜、`-moz-opacity` 之类）。
 - 后台是自包含外壳：组件 / 样式 / 脚本全部在 `src/pages/admin/_admin/`（下划线目录不被 Astro 路由），禁止 import 前台的 `src/components/`、`src/layouts/`、`src/assets/`；需要相同的东西就拷进 `_admin/` 各自维护；共享的只有构建期配置 `src/data/`。
+- 后台页面固定放在 `src/pages/admin/`，始终由 Astro 自动注册，不参加功能开关、路由注入或构建期入口替换。
 
 ### 2. 命名
 
@@ -102,13 +103,13 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 - 不留注释掉的代码、未使用的变量与 import。
 - 优先纯函数与早返回；`if` 嵌套超过三层就重构。
 - 不写 barrel 文件（`index.ts` 再导出），直接从具体文件 import。
-- 项目**没有 `@` 路径别名**，import 一律真实相对路径（注释里的示例 import 同样）。
+- 项目**没有 `@` 路径别名**，项目文件 import 用真实相对路径（注释示例同样）；已声明的 `virtual:` 构建入口按其明确模块名引用。
 - import 顺序：astro 内置 → 第三方包 → 项目相对路径 → 样式 / 资源，组间空一行。
 
 ### 4. 组件
 
 - Astro 优先；需要定时器、事件监听、响应式状态、rAF 才用 Svelte。
-- 交互复杂到水合都不可靠的，用纯静态标记 + `src/assets/js/` 脚本控制（`SideWidgets` + `swup-widgets` 范式）。
+- 交互复杂到水合都不可靠的，用纯静态标记 + 所属功能域或 `src/assets/js/` 的脚本控制（`SideWidgets` + `swup-widgets` 范式）。
 - Svelte 不引 Astro 组件。
 - Svelte 只用 runes（`$state` / `$derived` / `$effect` / `$props`），不用 `export let` 与 `$:`；事件用属性式（`onclick={...}`），不用 `on:click`。
 - Svelte 脚本一律 `<script lang="ts">`；Astro 模块脚本块不能带任何属性（加了就当 `is:inline`）；`is:inline` 内联脚本不过构建期转译，必须保持普通 JS（用途：`define:vars` 注入构建期数据、切页后重跑）。
@@ -120,21 +121,21 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 
 ### 5. 样式
 
-- 设计令牌（颜色、圆角、模糊、时长）只在 `src/assets/css/variables.css` 定义；后台令牌全部在 `src/pages/admin/_admin/css/variables.css`（蓝白商业风独立一套，与前台零共用零拷贝）；组件不硬编码。
+- 设计令牌（颜色、圆角、模糊、时长）按归属定义：全站在 `src/assets/css/variables.css`，共享 Markdown 高亮在 `src/assets/css/shared/variables.css`，文章专属在 `src/features/posts/styles/variables.css`；后台令牌全部在 `src/pages/admin/_admin/css/variables.css`（蓝白商业风独立一套，与前台零共用零拷贝）；组件不硬编码。
 - 圆角分两档，按元件角色判定：小标签 / chip 用 `--radius-sm`，卡片与按钮用 `--radius`（细则见 `docs/reference/CSS.md`「令牌」节）。
 - 是否立令牌以语义为准，不以「重复次数」为判据：值承载稳定设计含义、会在多处持续复用时才立（由设计者定夺），单纯重复不强制。
 - 不用 `!important`；要覆盖就调选择器权重或换类名。
 - 前台磨砂一律挂 `.glass`（`utilities.css` 全站唯一定义），组件不自己写 `backdrop-filter`；后台无磨砂语言，底色全部平铺。
 - 前台确需 `backdrop-filter` 时必须与 `-webkit-` 前缀成对写；不要打开 `astro.config.ts` 里 `compress` 的 CSS 压缩。
 - 前台悬停效果一律 `.hoverable` + `--hover-*` 令牌，不另写 `:hover` 提亮；挂 `.hoverable` 的元素不自己写 `transition`；悬停提亮（颜色 / 填底 / 描边变亮、淡入）时长一律 `var(--t-hover)`，位移 / 开合 / 显隐 / 图片缩放等其他动效各自定义，不硬编码数字；后台没有 `.glass` / `.hoverable` 体系，悬停与聚焦效果在 `src/pages/admin/_admin/css/` 里自写。
-- 断点**不是全站统一的一套，也不要求统一**：`768px` / `769px` 是全站手机 ↔ 桌面分界（`nav/breakpoint.ts` 与各 CSS 同值）；`850` / `1150`（含互补的 `1151px`）只出现在 `nav/swup-widgets.ts`、`posts/toc.ts`、`posts/row-state.ts` 与 `PostsShell.astro` / `global.css`；页面还会按自己版面另设专属值（如首页 `827px`：两栏最小总宽 716 + 两侧 112 = 828，装不下就转单栏）。版面专属断点是**刻意的**，别拉齐到别的页面的值。改某处断点只同步「同一条版面规则」的其它处（写死处都有注释指向），**不抽成共享常量**——多一个文件、多一层跳转，利小于弊。分批表与推导见 `docs/reference/CSS.md` 的「断点」。
+- 断点**不是全站统一的一套，也不要求统一**：`768px` / `769px` 是全站手机 ↔ 桌面分界（`nav/breakpoint.ts` 与各 CSS 同值）；`850` / `1150`（含互补的 `1151px`）只出现在 `src/features/posts/scripts/swup-widgets.ts`、`src/features/posts/scripts/toc.ts`、`src/features/posts/scripts/row-state.ts` 与 `src/features/posts/layouts/PostsShell.astro` / `src/features/posts/styles/shell.css`；页面还会按自己版面另设专属值（如首页 `827px`：两栏最小总宽 716 + 两侧 112 = 828，装不下就转单栏）。版面专属断点是**刻意的**，别拉齐到别的页面的值。改某处断点只同步「同一条版面规则」的其它处（写死处都有注释指向），**不抽成共享常量**——多一个文件、多一层跳转，利小于弊。分批表与推导见 `docs/reference/CSS.md` 的「断点」。
 - 页面外层宽度只由 `.page-main` 执行；要收窄内容列写 `width: 100%` + `max-width`（只写 `max-width` 会让纯中文页面塌成窄缝）。
 - 类名不跨组件复用同名异义；避免裸元素选择器影响全局。
 - 新增可复用类随代码自动进 `docs/REGISTRY.md`（`pnpm registry:write` 重建），样式机制与规则见 `docs/reference/CSS.md` 对应节。
 
 ### 6. 客户端脚本
 
-- 放 `src/assets/js/`（后台脚本放 `src/pages/admin/_admin/js/`，不 import `src/assets/js/`），新文件一律 `.ts`。
+- 公共客户端脚本放 `src/assets/js/`，功能专属脚本放 `src/features/` 对应功能域的脚本目录；后台脚本放 `src/pages/admin/_admin/js/`，不 import 前台脚本；新文件一律 `.ts`。
 - 文件头写「用法：由哪个组件引入」。
 - 假设 DOM 随时被替换：监听元素前先判空，优先事件委托，内容替换后需要重绑的绑定要能重绑。
 - 不用 `DOMContentLoaded`；用 `swup:content:replace` / `astro:after-swap` / `astro:page-load`；swup v3 驼峰事件名（`swup:contentReplaced` 之类）不会触发，禁止使用。
@@ -228,7 +229,7 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 - 参数传数据就合并，传行为就分开：抽出物不得以 `mode` / `variant` 参数分支；所有调用点恒传同一值的参数删掉。
 - 已经有两份相同逻辑还想加第三份时，必须写明「共变=不必」的具体理由；写不出就合并，并补一条能抓漂移的 behavior test。
 - 令牌与常量按语义立，不按重复次数立（同 §5 的 CSS 令牌判据）。
-- 合并先落本地（同文件 / 同模块）；`lib/` 与 `variables.css` 是公共边界，跨层 import 是红线。
+- 合并先落本地（同文件 / 同功能域）；提到公共 `src/lib/`、`src/assets/` 或全站令牌前，先确认真实共享语义，依赖方向遵守第 14 节。
 
 ### 13. 修复策略
 
@@ -236,10 +237,26 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 - 靠提权或源码顺序取胜的覆盖，覆盖处必须带契约注释：谁压谁 + 何时该拆掉这层；同值写两处的必须注明「两处须同改」。
 - TROUBLESHOOTING 决定台账里同一族问题修满三次，条目必须写明「下次触碰时做一次结构收敛」，不再照叠第四层。
 
+### 14. 功能边界与扩展
+
+- 首页 `src/pages/index.astro`、前台 404 `src/pages/404.astro` 与 `src/pages/admin/` 固定由 Astro 自动路由，不设开关、不参与功能路由注入或入口替换。
+- 可选功能的组件、布局、脚本、样式、工具和资源放在 `src/features/` 对应功能域内；公共目录只留实际跨功能复用的内容。内容与配置仍集中在 `src/content/`、`src/data/`，不因功能拆分强制搬动。
+- 公共模块不可静态反向导入可选功能；跨功能共享先提取职责明确的公共核，禁止直接借用另一功能内部实现。
+- 功能需要接入全站时只使用少量、语义明确的虚拟入口；禁止静默改写真实文件的相对 import，禁止为每个内部文件增设公共扩展入口。
+- 可选路由和导航元数据统一登记在 `src/data/feature-definitions.ts`；清单与导航派生函数保持纯数据、纯函数，导航 URL 从路由定义派生，不另写一份。
+- `src/data/config.ts` 只保留开关常量；构建消费方统一使用 `virtual:site-features` 的有效配置，不绕回日常配置。
+- 可选资源放功能域内，通过构建入口按开关引入或生成；不要放进会无条件复制的 `public/`。
+- 修改功能开关、路由清单、扩展入口或共享依赖边界时，除常规验证外运行 `node tests/feature-build.mjs` 组合构建，核对源码配置未变、各场景报告和最终产物。
+- 组合验证通过配置工厂生成独立场景配置，禁止改写或备份日常配置来切换场景；场景从全页面开启的固定基线派生，以独占锁防止重复运行矩阵，不与开发服务器或其他 Astro 构建并发。
+- 功能拆分保持 Swup 的 `#swup` 替换边界与常驻节点位置，水合指令继续遵守第 4 节；移动文件时同步相对引用、人工文档和代码契约锚。
+
 ## 任务路由
+
+功能开关、关闭验证与共享依赖边界见 `docs/reference/FEATURES.md`。
 
 | 要做的事                                                 | 先读 / 先用                                                                                                                                |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 新增功能、调整开关 / 路由 / 扩展入口                     | `docs/reference/FEATURES.md`（机制与组合验证流程；规范见本文件第 14 节）                                                                   |
 | 加一篇文章 / 新建分类                                    | `docs/reference/CONTENT.md`（「新增文章流程」节有流程与核对清单）                                                                          |
 | 新增一个组件                                             | `docs/reference/COMPONENTS.md`（「新增组件流程」节有流程与核对清单）                                                                       |
 | 改样式 / 加类名                                          | `docs/reference/CSS.md`                                                                                                                    |
@@ -258,14 +275,16 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 ## 目录地图
 
 ```
-src/assets/css/          全局样式：根目录=全站基础+小元件聚合（variables/global/utilities）；shared/=全站可复用组件级（drawer/image-fallback/lightbox/skeleton）；posts/=文章
+src/assets/css/          公共样式：variables/global/utilities；shared/ 为骨架屏、图片占位、Markdown 与高亮令牌
 src/assets/backgrounds/  全站背景预设（css/ 绘制、images/ 图片）
-src/assets/js/           客户端脚本（swup 下的 DOM 交互）：nav/ 导航与外壳常驻控件、posts/ 文章区、ui/ 通用可视元件、util/ 小工具、data/ 外部数据
-src/components/          layout 布局 / posts 文章区 / widgets 小组件
-src/content/posts/       文章：目录结构即分类
-src/data/                站点配置与数据
-src/layouts/             BaseLayout（全站壳，含文章区常驻侧栏）、PostsShell（文章区统一布局）
-src/lib/                 构建期专用（无浏览器 API）：category.ts 纯函数、posts-data.ts 数据入口、posts-views.ts 文章视图口径、nav-match.ts 导航匹配（与浏览器侧同源）、content-image.ts 文章图片解析
-src/pages/               路由（admin/ 是后台：仪表盘 / 文章列表 / 编辑器 / 分类管理 / 网站设置；admin/_admin/ 是后台自包含本体，下划线目录不被路由）
-tests/                   自检脚本（Node，零第三方依赖）：quality/=代码质量（leaks/docs/contracts/registry）、behavior/=业务逻辑测试、run.mjs=汇总门禁
+src/assets/js/           公共客户端脚本：nav/ 导航与通用按钮、ui/ 通用视觉、util/ 工具、data/ 公共 GitHub 客户端
+src/components/          公共布局与小组件（Clock、Quote、DaysCounter）
+src/content/             集中管理文章与关于页正文；posts/ 目录结构即文章分类
+src/data/                集中配置：config 开关、feature-definitions 路由与导航、social-links 联系方式、profile 个人介绍
+src/layouts/             BaseLayout 前台公共外壳，通过明确虚拟入口接入功能
+src/lib/                 公共工具（nav-match 导航匹配）
+src/pages/               index.astro、404.astro、admin/ 固定自动路由；admin/_admin/ 后台自包含外壳
+src/features/            可选功能域：页面、端点、组件、布局、脚本、样式、工具与资源
+src/integrations/        功能路由注入、明确虚拟入口、资源生成与构建审计
+tests/                   quality/ 质量、behavior/ 业务、run.mjs 常规门禁、feature-build.mjs 组合构建
 ```

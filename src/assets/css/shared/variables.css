@@ -1,0 +1,12 @@
+/* variables.css — Markdown 内容共用的代码高亮令牌 */
+:root {
+  --astro-code-background: rgba(0, 0, 0, 0.45);
+  --astro-code-foreground: rgba(255, 255, 255, 0.82);
+  --astro-code-token-keyword: #f08a95;
+  --astro-code-token-constant: #79b8ff;
+  --astro-code-token-comment: #6a737d;
+  --astro-code-token-function: #b392f0;
+  --astro-code-token-punctuation: rgba(255, 255, 255, 0.55);
+  --astro-code-token-string: #9ecbff;
+  --astro-code-token-string-expression: #85e89d;
+}

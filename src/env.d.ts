@@ -2,6 +2,26 @@
 // 用法：由 TypeScript 自动加载，无需手动引用。
 /// <reference types="astro/client" />
 
+declare module 'virtual:site-features' {
+  export const features: import('./data/config').FeatureConfig;
+}
+
+declare module 'virtual:features/page-row.astro' {
+  const PageRow: typeof import('./components/layout/PageRow.astro').default;
+  export default PageRow;
+}
+
+declare module 'virtual:features/page-extras.astro' {
+  const PageExtras: typeof import('./components/layout/PageExtras.astro').default;
+  export default PageExtras;
+}
+
+declare module 'virtual:features/image-fallback' {}
+
+declare module 'virtual:features/sitemap-posts' {
+  export const getPostSitemapEntries: typeof import('./features/sitemap/post-entries').getPostSitemapEntries;
+}
+
 // 背景预设虚拟模块：由 astro.config.ts 的 backgroundPreset 插件提供。
 // css 方案默认导出 null（样式随模块副作用引入）；image 方案默认导出图片元数据，交给 astro:assets 优化。
 declare module 'virtual:background' {

@@ -36,33 +36,38 @@
 > pnpm 11 起，除认证与源（`.npmrc`）以外的配置一律写在 `pnpm-workspace.yaml`；
 > 根 `package.json` 的 `"pnpm"` 字段不再被读取。允许执行安装脚本的依赖在 `allowBuilds` 里声明。
 
+## 功能配置
+
+前台可选页面、端点与关闭验证统一见 [功能开关说明](docs/reference/FEATURES.md)（`docs/reference/FEATURES.md`）。首页、前台 404 与五个后台页面始终保留，分别由 `src/pages/index.astro`、`src/pages/404.astro` 和 `src/pages/admin/` 自动路由。六个可选页面与两个端点在 `src/data/config.ts` 配置；个人介绍修改 `src/data/profile.ts`，联系方式修改 `src/data/social-links.ts`。
+
 ## 项目结构
 
 ```
 src/
 ├── assets/
 │   ├── backgrounds/     # 全站背景预设（css/ 绘制方案 + images/ 图片）
-│   ├── css/             # 全局样式：variables/global/utilities + shared/ + posts/
+│   ├── css/             # 公共样式：variables/global/utilities + shared/
 │   ├── images/          # 头像
-│   └── js/              # 客户端脚本：nav/ posts/ ui/ util/ data/
+│   └── js/              # 公共客户端脚本：nav/ ui/ util/ data/
 ├── components/
 │   ├── layout/          # NavBar、Footer、SideWidgets、Background
-│   ├── posts/           # 文章区：卡片、目录、分类树、搜索、筛选抽屉
-│   └── widgets/         # Clock、Quote、DaysCounter、TechStack、ProjectsGrid
+│   └── widgets/         # Clock、Quote、DaysCounter
 ├── content/
 │   ├── about.md         # 关于页正文
 │   └── posts/           # 文章（目录结构即分类）
-├── data/                # 站点配置与数据（site / nav / profile / github …）
-├── layouts/             # BaseLayout（全站壳）、PostsShell（文章区）、AdminLayout（后台）
-├── lib/                 # 构建期纯函数：category / posts-data / nav-match / content-image
-└── pages/               # 页面路由
-    ├── index.astro       # 首页
-    ├── about.astro       # 关于
-    ├── projects.astro    # 项目
-    ├── tools.astro       # 实用工具
-    ├── friends.astro     # 友情链接
-    ├── sponsor.astro     # 赞助
-    └── posts/            # 文章列表 / 详情 / 分类 / 标签 / rss.xml
+├── data/                # 配置与数据（config / feature-definitions / profile / social-links）
+├── layouts/             # BaseLayout（前台公共外壳）
+├── lib/                 # 公共工具：nav-match
+├── features/            # 功能专属页面、端点、组件、布局、脚本、样式、工具与资源
+│   ├── posts/           # 文章、侧栏 AuthorCard、Comments、灯箱与抽屉
+│   ├── about/           # 关于页、TechStack 与 Timeline
+│   └── projects/        # 项目页与 ProjectsGrid（其余功能见目录）
+├── integrations/        # 前台功能路由注入、入口选择与构建审计
+└── pages/
+    ├── index.astro      # 首页
+    ├── 404.astro        # 前台 404，始终保留
+    └── admin/           # 后台自动路由，始终保留
+        └── _admin/      # 后台自包含外壳，不生成路由
 ```
 
 ## 许可证

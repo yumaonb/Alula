@@ -30,7 +30,7 @@ const CHECKS = [
   {
     title: 'check-transition',
     fn: collectTransition,
-    hint: '切页转场词汇表已焊死：「站住」的情况在 posts-shell.ts 加 is-transition-still 标记；global.css 转场块禁止引用行变体类等原因类。',
+    hint: '切页转场词汇表已焊死：「站住」的情况在 posts-shell.ts 加 is-transition-still 标记；global.css 与 posts/shell.css 转场块禁止引用行变体类等原因类。',
   },
   {
     title: 'gen-registry',

@@ -1,6 +1,6 @@
 # 60 — 客户端脚本
 
-> 读法：动 `src/assets/js/**`、`src/pages/admin/_admin/js/**` 或组件里的 `<script>` 之前读本篇。脚本条款（位置、语言、判空、幂等、事件选择、清理）见 `AGENTS.md`「开发规范」第 6 节。本篇只记规范里没有的细节。
+> 读法：动 `src/assets/js/`、`src/features/` 内脚本、`src/pages/admin/_admin/js/` 或组件里的 `<script>` 之前读本篇。脚本条款（位置、语言、判空、幂等、事件选择、清理）见 `AGENTS.md`「开发规范」第 6 节。本篇只记规范里没有的细节。
 
 站点用 `@swup/astro` 做无刷新切页，页面内容会被整块替换。脚本必须假设 **DOM 会在任何时候被换掉**。
 

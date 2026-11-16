@@ -1,0 +1,45 @@
+---
+// PostsRow.astro — 文章功能启用时的常驻侧栏、搜索框与页面内容行
+// 用法：文章功能启用时，由 BaseLayout 通过 'virtual:features/page-row.astro' 引入。
+// 侧栏、左缘盒与搜索框必须在 #swup 外，切页只替换内容列，保留磨砂层与交互状态。
+import GlobalSidebar from '../components/GlobalSidebar.astro';
+import PostSearch from '../components/PostSearch.svelte';
+import { loadBlogData } from '../lib/posts-data';
+
+import '../styles/variables.css';
+import '../styles/elements.css';
+import '../styles/shell.css';
+import '../styles/image-fallback.css';
+
+interface Props {
+  shellVariant?: 'plain' | 'listing' | 'post';
+}
+
+const { shellVariant = 'plain' } = Astro.props;
+const blog = await loadBlogData();
+---
+
+<div class:list={['page-main', `page-main--${shellVariant}`]}>
+  <GlobalSidebar tree={blog.categoryTree} tags={blog.tags} />
+  <main class="hero transition-page" id="swup" data-shell="site">
+    <slot />
+  </main>
+  <div class="posts-edge-float"></div>
+  <div class="posts-search-float">
+    <PostSearch client:load />
+  </div>
+</div>
+
+<script>
+  import '../scripts/posts-shell';
+</script>
+
+<!-- 首帧位置由文章外壳样式确定，只在整页加载时显出；切页交给文章外壳脚本接管。 -->
+<script is:inline data-swup-ignore-script>
+  (function () {
+    const float = document.querySelector('.page-main--listing .posts-search-float');
+    if (!float) return;
+    float.style.opacity = '1';
+    float.style.visibility = 'visible';
+  })();
+</script>

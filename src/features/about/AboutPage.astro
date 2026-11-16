@@ -1,0 +1,229 @@
+---
+// AboutPage.astro — 关于页面（个人名片 / 数据统计 / 技术栈 / 自述 / 成长历程）
+// 用法：路由 /about/
+import { Image } from 'astro:assets';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Markdown from '../../components/layout/Markdown.astro';
+import TechStack from './components/TechStack.astro';
+import Timeline from './components/Timeline.svelte';
+import DaysCounter from '../../components/widgets/DaysCounter.svelte';
+import { Content } from '../../content/about.md';
+import { nickname, motto } from '../../data/profile';
+import avatarImg from '../../assets/images/avatar.png';
+---
+
+<BaseLayout title="关于">
+  <div class="about-page page-top-standard">
+    <section class="about-hero glass" aria-label="个人名片">
+      <div class="hero-inner">
+        <div class="avatar-ring">
+          <Image
+            src={avatarImg}
+            alt={`${nickname}的头像`}
+            class="avatar-img"
+            width={120}
+            height={120}
+            loading="eager"
+          />
+        </div>
+        <div class="hero-title">
+          <h1 class="hero-name">{nickname}</h1>
+          <p class="hero-motto">{motto}</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="about-main">
+      <div class="about-left">
+        <section class="about-stats" aria-label="数据统计">
+          <DaysCounter client:load />
+        </section>
+        <TechStack />
+      </div>
+      <div class="about-intro glass">
+        <Markdown>
+          <div class="markdown-body">
+            <Content />
+          </div>
+        </Markdown>
+      </div>
+    </div>
+
+    <section class="about-timeline" aria-label="成长历程">
+      <Timeline client:load />
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  /* width: 100% 必须有：.hero 是 flex 容器，只写 max-width 时 auto 宽度
+   * 会按内容尺寸收缩（纯中文内容 max-content 约一个字宽，页面会塌成窄缝） */
+  .about-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--card-gap);
+  }
+
+  /* ---- 个人名片 ---- */
+  .about-hero {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    border-radius: var(--radius);
+  }
+
+  /* 左上角的一团柔光，让玻璃卡有受光方向 */
+  .about-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 130% at 0% 0%, var(--rest-bg), transparent 62%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 26px 34px;
+  }
+
+  .hero-title {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .hero-name {
+    font-size: 2rem;
+    line-height: 1.15;
+    letter-spacing: 0.05em;
+    color: var(--white);
+    text-shadow: var(--shadow);
+  }
+
+  .hero-motto {
+    font-size: 0.9rem;
+    letter-spacing: 0.25em;
+    color: var(--ink);
+  }
+
+  /* ---- 数据统计 + 技术栈（左列），右侧自述卡与左列同高 ---- */
+  .about-main {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+    align-items: stretch;
+    gap: var(--card-gap);
+  }
+
+  .about-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--card-gap);
+    min-width: 0;
+  }
+
+  .about-stats {
+    width: 100%;
+  }
+
+  /* ---- 自述卡：与左列同高，内容富余时垂直居中，超出时卡内滚动 ---- */
+  .about-intro {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 24px 26px;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hover-line) transparent;
+  }
+
+  /* 有富余空间时上下居中；内容溢出时 auto 归零，从顶部开始滚，开头不会被切掉 */
+  .about-intro :global(.markdown-body) {
+    margin-block: auto;
+  }
+
+  .about-intro::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .about-intro::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .about-intro::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--hover-line);
+  }
+
+  .about-intro::-webkit-scrollbar-thumb:hover {
+    background: var(--ink);
+  }
+
+  /* 两列的最小视口宽度：2×360（列最小宽）+ 16（gap）+ 2×56（页面留白）= 848。
+     低于它 .about-main 只剩一列，自述卡独占一行，没有「左列行高」可跟——
+     这时继续 contain: size 会让 auto 高塌成 0（只剩 padding），整段正文被裁掉 */
+  @media (min-width: 848px) {
+    .about-intro {
+      /* 高度只跟左列走：卡片内容不参与行高，超出部分在卡内滚动 */
+      contain: size;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+    }
+  }
+
+  /* 单列区间：高度回到由内容决定，正常撑开（超出仍卡内滚动由下面的兜底管） */
+  @media (min-width: 769px) and (max-width: 847.98px) {
+    .about-intro {
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+    }
+  }
+
+  /* 卡片首尾贴边，去掉 markdown 正文的上下默认外边距 */
+  .about-intro :global(.markdown-body > :first-child) {
+    margin-top: 0;
+  }
+
+  .about-intro :global(.markdown-body > :last-child) {
+    margin-bottom: 0;
+  }
+
+  /* ---- 历程 ---- */
+  .about-timeline {
+    width: 100%;
+  }
+
+  /* ---- 手机端适配 ---- */
+  @media (max-width: 768px) {
+    .hero-inner {
+      gap: 16px;
+      padding: 22px 18px;
+    }
+
+    .avatar-ring {
+      --avatar-size: 80px;
+    }
+
+    .hero-name {
+      font-size: 1.4rem;
+    }
+
+    .hero-motto {
+      font-size: 0.75rem;
+    }
+
+    .hero-title {
+      gap: 8px;
+    }
+
+    .about-intro {
+      padding: 20px 18px;
+    }
+  }
+</style>

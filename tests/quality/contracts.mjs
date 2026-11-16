@@ -13,13 +13,12 @@
 // 第 1 条要区分「有默认值」与「必填」：有默认值的 Prop 即使没人传也能工作，
 // 属于可疑但不报错；必填的没人传，属于真死 Prop。
 
-import { walk, byExt, read, runCheck, isMain } from './lib/common.mjs';
+import { walk, byExt, read, componentFiles, runCheck, isMain } from './lib/common.mjs';
 
-const COMPONENT_FILES = walk('src/components', byExt('.astro', '.svelte'))
-  .concat(walk('src/layouts', byExt('.astro', '.svelte')))
-  .concat(walk('src/pages/admin/_admin', byExt('.astro', '.svelte')));
+const COMPONENT_FILES = componentFiles();
 const SCRIPT_FILES = walk('src/assets/js', byExt('.ts', '.js')).concat(
   walk('src/pages/admin/_admin/js', byExt('.ts', '.js')),
+  walk('src/features', (file) => file.includes('/scripts/') && byExt('.ts', '.js')(file)),
 );
 const ALL_SOURCE = walk('src', byExt('.ts', '.js', '.astro', '.svelte'));
 
@@ -65,7 +64,7 @@ function readProps(file) {
 
 /** 组件名 → 调用方传值的 prop 名集合 */
 function collectCallSites() {
-  const usage = new Map(); // 组件名 → Set<prop 名>
+  const usage = new Map();
   for (const file of ALL_SOURCE) {
     const text = read(file);
     // <ComponentName ... /> 或 <ComponentName ...>

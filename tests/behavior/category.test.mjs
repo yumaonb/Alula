@@ -19,7 +19,7 @@ import {
   activeTagOf,
   visiblePosts,
   isPostAreaPath,
-} from '../../src/lib/category.ts';
+} from '../../src/features/posts/lib/category.ts';
 
 /** 造一条最小文章记录，只覆盖被测字段 */
 function post(overrides = {}) {

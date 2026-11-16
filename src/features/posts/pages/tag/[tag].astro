@@ -1,0 +1,26 @@
+---
+// [tag].astro — 标签文章列表页
+// 用法：路由 /posts/tag/<tag>/
+import PostsShell from '../../layouts/PostsShell.astro';
+import { loadBlogData } from '../../lib/posts-data';
+
+const data = await loadBlogData();
+
+export async function getStaticPaths() {
+  const d = await loadBlogData();
+  // 路由取标签并集（含隐藏文章）：隐藏文章页头有标签链接，缺路由就是 404；
+  // 页面正文仍只列可列出的文章，某个标签只被隐藏文章用过时列表为空
+  return d.allTags.map((tag) => ({ params: { tag }, props: { tag } }));
+}
+
+const { tag } = Astro.props;
+const posts = data.posts.filter((post) => post.tags.includes(tag));
+---
+
+<PostsShell
+  title={`${tag} - 文章标签`}
+  variant="listing"
+  heading={`#${tag}`}
+  count={posts.length}
+  posts={posts}
+/>

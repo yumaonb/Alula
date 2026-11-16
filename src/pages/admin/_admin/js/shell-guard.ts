@@ -1,7 +1,6 @@
 // shell-guard.ts — 阻止 swup 跨外壳替换内容（站点页 ↔ 后台页）
-// 用法：BaseLayout.astro 引入前台版 src/assets/js/nav/shell-guard.ts，
-//       AdminLayout.astro 引入本文件：import "./js/shell-guard"
-// 两个文件互为独立拷贝，各自维护；改守卫逻辑时两个外壳都要过一遍。
+// 用法：由 AdminLayout.astro 引入：import './js/shell-guard'
+// 前台守卫在 src/assets/js/nav/shell-guard.ts；两个外壳独立维护，改动时都要验证跨壳导航。
 //
 // 站点页与后台页的外壳不同，而 swup 注入在所有页面上、只替换 #swup 里的内容，
 // 于是「后台 → 回到站点 → 浏览器后退」这类路径会把站点内容塞进后台外壳（反之亦然）。

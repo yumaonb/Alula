@@ -1,0 +1,76 @@
+// lightbox-core.ts — 正文图片 / 详情页封面 灯箱实现（基于 photoswipe）
+// 用法：由 lightbox.ts 在首次点击时动态 import('./lightbox-core')，连同样式一起懒加载
+import PhotoSwipeLightbox from 'photoswipe/lightbox';
+import PhotoSwipe from 'photoswipe';
+import type { SlideData } from 'photoswipe';
+import 'photoswipe/style.css';
+
+import { zoomableImages } from './image-kind';
+
+import '../styles/lightbox.css';
+
+// 复用同一个 Lightbox 实例（不会重复绑定任何 DOM，仅暴露 loadAndOpen 动态打开）
+const lightbox = new PhotoSwipeLightbox({
+  pswpModule: PhotoSwipe,
+  bgOpacity: 0.92,
+  loop: false,
+  // 按钮提示文案：鼠标悬停 tooltip 与读屏器 aria-label 一并覆盖为中文
+  closeTitle: '关闭 (Esc)',
+  zoomTitle: '缩放',
+  arrowPrevTitle: '上一张',
+  arrowNextTitle: '下一张',
+});
+
+/**
+ * 收集当前页面可放大的图片，构造 photoswipe 数据源。
+ * 顺序：文章详情页封面图（若有）排在第一位，其后为正文图片（按出现顺序）。
+ * 每项带 element（用于从缩略图放大的动画）与宽高（photoswipe 布局必需）。
+ * 哪些图参与见 image-kind.ts，与点击入口用的是同一份判断。
+ */
+function buildDataSource(): SlideData[] {
+  const imgs = zoomableImages(document);
+
+  return imgs.map((img) => {
+    const w = parseInt(img.getAttribute('width') ?? '0', 10);
+    const h = parseInt(img.getAttribute('height') ?? '0', 10);
+
+    const item: SlideData = {
+      element: img,
+      src: img.currentSrc || img.src,
+      alt: img.getAttribute('alt') || '',
+    };
+
+    if (w && h) {
+      item.width = w;
+      item.height = h;
+    } else if (img.naturalWidth > 0) {
+      item.width = img.naturalWidth;
+      item.height = img.naturalHeight;
+    } else {
+      // 兜底：懒加载未就绪且无宽高信息时给默认尺寸，避免 0×0 无法布局
+      item.width = 1600;
+      item.height = 1200;
+    }
+    return item;
+  });
+}
+
+export function openLightbox(img: HTMLImageElement, clickEvent: MouseEvent): void {
+  const dataSource = buildDataSource();
+  const index = dataSource.findIndex((item) => item.element === img);
+  if (index < 0) return;
+
+  const initialPoint =
+    clickEvent.clientX || clickEvent.clientY
+      ? { x: clickEvent.clientX, y: clickEvent.clientY }
+      : null;
+
+  lightbox.loadAndOpen(index, dataSource, initialPoint);
+}
+
+// swup 切页时关闭灯箱，避免覆盖层残留
+document.addEventListener('swup:content:replace', () => {
+  // photoswipe 5.4.4 的类型没声明 pswp 属性（运行时由 _openPhotoswipe 赋值），断言补齐
+  const pswp = (lightbox as PhotoSwipeLightbox & { pswp?: PhotoSwipe | null }).pswp;
+  if (pswp) pswp.close();
+});

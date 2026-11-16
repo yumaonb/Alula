@@ -1,0 +1,11 @@
+---
+// PageExtras.astro — 通用页面的常驻悬浮按钮与交互入口
+// 用法：文章功能关闭时，由 BaseLayout 通过 'virtual:features/page-extras.astro' 引入。
+import SideWidgets from './SideWidgets.astro';
+---
+
+<SideWidgets />
+
+<script>
+  import '../../assets/js/nav/page-widgets';
+</script>

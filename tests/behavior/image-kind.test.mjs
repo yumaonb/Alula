@@ -8,7 +8,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { imageKindOf, isZoomableImage, zoomableImages } from '../../src/assets/js/ui/image-kind.ts';
+import {
+  imageKindOf,
+  isZoomableImage,
+  zoomableImages,
+} from '../../src/features/posts/scripts/image-kind.ts';
 
 /* ---- 迷你 DOM：只实现 image-kind.ts 用到的选择器形状 ----
  * 用到的选择器只有两种：单类（'.post-cover'，走 closest）与「容器类 + 后代 img」

@@ -142,258 +142,36 @@ ol {
   content: '';
 }
 
-/* 主内容行 —— 全站宽度的唯一执行点（BaseLayout 里，所有页面自动遵守）：
- * 桌面端两侧各空 --page-gutter；
- * 移动端（≤768px）两侧各空 --page-gutter-mobile（见下方媒体查询）。
- * 行内两个子元素：常驻侧边栏（.global-sidebar，默认隐藏）+ main#swup 内容列。
- * 页面自己的外层元素不要再声明宽度规则（会覆盖/绕过这里），
- * 要收窄内容列就写 width: 100% + max-width。 */
+/* 页面宽度由内容行统一执行；内容要收窄时使用 width: 100% 与 max-width。 */
 .page-main {
-  /* 侧栏宽（面包屑负边距共用同一令牌） */
-  --posts-side-w: 260px;
-  /* 侧栏与内容列的横向间隙（即行 gap） */
-  --posts-side-gap: 16px;
-  /* 页锚（页头/面包屑）与下方内容的纵向间隙，供测侧栏顶偏移 */
-  --posts-offset-gap: 0px;
-  /* 侧栏顶偏移 = 锚高 + 间隙；posts-shell.ts 计算后写内联值覆盖 */
-  --posts-side-offset: 0px;
   flex: 1;
   display: flex;
   align-items: flex-start;
-  gap: var(--posts-side-gap);
   width: calc(100% - var(--page-gutter) * 2);
   margin: 0 auto;
   padding: 84px 0 32px;
   position: relative;
 }
 
-/* 文章区变体（posts-shell.ts 切页后按内容同步类名）：
- * 行 padding-top 82px（普通页 84px 不动）+ 间隙 14px 配平：左缘条（36px）恰好垂直居中于
- * 导航底(69)→内容顶(132)窗口（搜索框上下居中：
- * 82+18=100 ≈ (69+132)/2=100.5），内容顶 82+36+14 = 132 不变。
- * 偏移默认值贴合常见首帧（两变体页锚均为 36px 高、间隙 14px，即 50px），防 JS 前的闪跳。
- * --posts-offset-gap 是 .posts-page / .posts-article-main 的 flex gap 的镜像（侧栏偏移测算用），
- * 改那两处的 gap 必须同步改这里。
- * 桌面端这个 82（两个变体同值）还有一个读取点，改这里必须两处同改：
- * `layouts/PostsShell.astro` 的 `.post-sidebar { top }`（目录吸顶位） */
-.page-main--listing {
-  --posts-offset-gap: 14px;
-  --posts-side-offset: 50px;
-  /* 左缘常驻盒（.posts-edge-float）的 top：须与同规则 padding-top 保持同值 */
-  --posts-edge-top: 82px;
-  padding-top: 82px;
-}
-.page-main--post {
-  --posts-offset-gap: 14px;
-  --posts-side-offset: 50px;
-  --posts-edge-top: 82px;
-  padding-top: 82px;
-}
-/* 手机端（≤768px）：导航更矮（57px），同样的 82px 留白显得松——内容顶与标准页统一：
- * 导航底 16px 处（57 + 16 = 73，即项目等页 .page-top-standard 标题的同一顶边）。
- * 列表页标题落 73（标题上间距 16px，与项目页标题同值）；
- * 列表标题→搜索间隙 16px（同 .page-head 标题下间距，见 posts-listing.css）；
- * 文章页面包屑在「导航底(57)→正文卡顶(111)」的 54px 空窗内垂直居中：
- * 行留白 73→70px、面包屑条压到 28px、条下间隙 10→13px（见 PostsShell.astro 末尾规则），
- * 条上下各留 13px；正文大框顶 70 + 28 + 13 = 111 不变，仍与列表页搜索框顶
- * （73 + 标题行高 21.6 + 16 = 110.6）对齐。面包屑顶（70）与列表标题（73）仅差 3px，
- * 左缘元素按同位处理。桌面端 82/132 几何不变 */
-@media (max-width: 768px) {
-  .page-main--listing,
-  .page-main--post {
-    --posts-edge-top: 73px;
-    padding-top: 73px;
-  }
-
-  /* 手机端侧栏不显示，这里只保持「侧栏偏移 = 锚高 + 间隙」的口径一致（28 + 13） */
-  .page-main--post {
-    padding-top: 70px;
-    --posts-offset-gap: 13px;
-    --posts-side-offset: 41px;
-    --posts-edge-top: 70px;
-  }
-
-  /* 左缘盒的顶跟盒内车道走，不跟行变体走：区内切页时行变体先翻、--posts-edge-top 随之变，
-   * 但盒内旧车道要播完渐模糊才换入（见 edge-float.ts），盒顶若跟变体走会在换入前先跳
-   * 3px，观感是旧标题/面包屑模糊时微微上/下移。改按盒内车道类型取位（73/70 与上面两变体
-   * 的 padding-top 同值，改那两处必须同步改这里）：换入前盒停在旧车道位、换入时随新车道落位 */
-  .posts-edge-float:has(> .posts-header) {
-    top: 73px;
-  }
-
-  .posts-edge-float:has(> .posts-breadcrumb) {
-    top: 70px;
-  }
-}
-
-/* 侧栏显隐：普通页默认隐藏；列表变体 ≥769px 显示、文章变体 ≥1151px 显示——
- * 与 swup-widgets.ts 探测的筛选按钮出现区间（≤768 / ≤1150）互补，改断点两处同改 */
-.page-main > .global-sidebar {
-  display: none;
-}
-@media (min-width: 769px) {
-  .page-main--listing > .global-sidebar {
-    display: flex;
-  }
-}
-@media (min-width: 1151px) {
-  .page-main--post > .global-sidebar {
-    display: flex;
-  }
-}
-
-/* 侧栏顶偏移：作者卡与锚下方的内容顶边对齐（列表页=页头下，文章页=面包屑条下）。
- * 两变体偏移同为 50px（36px 锚 + 14px 间隙），列表↔文章切换作者卡不再位移；
- * padding-top 仍带过渡：仅剩"锚高变化"（标题换行 / 窗口缩放）时平滑补差 */
-.page-main--listing > .global-sidebar,
-.page-main--post > .global-sidebar {
-  padding-top: var(--posts-side-offset, 0);
-  transition: padding-top 0.4s ease;
-}
-
-/* 左缘条行级常驻盒（BaseLayout 渲染在行内、main#swup 之外）：页头 / 面包屑的
- * 显示实例。#swup 里的驱动条（.posts-edge-slot 内的 .posts-header / .posts-breadcrumb）
- * 只留布局空间（搜索浮层叠放测算、锚高度观察）+ 无 JS 回退显示；JS 接管后
- * posts/edge-float.ts 把驱动条深克隆进本盒（车道 .posts-edge-content）、行加
- * is-edge-live 隐掉驱动条。
- * top 取变体的 --posts-edge-top（与行 padding-top 同值：槽顶边即行 padding-top），
- * 盒横跨整行、与驱动条通栏同位。z-index 20 与包裹槽同档（盒在槽的 DOM 之后，
- * 压过驱动条），低于搜索浮层（30）——搜索框照常叠在占位区上。
- * visibility 默认 hidden、仅文章区变体可见（普通页盒是空的、不参与转场）。
- * 转场见下方「切页转场」：跨区切页盒随 page-exit / page-enter 曲线；
- * 区内切页（盒被标 is-transition-still）盒不位移、车道等新页落地才变：
- * 旧车道渐模糊（is-edge-out）→ 播完换入新克隆再去模糊（is-edge-in） */
-.posts-edge-float {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: var(--posts-edge-top, 82px);
-  z-index: 20;
-  visibility: hidden;
-}
-.page-main--listing > .posts-edge-float,
-.page-main--post > .posts-edge-float {
-  visibility: visible;
-}
-/* 文章变体 ≥851px：目录右列可见，驱动条右缘在内容列右缘（TOC 左侧），盒收进
- * 「目录宽 + 行间隙」与驱动条像素级重合。240px 须与 layouts/PostsShell.astro 的
- * .post-sidebar 宽同值（≤850px 目录隐藏，盒照常通栏） */
-@media (min-width: 851px) {
-  .page-main--post > .posts-edge-float {
-    right: calc(240px + var(--card-gap));
-  }
-}
-
-/* 常驻克隆生效后隐藏驱动条：visibility 不影响布局，浮层叠放测算 / 锚高度 /
- * ResizeObserver 仍照读驱动条 */
-.page-main.is-edge-live main#swup .posts-edge-slot > .posts-header,
-.page-main.is-edge-live main#swup .posts-edge-slot > .posts-breadcrumb {
-  visibility: hidden;
-}
-
-/* 搜索框行级常驻（BaseLayout 渲染在行内、main#swup 之外）：
- * swup 切页永不重建——节点不被 swup 移动，.glass 胶囊（backdrop-filter + 投影）
- * 的层不重建，切页零闪零重建。
- * 位置两层：
- * ① CSS 基线位（下方）与页头占位符 `.posts-header-search` 重合（标题单行时）：
- *    桌面 top = --posts-edge-top（= 行 padding-top，与左缘盒同值）、右缘贴行右缘，
- *    宽度与占位符同表达式（min(360px, 100%)，页头通栏时两者容器等价，
- *    改一处同改另一处：posts-listing.css 的 .posts-header-search 宽度）；
- *    移动 = 缘顶 + 标题行高 1.35rem + 页头间隙 16px，1.35rem 与 utilities.css 的
- *    .page-title 移动端字号同值（line-height 1，见 posts-listing.css 的 .posts-title）、
- *    16px 与 posts-listing.css 的移动页头间隙同值，改一处同改另一处。
- *    整页首帧（BaseLayout body 尾 is:inline 脚本只负责显出 opacity/visibility，
- *    data-swup-ignore-script 使 swup 切页不重跑，见 TROUBLESHOOTING 52）与 5s 兜底
- *    揭幕都直接落在基线位，不依赖实测。
- * ② 运行时实测：posts-shell.ts 的 placeFloat 走 offset 链覆写内联 top/left/width
- *    （offset 是布局坐标，不受转场 translateY 影响，见 TROUBLESHOOTING 42）；
- *    标题换行 / 窗口变化时锚的 RO 跟着重测。
- * visibility/pointer-events 随行变体类**瞬时**翻转（列表变体显示、其他隐藏），
- * opacity 由 posts-shell.ts 按目标态直接落位（切页 settle，即时生效）；出入场
- * 动画由「切页转场」块挂在它身上（动画期覆盖内联 opacity）——这里不写 opacity 过渡。
- * z-index 30 压过包裹槽（20）与侧栏（10）；搜索下拉在自身层叠上下文里 z-60，盖过栅格 */
-.posts-search-float {
-  position: absolute;
-  z-index: 30;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-/* 基线位（与占位符重合）：桌面右对齐，宽度表达式与占位符同值 */
-@media (min-width: 769px) {
-  .posts-search-float {
-    top: var(--posts-edge-top, 82px);
-    right: 0;
-    width: min(360px, 100%);
-  }
-}
-/* 移动：占位在标题行（行高 1.35rem）下方隔 16px，左右贴行缘
- * （该断点侧栏隐藏，行即内容列，占位 100% 宽） */
-@media (max-width: 768px) {
-  .posts-search-float {
-    top: calc(var(--posts-edge-top, 73px) + 1.35rem + 16px);
-    left: 0;
-    right: 0;
-  }
-}
-.page-main--listing .posts-search-float {
-  visibility: visible;
-  pointer-events: auto;
-}
-
-/* 内容列：只做 flex 居中；宽度/居中/上下留白全在 .page-main */
+/* 内容列纵向撑满页面行，首页才能利用富余高度垂直居中。 */
 .page-main > .hero {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  /* 纵向拉伸填满整行（行本身是 .page 列里 flex:1 撑满视口的）：
-   * 首页 .content-wrapper 的 margin: auto 0 靠这里的富余高度垂直居中 */
+
   align-self: stretch;
 }
 
-/* ---- 切页转场（swup 的 html 类驱动） ----
- * swup 切页时 html 依次带三类：is-changing 覆盖整个窗口（退出开始 → 进入结束）、
- * 退出期 is-leaving、进入期 is-rendering（astro.config.ts 的 animationClass 让 swup
- * 按 .transition-page 的 animationDuration 等播完再继续）。
- * 退出：整块下移渐隐；进入文章详情页时整块上移、框内正文渐显。
- * 行级侧栏 / 搜索框 / 左缘常驻盒在 #swup 外，默认与整块同曲线；本次切换中应原地
- * 站住的元素由 posts-shell.ts 标 is-transition-still（visit:start 标、visit:end 摘）：
- * 区内切换（源页与目标页都在文章区）标侧栏（两变体同位常驻）与左缘盒（盒不位移、
- * 盒内车道等新页落地才变：fetch 等待期旧车道保持可见，content:replace 后
- * edge-float.ts 给旧车道标 is-edge-out 播 edge-blur-out，播完换入新克隆再以
- * is-edge-in 播 edge-blur-in，半径 --page-edge-blur；车道是单条小栏不是栅格，
- * 逐帧 blur 的代价可接受）；列表页之间再标搜索框
- * （只有列表↔详情才隐显）。驱动条本体在 #swup 内随整块位移，但被 is-edge-live
- * 隐着、不参与视觉。
- * 进入详情页时透明度在玻璃框内部变化，玻璃容器从首帧起保留模糊。
- * 词汇表由质检 check-transition（tests/quality/transition.mjs）焊死：本块只引用
- * 稳定词汇（相位类、is-transition-still、常驻元素类名），行变体类等「原因类」
- * 禁止写进这里——新增「站住」的情况 = posts-shell.ts 加一个标记，不加一组选择器。 */
-html.is-leaving .transition-page,
-html.is-leaving
-  .page-main
-  > :is(.global-sidebar, .posts-search-float, .posts-edge-float):not(.is-transition-still) {
+/* ---- 切页转场 ---- */
+/* 切页相位驱动整块动画；文章常驻元素复用这里的进出场关键帧。 */
+html.is-leaving .transition-page {
   animation: page-exit var(--t-page-exit) forwards;
 }
 
-html.is-rendering .transition-page,
-html.is-rendering
-  .page-main
-  > :is(.global-sidebar, .posts-search-float, .posts-edge-float):not(.is-transition-still) {
+html.is-rendering .transition-page {
   animation: page-enter var(--t-page-enter);
-}
-
-/* 区内切换：左缘盒被标 still 不位移，车道等新页落地才变——edge-float.ts 给旧车道
- * 标 is-edge-out 前已摘 is-edge-in，两类不会同车道共存；播渐模糊
- * （forwards 钉住终帧到换克隆），新克隆带 is-edge-in 播去模糊 */
-.page-main > .posts-edge-float .posts-edge-content.is-edge-in {
-  animation: edge-blur-in var(--t-page-enter);
-}
-
-.page-main > .posts-edge-float .posts-edge-content.is-edge-out {
-  animation: edge-blur-out var(--t-page-exit) forwards;
 }
 
 html.is-leaving #swup .glass {
@@ -404,14 +182,6 @@ html.is-rendering #swup .glass {
   animation: page-glass-enter var(--t-page-enter);
 }
 
-html.is-rendering #swup:has(.post-content) {
-  animation: page-enter-glass var(--t-page-enter);
-}
-
-html.is-rendering #swup .post-content-inner {
-  animation: page-content-enter var(--t-page-enter);
-}
-
 @keyframes page-exit {
   to {
     opacity: 0;
@@ -419,21 +189,9 @@ html.is-rendering #swup .post-content-inner {
   }
 }
 
-@keyframes page-content-enter {
-  from {
-    opacity: 0;
-  }
-}
-
 @keyframes page-enter {
   from {
     opacity: 0;
-    transform: translateY(var(--page-shift));
-  }
-}
-
-@keyframes page-enter-glass {
-  from {
     transform: translateY(var(--page-shift));
   }
 }
@@ -450,20 +208,6 @@ html.is-rendering #swup .post-content-inner {
   }
 }
 
-/* 区内切换车道：渐模糊 / 去模糊，纯 filter 过渡不动 opacity（渐模糊用 forwards
- * 钉住终帧，edge-float.ts 播完换入新克隆；去模糊终点即自然态，无需 fill） */
-@keyframes edge-blur-out {
-  to {
-    filter: blur(var(--page-edge-blur));
-  }
-}
-
-@keyframes edge-blur-in {
-  from {
-    filter: blur(var(--page-edge-blur));
-  }
-}
-
 /* ---- 侧边悬浮按钮列 ---- */
 .side-widgets {
   position: fixed;
@@ -476,10 +220,8 @@ html.is-rendering #swup .post-content-inner {
   z-index: 50;
 }
 
-/* 显隐只做水平平移，占位固定；槽位由容器自底向上分配。
- * 选择器带容器前缀不是装饰：.hoverable.hoverable 权重 (0,2,0) 且只写四个悬停属性，
- * 裸类 (0,1,0) 的 transition 会被它整条盖掉——退场时 opacity / transform 不再过渡，按钮瞬间消失。
- * 提到 (0,2,0) 靠源码顺序压过它，四个悬停属性仍照写全，悬停过渡不丢。 */
+/* 容器前缀让完整过渡压过 utilities.css 的悬停过渡，保留退场动画。
+ * 只有公共悬停规则支持合并显隐过渡后才可撤去此前缀。 */
 .side-widgets .back-to-widget {
   position: relative;
   display: flex;
@@ -544,7 +286,6 @@ html.is-rendering #swup .post-content-inner {
 @media (max-width: 768px) {
   .page-main {
     width: calc(100% - var(--page-gutter-mobile) * 2);
-    gap: 0;
   }
 
   .side-widgets {
@@ -564,15 +305,8 @@ html.is-rendering #swup .post-content-inner {
   }
 }
 
-/* ---- Swup 切页进度条 ----
- * 元素由 @swup/progress-plugin 动态插进 body 顶部（astro.config.ts 的 progress: true 启用），
- * 没有静态标记。出现时机：切页发起（visit:start）起满 300ms（插件默认 delay）仍在
- * 加载才显示；加载期间逐渐增长，新内容替换并渲染完（page:view）走到 100% 再淡出。
- * 访问时长含转场动画（swup 等 .transition-page 播完才收尾，page:view 在其后），
- * 缓存页快切也要 --t-page-exit + --t-page-enter ≈ 0.38s，超过 300ms，所以进度条
- * 现在几乎每次切页都会出现一瞬，属预期表现。
- * 插件会在 head 开头注入一份默认样式（3px 黑条），这里裸类名与它同权重、
- * 生效与否取决于源码顺序，用 body 提一档权重稳定压过。 */
+/* ---- 切页进度条 ---- */
+/* body 前缀压过插件注入的默认样式；插件支持直接配置外观后可撤掉此覆盖。 */
 body .swup-progress-bar {
   height: 2px;
   background-color: #fff;
@@ -585,13 +319,8 @@ html {
   background-color: var(--bg-base, #000);
 }
 
-/* ---- 自定义滚动条拖拽态 ----
- * 自定义滚动条三文件之一（组件 + ui/scrollbar.ts + 此处），改动联动点见 CustomScrollbar.astro 文件头。
- * 滚动条只有 6px 宽，拖动中鼠标一离开滑块，光标就按所在元素退回 pointer / 箭头；
- * 按住鼠标期间（isDragging）把整页光标固定成 grabbing。
- * 类由 scrollbar.ts 在 mousedown / mouseup 增删。
- * :root 前缀把权重抬到 (0,2,1)，压过组件 scoped 样式里的 cursor 规则
- * （类 + 作用域属性 = (0,2,0)），否则拖过右侧分类树 / 目录时光标会闪回 pointer。 */
+/* ---- 自定义滚动条拖拽态 ---- */
+/* 拖动期间压过组件的局部光标；拖拽不再跨组件时可撤掉此覆盖。 */
 :root body.is-dragging-scrollbar,
 :root body.is-dragging-scrollbar * {
   cursor: grabbing;

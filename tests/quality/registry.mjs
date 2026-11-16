@@ -14,35 +14,30 @@
 
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { walk, byExt, read, root, runCheck, isMain } from './lib/common.mjs';
+import { walk, byExt, read, root, componentFiles, runCheck, isMain } from './lib/common.mjs';
 
-// 后台组件自包含在 src/pages/admin/_admin/（下划线目录不被路由），一并纳入清单
-const COMPONENT_DIRS = ['src/components', 'src/layouts', 'src/pages/admin/_admin'];
-const COMPONENT_EXT = byExt('.astro', '.svelte');
 const CSS_EXT = byExt('.css');
 
 /** 组件清单：从代码里抽出路径与水合指令 */
 function collectComponents() {
   const out = [];
-  for (const dir of COMPONENT_DIRS) {
-    for (const file of walk(dir, COMPONENT_EXT)) {
-      const text = read(file);
-      const name = file.split('/').pop();
-      // 相对 src/ 的路径：components/layout/NavBar.astro（与文档里的写法一致）
-      const relToSrc = file.replace(/^src\//, '');
-      // 水合指令：只看模板里的 client:* 属性
-      const directives = [
-        ...new Set(
-          [...text.matchAll(/client:(load|idle|visible|media|only)/g)].map((m) => `client:${m[1]}`),
-        ),
-      ];
-      out.push({
-        path: relToSrc.split('/').slice(0, -1).join('/'),
-        file: name,
-        kind: file.endsWith('.svelte') ? 'svelte' : 'astro',
-        directives,
-      });
-    }
+  for (const file of componentFiles()) {
+    const text = read(file);
+    const name = file.split('/').pop();
+    // 相对 src/ 的路径：components/layout/NavBar.astro（与文档里的写法一致）
+    const relToSrc = file.replace(/^src\//, '');
+    // 水合指令：只看模板里的 client:* 属性
+    const directives = [
+      ...new Set(
+        [...text.matchAll(/client:(load|idle|visible|media|only)/g)].map((m) => `client:${m[1]}`),
+      ),
+    ];
+    out.push({
+      path: relToSrc.split('/').slice(0, -1).join('/'),
+      file: name,
+      kind: file.endsWith('.svelte') ? 'svelte' : 'astro',
+      directives,
+    });
   }
   return out;
 }
@@ -52,6 +47,7 @@ function collectCssClasses() {
   const classes = new Map();
   for (const file of walk('src/assets/css', CSS_EXT).concat(
     walk('src/pages/admin/_admin/css', CSS_EXT),
+    walk('src/features', CSS_EXT),
   )) {
     // 注释、@import 路径、url() 里的文件名都不是类名，先剥掉再扫：
     // 注释里常写 `global.css`，@import 写 './variables.css'，不剥会扫出
@@ -87,7 +83,7 @@ function collectWindowMarkers() {
 function docComponentPaths(text) {
   const set = new Set();
   for (const m of text.matchAll(
-    /`((?:components|pages\/admin\/_admin\/components)\/[A-Za-z0-9_\-./]+\.(?:astro|svelte))`/g,
+    /`((?:components|pages\/admin\/_admin\/components|features\/[^/`]+\/(?:components|layouts|_admin\/components))\/[A-Za-z0-9_\-./]+\.(?:astro|svelte))`/g,
   )) {
     set.add(m[1]);
   }
@@ -103,8 +99,7 @@ export function collect() {
   const docPaths = docComponentPaths(docText);
   const codePaths = new Set(components.map((c) => `${c.path}/${c.file}`));
 
-  // 布局不属于「组件清单」，它们登记在 ARCHITECTURE.md 里，分开校验；
-  // AdminLayout 随后台搬进了下划线目录，直接位于 pages/admin/_admin/ 根下（组件在 components/ 里）
+  // 全站布局与后台壳登记在架构文档，功能目录的布局组件登记在组件清单。
   const isLayout = (p) =>
     p.startsWith('layouts/') ||
     (p.startsWith('pages/admin/_admin/') && !p.startsWith('pages/admin/_admin/components/'));

@@ -6,26 +6,32 @@
 
 ## CSS 文件结构
 
-| 文件            | 职责                                                                                                                                                                                                                                                                                                 |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `variables.css` | CSS 变量定义（**只放全站都在用的**；后台专属令牌在 `src/pages/admin/_admin/css/variables.css`）                                                                                                                                                                                                      |
-| `global.css`    | 重置 + 页面基础结构（含全站背景容器 `.bg`），引入 `variables` / `utilities`                                                                                                                                                                                                                          |
-| `backgrounds/`  | 全站背景方案预设（`css/` 纯 CSS 绘制、`images/` 图片），由 `src/data/background.ts` 选择，见下文                                                                                                                                                                                                     |
-| `utilities.css` | 可复用的**元件级**类（玻璃拟态、悬停、页面标题等）；页面内容排版（描述/座右铭）不在这，写各页或页面组共享文件；页面结构（`.page`/`.page-main`）在 `global.css`                                                                                                                                       |
-| `shared/`       | **全站可复用的组件级样式**（比较大的、能划成"组件"的文件）：`skeleton.css`（骨架屏加载动画）+ `lightbox.css`（PhotoSwipe 灯箱主题微调，随 `lightbox-core.ts` 懒加载）+ `drawer.css`（右侧抽屉骨架，`PostsDrawers` 里两个抽屉共用）。卡片/按钮这类小元件不在这，在根目录的 `utilities.css` 聚合文件里 |
-| `posts/`        | **文章相关样式**：`posts-listing.css`（列表/分类/标签页共享布局，由 `PostsShell` 引入）+ `markdown.css`（正文 Markdown 排版，about 页也经 `Markdown.astro` 用）。文章详情页的行内样式（正文卡、右侧目录、面包屑条）在 `PostsShell.astro` 的 `<style>` 里                                             |
+| 文件                         | 职责                                                                                                                                                           |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variables.css`              | CSS 变量定义（**只放全站都在用的**；后台专属令牌在 `src/pages/admin/_admin/css/variables.css`）                                                                |
+| `global.css`                 | 重置 + 页面基础结构（含全站背景容器 `.bg`），引入 `variables` / `utilities`                                                                                    |
+| `backgrounds/`               | 全站背景方案预设（`css/` 纯 CSS 绘制、`images/` 图片），由 `src/data/background.ts` 选择，见下文                                                               |
+| `utilities.css`              | 可复用的**元件级**类（玻璃拟态、悬停、页面标题等）；页面内容排版（描述/座右铭）不在这，写各页或页面组共享文件；页面结构（`.page`/`.page-main`）在 `global.css` |
+| `src/assets/css/shared/`     | 共享骨架屏、通用图片降级，以及文章和关于页共用的 `markdown.css`；高亮令牌由 Markdown 样式引入 `variables.css`                                                  |
+| `src/features/posts/styles/` | 文章常驻行与转场 `shell.css`、元件 `elements.css`、列表 `posts-listing.css`、灯箱、抽屉、图片降级及专属令牌                                                    |
 
-> 目录约定：css 根目录只放全站基础文件（`variables` / `global`）和**小元件聚合文件**（`utilities`，卡片/按钮这类）；**全站可复用的组件级大文件**（骨架屏/灯箱/抽屉这类）放 `shared/`；按功能归组的放对应文件夹（`posts/` 文章）；后台样式不在这，自包含在 `src/pages/admin/_admin/css/`。
+> 公共基础和元件样式位于 `src/assets/css/`，跨功能的组件样式位于 `src/assets/css/shared/`；文章专属样式位于 `src/features/posts/styles/`，后台样式自包含于 `src/pages/admin/_admin/css/`。目录归属约束见 `AGENTS.md` 第 5、14 节。
 
-> 全局样式文件由页面或布局 import（例如 `BaseLayout` 引入 `global.css`、`shared/skeleton.css`、`shared/image-fallback.css`；`PostsShell` 额外引入 `posts/posts-listing.css`，文章详情页额外引入 `posts/markdown.css`）。背景预设**不在**这里 import，由 `virtual:background` 虚拟模块按 `src/data/background.ts` 的选择引入。
+> 全局样式文件由页面或布局 import（例如 `BaseLayout` 引入 `global.css`、`shared/skeleton.css`、`shared/image-fallback.css`；`PostsRow` 引入 `src/features/posts/styles/shell.css` 与 `src/features/posts/styles/variables.css`；`PostsShell` 额外引入 `src/features/posts/styles/posts-listing.css`，文章详情页额外引入 `shared/markdown.css`）。背景预设**不在**这里 import，由 `virtual:background` 虚拟模块按 `src/data/background.ts` 的选择引入。
 
 > **不许打开 CSS 压缩**：`astro.config.ts` 里 `compress()` 的 `CSS` 必须保持 `false`，否则 lightningcss 会删掉不带前缀的 `backdrop-filter`，全站玻璃模糊失效。原因见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md#1-全站毛玻璃模糊失效firefox-尤其明显)。
 
-> `public/css/giscus.css` 是 giscus 评论组件的主题：上传静态托管后由 `data-theme` 的 URL 引用，**不进站点构建产物**。站点样式表到不了 giscus 的 iframe，覆盖第三方默认样式只能靠它自己的 `!important`，属必要豁免，不受「不用 `!important`」约束。
+> `src/features/posts/assets/giscus.css` 是评论 iframe 的主题源码，由 `src/integrations/feature-assets.ts` 按配置生成 `css/giscus.css`；使用选择器权重覆盖第三方样式，不使用 `!important` 或质检豁免。启停见 `docs/reference/FEATURES.md`。
 
 ---
 
+文章专属令牌由 `src/features/posts/styles/variables.css` 定义；入口与共享边界见 `docs/reference/FEATURES.md`。
+
+文章专属元件 `.chip`、`.hover-brighten`、`.glass-tall`、`.thin-scroll` 与 `.panel-title` 定义在 `src/features/posts/styles/elements.css`。
+
 ## 令牌（variables.css）
+
+下表包含共享令牌与文章专属令牌；`--page-edge-blur` 在 `src/features/posts/styles/variables.css`，`--astro-code-*` 在 `src/assets/css/shared/variables.css`。
 
 全站令牌写在 `variables.css` 的 `:root` 里，顺序即文件内顺序：**几何 → 文字与图标 → 状态反馈（白透明度阶梯 0.03 → 0.24）→ 遮罩 → 投影 → 动效：悬停过渡 → 动效：页面转场**。
 
@@ -70,13 +76,13 @@
 | `--astro-code-token-string`                                            | `#9ecbff`                          | 字符串                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `--astro-code-token-string-expression`                                 | `#85e89d`                          | 字符串里的表达式：HTML 标签名、CSS 选择器片段                                                                                                                                                                                                                                                                                                                                                                   |
 
-新增**全站**变量写在 `variables.css` 的 `:root` 里；后台另有一整套独立令牌（蓝白商业风：底色 / 主色蓝 / 文字 / 描边 / 遮罩 / 投影 / 圆角 / 动效 / 侧栏 `--nav-*`），全部定义在 `src/pages/admin/_admin/css/variables.css`，与前台零共用零拷贝，随后台一起进退。
+新增**全站**变量写在 `variables.css` 的 `:root` 里；后台另有一整套独立令牌（蓝白商业风：底色 / 主色蓝 / 文字 / 描边 / 遮罩 / 投影 / 圆角 / 动效 / 侧栏 `--nav-*`），全部定义在 `src/pages/admin/_admin/css/variables.css`，与前台零共用零拷贝，只随后台外壳加载。
 
-文章区局部变量（`--posts-side-w` / `--posts-side-gap` / `--posts-offset-gap` / `--posts-side-offset`）定义在 `global.css` 的 `.page-main` 上（只有文章区行读它们），不进 `variables.css`，作用见下方「全局宽度规则」。
+文章区局部变量（`--posts-side-w` / `--posts-side-gap` / `--posts-offset-gap` / `--posts-side-offset`）定义在 `src/features/posts/styles/shell.css` 的 `.page-main` 上（只有文章区行读它们），不进 `variables.css`，作用见下方「全局宽度规则」。
 
 **圆角两档，按元件角色判定（不看尺寸）**：`--radius`（10px）给卡片与按钮——文章卡 / 友链卡 / 赞助卡 / 技术栈面板 / 标签面板，以及重试、筛选这类按钮；`--radius-sm`（6px）给小标签 / chip——技术栈标签、文章卡标签、标签云 chip、项目主题标签，以及时间轴滚动区的聚焦圆角。不属于这两类的各自按语义取值，不套令牌：标题竖条 accent、分类树项 / 目录项、行内代码、骨架占位条、圆形头像（50%）、完整胶囊（999px）。
 
-**过渡时长原则上不做令牌**：动画时长按各处观感直接写死（位移 / 开合 / 显隐 / 图片缩放等，`0.18s` / `0.3s ease` / `0.34s cubic-bezier(...)` 等），不收敛、不统一。**第一个例外是悬停提亮**：「鼠标移入 → 提亮 / 淡入」的过渡时长统一令牌化为 `--t-hover`（见上表）——这一类悬停变过去一律写 `var(--t-hover)`，全站同一速度、渐变过去而不是跳变；同一规则里共用的 `:focus-visible` 随之同行，纯聚焦触发的反馈（输入框描边等）仍各自定。第二个例外是**页面转场**（`--t-page-exit` / `--t-page-enter` / `--page-shift` / `--page-veil` / `--page-edge-blur`，归在 `variables.css` 的「动效：页面转场」组）：时长同时是 swup 的等待时长（`animationDuration`），要整体调速只改一处，故立令牌。唯一要守的是媒体查询断点仍按规则第 5 条走。
+**过渡时长原则上不做令牌**：动画时长按各处观感直接写死（位移 / 开合 / 显隐 / 图片缩放等，`0.18s` / `0.3s ease` / `0.34s cubic-bezier(...)` 等），不收敛、不统一。**第一个例外是悬停提亮**：「鼠标移入 → 提亮 / 淡入」的过渡时长统一令牌化为 `--t-hover`（见上表）——这一类悬停变过去一律写 `var(--t-hover)`，全站同一速度、渐变过去而不是跳变；同一规则里共用的 `:focus-visible` 随之同行，纯聚焦触发的反馈（输入框描边等）仍各自定。第二个例外是**页面转场**（共享令牌 `--t-page-exit` / `--t-page-enter` / `--page-shift` / `--page-veil` 在 `src/assets/css/variables.css`，文章左缘模糊 `--page-edge-blur` 在 `src/features/posts/styles/variables.css`）：时长同时是 swup 的等待时长（`animationDuration`），要整体调速只改一处，故立令牌。唯一要守的是媒体查询断点仍按规则第 5 条走。
 
 **磨砂统一挂 `.glass` 类**：全站磨砂效果只在 `utilities.css` 的 `.glass` 里定义一次（透明底 + `backdrop-filter` 取 `--blur` + 1px 内描边 + 统一投影），玻璃卡、悬浮小按钮、搜索胶囊 / 下拉、抽屉都用它；组件与页面样式**不再自己写 `backdrop-filter`**，也不要硬编码模糊半径。想统一加浓/减淡全站磨砂，只改 `--blur` 这一个值。`-webkit-` 前缀那行同样用变量，两行成对（`.glass` 里已写好一份）。
 
@@ -99,8 +105,8 @@
 1. **图上 / 装饰性极淡图标**：CC 徽标 0.05、图片占位图标的压暗 opacity（0.5 / 0.75）
 2. **跟随文字的小图标（E 类）**：不写自己的 `color`，继承周围文字色再叠 `opacity` 0.55–0.8（面包屑 0.65、目录 0.55、meta 行 0.6 等），文字换令牌后自动跟着变
 3. **机制文件（自成体系的观感值）**：骨架屏（0.06 / 0.14）、swup 进度条、首载 loading 屏（站点名 0.92 / 轨道 0.1 / 高光 0.85 + 兜底底色 `#000`）、时钟（独立仪表配色 0.15 / 0.55 / 0.7 + 自身黑投影）、阅读进度环（轨道 0.08 / 进度 0.9）、头像光环（0.9 白环 + 0.25 白辉光，4 处各自持）
-4. **markdown 正文局部排版值**（按规则留在 `posts/markdown.css`）：行内代码 0.08 / 0.1、引用 0.2 / 0.03、表格 0.1 / 0.06 / 0.03（行悬停）、hr 0.1、脚注 0.1、复选框 accent 0.6。**代码块的底色与正文色已令牌化**（`--astro-code-background` / `--astro-code-foreground`），不在此列
-5. **单点局部值**：内容内小滚动条（`.thin-scroll` 0.1、目录 `.toc-scroll` 0.1、搜索下拉 0.15）、搜索 mark 高亮 0.18、赞助页分隔线 0.18、图片占位底 0.06（`shared/image-fallback.css` 的详情页封面 / 卡片封面 / 正文图占位 / 占位块四处）——单独出现、无共性，留原地
+4. **markdown 正文局部排版值**（按规则留在 `shared/markdown.css`）：行内代码 0.08 / 0.1、引用 0.2 / 0.03、表格 0.1 / 0.06 / 0.03（行悬停）、hr 0.1、脚注 0.1、复选框 accent 0.6。**代码块的底色与正文色已令牌化**（`--astro-code-background` / `--astro-code-foreground`），不在此列
+5. **单点局部值**：内容内小滚动条（`.thin-scroll` 0.1、目录 `.toc-scroll` 0.1、搜索下拉 0.15）、搜索 mark 高亮 0.18、赞助页分隔线 0.18、图片占位底 0.06（`src/features/posts/styles/image-fallback.css` 的文章封面与正文图、`src/assets/css/shared/image-fallback.css` 的通用占位块）——单独出现、无共性，留原地
 6. **纯机制值**：`disabled` 透明度、`select option` 底色、徽章状态填底（0.2）这类语义浓淡，不是设计色阶
 
 后台侧栏层级（`--nav-*`）已令牌化，不在此列。
@@ -127,7 +133,7 @@
 
 **挂 `.hoverable` 的元素不要再声明自己的 `transition`**：组件样式同样编译成 (0,2,0) 且排在全局样式之后，本地的 `transition` 会悄悄盖掉全站那份悬停过渡（background / box-shadow / border-color / color，时长 `var(--t-hover)`），悬停时颜色/描边直接跳变。确需过渡 transform 等额外属性，要么把共享的四个属性一并写全（时长同样走 `var(--t-hover)`），要么把过渡写到子元素上（如 PostCard 封面图缩放，位移时长各自定）。元素若还挂在全局低权重（0,1,0）基础规则里，写全四个属性也不够——`.hoverable.hoverable` 权重更高，仍整条盖掉那份 transition，基础规则要提到 (0,2,0) 靠源码顺序压过；踩坑实录见 [TROUBLESHOOTING](./TROUBLESHOOTING.md) 第 66 条。
 
-例外（这些不是「按钮式反馈」，按各自语义取值、不挂 `.hoverable`）：正文表格行高亮、封面图缩放/遮罩、自定义滚动条滑块、只提亮文字不加背景底的链接（面包屑 `.breadcrumb-link`——36px 细左缘条里挂 `.hoverable` 的悬停底色会多出一块底，观感突兀；卡片标题/分类 `.post-card-title-link` / `.post-card-category`；分类项 `.cat-item`；转载 `.repost-url` / `.repost-license`）、常规图标的悬停/选中/激活色（走 `--white`）。只提亮文字这类统一挂 **`.hover-brighten`**（`utilities.css` 全站唯一定义，双类提到 (0,3,0) 的机制与 `.hoverable` 相同）：本类只负责悬停/聚焦提亮到 `--white` 与 `var(--t-hover)` 过渡，静止色仍写在各自组件；挂它的元素不要再自己写 `transition` / `:hover` 的 color。静止色本身是 (0,3,0) 的元素（目录子项 `.toc-sub .toc-link`、`.post-meta-link`）不挂——单一全站悬停色压不过组件的选中态色，悬停仍留在组件内。唯一的位移是封面图缩放（transform 各自定时长）。
+例外（这些不是「按钮式反馈」，按各自语义取值、不挂 `.hoverable`）：正文表格行高亮、封面图缩放/遮罩、自定义滚动条滑块、只提亮文字不加背景底的链接（面包屑 `.breadcrumb-link`——36px 细左缘条里挂 `.hoverable` 的悬停底色会多出一块底，观感突兀；卡片标题/分类 `.post-card-title-link` / `.post-card-category`；分类项 `.cat-item`；转载 `.repost-url` / `.repost-license`）、常规图标的悬停/选中/激活色（走 `--white`）。只提亮文字这类统一挂 **`.hover-brighten`**（`src/features/posts/styles/elements.css` 统一定义，双类提到 (0,3,0) 的机制与 `.hoverable` 相同）：本类只负责悬停/聚焦提亮到 `--white` 与 `var(--t-hover)` 过渡，静止色仍写在各自组件；挂它的元素不要再自己写 `transition` / `:hover` 的 color。静止色本身是 (0,3,0) 的元素（目录子项 `.toc-sub .toc-link`、`.post-meta-link`）不挂——单一全站悬停色压不过组件的选中态色，悬停仍留在组件内。唯一的位移是封面图缩放（transform 各自定时长）。
 
 ---
 
@@ -145,16 +151,16 @@
 
 - `.link-plain` 是**纯标记类**，本身不产生任何样式，只供 `global.css` 的选择器排除。
 - 要下划线样式就不挂它；要退出就挂它——**不要**再去 `global.css` 里追加 `:not(.xxx)`，那会把选择器权重堆高，连组件自己的 `padding` / `display` 都可能被压掉。
-- 正文链接由 markdown 渲染、加不上类名，直接沿用上面的全站链接样式，`posts/markdown.css` 不单独定义 `a`。
+- 正文链接由 markdown 渲染、加不上类名，直接沿用上面的全站链接样式，`shared/markdown.css` 不单独定义 `a`。
 
 ---
 
 ## 玻璃拟态
 
-| 类名          | 用途                                                                                                                                                                                                                                              | 示例                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `.glass`      | 全站磨砂效果**唯一定义**：透明底 + 磨砂（`backdrop-filter` 取 `--blur`）+ 1px 内描边 + 统一投影 `--shadow`；凡需要磨砂观感的元素都挂它                                                                                                            | `<div class="glass">`                             |
-| `.glass-tall` | 超高容器（内容可能超过手机 GPU 纹理上限约 4096px）的磨砂回退：容器自身不模糊，改由一屏高（100vh）的 `sticky` `::before` 承担；不支持 `overflow: clip` 的浏览器自动退回容器直接模糊。容器自身不设 padding、不自己滚动，见 `utilities.css` 里的注释 | `<article class="post-content glass glass-tall">` |
+| 类名          | 用途                                                                                                                                                                                                                                                                       | 示例                                              |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `.glass`      | 全站磨砂效果**唯一定义**：透明底 + 磨砂（`backdrop-filter` 取 `--blur`）+ 1px 内描边 + 统一投影 `--shadow`；凡需要磨砂观感的元素都挂它                                                                                                                                     | `<div class="glass">`                             |
+| `.glass-tall` | 超高容器（内容可能超过手机 GPU 纹理上限约 4096px）的磨砂回退：容器自身不模糊，改由一屏高（100vh）的 `sticky` `::before` 承担；不支持 `overflow: clip` 的浏览器自动退回容器直接模糊。容器自身不设 padding、不自己滚动，见 `src/features/posts/styles/elements.css` 里的注释 | `<article class="post-content glass glass-tall">` |
 
 背后是固定背景（`.bg`）还是页面内容（固定顶栏盖住滚动内容），都直接挂 `.glass`，`backdrop-filter` 实时采样绘制在背后的像素。超高卡片追加 `.glass-tall`。磨砂观感强弱取决于背景预设的高频细节，见「全站背景」节的「高频细节是磨砂感的前提」。
 
@@ -170,20 +176,20 @@
 
 ---
 
-## 切页转场（swup 的 html 类驱动，global.css）
+## 切页转场（swup 的 html 类驱动）
 
-`astro.config.ts` 的 `animationClass: 'transition-'` 让 swup 等待匹配 `[class*="transition-"]` 元素上的动画——全站只有两处：前台 BaseLayout 的 `<main class="hero transition-page" id="swup">` 与后台 AdminLayout 的 `<main class="admin-main transition-page" id="swup">`。切页因此是整块 CSS 动画：swup 等退出播完才替换 DOM、等进入播完才收尾，无 JS 编排。
+`astro.config.ts` 的 `animationClass: 'transition-'` 让 swup 等待匹配 `[class*="transition-"]` 元素上的动画——每份页面只保留一个等待容器：前台 PageRow / PostsRow 的 `<main class="hero transition-page" id="swup">` 与后台 AdminLayout 的 `<main class="admin-main transition-page" id="swup">`。切页因此是整块 CSS 动画：swup 等退出播完才替换 DOM、等进入播完才收尾，无 JS 编排。
 
-swup 切页时 `html` 依次挂三类：`is-changing`（覆盖整个窗口：退出开始 → 进入结束）、`is-leaving`（退出期）、`is-rendering`（进入期）。前台（`global.css`「切页转场」块）写六件事：
+swup 切页时 `html` 依次挂三类：`is-changing`（覆盖整个窗口：退出开始 → 进入结束）、`is-leaving`（退出期）、`is-rendering`（进入期）。前台转场分布在 `src/assets/css/global.css` 与 `src/features/posts/styles/shell.css` 各自的「切页转场」块：前者定义通用进退动画，后者处理文章常驻件、正文玻璃与左缘车道。整体行为如下：
 
 - **退出**：所有页面整块下移渐隐，`forwards` 钉住终帧；文章详情页离开时也走这一条。
 - **进入**：普通页面整块上移渐显；文章详情页整块上移，正文渐显，大玻璃框从首帧保持模糊；
 - **行级侧栏 / 搜索框 / 左缘常驻盒默认同曲线**：`.global-sidebar`、`.posts-search-float` 与左缘常驻盒 `.posts-edge-float` 在 `#swup` 外、不在整块动画里，各挂一条同样的 `page-exit` / `page-enter`，规则上的 `:not(.is-transition-still)` 把本次应原地站住的元素摘出。仍标记由 `posts-shell.ts` 在 `swup:visit:start` 标、`visit:end` 摘除（源页按行变体判——变体在 `swup:content:replace` 同帧翻成目标页的——目标页按 URL 判）：区内切换（源页与目标页都在文章区）标侧栏与左缘盒（侧栏在两种变体里同位常驻，顶偏移同值、只有内部内容态变化，全程原地不闪；盒不位移、车道等新页落地才变，见下条）；列表页之间再标搜索框（只在列表 ↔ 详情之间才隐显）；进 / 出普通页时三者本就隐藏，同曲线只命中不可见元素；
-- **左缘条常驻盒**：页头 / 面包屑的显示实例。`posts/edge-float.ts` 把 `#swup` 里的驱动条（`.posts-edge-slot` 内的 `.posts-header` / `.posts-breadcrumb`）深克隆进盒（车道 `.posts-edge-content`），并在行上加 `is-edge-live` 隐掉驱动条（visibility 不影响布局，叠放测算 / 锚高度观察仍照读驱动条）；无 JS 时驱动条照常显示作回退。盒 top 取 `--posts-edge-top`（与行 padding-top 同值），文章变体 ≥851px 右缘收进「目录宽 + 行间隙」与驱动条像素级重合（目录隐藏时通栏），z-index 20 与包裹槽同档（DOM 在槽后，压过驱动条）、低于搜索浮层（30）；
+- **左缘条常驻盒**：页头 / 面包屑的显示实例。`src/features/posts/scripts/edge-float.ts` 把 `#swup` 里的驱动条（`.posts-edge-slot` 内的 `.posts-header` / `.posts-breadcrumb`）深克隆进盒（车道 `.posts-edge-content`），并在行上加 `is-edge-live` 隐掉驱动条（visibility 不影响布局，叠放测算 / 锚高度观察仍照读驱动条）；无 JS 时驱动条照常显示作回退。盒 top 取 `--posts-edge-top`（与行 padding-top 同值），文章变体 ≥851px 右缘收进「目录宽 + 行间隙」与驱动条像素级重合（目录隐藏时通栏），z-index 20 与包裹槽同档（DOM 在槽后，压过驱动条）、低于搜索浮层（30）；
 - **区内切换的车道**：盒被标 `is-transition-still`（时机见上条）时不位移（不命中上面的同曲线规则），盒内车道 `.posts-edge-content` 等新页落地才变：fetch 等待期旧车道保持可见，`swup:content:replace` 后 `edge-float.ts` 给旧车道标 `is-edge-out` 播 `edge-blur-out`（`forwards` 钉住终帧）、播完换入带 `is-edge-in` 的新克隆播 `edge-blur-in`（半径 `--page-edge-blur`；车道是单条小栏不是栅格，逐帧 blur 代价可接受）；标 `is-edge-out` 前先摘 `is-edge-in`，两类不会同车道共存；驱动条本体在 `#swup` 内随整块位移，但被 `is-edge-live` 隐着、不参与视觉；
 - **玻璃过渡**：玻璃白色填底随切页渐变；文章详情页进入时，正文在玻璃框内独立渐显，大框从首帧保留模糊。
 
-`prefers-reduced-motion` 把时长压到 0.01s（近似瞬时）但保留动画——设 `none` / `0s` 会让 swup 不等且打警告（20.2）。转场四条动画的时长全读 `--t-page-exit` / `--t-page-enter`，`variables.css` 在减动效块覆写这两个令牌即整体压缩，无需逐元素镜像。后台自身无动画：`_admin/css/base.css` 用 0.01s 空动画满足 swup 等待目标，切页仍瞬时（同时消 "No elements found matching animationSelector" 警告）。完整机制与取舍见 `TROUBLESHOOTING.md` 第 20 / 37 条。转场块的词汇表由质检 `check-transition`（`tests/quality/transition.mjs`）焊死：块内只引用稳定词汇（相位类、`is-transition-still`、常驻元素类名），行变体类等「原因类」禁止写入——新增「站住」的情况 = `posts-shell.ts` 加一个标记。
+`prefers-reduced-motion` 把时长压到 0.01s（近似瞬时）但保留动画——设 `none` / `0s` 会让 swup 不等且打警告（20.2）。转场四条动画的时长全读 `--t-page-exit` / `--t-page-enter`，`variables.css` 在减动效块覆写这两个令牌即整体压缩，无需逐元素镜像。后台自身无动画：`_admin/css/base.css` 用 0.01s 空动画满足 swup 等待目标，切页仍瞬时（同时消 "No elements found matching animationSelector" 警告）。完整机制与取舍见 `TROUBLESHOOTING.md` 第 20 / 37 条。两份转场块的词汇表均由质检 `check-transition`（`tests/quality/transition.mjs`）焊死：块内只引用稳定词汇（相位类、`is-transition-still`、常驻元素类名），行变体类等「原因类」禁止写入——新增「站住」的情况 = `posts-shell.ts` 加一个标记。
 
 ---
 
@@ -191,13 +197,13 @@ swup 切页时 `html` 依次挂三类：`is-changing`（覆盖整个窗口：退
 
 **断点不是全站统一的一套，每个版面按自己的装得下 / 装不下划线**——这是刻意的，不要为了「整齐」把它们合并成一个值。
 
-| 断点                                         | 出现范围                                                                                 | 划分的是什么                                                                                                                                                                                                      |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `768px` / `769px`                            | 全站（`nav/breakpoint.ts` 与各 CSS 同值）                                                | 手机 ↔ 桌面这条总分界                                                                                                                                                                                             |
-| `850px`                                      | `nav/swup-widgets.ts` · `posts/toc.ts` · `layouts/PostsShell.astro`                      | 文章详情页右侧目录栏还显不显示（≤850 隐藏并移入抽屉）                                                                                                                                                             |
-| `1150px` / `1151px`                          | `nav/swup-widgets.ts` · `posts/row-state.ts` · `layouts/PostsShell.astro` · `global.css` | 文章详情页正文 + 常驻侧栏两列还容不容得下（侧栏 ≥1151 显示）                                                                                                                                                      |
-| `max-aspect-ratio: 3 / 4`                    | `src/assets/backgrounds/css/*.css` 五个预设各自内部                                      | 窄高竖屏下重排色斑，避免渐变被拉成竖条                                                                                                                                                                            |
-| 页面专属值（如首页 `827px`、关于页 `848px`） | 只在那个页面自己的样式里                                                                 | 该版面压到多少会挤（首页两栏最小总宽 716 + 两侧 112 = 828；关于页两列 2×360 + 16 gap + 2×56 留白 = 848。低于它就转单栏，此时「自述卡跟左列等高」的 `contain: size` 必须一起撤掉，否则独占一行会把 auto 高压成 0） |
+| 断点                                         | 出现范围                                                                                                                                                                         | 划分的是什么                                                                                                                                                                                                      |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `768px` / `769px`                            | 全站（`nav/breakpoint.ts` 与各 CSS 同值）                                                                                                                                        | 手机 ↔ 桌面这条总分界                                                                                                                                                                                             |
+| `850px`                                      | `src/features/posts/scripts/swup-widgets.ts` · `src/features/posts/scripts/toc.ts` · `src/features/posts/layouts/PostsShell.astro`                                               | 文章详情页右侧目录栏还显不显示（≤850 隐藏并移入抽屉）                                                                                                                                                             |
+| `1150px` / `1151px`                          | `src/features/posts/scripts/swup-widgets.ts` · `src/features/posts/scripts/row-state.ts` · `src/features/posts/layouts/PostsShell.astro` · `src/features/posts/styles/shell.css` | 文章详情页正文 + 常驻侧栏两列还容不容得下（侧栏 ≥1151 显示）                                                                                                                                                      |
+| `max-aspect-ratio: 3 / 4`                    | `src/assets/backgrounds/css/*.css` 五个预设各自内部                                                                                                                              | 窄高竖屏下重排色斑，避免渐变被拉成竖条                                                                                                                                                                            |
+| 页面专属值（如首页 `827px`、关于页 `848px`） | 只在那个页面自己的样式里                                                                                                                                                         | 该版面压到多少会挤（首页两栏最小总宽 716 + 两侧 112 = 828；关于页两列 2×360 + 16 gap + 2×56 留白 = 848。低于它就转单栏，此时「自述卡跟左列等高」的 `contain: size` 必须一起撤掉，否则独占一行会把 auto 高压成 0） |
 
 改一处断点时，只同步「同一个版面规则」里的其它处（写死的地方都有注释指向）；**不要**顺手把别的页面拉齐到同值——那不是漏改。
 
@@ -274,11 +280,11 @@ export const background = {
 > 类名见 `docs/REGISTRY.md`，这里只写几何规则与联动值。
 
 - **左缘元素同位同高（桌面）**：列表页头 `.posts-header` 与文章面包屑条 `.posts-breadcrumb` 都占行左上角一格，都 **36px**（页头 = max(标题 25.6、搜索占位 36)；面包屑 `height: 36px` + flex 居中）。像素级等高，不是「差不多」。
-- **文章区行几何（桌面）**：行 `padding-top` 82px（普通页 84px 不动）+ 36px 条 + 14px 间隙 = **内容顶 132px**；搜索胶囊 82–118、中心 100 ≈ 导航底(69)→内容顶(132) 窗口中心 100.5。82 / 36 / 14 三值联动，改一起改（`global.css` 变体块注释有互指）。
+- **文章区行几何（桌面）**：行 `padding-top` 82px（普通页 84px 不动）+ 36px 条 + 14px 间隙 = **内容顶 132px**；搜索胶囊 82–118、中心 100 ≈ 导航底(69)→内容顶(132) 窗口中心 100.5。82 / 36 / 14 三值联动，改一起改（`src/features/posts/styles/shell.css` 变体块注释有互指）。
 - **右侧目录**：sticky top 82px 夹持（与面包屑顶共线，顶差切页时会闪）、≤850px 隐藏、宽 240px。
 - **手机端（≤768px）**：导航 57px 更矮 → 列表行 `padding-top` 73px、文章行 70px + 面包屑 28px + 间隙 13px = **正文大框顶 111px**（对齐列表搜索框顶 110.6，切页时正文卡正好落在搜索框消失的位置）；双行页头 = 标题 21.6 + 间隙 16 + 搜索 36 = 73.6。
 - **切页转场**：所有页面退出时整块下移渐隐；普通页面进入时整块上移渐显，文章详情页进入时大玻璃框保持模糊、框内正文渐显。
-- **搜索框行级常驻**：真搜索框是 `BaseLayout` 渲染在行内（`main#swup` 之外）的 `.posts-search-float`，swup 永不触碰（节点不摘出 / 不重插，backdrop 层与投影不重建、切页零闪）；页头只留 `.posts-header-search` 空占位；浮层基线位是 CSS（与占位重合：桌面 top = `--posts-edge-top`、右缘贴行右缘、宽度与占位同表达式，移动 = 缘顶 + 标题行高 1.35rem + 页头间隙 16px，同值契约见 global.css 该块注释），`posts-shell.ts` 的 `placeFloat` 走 offset 链覆写运行时实测（offset 是布局坐标，不受转场位移影响，见 TROUBLESHOOTING 第 42 条）。
+- **搜索框行级常驻**：真搜索框是 `PostsRow` 渲染在行内（`main#swup` 之外）的 `.posts-search-float`，swup 永不触碰（节点不摘出 / 不重插，backdrop 层与投影不重建、切页零闪）；页头只留 `.posts-header-search` 空占位；浮层基线位是 CSS（与占位重合：桌面 top = `--posts-edge-top`、右缘贴行右缘、宽度与占位同表达式，移动 = 缘顶 + 标题行高 1.35rem + 页头间隙 16px，同值契约见 src/features/posts/styles/shell.css 该块注释），`posts-shell.ts` 的 `placeFloat` 走 offset 链覆写运行时实测（offset 是布局坐标，不受转场位移影响，见 TROUBLESHOOTING 第 42 条）。
 - **`.posts-search-float` 的 CSS 不写 opacity 过渡**：`settle` 仍即时落位 opacity（不走过渡），CSS 只管 `visibility / pointer-events` 随行变体类瞬时翻转；切页出入场由「切页转场」节的 `page-exit` / `page-enter` 动画承担，与 settle 的落位互不干扰（动画播放期压过内联值）。
 
 ---
@@ -294,8 +300,8 @@ export const background = {
 
 ## 组件级与自持样式
 
-- **抽屉骨架**（`shared/drawer.css`）：`PostsDrawers` 里两个右侧抽屉（目录 / 筛选）共用一套骨架，各自只留差异；`visibility` 延迟 0.25s 撤，让滑出动画播完；≤768px 标题栏收成 56px 高，目录抽屉桌面 68px 高是组件内差异，写在 `PostsDrawers` 的 `<style>` 里。组件里的 `toc-modal-*` / `pfilter-modal-*` 类是 JS 钩子（`[data-toc-close]`、目录节点的宿主容器）与 `:global` 适配的锚点。
-- **灯箱**（`shared/lightbox.css`）：PhotoSwipe 主题微调，随 `lightbox-core.ts` 懒加载，不进首屏产物。
+- **抽屉骨架**（`src/features/posts/styles/drawer.css`）：`PostsDrawers` 里两个右侧抽屉（目录 / 筛选）共用一套骨架，各自只留差异；`visibility` 延迟 0.25s 撤，让滑出动画播完；≤768px 标题栏收成 56px 高，目录抽屉桌面 68px 高是组件内差异，写在 `PostsDrawers` 的 `<style>` 里。组件里的 `toc-modal-*` / `pfilter-modal-*` 类是 JS 钩子（`[data-toc-close]`、目录节点的宿主容器）与 `:global` 适配的锚点。
+- **灯箱**（`src/features/posts/styles/lightbox.css`）：PhotoSwipe 主题微调，随 `lightbox-core.ts` 懒加载，不进首屏产物。
 - **骨架屏**（`shared/skeleton.css`）：`.skeleton` 加载占位闪烁动画，加在任意元素上即可。
 - **导航下划线**（`NavBar.astro` 组件内）：静态线由 `is-active` / `aria-current` 服务端渲染、首屏可见不依赖 JS（选择器带 `:not(.js-ready)` 只画接管前）；共享线 JS 接管后是下划线的唯一画者，motion 驱动（`cubic-bezier(0.32, 0.72, 0, 1)`），时长按「起点 → 终点」实际位移成比例（`450–700ms`，位移 ×3.4ms，上下限夹取）；桌面导航只变文字色、不挂 `.hoverable`（那会加白底描边，导航只要字体高亮），手机端下拉菜单仍是 `.hoverable` 反馈。细节读 `nav-indicator.ts`。
 - **圆形按钮**（`index.astro` 页内自持）：首页社交按钮的 40px 毛玻璃圆钮（内部图标 20px，行内间距 12px，六个一行的尺寸），尺寸写在页面 `<style>`，磨砂与投影来自挂的 `.glass`，悬停反馈靠 `.hoverable`，不进公共文件。
@@ -303,18 +309,18 @@ export const background = {
 - **数据卡片**（`DaysCounter.svelte`）：只服务这一个组件，样式写在组件 `<style>` 里（scoped），不进公共文件。
 - **侧边按钮**（`SideWidgets.astro`）：侧边悬浮按钮组（返回顶部、到底部、目录、进度等）44px 磨砂圆角方块，磨砂来自标记里挂的 `glass` 类，样式自持在组件内；swup 切页时组容器加 `.navigating` 类隐藏所有按钮。
 - **图片占位与失败降级**（`shared/image-fallback.css`）：降级逻辑在 `src/assets/js/ui/image-fallback.ts`——封面类（详情页封面 / 列表卡片封面）失败时把 `<img>` 从 DOM 摘掉、露出容器自带的占位图标与底色；其余图片失败时替换为图标占位块。本地图与外链图都适用。
-- **Markdown 正文**（`posts/markdown.css`）：排版留在本文件（标题、列表、代码块、表格、脚注），组件不需要额外处理；引用块左侧竖条用 `::before` 伪元素画并带圆角（`border-left` 是直角，与圆角并排会在角落露出缺口），表格用 `border-collapse: separate` + `border-spacing: 0` 才兑现得了 `border-radius`。**代码高亮色板在 `variables.css`**：`astro.config.ts` 的 `markdown.shikiConfig` 用 Shiki 的 `css-variables` 主题，Shiki 不写死 hex、只输出 `var(--astro-code-*)` 引用，色值全部由 `--astro-code-*` 令牌定义（见「令牌」表），改配色只改 `variables.css`，不动构建配置；变量名是 Shiki 固定的一套，换主题配置时这些名字要跟着核对。
+- **Markdown 正文**（`shared/markdown.css`）：排版留在本文件（标题、列表、代码块、表格、脚注），组件不需要额外处理；引用块左侧竖条用 `::before` 伪元素画并带圆角（`border-left` 是直角，与圆角并排会在角落露出缺口），表格用 `border-collapse: separate` + `border-spacing: 0` 才兑现得了 `border-radius`。**代码高亮色板在 `src/assets/css/shared/variables.css`**：`astro.config.ts` 的 `markdown.shikiConfig` 用 Shiki 的 `css-variables` 主题，Shiki 不写死 hex、只输出 `var(--astro-code-*)` 引用，色值全部由 `--astro-code-*` 令牌定义（见「令牌」表），改配色只改 `src/assets/css/shared/variables.css`，不动构建配置；变量名是 Shiki 固定的一套，换主题配置时这些名字要跟着核对。
 - **页面标题**：项目 / 友链 / 赞助 / 文章列表共用的入口标题（左图标 + 文字，字号 / 颜色全站一份，改一处全站生效，文字阴影走 `--shadow`）；文章区页头标题同时挂 `.posts-title`（36px 左缘条，见「文章区几何」），手机端标题居左、上下间距 16px 与标准页统一。
-- **后台**（`src/pages/admin/_admin/css/`）：`base.css`（重置 + 文字链接 + swup 进度条 + 切页等待占位动画 + 滚动条拖拽态，经 `@import` 引 `variables.css`）+ `variables.css`（后台全部令牌，蓝白商业风独立一套：底色 / 表面 / 主色蓝 / 文字 / 描边 / 遮罩 / 投影 / 圆角 / 动效 / 侧栏 `--nav-*`，与前台零共用零拷贝）+ `admin.css`（布局）+ `elements.css`（元件）。整个目录**只由 `AdminLayout` 引入**，不想要后台时删掉 `_admin/` 目录即可；不 import 前台任何 `src/assets/css/`，也没有磨砂与背景容器（页面底色是平铺的 `--page-bg`，白底 + 细边框 + 轻投影，无 `backdrop-filter`，悬停 / 聚焦效果在 `_admin/css/` 里自写）。前台与后台需要同一元件时，把规则拷进各自目录，不跨目录 import。
+- **后台**（`src/pages/admin/_admin/css/`）：`base.css`（重置 + 文字链接 + swup 进度条 + 切页等待占位动画 + 滚动条拖拽态，经 `@import` 引 `variables.css`）+ `variables.css`（后台全部令牌，蓝白商业风独立一套：底色 / 表面 / 主色蓝 / 文字 / 描边 / 遮罩 / 投影 / 圆角 / 动效 / 侧栏 `--nav-*`，与前台零共用零拷贝）+ `admin.css`（布局）+ `elements.css`（元件）。整个目录**只由 `AdminLayout` 引入**，后台始终保留，依赖边界见 `docs/reference/FEATURES.md`；不 import 前台任何 `src/assets/css/`，也没有磨砂与背景容器（页面底色是平铺的 `--page-bg`，白底 + 细边框 + 轻投影，无 `backdrop-filter`，悬停 / 聚焦效果在 `_admin/css/` 里自写）。前台与后台需要同一元件时，把规则拷进各自目录，不跨目录 import。
 
 ---
 
 ## 新增 CSS 的规则
 
-1. **高频复用的元件**（卡片/按钮/输入框这种积木）写 `utilities.css`；**后台专属**的写在 `src/pages/admin/_admin/css/`（基础样式进 `base.css`、布局进 `admin.css`、元件进 `elements.css`）；**页面内容排版**（标题/描述/座右铭）写各页 `<style>` 或页面组共享文件；组件私有的写在组件 `<style scoped>` 里
-2. **新变量**：全站用的写 `variables.css`，后台用的写 `src/pages/admin/_admin/css/variables.css` 的 `:root`，命名用 `--xxx` 前缀
+1. **高频复用的元件**（卡片/按钮/输入框这种积木）按归属写 `src/assets/css/utilities.css` 或 `src/features/posts/styles/elements.css`；**后台专属**的写在 `src/pages/admin/_admin/css/`（基础样式进 `base.css`、布局进 `admin.css`、元件进 `elements.css`）；**页面内容排版**（标题/描述/座右铭）写各页 `<style>` 或页面组共享文件；组件私有的写在组件 `<style scoped>` 里
+2. **新变量**：全站用的写 `variables.css`，共享 Markdown 高亮写 `src/assets/css/shared/variables.css`，文章专属写 `src/features/posts/styles/variables.css`，后台用的写 `src/pages/admin/_admin/css/variables.css` 的 `:root`，命名用 `--xxx` 前缀
 3. **骨架屏相关**写在 `shared/skeleton.css`
-4. **文章列表共享样式**写在 `posts/posts-listing.css`
+4. **文章列表共享样式**写在 `src/features/posts/styles/posts-listing.css`
 5. **全站背景**改 `src/data/background.ts` 一处即可；预设写在 `src/assets/backgrounds/` 下，别在组件里另起背景层
 6. **命名**用 BEM 风格或简短语义名，避免和组件样式冲突
 7. **要悬停效果就给元素挂 `.hoverable`**，不要在组件里另写 `:hover` 定白底/描边色；浓淡统一改 `variables.css` 的 `--hover-*`。挂 `.hoverable` 的元素**不要自己写 `transition`**（会盖掉全站悬停过渡，见「悬浮反馈」）

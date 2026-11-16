@@ -9,8 +9,8 @@
 
 ## 水合指令细节
 
-- 布局层常驻岛（不在 `#swup` 内、只水合一次）可 `client:idle`，现有实例：`BaseLayout` 里的 `PostsDrawers`。
-- 交互复杂到水合不可靠的，改纯静态标记 + `src/assets/js/` 脚本，现有实例：`SideWidgets.astro` + `swup-widgets.ts`。
+- 布局层常驻岛（不在 `#swup` 内、只水合一次）可 `client:idle`，现有实例：`src/features/posts/components/PostsExtras.astro` 里的 `PostsDrawers`。`BaseLayout` 自身没有岛，入口选择见 `docs/reference/FEATURES.md`。
+- 交互复杂到水合不可靠的，改纯静态标记 + 所属域的脚本；通用按钮实例为 `src/components/layout/SideWidgets.astro` + `src/assets/js/nav/page-widgets.ts`，文章按钮由 `src/features/posts/scripts/swup-widgets.ts` 控制。
 
 ## 脚本语言细节
 

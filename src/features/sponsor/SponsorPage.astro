@@ -1,0 +1,327 @@
+---
+// SponsorPage.astro — 赞助页面
+// 用法：路由 /sponsor/
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { Icon } from 'astro-icon/components';
+import { sponsorLink, sponsorList, supportActions } from '../../data/sponsor';
+---
+
+<BaseLayout title="赞助">
+  <div class="sponsor-page page-top-standard">
+    <header class="page-head">
+      <h1 class="page-title">
+        <Icon is:inline name="la:hand-holding-heart" class="page-title-icon" />
+        赞助支持
+      </h1>
+    </header>
+
+    <a
+      href={sponsorLink.href}
+      class="hero-card glass hoverable link-plain"
+      target="_blank"
+      rel="noopener"
+    >
+      <div class="hero-card-inner">
+        <div class="hero-text">
+          <span class="hero-label">推荐支持</span>
+          <h2 class="hero-name">{sponsorLink.name}</h2>
+          <p class="hero-desc">{sponsorLink.desc}</p>
+        </div>
+      </div>
+    </a>
+
+    <a
+      href={sponsorList.href}
+      class="action-card glass hoverable link-plain"
+      target={sponsorList.target}
+      rel="noopener"
+    >
+      <Icon is:inline name={sponsorList.icon} class="action-icon" />
+      <div class="action-body">
+        <span class="action-title">{sponsorList.title}</span>
+        <span class="action-desc">{sponsorList.desc}</span>
+      </div>
+    </a>
+
+    <section class="other-section">
+      <div class="other-header">
+        <span class="other-line"></span>
+        <p class="other-label">其他方式</p>
+        <span class="other-line"></span>
+      </div>
+      <div class="action-grid">
+        {supportActions.map((a) =>
+          a.href ? (
+            <a
+              href={a.href}
+              class="grid-card glass hoverable link-plain"
+              target={a.target}
+              rel="noopener"
+            >
+              <Icon is:inline name={a.icon} class="grid-icon" />
+              <div class="grid-body">
+                <span class="grid-title">{a.title}</span>
+                <span class="grid-desc">{a.desc}</span>
+              </div>
+            </a>
+          ) : (
+            // 无链接的卡片（分享本站 / 收藏本站）：不做超链接，也不挂悬停反馈，避免暗示可点
+            <div class="grid-card glass">
+              <Icon is:inline name={a.icon} class="grid-icon" />
+              <div class="grid-body">
+                <span class="grid-title">{a.title}</span>
+                <span class="grid-desc">{a.desc}</span>
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  /* width: 100% 必须有：.hero 是 flex 容器，只写 max-width 会塌成窄缝（见 about 页注释）
+     标题区用全站页面标题：.page-head / .page-title / .page-title-icon / .page-top-standard（见 utilities.css） */
+  .sponsor-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ---- 主赞助卡片 ---- */
+  .hero-card {
+    /* 卡间距（标题→卡的 16px 由 .page-head 定） */
+    margin-bottom: var(--card-gap);
+    width: 100%;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-card-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 28px 24px;
+  }
+
+  .hero-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .hero-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+  }
+
+  .hero-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+
+  .hero-desc {
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
+
+  /* ---- 其他支持方式 ---- */
+  .other-section {
+    /* 12 + .action-card 的 12px = 24px，与「其他方式」字→栅格间距（下方）相等 */
+    margin-top: 12px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* 「其他方式」字→栅格间距，与字→上方 action-card 间距（上方）相等 */
+    gap: 24px;
+  }
+
+  .other-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .other-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.18));
+  }
+
+  .other-line:last-child {
+    background: linear-gradient(to left, transparent, rgba(255, 255, 255, 0.18));
+  }
+
+  .other-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--card-gap);
+  }
+
+  .grid-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: 22px 14px 18px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  a.grid-card {
+    cursor: pointer;
+  }
+
+  .grid-icon {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    color: var(--ink);
+    transition: color var(--t-hover);
+  }
+
+  .grid-icon :global(svg) {
+    width: 30px;
+    height: 30px;
+  }
+
+  a.grid-card:hover .grid-icon {
+    color: var(--white);
+  }
+
+  .grid-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .grid-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .grid-desc {
+    font-size: 0.72rem;
+    color: var(--ink);
+  }
+
+  .action-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .action-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    color: var(--ink);
+    transition: color var(--t-hover);
+  }
+
+  .action-card:hover .action-icon {
+    color: var(--white);
+  }
+
+  .action-icon :global(svg) {
+    width: 30px;
+    height: 30px;
+  }
+
+  .action-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .action-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .action-desc {
+    font-size: 0.75rem;
+    color: var(--ink);
+  }
+
+  /* ---- 手机端适配 ---- */
+  @media (max-width: 768px) {
+    .hero-card-inner {
+      padding: 22px 18px;
+    }
+
+    .hero-name {
+      font-size: 1.05rem;
+    }
+
+    .action-card {
+      /* 手机端卡间距 */
+      margin-bottom: 10px;
+      padding: 15px 16px;
+      gap: 14px;
+    }
+
+    .action-icon {
+      width: 25px;
+      height: 25px;
+    }
+
+    .action-grid {
+      grid-template-columns: 1fr;
+      gap: var(--card-gap);
+    }
+
+    .grid-card {
+      flex-direction: row;
+      text-align: left;
+      padding: 15px 16px;
+      gap: 14px;
+    }
+
+    .grid-body {
+      flex: 1;
+    }
+
+    .grid-icon {
+      width: 22px;
+      height: 22px;
+    }
+
+    .other-section {
+      /* 10 + 6 = 16px，与手机端「其他方式」字→栅格间距（下方）相等 */
+      margin-top: 6px;
+      gap: 16px;
+    }
+  }
+</style>

@@ -4,9 +4,7 @@ import type { AstroIntegration } from 'astro';
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { background } from './src/data/background';
-import { site } from './src/data/site';
-import { splitOutsideCode } from './astro-code-blocks';
+
 import svelte from '@astrojs/svelte';
 import icon from 'astro-icon';
 import swup from '@swup/astro';
@@ -14,6 +12,19 @@ import rehypeSlug from 'rehype-slug';
 import { createIndex } from 'pagefind';
 import htmlMinifier from 'astro-html-minifier-next';
 import compress from '@playform/compress';
+
+import { background } from './src/data/background';
+import { site } from './src/data/site';
+import { splitOutsideCode } from './astro-code-blocks';
+import { features as defaultFeatures, type FeatureConfig } from './src/data/config';
+import { featureRoutesIntegration } from './src/integrations/feature-routes';
+
+const PROJECT_ROOT = new URL('./', import.meta.url);
+
+interface SiteConfigOptions {
+  cacheDir?: URL;
+  reportDir?: URL;
+}
 
 function collectHtmlFiles(dir: string): string[] {
   const files: string[] = [];
@@ -403,9 +414,9 @@ function pagefindArticles(): AstroIntegration {
   return {
     name: 'pagefind-articles',
     hooks: {
-      'astro:build:done': async ({ dir: outDir }) => {
+      'astro:build:done': async ({ dir: outDir, logger }) => {
         const root = fileURLToPath(outDir);
-        const contentDir = join('src', 'content', 'posts');
+        const contentDir = fileURLToPath(new URL('src/content/posts/', PROJECT_ROOT));
         const posts = collectPostMdFiles(contentDir).filter(
           (file) => !/^hidden:\s*true\s*$/m.test(postFrontmatter(file)),
         );
@@ -436,117 +447,127 @@ function pagefindArticles(): AstroIntegration {
         if (written.errors.length > 0) {
           throw new Error(`[build] Pagefind 索引写入失败：${written.errors.join('; ')}`);
         }
-        console.log(`[pagefind] 已索引 ${indexed} 篇文章（隐藏文章不索引）`);
+        logger.info(`已索引 ${indexed} 篇文章（隐藏文章不索引）`);
       },
     },
   };
 }
 
-export default defineConfig({
-  site: site.url,
-  integrations: [
-    svelte(),
-    icon(),
-    // Pagefind 全文搜索：只把未隐藏文章页喂给索引（机制见上方 pagefindArticles 注释）
-    pagefindArticles(),
-    swup({
-      containers: ['#swup'],
-      cache: true,
-      preload: {
-        hover: true,
-        visible: true,
+export function createSiteConfig(
+  selectedFeatures: FeatureConfig = defaultFeatures,
+  options: SiteConfigOptions = {},
+) {
+  return defineConfig({
+    root: fileURLToPath(PROJECT_ROOT),
+    ...(options.cacheDir ? { cacheDir: fileURLToPath(options.cacheDir) } : {}),
+    site: site.url,
+    integrations: [
+      featureRoutesIntegration(selectedFeatures, { reportDir: options.reportDir }),
+      svelte(),
+      icon(),
+      // Pagefind 全文搜索：只把未隐藏文章页喂给索引（机制见上方 pagefindArticles 注释）
+      ...(selectedFeatures.pages.posts ? [pagefindArticles()] : []),
+      swup({
+        containers: ['#swup'],
+        cache: true,
+        preload: {
+          hover: true,
+          visible: true,
+        },
+        // @swup/head-plugin：切换页面时更新 head，并等待新样式表加载完成后再替换内容，避免样式闪烁
+        // persistAssets：旧页面的孤儿 <link>/<style>/<script> 保留在 head 里，直到内容真正被替换。
+        // head 的移除先于等待发生，而岛样式恰在 head 的内联 <style> 中：不留的话，等待期间
+        // 旧页面内容已丢样式，无宽高约束的 SVG 会按默认 300×150 画成一大块（离开项目页瞬间的巨型 GitHub 图标）
+        updateHead: {
+          awaitAssets: true,
+          persistAssets: true,
+        },
+        theme: false,
+        // smoothScrolling —— @swup/astro 用这个开关决定是否注册 SwupScrollPlugin。
+        // 显式写出来：swup-widgets.ts 靠 swup:scroll:start / swup:scroll:end 判断
+        // 平滑滚动何时结束，依赖的就是这个插件——它默认开启，但依赖关系在配置里看不见，
+        // 将来升级或改配置把它关掉时，按钮的显隐时机会静默退化成 250ms 兜底。
+        smoothScrolling: true,
+        // animationClass: 'transition-' —— swup 等待 [class*="transition-"] 元素上的动画（全站只有
+        // #swup 的 .transition-page，见 global.css「切页转场」）：旧页退出动画播完才替换 DOM，
+        // 新页进入动画播完才收尾。等待时长读该元素的 animationDuration（令牌 --t-page-exit /
+        // --t-page-enter）；减动效把时长压到 0.01s 但不设 none——none 会让 swup 不等且打警告
+        //（TROUBLESHOOTING 20.2）。
+        animationClass: 'transition-',
+        // progress: true —— 官方 @swup/progress-plugin（@swup/astro 自带）：页面顶部一条细
+        // 进度条。出现时机（visit:start 起 300ms 延迟）与切页转场动画的关系见 global.css
+        //「Swup 切页进度条」节；默认是 3px 黑条，高度与颜色也在 global.css 里覆盖。
+        progress: true,
+        // globalInstance：把实例挂到 window.swup。posts-shell.ts 需要订阅 swup 原生钩子
+        //（fetch:error / visit:abort）——@swup/astro 只在 document 上桥接
+        // astro:before-swap / after-swap / page-load 三个事件，覆盖不了「fetch 失败」：
+        // 失败时内容未交换，壳需要知道以便兜底恢复搜索框
+        globalInstance: true,
+        // native: false —— 关掉浏览器原生 View Transition。
+        //
+        // 原因（已在 swup 产物里核对）：native 为 true 时 swup 会执行
+        //   this.options.native = this.options.native && !!document.startViewTransition
+        // 并用 document.startViewTransition() 把整次 renderPage 包起来。原生 VT 会把
+        // 整页快照挂到覆盖整个视口的 ::view-transition 顶层，动画期间
+        // 指针事件全落在快照上、到不了真实 DOM——后台侧栏在 #swup 之外、视觉上根本没动，
+        // 却同样点不动，必须等动画播完或点第二次，这就是「切页时侧栏点不了」的根因。
+        // 关掉后不再吞掉点击；切页动画由 #swup 自身的 CSS 动画（.transition-page）承担，
+        // 与原生 View Transition 无关。
+        native: false,
+      }),
+      // HTML 深度压缩（含内联 CSS/JS）；removeComments 保持 false 以保护 Svelte 水合锚点。
+      // ignoreCustomFragments：把整个 astro-island 岛屿按原始文本保护，压缩器不进入其内部。
+      // 原因：岛内 SSR 标记里元素之间的空白文本节点是 Svelte 5 水合遍历的一部分
+      //（SSR 输出含 `</div> <div>` 这类空白节点），collapseWhitespace 会把这些节点删掉，
+      // 导致客户端水合时 DOM 结构与预期不符：控制台报 hydration_mismatch +
+      // "Illegal invocation"，岛先被 clear 再兜底重新 mount——内容能显示但每次整岛重渲染。
+      // 同理 minifyCSS 重排岛内 style 属性值、removeEmptyAttributes 动岛内属性，一并保护。
+      htmlMinifier({
+        collapseWhitespace: true,
+        minifyCSS: true,
+        minifyJS: true,
+        removeEmptyAttributes: true,
+        removeRedundantAttributes: true,
+        removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        removeComments: false,
+        ignoreCustomFragments: [
+          /<astro-island\b[\s\S]*?<\/astro-island>/,
+          /<astro-slot\b[\s\S]*?<\/astro-slot>/,
+        ],
+      }),
+      // 删除展示性 HTML 注释（保留水合锚点）
+      stripSafeComments(),
+      // 内联 head 里的外链 CSS（首帧不阻塞在 CSS 下载上，见 inlineCss）
+      inlineCss(),
+      // 删掉产物里没人请求的文件（已内联的 CSS 副本、Pagefind 官方 UI 包等）
+      pruneUnusedAssets(),
+      // 独立文件压缩；按官方要求放在集成列表最后
+      // CSS 必须保持 false：compress 底层用 lightningcss，会无条件删掉不带前缀的
+      // backdrop-filter、只保留 -webkit- 版，导致 Firefox 等只支持原版属性的浏览器
+      // 全站玻璃模糊失效。CSS 压缩已由 Astro 自带的 esbuild 完成，无需此处重复。
+      compress({
+        HTML: false,
+        CSS: false,
+        JavaScript: true,
+        SVG: true,
+        JSON: true,
+        Image: false,
+      }),
+    ],
+    markdown: {
+      // 代码高亮走 css-variables 主题：Shiki 不再把颜色写死成 hex，
+      // 而是输出 var(--astro-code-*) 引用，色板统一在 variables.css 里定义
+      // （代码块的配色随站点主色走，不必跟 GitHub 主题绑死）
+      shikiConfig: {
+        theme: 'css-variables',
       },
-      // @swup/head-plugin：切换页面时更新 head，并等待新样式表加载完成后再替换内容，避免样式闪烁
-      // persistAssets：旧页面的孤儿 <link>/<style>/<script> 保留在 head 里，直到内容真正被替换。
-      // head 的移除先于等待发生，而岛样式恰在 head 的内联 <style> 中：不留的话，等待期间
-      // 旧页面内容已丢样式，无宽高约束的 SVG 会按默认 300×150 画成一大块（离开项目页瞬间的巨型 GitHub 图标）
-      updateHead: {
-        awaitAssets: true,
-        persistAssets: true,
-      },
-      theme: false,
-      // smoothScrolling —— @swup/astro 用这个开关决定是否注册 SwupScrollPlugin。
-      // 显式写出来：swup-widgets.ts 靠 swup:scroll:start / swup:scroll:end 判断
-      // 平滑滚动何时结束，依赖的就是这个插件——它默认开启，但依赖关系在配置里看不见，
-      // 将来升级或改配置把它关掉时，按钮的显隐时机会静默退化成 250ms 兜底。
-      smoothScrolling: true,
-      // animationClass: 'transition-' —— swup 等待 [class*="transition-"] 元素上的动画（全站只有
-      // #swup 的 .transition-page，见 global.css「切页转场」）：旧页退出动画播完才替换 DOM，
-      // 新页进入动画播完才收尾。等待时长读该元素的 animationDuration（令牌 --t-page-exit /
-      // --t-page-enter）；减动效把时长压到 0.01s 但不设 none——none 会让 swup 不等且打警告
-      //（TROUBLESHOOTING 20.2）。
-      animationClass: 'transition-',
-      // progress: true —— 官方 @swup/progress-plugin（@swup/astro 自带）：页面顶部一条细
-      // 进度条。出现时机（visit:start 起 300ms 延迟）与切页转场动画的关系见 global.css
-      //「Swup 切页进度条」节；默认是 3px 黑条，高度与颜色也在 global.css 里覆盖。
-      progress: true,
-      // globalInstance：把实例挂到 window.swup。posts-shell.ts 需要订阅 swup 原生钩子
-      //（fetch:error / visit:abort）——@swup/astro 只在 document 上桥接
-      // astro:before-swap / after-swap / page-load 三个事件，覆盖不了「fetch 失败」：
-      // 失败时内容未交换，壳需要知道以便兜底恢复搜索框
-      globalInstance: true,
-      // native: false —— 关掉浏览器原生 View Transition。
-      //
-      // 原因（已在 swup 产物里核对）：native 为 true 时 swup 会执行
-      //   this.options.native = this.options.native && !!document.startViewTransition
-      // 并用 document.startViewTransition() 把整次 renderPage 包起来。原生 VT 会把
-      // 整页快照挂到覆盖整个视口的 ::view-transition 顶层，动画期间
-      // 指针事件全落在快照上、到不了真实 DOM——后台侧栏在 #swup 之外、视觉上根本没动，
-      // 却同样点不动，必须等动画播完或点第二次，这就是「切页时侧栏点不了」的根因。
-      // 关掉后不再吞掉点击；切页动画由 #swup 自身的 CSS 动画（.transition-page）承担，
-      // 与原生 View Transition 无关。
-      native: false,
-    }),
-    // HTML 深度压缩（含内联 CSS/JS）；removeComments 保持 false 以保护 Svelte 水合锚点。
-    // ignoreCustomFragments：把整个 astro-island 岛屿按原始文本保护，压缩器不进入其内部。
-    // 原因：岛内 SSR 标记里元素之间的空白文本节点是 Svelte 5 水合遍历的一部分
-    //（SSR 输出含 `</div> <div>` 这类空白节点），collapseWhitespace 会把这些节点删掉，
-    // 导致客户端水合时 DOM 结构与预期不符：控制台报 hydration_mismatch +
-    // "Illegal invocation"，岛先被 clear 再兜底重新 mount——内容能显示但每次整岛重渲染。
-    // 同理 minifyCSS 重排岛内 style 属性值、removeEmptyAttributes 动岛内属性，一并保护。
-    htmlMinifier({
-      collapseWhitespace: true,
-      minifyCSS: true,
-      minifyJS: true,
-      removeEmptyAttributes: true,
-      removeRedundantAttributes: true,
-      removeScriptTypeAttributes: true,
-      removeStyleLinkTypeAttributes: true,
-      removeComments: false,
-      ignoreCustomFragments: [
-        /<astro-island\b[\s\S]*?<\/astro-island>/,
-        /<astro-slot\b[\s\S]*?<\/astro-slot>/,
-      ],
-    }),
-    // 删除展示性 HTML 注释（保留水合锚点）
-    stripSafeComments(),
-    // 内联 head 里的外链 CSS（首帧不阻塞在 CSS 下载上，见 inlineCss）
-    inlineCss(),
-    // 删掉产物里没人请求的文件（已内联的 CSS 副本、Pagefind 官方 UI 包等）
-    pruneUnusedAssets(),
-    // 独立文件压缩；按官方要求放在集成列表最后
-    // CSS 必须保持 false：compress 底层用 lightningcss，会无条件删掉不带前缀的
-    // backdrop-filter、只保留 -webkit- 版，导致 Firefox 等只支持原版属性的浏览器
-    // 全站玻璃模糊失效。CSS 压缩已由 Astro 自带的 esbuild 完成，无需此处重复。
-    compress({
-      HTML: false,
-      CSS: false,
-      JavaScript: true,
-      SVG: true,
-      JSON: true,
-      Image: false,
-    }),
-  ],
-  markdown: {
-    // 代码高亮走 css-variables 主题：Shiki 不再把颜色写死成 hex，
-    // 而是输出 var(--astro-code-*) 引用，色板统一在 variables.css 里定义
-    // （代码块的配色随站点主色走，不必跟 GitHub 主题绑死）
-    shikiConfig: {
-      theme: 'css-variables',
+      rehypePlugins: [rehypeSlug],
     },
-    rehypePlugins: [rehypeSlug],
-  },
-  vite: {
-    plugins: [backgroundPreset()],
-  },
-});
+    vite: {
+      plugins: [backgroundPreset()],
+    },
+  });
+}
+
+export default createSiteConfig();

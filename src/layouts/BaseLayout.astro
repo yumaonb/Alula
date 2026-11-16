@@ -1,37 +1,21 @@
 ---
-// BaseLayout.astro — 全站基础布局（背景 / 导航 / 常驻侧栏 / 页脚 / 侧边按钮 / 灯箱等）
-// 用法：<BaseLayout title="页面标题" shellVariant="listing">...</BaseLayout>
-//
-// 关键结构：文章区左侧边栏（GlobalSidebar）与搜索框（PostSearch）放在 main#swup 之外、
-// 所有站点页的壳里——swup 切页只替换 #swup 内容，侧栏与搜索永不重建：
-// 搜索若是 #swup 内容里带 data-swup-persist 的岛，每次切页节点都会被摘出再插回，
-// .glass 胶囊（backdrop-filter + 投影）的层每次重建，阴影一闪一闪；
-// 行级常驻后节点终生不移动、不参与位移动画，阴影/磨砂恒定，切页零闪。
-// 非文章页搜索靠 global.css 的 .page-main--* 变体类隐藏（visibility + opacity）；
-// 变体类首屏由 shellVariant 决定，切页后由 posts-shell.ts 按内容同步。
-// 左缘条（页头 / 面包屑）的显示实例也在行级常驻盒（.posts-edge-float，swup 永不重建）：
-// posts/edge-float.ts 把 #swup 里的驱动条深克隆进盒（区内切页车道等新页落地才渐模糊再去模糊、
-// 跨区切页整盒随页退场出场，见 global.css「切页转场」）；驱动条本体只留布局空间。
-// 位置两层：CSS 基线（global.css 的 .posts-search-float，与页头占位符重合）让首帧直接
-// 就位，posts-shell.ts 运行时实测覆写。body 尾 is:inline 脚本只负责首帧显出
-// （opacity/visibility，无网络依赖，慢网下搜索框不等 JS 包即可见），带
-// data-swup-ignore-script——swup 切页不重跑，否则切到列表页会在切页 settle 落位前
-// 强制显出搜索框（「移两次 / 闪一下」，见 TROUBLESHOOTING 52）。
-import '../assets/css/global.css';
-import '../assets/css/shared/skeleton.css';
-import '../assets/css/shared/image-fallback.css';
+// BaseLayout.astro — 全站基础布局（背景、导航、页面行、页脚与通用交互）
+// 用法：在页面中 import BaseLayout from '../layouts/BaseLayout.astro'。
+import { Icon } from 'astro-icon/components';
+import { features } from 'virtual:site-features';
+import PageRow from 'virtual:features/page-row.astro';
+import PageExtras from 'virtual:features/page-extras.astro';
+
 import NavBar from '../components/layout/NavBar.astro';
 import Background from '../components/layout/Background.astro';
 import PageMeta from '../components/layout/PageMeta.astro';
 import Footer from '../components/layout/Footer.astro';
-import SideWidgets from '../components/layout/SideWidgets.astro';
-import GlobalSidebar from '../components/posts/GlobalSidebar.astro';
-import PostSearch from '../components/posts/PostSearch.svelte';
-import PostsDrawers from '../components/posts/PostsDrawers.svelte';
 import CustomScrollbar from '../components/layout/CustomScrollbar.astro';
-import { Icon } from 'astro-icon/components';
 import { site } from '../data/site';
-import { loadBlogData } from '../lib/posts-data';
+
+import '../assets/css/global.css';
+import '../assets/css/shared/skeleton.css';
+import '../assets/css/shared/image-fallback.css';
 
 interface Props {
   title?: string;
@@ -63,7 +47,6 @@ const {
 const pageDescription = description || site.description;
 
 const pageTitle = title ? `${title} - ${site.name}` : site.name;
-const blog = await loadBlogData();
 ---
 
 <!doctype html>
@@ -79,7 +62,9 @@ const blog = await loadBlogData();
     {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="canonical" href={`${site.url}${Astro.url.pathname}`} />
     <link rel="icon" type="image/png" href="/images/logo.png" />
-    <link rel="alternate" type="application/rss+xml" title={site.name} href="/posts/rss.xml" />
+    {features.pages.posts && features.endpoints.postsRss && (
+      <link rel="alternate" type="application/rss+xml" title={site.name} href="/posts/rss.xml" />
+    )}
     <title>{pageTitle}</title>
     <PageMeta
       title={pageTitle}
@@ -172,76 +157,32 @@ const blog = await loadBlogData();
     <Background />
     <div class="page">
       <NavBar />
-      <div class:list={['page-main', `page-main--${shellVariant}`]}>
-        <GlobalSidebar tree={blog.categoryTree} tags={blog.tags} />
-        <main class="hero transition-page" id="swup" data-shell="site">
-          <slot />
-        </main>
-        <div class="posts-edge-float"></div>
-        <div class="posts-search-float">
-          <PostSearch client:load />
-        </div>
-      </div>
+      <PageRow shellVariant={shellVariant}>
+        <slot />
+      </PageRow>
       <Footer />
     </div>
-    <SideWidgets />
+    <PageExtras />
     <!-- 图片占位图标模板：id 与 ui/image-fallback.ts 的 ICON_TEMPLATE_ID 一致，改 id 两处同改 -->
     <div id="alula-img-ph-icon" hidden>
       <Icon is:inline name="mdi:image-off-outline" />
     </div>
-    <PostsDrawers client:idle />
     <CustomScrollbar />
     <script>
-      import '../assets/js/nav/swup-widgets';
-    </script>
-    <script>
-      import '../assets/js/posts/posts-shell';
-    </script>
-    <script>
-      import '../assets/js/ui/image-fallback';
-    </script>
-    <script>
-      import '../assets/js/ui/lightbox';
+      import 'virtual:features/image-fallback';
     </script>
     <script>
       import '../assets/js/nav/shell-guard';
     </script>
-    <!-- data-swup-ignore-script：@swup/scripts-plugin（@swup/astro 默认启用）每次切页
-      （content:replace）会重跑全 document 的脚本——切到列表页时本脚本会强制把浮层
-      opacity 写 1，搜索框会抢在切页 settle 落位前先直接现于终位（多露一帧，
-      见 TROUBLESHOOTING 52）。本脚本只服务整页首帧的显出（摆位是 CSS 基线 +
-      posts-shell.ts 运行时实测），切页由 posts-shell.ts 全权负责 -->
-    <script is:inline data-swup-ignore-script>
-      // 搜索框首帧可见：浮层位置是 CSS 基线（global.css 的 .posts-search-float，与占位
-      // 重合），本脚本只负责显出——慢网下搜索框不等 JS 包加载完即出现（观感像延迟
-      // 水合）。随文档执行、无网络依赖；posts-shell.ts 加载后运行时实测 + settle 接管
-      // （与基线值一致，无跳变）。仅列表变体显示浮层，其余页面跳过。
-      (function () {
-        const f = document.querySelector('.page-main--listing .posts-search-float');
-        if (!f) return;
-        f.style.opacity = '1';
-        f.style.visibility = 'visible';
-      })();
-    </script>
     <script is:inline>
-      // 首载 loading 屏：等页面资源（window load：CSS 背景图、首屏图片、脚本包）就绪才揭幕，
-      // 揭开后第一帧就是加载完整的页面；最少展示 200ms 防快网闪屏。
-      // 5s 超时兜底：个别资源卡死时遮罩不永久盖住页面。
-      // 进度条：遮罩期间按等待时长增长（快起慢收、渐近不越界），揭幕时先滑满到整条、
-      // 走完后整屏才渐隐，永不跳变；rAF 驱动，减少动态效果下不跑（条形留空、直接渐隐）。
-      // 进度条与最少展示的时钟零点在**首个 rAF 帧**（用户第一次看见屏幕的时刻），不是脚本执行时刻：
-      // 主线程卡顿时按脚本时刻量，首帧可见时已 57%–92%，条形像「直接就在最后面」（见 TROUBLESHOOTING 67）；
-      // 减动效下 rAF 不跑，回落到脚本执行时刻。
-      // load 后再等一帧 rAF：揭幕画在已绘制的一帧上，不揭开到未绘制的帧；
-      // 隐藏标签页 rAF 不跑，该状态下补一个 setTimeout 兜底，渐隐不等到切回标签页（见 TROUBLESHOOTING 68）。
-      // 背景图用 Image 预热：同一 URL 走缓存，加 .is-ready 时图已就位，不闪。
+      // 等资源就绪后揭幕，最少显示 200ms、最多等待 5s；进度从首个可见帧起算。
+      // 隐藏标签页用计时器补足不执行的动画帧，背景预热完成后显出。
       (function () {
         const splash = document.getElementById('boot-splash');
         if (!splash) return;
         const fillEl = splash.querySelector('.boot-splash-bar-fill');
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const started = performance.now();
-        // 用户第一次看见 loading 屏的时刻（首个 rAF 帧）；-1 = 还没画出过
         let shownAt = -1;
         let finished = false;
         let rafId = 0;
@@ -260,8 +201,6 @@ const blog = await loadBlogData();
             cancelAnimationFrame(rafId);
             rafId = 0;
           }
-          // 最少展示 200ms（从首帧可见起算，首帧前的未绘制卡顿不算「已展示」）之后
-          // 再把条形走完、才整屏渐隐；隐藏标签页下 transition 不画，计时链照样走完
           const minShown = 200;
           const visibleFor = performance.now() - (shownAt > 0 ? shownAt : started);
           const minDelay = Math.max(0, minShown - visibleFor);
@@ -289,7 +228,7 @@ const blog = await loadBlogData();
         }
         const reveal = () => {
           requestAnimationFrame(fade);
-          // 隐藏标签页 rAF 不跑：该状态下改挂计时器兜底（fade 有 finished 闸，重复触发是 no-op）
+          // 隐藏标签页不执行动画帧；完成标记保证兜底不会重复揭幕。
           if (document.visibilityState === 'hidden') setTimeout(fade, 200);
         };
         if (document.readyState === 'complete') {

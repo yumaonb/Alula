@@ -1,8 +1,8 @@
 // breakpoint.ts — 共享的移动端/桌面端断点监听器
 // 用法：import { onEnterDesktop } from "./breakpoint"
 // 769 与全站 @media (max-width: 768px) 互补；改 768/769 分界要同步 CSS 里所有 768/769 断点，
-// 以及各自建媒体查询探测当前状态的各模块：ui/drawer.ts、posts/posts-shell.ts、
-// posts/row-state.ts、nav/swup-widgets.ts、layout/NavBar.astro
+// 以及各自建媒体查询探测当前状态的各模块：src/features/posts/scripts/drawer.ts、src/features/posts/scripts/posts-shell.ts、
+// src/features/posts/scripts/row-state.ts、nav/swup-widgets.ts、layout/NavBar.astro
 const mq = window.matchMedia('(min-width: 769px)');
 const subscribers = new Set<() => void>();
 let listening = false;

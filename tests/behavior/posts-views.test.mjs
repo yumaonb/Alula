@@ -7,7 +7,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildPostUrl, buildPostViews } from '../../src/lib/posts-views.ts';
+import { buildPostUrl, buildPostViews } from '../../src/features/posts/lib/posts-views.ts';
 
 /** 造一个最小集合条目：id 是相对 content/posts 的无扩展名路径 */
 function entry(id, data = {}, body = '') {
