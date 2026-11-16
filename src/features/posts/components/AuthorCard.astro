@@ -2,10 +2,16 @@
 // AuthorCard.astro — 作者名片
 // 用法：<AuthorCard />
 import { getImage } from 'astro:assets';
-import avatarRaw from '../../../assets/images/avatar.png';
-import { nickname, motto, socialLinks } from '../../../data/profile';
-import { Icon } from 'astro-icon/components';
 
+import { Icon } from 'astro-icon/components';
+import { features } from 'virtual:site-features';
+
+import { nickname, motto } from '../../../data/profile';
+import { getSocialLinks } from '../../../lib/social-links';
+
+import avatarRaw from '../../../assets/images/avatar.png';
+
+const socialLinks = getSocialLinks(features);
 const avatar = await getImage({ src: avatarRaw, format: 'webp', quality: 80, width: 96 });
 ---
 

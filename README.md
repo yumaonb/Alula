@@ -38,7 +38,21 @@
 
 ## 功能配置
 
-前台可选页面、端点与关闭验证统一见 [功能开关说明](docs/reference/FEATURES.md)（`docs/reference/FEATURES.md`）。首页、前台 404 与五个后台页面始终保留，分别由 `src/pages/index.astro`、`src/pages/404.astro` 和 `src/pages/admin/` 自动路由。六个可选页面与两个端点在 `src/data/config.ts` 配置；个人介绍修改 `src/data/profile.ts`，联系方式修改 `src/data/social-links.ts`。
+前台可选页面、端点与关闭验证统一见 [功能开关说明](docs/reference/FEATURES.md)（`docs/reference/FEATURES.md`）。首页、前台 404 与五个后台页面始终保留，分别由 `src/pages/index.astro`、`src/pages/404.astro` 和 `src/pages/admin/` 自动路由。六个可选页面与两个端点在 `src/data/config.ts` 配置。
+
+日常可编辑项集中在 `src/data/`，按内容查找即可：
+
+| 想修改什么                             | 配置文件                                                          |
+| -------------------------------------- | ----------------------------------------------------------------- |
+| 页面与端点开关、导航名称 / 图标 / 顺序 | `src/data/config.ts`、`src/data/nav.ts`                           |
+| 个人介绍、联系方式                     | `src/data/profile.ts`、`src/data/social-links.ts`                 |
+| 站点信息、全站背景                     | `src/data/site.ts`、`src/data/background.ts`                      |
+| GitHub 项目、评论与后台仓库设置        | `src/data/github.ts`                                              |
+| 天数统计、随机一言                     | `src/data/dayscounter.ts`、`src/data/quotes.ts`                   |
+| 友情链接、工具列表、赞助展示           | `src/data/friends.ts`、`src/data/tools.ts`、`src/data/sponsor.ts` |
+| 技术栈、个人历程                       | `src/data/techstack.ts`、`src/data/timeline.ts`                   |
+
+导航地址由内部路由自动生成；文章与 RSS 同时开启时，联系方式中自动附加 RSS 入口。相关派生逻辑与有效开关的传递见 `docs/reference/FEATURES.md`。
 
 ## 项目结构
 
@@ -55,9 +69,9 @@ src/
 ├── content/
 │   ├── about.md         # 关于页正文
 │   └── posts/           # 文章（目录结构即分类）
-├── data/                # 配置与数据（config / feature-definitions / profile / social-links）
+├── data/                # 纯静态可编辑设置与展示数据（config / nav / profile / social-links 等）
 ├── layouts/             # BaseLayout（前台公共外壳）
-├── lib/                 # 公共工具：nav-match
+├── lib/                 # 内部路由声明、导航与社交链接派生、导航匹配
 ├── features/            # 功能专属页面、端点、组件、布局、脚本、样式、工具与资源
 │   ├── posts/           # 文章、侧栏 AuthorCard、Comments、灯箱与抽屉
 │   ├── about/           # 关于页、TechStack 与 Timeline

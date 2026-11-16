@@ -7,19 +7,20 @@
 
 ## 对照表（改了什么 → 更新哪里）
 
-| 改了什么                                                                      | 必须更新                                                                                                                                |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| 新增 / 删除 / 改名组件，改了水合指令                                          | `docs/reference/COMPONENTS.md` 的组件清单（Astro 表或 Svelte 表，含 `client:*`）                                                        |
-| 新增可复用 CSS 类、改令牌、新增 CSS 文件、改背景预设                          | 类名清单随代码自动进 `docs/REGISTRY.md`（`pnpm registry:write` 重建），不用手工登记；机制 / 令牌 / 背景相关仍改 `docs/reference/CSS.md` |
-| 改功能开关、清单导航、虚拟入口、配置工厂或组合构建审计                        | `docs/reference/FEATURES.md`                                                                                                            |
-| 改数据流、路由生成、布局插槽、客户端脚本职责、`window` 标记                   | `docs/reference/ARCHITECTURE.md`                                                                                                        |
-| 改 frontmatter 字段、目录约定、图片解析                                       | `docs/reference/CONTENT.md` + `docs/rules/50-content.md`                                                                                |
-| 修掉或新发现一个坑（样式失效、切页异常、搜不到文章）                          | `docs/reference/TROUBLESHOOTING.md` 加一条（症状 → 原因 → 处理）                                                                        |
-| 新增 / 删除 / 改名文档或规则                                                  | `docs/reference/index.md` 的结构树 + `AGENTS.md` 的路由表                                                                               |
-| 改命令、依赖、目录结构                                                        | `docs/rules/00-project.md` + `AGENTS.md`（两处都要）                                                                                    |
-| 改规范条款（命名 / 风格 / 组件 / 样式 / 脚本 / 内容 / 验证 / 功能边界）       | `AGENTS.md` 的「开发规范」节                                                                                                            |
-| 改构建配置（`astro.config.ts` 集成、`compress`、`htmlMinifier`）              | `docs/reference/ARCHITECTURE.md` 的构建流水线表 + `docs/reference/TROUBLESHOOTING.md`                                                   |
-| 动了代码注释契约锚或 TROUBLESHOOTING 决定台账相关的代码（联动变化、拍板变化） | 同日复核锚 / 台账条目是否仍成立（文件:行号还准不准、契约还成不成立、决定还有效没）；不成立的删掉                                        |
+| 改了什么                                                                      | 必须更新                                                                                                                                             |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 新增 / 删除 / 改名组件，改了水合指令                                          | `docs/reference/COMPONENTS.md` 的组件清单（Astro 表或 Svelte 表，含 `client:*`）                                                                     |
+| 新增可复用 CSS 类、改令牌、新增 CSS 文件、改背景预设                          | 类名清单随代码自动进 `docs/REGISTRY.md`（`pnpm registry:write` 重建），不用手工登记；机制 / 令牌 / 背景相关仍改 `docs/reference/CSS.md`              |
+| 改功能开关、清单导航、虚拟入口、配置工厂或组合构建审计                        | `docs/reference/FEATURES.md`                                                                                                                         |
+| 改设置 / 展示数据与派生逻辑的职责、导航或社交链接入口                         | `docs/reference/FEATURES.md`、`docs/reference/ARCHITECTURE.md`、`docs/reference/COUPLING.md`；可编辑项索引同步 `README.md`，规范变更写入 `AGENTS.md` |
+| 改数据流、路由生成、布局插槽、客户端脚本职责、`window` 标记                   | `docs/reference/ARCHITECTURE.md`                                                                                                                     |
+| 改 frontmatter 字段、目录约定、图片解析                                       | `docs/reference/CONTENT.md` + `docs/rules/50-content.md`                                                                                             |
+| 修掉或新发现一个坑（样式失效、切页异常、搜不到文章）                          | `docs/reference/TROUBLESHOOTING.md` 加一条（症状 → 原因 → 处理）                                                                                     |
+| 新增 / 删除 / 改名文档或规则                                                  | `docs/reference/index.md` 的结构树 + `AGENTS.md` 的路由表                                                                                            |
+| 改命令、依赖、目录结构                                                        | `docs/rules/00-project.md` + `AGENTS.md`（两处都要）                                                                                                 |
+| 改规范条款（命名 / 风格 / 组件 / 样式 / 脚本 / 内容 / 验证 / 功能边界）       | `AGENTS.md` 的「开发规范」节                                                                                                                         |
+| 改构建配置（`astro.config.ts` 集成、`compress`、`htmlMinifier`）              | `docs/reference/ARCHITECTURE.md` 的构建流水线表 + `docs/reference/TROUBLESHOOTING.md`                                                                |
+| 动了代码注释契约锚或 TROUBLESHOOTING 决定台账相关的代码（联动变化、拍板变化） | 同日复核锚 / 台账条目是否仍成立（文件:行号还准不准、契约还成不成立、决定还有效没）；不成立的删掉                                                     |
 
 ## 规范来源
 
@@ -45,7 +46,8 @@
 ```
 - [ ] docs/reference/CSS.md 的文件表覆盖公共样式与功能域样式
 - [ ] docs/reference/ARCHITECTURE.md 的脚本职责表覆盖公共、功能域与后台脚本
-- [ ] 功能文件路径、契约锚与 COMPONENTS.md 清单已同步，联系方式入口指向 src/data/social-links.ts
+- [ ] 功能文件路径、契约锚与 docs/reference/COMPONENTS.md 清单已同步
+- [ ] 可编辑导航与联系方式分别指向 src/data/nav.ts、src/data/social-links.ts；派生函数分别指向 src/lib/navigation.ts、src/lib/social-links.ts
 - [ ] AGENTS.md 的规则 / 任务路由指向的文件都还存在
 - [ ] docs/reference/index.md 的文档列表没有指向已删除的文件
 - [ ] 没有把细节重复写进规则和文档两处

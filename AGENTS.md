@@ -243,8 +243,11 @@ pnpm test      # 只跑两类检测（quality + behavior），不看格式与类
 - 可选功能的组件、布局、脚本、样式、工具和资源放在 `src/features/` 对应功能域内；公共目录只留实际跨功能复用的内容。内容与配置仍集中在 `src/content/`、`src/data/`，不因功能拆分强制搬动。
 - 公共模块不可静态反向导入可选功能；跨功能共享先提取职责明确的公共核，禁止直接借用另一功能内部实现。
 - 功能需要接入全站时只使用少量、语义明确的虚拟入口；禁止静默改写真实文件的相对 import，禁止为每个内部文件增设公共扩展入口。
-- 可选路由和导航元数据统一登记在 `src/data/feature-definitions.ts`；清单与导航派生函数保持纯数据、纯函数，导航 URL 从路由定义派生，不另写一份。
-- `src/data/config.ts` 只保留开关常量；构建消费方统一使用 `virtual:site-features` 的有效配置，不绕回日常配置。
+- `src/data/` 只保留纯静态、可编辑的设置 / 展示数据及对应类型，不含函数、派生计算、虚拟模块或业务运行时依赖；按现有文件职责组织，不机械拆子目录。
+- 可选路由统一登记在 `src/lib/feature-definitions.ts`，该文件只承载内部路由声明与 `FeatureKey` 类型。
+- `src/data/nav.ts` 只配置导航名称、图标和顺序，不自填 URL；`src/lib/navigation.ts` 读取导航配置与路由声明，提供纯函数 `getNavItems(features)` / `getNavItem(key)`，导航 URL 从路由派生。
+- `src/data/social-links.ts` 只配置联系方式；`src/lib/social-links.ts` 提供纯函数 `getSocialLinks(features)`，仅在文章与 RSS 同时开启时自动附加 RSS；`src/data/profile.ts` 只保留个人介绍，不导出 `socialLinks`。
+- `src/data/config.ts` 只保留开关常量及对应类型；页面、组件等构建消费方从 `virtual:site-features` 读取有效开关并传给派生纯函数，配置阶段插件传入 `selectedFeatures`，不绕回日常配置。
 - 可选资源放功能域内，通过构建入口按开关引入或生成；不要放进会无条件复制的 `public/`。
 - 修改功能开关、路由清单、扩展入口或共享依赖边界时，除常规验证外运行 `node tests/feature-build.mjs` 组合构建，核对源码配置未变、各场景报告和最终产物。
 - 组合验证通过配置工厂生成独立场景配置，禁止改写或备份日常配置来切换场景；场景从全页面开启的固定基线派生，以独占锁防止重复运行矩阵，不与开发服务器或其他 Astro 构建并发。
@@ -280,9 +283,9 @@ src/assets/backgrounds/  全站背景预设（css/ 绘制、images/ 图片）
 src/assets/js/           公共客户端脚本：nav/ 导航与通用按钮、ui/ 通用视觉、util/ 工具、data/ 公共 GitHub 客户端
 src/components/          公共布局与小组件（Clock、Quote、DaysCounter）
 src/content/             集中管理文章与关于页正文；posts/ 目录结构即文章分类
-src/data/                集中配置：config 开关、feature-definitions 路由与导航、social-links 联系方式、profile 个人介绍
+src/data/                纯静态可编辑设置与展示数据：config 开关、nav 名称图标顺序、profile 介绍、social-links 联系方式等
 src/layouts/             BaseLayout 前台公共外壳，通过明确虚拟入口接入功能
-src/lib/                 公共工具（nav-match 导航匹配）
+src/lib/                 内部路由声明 feature-definitions、navigation / social-links 派生纯函数、nav-match 导航匹配
 src/pages/               index.astro、404.astro、admin/ 固定自动路由；admin/_admin/ 后台自包含外壳
 src/features/            可选功能域：页面、端点、组件、布局、脚本、样式、工具与资源
 src/integrations/        功能路由注入、明确虚拟入口、资源生成与构建审计

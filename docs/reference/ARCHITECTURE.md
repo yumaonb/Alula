@@ -194,10 +194,9 @@ motion 用法守两条约定：
 
 > 后台页面控制器新增一页时：在页面根元素上写 `data-admin-page="<名字>"`，再到 `src/pages/admin/_admin/js/pages.ts` 的 `boot()` 里加一个 `init<名字>()` 分支。侧栏高亮与二级菜单展开由 `syncNavActive()` 按 `data-nav-path` 与 `data-nav-accordion` 自动跟上，不需要改侧栏组件。
 
-> `src/data/feature-definitions.ts` 声明路由与导航元数据，并提供导航派生纯函数；`src/data/nav.ts` 使用 `virtual:site-features` 过滤本次构建的导航。桌面、移动导航和页面标题消费同一清单，导航 URL 取对应功能的首条路由。
-> 联系方式在 `src/data/social-links.ts`，个人介绍在 `src/data/profile.ts`；profile 使用有效开关调用社交链接过滤函数。
-> **还有两处配置写死在组件里、没进 `src/data/`**：`Comments.astro` 的 giscus 仓库 ID / 分类 ID / 语言（`data-repo-id`、`data-category-id`、`data-lang`）、`src/features/projects/ProjectsPage.astro` 的标题与描述。
-> 这两处目前后台都改不了；要纳管需要先把它们提成 data 字段。
+> 可编辑设置与展示数据集中在 `src/data/`；内部路由声明位于 `src/lib/feature-definitions.ts`，导航与社交链接派生分别位于 `src/lib/navigation.ts`、`src/lib/social-links.ts`。页面与组件从 `virtual:site-features` 读取有效开关后调用纯函数，配置阶段插件传入 `selectedFeatures`。各文件职责、导航 URL 派生与 RSS 附加条件见 `docs/reference/FEATURES.md`「可编辑数据与派生逻辑」。
+> 个人介绍由 `src/data/profile.ts` 提供，联系方式配置由 `src/data/social-links.ts` 提供；首页与作者卡直接调用 `getSocialLinks(features)` 获取展示链接。
+> giscus 仓库与分类设置在 `src/data/github.ts`；评论语言由 `src/features/posts/components/Comments.astro` 设置，项目页标题与描述由 `src/features/projects/ProjectsPage.astro` 设置。
 
 `Quote.astro`、`Comments.astro` 的交互很小，直接写在组件里的 `is:inline` 脚本中。
 

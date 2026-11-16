@@ -4,8 +4,8 @@ import type { AstroConfig } from 'astro';
 import { readFileSync } from 'node:fs';
 
 import type { FeatureConfig } from '../data/config';
-import { getNavItems } from '../data/feature-definitions';
-import { getSocialLinks } from '../data/social-links';
+import { getNavItems } from '../lib/navigation';
+import { getSocialLinks } from '../lib/social-links';
 import { site } from '../data/site';
 
 type BuildPlugin = Extract<NonNullable<AstroConfig['vite']['plugins']>[number], { name: string }>;

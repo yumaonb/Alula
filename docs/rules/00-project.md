@@ -34,9 +34,9 @@ src/
 ├── assets/images/       站点自带图片
 ├── components/          公共 layout/ 与 widgets/（Clock、Quote、DaysCounter）
 ├── content/             集中正文：about.md 与 posts/ 文章目录
-├── data/                集中配置：config 开关、feature-definitions 路由导航、profile 介绍、social-links 联系方式
+├── data/                纯静态可编辑设置与展示数据：config 开关、nav 名称图标顺序、profile 介绍、social-links 联系方式等
 ├── layouts/             BaseLayout 公共外壳，经明确虚拟入口接入功能
-├── lib/                 公共导航匹配 nav-match.ts
+├── lib/                 内部路由声明 feature-definitions.ts、navigation.ts / social-links.ts 派生纯函数、nav-match.ts 导航匹配
 ├── features/            功能域内页面、端点、组件、布局、脚本、样式、工具与资源
 │   ├── posts/           文章全域（含 AuthorCard、Comments、灯箱与抽屉）
 │   ├── about/           关于页、TechStack 与 Timeline
@@ -59,6 +59,8 @@ tests/                   quality/ 质量、behavior/ 业务、run.mjs 常规门�
 ## 深入阅读
 
 - 功能开关、关闭验证与共享依赖边界见 `docs/reference/FEATURES.md`。
+
+- 可编辑设置索引见 `README.md`「功能配置」；数据目录边界的规范见 `AGENTS.md` 第 14 节。
 
 - 数据流、路由、客户端运行时 → `docs/reference/ARCHITECTURE.md`
 - 写文章、分类、图片 → `docs/reference/CONTENT.md`

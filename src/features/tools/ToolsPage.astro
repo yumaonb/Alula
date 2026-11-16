@@ -2,12 +2,13 @@
 // ToolsPage.astro — 实用工具页（分类工具集合，数据来自 src/data/tools.ts）
 // 用法：路由 /tools/
 import { Icon } from 'astro-icon/components';
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { navItem } from '../../data/nav';
+import { getNavItem } from '../../lib/navigation';
 import { toolCategories } from '../../data/tools';
 
 // 页头标题图标与导航同源（src/data/nav.ts），页面不写死自己的路径
-const pageNav = navItem('tools');
+const pageNav = getNavItem('tools');
 ---
 
 <BaseLayout title="实用工具">

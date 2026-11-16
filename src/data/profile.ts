@@ -1,10 +1,5 @@
 // profile.ts — 个人信息配置
-// 用法：import { nickname, motto, intro, socialLinks } from "../../data/profile"
-import { features } from 'virtual:site-features';
-
-import { getSocialLinks, type SocialLink } from './social-links';
-
-export type { SocialLink };
+// 用法：在 src/pages/index.astro 中从 ../data/profile 引入。
 
 export const nickname = '羽毛';
 
@@ -13,5 +8,3 @@ export const motto = '阅己 越己 悦己';
 /** 首页自我介绍（支持 HTML） */
 export const intro =
   '我是羽毛，一位热爱探索的学生<br>本项目技术栈：Astro · Svelte · TypeScript<br>源码已开源至github：<a href="https://github.com/yumaonb/Alula/" target="_blank" rel="noopener">点我前往项目地址</a><br>本站随时可能更换域名，建议收藏项目地址或收藏中转页：<a href="https://yumaonb.github.io/" target="_blank" rel="noopener">yumaonb.github.io</a>';
-
-export const socialLinks: SocialLink[] = getSocialLinks(features);

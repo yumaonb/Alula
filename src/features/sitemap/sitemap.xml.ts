@@ -1,8 +1,9 @@
 // sitemap.xml.ts — 站点地图，构建期生成 /sitemap.xml
 // 用法：由路由集成注册到 /sitemap.xml
 import { getPostSitemapEntries } from 'virtual:features/sitemap-posts';
+import { features } from 'virtual:site-features';
 
-import { navItems } from '../../data/nav';
+import { getNavItems } from '../../lib/navigation';
 import { site } from '../../data/site';
 
 function urlEntry(loc: string, lastmod?: string): string {
@@ -17,7 +18,7 @@ export async function GET() {
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...navItems.map((page) => urlEntry(page.href)),
+    ...getNavItems(features).map((page) => urlEntry(page.href)),
     ...postEntries.map((entry) => urlEntry(entry.loc, entry.lastmod)),
     '</urlset>',
     '',

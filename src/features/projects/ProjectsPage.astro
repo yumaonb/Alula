@@ -2,13 +2,13 @@
 // ProjectsPage.astro — 项目展示页
 // 用法：路由 /projects/
 import { Icon } from 'astro-icon/components';
-import { navItem } from '../../data/nav';
 
+import { getNavItem } from '../../lib/navigation';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectsGrid from './components/ProjectsGrid.svelte';
 
 // 页头标题图标与导航同源（src/data/nav.ts），页面不写死自己的路径
-const pageNav = navItem('projects');
+const pageNav = getNavItem('projects');
 ---
 
 <BaseLayout title="项目">

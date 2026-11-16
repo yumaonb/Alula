@@ -1,14 +1,21 @@
 ---
 // index.astro — 首页（头部 + 介绍 + 时钟 / 统计 / 一言）
 // 用法：路由 /
+import { Image } from 'astro:assets';
+
+import { Icon } from 'astro-icon/components';
+import { features } from 'virtual:site-features';
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Clock from '../components/widgets/Clock.svelte';
 import Quote from '../components/widgets/Quote.astro';
 import DaysCounter from '../components/widgets/DaysCounter.svelte';
-import { Icon } from 'astro-icon/components';
-import { Image } from 'astro:assets';
+import { nickname, motto, intro } from '../data/profile';
+import { getSocialLinks } from '../lib/social-links';
+
 import avatarImg from '../assets/images/avatar.png';
-import { nickname, motto, intro, socialLinks } from '../data/profile';
+
+const socialLinks = getSocialLinks(features);
 ---
 
 <BaseLayout title="首页">

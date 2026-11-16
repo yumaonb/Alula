@@ -1,15 +1,17 @@
 ---
 // NavBar.astro — 导航栏（桌面链接 + 移动端汉堡菜单）
 // 用法：<NavBar />（BaseLayout 引入）
-// 七个导航项来自唯一来源 src/data/nav.ts（桌面 / 手机共用，各界面页头标题图标也从这取）
+// 桌面与手机共用有效导航，名称和图标在 src/data/nav.ts 配置。
 import { Icon } from 'astro-icon/components';
+import { features } from 'virtual:site-features';
+
 import { site } from '../../data/site';
-import { navItems } from '../../data/nav';
+import { getNavItems } from '../../lib/navigation';
 import { navMatch } from '../../lib/nav-match';
 
 // is-active / aria-current 服务端渲染：下划线在首屏 HTML 里即可见，不依赖 JS；
 // 切页后由 nav-indicator.ts 在这块常驻导航上更新
-const items = navItems.map((item) => ({
+const items = getNavItems(features).map((item) => ({
   ...item,
   active: navMatch(item.href, Astro.url.pathname),
 }));

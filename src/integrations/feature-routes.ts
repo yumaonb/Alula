@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { FeatureConfig } from '../data/config';
-import { featureDefinitions, type FeatureKey } from '../data/feature-definitions';
+import { featureDefinitions, type FeatureKey } from '../lib/feature-definitions';
 import { featureAudit } from './feature-audit';
 import { featureAssets } from './feature-assets';
 import { featureEntries } from './feature-entries';
@@ -43,7 +43,9 @@ export function featureRoutesIntegration(
     hooks: {
       'astro:config:setup': ({ injectRoute, updateConfig, addWatchFile }) => {
         addWatchFile(new URL('../data/config.ts', import.meta.url));
-        addWatchFile(new URL('../data/feature-definitions.ts', import.meta.url));
+        addWatchFile(new URL('../lib/feature-definitions.ts', import.meta.url));
+        addWatchFile(new URL('../data/nav.ts', import.meta.url));
+        addWatchFile(new URL('../data/social-links.ts', import.meta.url));
         for (const route of routes) {
           const entrypoint = new URL(`../features/${route.entrypoint}`, import.meta.url);
           if (!existsSync(entrypoint))

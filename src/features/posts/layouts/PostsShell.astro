@@ -14,20 +14,21 @@
 // 左缘条（页头 / 面包屑）同理：显示实例在 BaseLayout 行级常驻盒 .posts-edge-float 的
 // 深克隆里（src/features/posts/scripts/edge-float.ts 切页后克隆换入），.posts-edge-slot 里的本体只留布局
 // 空间（浮层叠放测算、锚高度观察）+ 无 JS 回退显示，JS 接管后被 is-edge-live 隐掉。
-import { Icon } from 'astro-icon/components';
-import { navItem } from '../../../data/nav';
+import type { MarkdownHeading } from 'astro';
 
+import { Icon } from 'astro-icon/components';
+
+import { getNavItem } from '../../../lib/navigation';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import Breadcrumb from '../components/Breadcrumb.astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import PostCard from '../components/PostCard.astro';
-import type { MarkdownHeading } from 'astro';
-
 import type { BreadcrumbItem, PostItem } from '../lib/category';
+
 import '../styles/posts-listing.css';
 
 // 页头标题图标与导航同源（src/data/nav.ts），列表 / 分类 / 标签页都用「文章」条目
-const pageNav = navItem('posts');
+const pageNav = getNavItem('posts');
 
 interface Props {
   title: string;

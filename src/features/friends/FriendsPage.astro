@@ -2,13 +2,13 @@
 // FriendsPage.astro — 友情链接页面
 // 用法：路由 /friends/
 import { Icon } from 'astro-icon/components';
-import { navItem } from '../../data/nav';
 
+import { getNavItem } from '../../lib/navigation';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { friends } from '../../data/friends';
 
 // 页头标题图标与导航同源（src/data/nav.ts），页面不写死自己的路径
-const pageNav = navItem('friends');
+const pageNav = getNavItem('friends');
 ---
 
 <BaseLayout title="友情链接">
