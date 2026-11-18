@@ -1,0 +1,21 @@
+---
+// background.astro — 后台系统设置 · 全站背景（占位页）
+// 用法：路由 /admin/settings/background/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="全站背景">
+  <div class="admin-page" data-admin-page="settings-background" data-admin-title="全站背景">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">全站背景</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理全站背景（<code>src/data/background.ts</code>
+        ）：背景类型（CSS 绘制 / 图片）、预设文件名、压暗强度。该配置在构建「配置阶段」读取，
+        本地开发时改动需重启 <code>pnpm dev</code>，正式站点需提交并重新构建后生效。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

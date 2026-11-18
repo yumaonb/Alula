@@ -1,0 +1,20 @@
+---
+// site.astro — 后台网站信息 · 站点信息（占位页）
+// 用法：路由 /admin/info/site/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="站点信息">
+  <div class="admin-page" data-admin-page="info-site" data-admin-title="站点信息">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">站点信息</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理站点级设置（<code>src/data/site.ts</code>
+        ）：站点名称、域名与绝对地址、站点描述、页脚版权行、内容许可、页脚说明、语言。实现后，改动先进右下角待提交队列，提交并重新构建站点后生效。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

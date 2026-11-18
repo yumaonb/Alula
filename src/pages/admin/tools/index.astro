@@ -1,0 +1,20 @@
+---
+// index.astro — 后台工具管理（占位页）
+// 用法：路由 /admin/tools/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="工具管理">
+  <div class="admin-page" data-admin-page="tools" data-admin-title="工具管理">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">工具管理</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理实用工具数据（<code>src/data/tools.ts</code>
+        ）：按分类组织，每个分类含标题与工具列表（名称 / 描述 / 链接）。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

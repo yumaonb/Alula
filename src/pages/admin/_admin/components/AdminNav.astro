@@ -32,6 +32,37 @@ const items: NavItem[] = [
       { href: '/admin/categories/', label: '管理分类' },
     ],
   },
+  { href: '/admin/tools/', label: '工具管理', icon: 'mdi:wrench-outline' },
+  { href: '/admin/friends/', label: '友情链接', icon: 'mdi:link' },
+  {
+    label: '个人信息',
+    icon: 'mdi:account-circle-outline',
+    children: [
+      { href: '/admin/profile/base/', label: '基础信息' },
+      { href: '/admin/profile/social/', label: '联系与社交' },
+      { href: '/admin/profile/timeline/', label: '经历时间线' },
+      { href: '/admin/profile/techstack/', label: '技术栈' },
+    ],
+  },
+  {
+    label: '网站信息',
+    icon: 'mdi:web',
+    children: [
+      { href: '/admin/info/site/', label: '站点信息' },
+      { href: '/admin/info/sponsor/', label: '赞助信息' },
+      { href: '/admin/info/quotes/', label: '随机一言' },
+    ],
+  },
+  {
+    label: '系统设置',
+    icon: 'mdi:cog-outline',
+    children: [
+      { href: '/admin/settings/features/', label: '功能开关' },
+      { href: '/admin/settings/nav/', label: '导航设置' },
+      { href: '/admin/settings/background/', label: '全站背景' },
+      { href: '/admin/settings/integrations/', label: '第三方服务' },
+    ],
+  },
 ];
 
 const current = Astro.url.pathname.replace(/\/+$/, '') || '/admin';

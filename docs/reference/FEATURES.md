@@ -4,7 +4,7 @@
 
 ## 固定路由与可选入口
 
-`src/pages/index.astro`、`src/pages/404.astro` 与 `src/pages/admin/` 由 Astro 自动注册，任何功能组合都保留首页、前台 404 和五个后台页面。404 不设开关；后台和前台 404 不进入站点地图。
+`src/pages/index.astro`、`src/pages/404.astro` 与 `src/pages/admin/` 由 Astro 自动注册，任何功能组合都保留首页、前台 404 和十八个后台页面。404 不设开关；后台和前台 404 不进入站点地图。
 
 六个前台页面与两个端点由 `src/data/config.ts` 的 `features` 开关常量配置。修改开关后重启 `pnpm dev`，使路由与模块解析使用新配置。
 
@@ -100,7 +100,7 @@ llms 的导航与社交链接分别来自 `getNavItems(selectedFeatures)` 和 `g
 
 | 场景                | 配置与验证重点                                                                                        |
 | ------------------- | ----------------------------------------------------------------------------------------------------- |
-| `minimal-frontend`  | 六页面和两端点全关；首页、前台 404、五个后台页面，共 7 个 HTML                                        |
+| `minimal-frontend`  | 六页面和两端点全关；首页、前台 404、十八个后台页面，共 20 个 HTML                                     |
 | `without-posts`     | 仅文章页面关闭，其余五页面开启；sitemap 与 RSS 开关均为真，但 RSS 因文章关闭而不生成；后台与 404 保留 |
 | `without-endpoints` | 六页面全部开启，两端点关闭；所有页面继续生成，后台与 404 保留                                         |
 

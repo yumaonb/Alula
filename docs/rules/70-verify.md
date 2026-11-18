@@ -64,7 +64,7 @@ pnpm build
 
 ## 4. 核对页数
 
-功能开关或依赖边界改动的组合构建运行 `node tests/feature-build.mjs`，场景、独占锁、报告和产物核对见 `docs/reference/FEATURES.md`。下面的页数公式用于默认全开；首页、前台 404 和五个后台页构成固定的 7 页基数。
+功能开关或依赖边界改动的组合构建运行 `node tests/feature-build.mjs`，场景、独占锁、报告和产物核对见 `docs/reference/FEATURES.md`。下面的页数公式用于默认全开；首页、前台 404 和十八个后台页构成固定的 20 页基数。
 
 期望总页数 = **6**（首页 / 关于 / 友链 / 项目 / 赞助 / 工具）
 
@@ -73,7 +73,7 @@ pnpm build
 - **文章数**
 - **分类数**（含文章或 `index.json` 的目录，含中间层级）
 - **标签数**（去重）
-- **5**（后台页面始终保留：`/admin/`、`/admin/posts/list/`、`/admin/posts/edit/`、`/admin/categories/`、`/admin/404/`）
+- **18**（后台页面始终保留：完整清单见 `docs/reference/ARCHITECTURE.md` 的路由表）
 
 对上构建日志的总页数。页数变少通常是路由或内容集合出问题（例如内容集合 loader 配错、`getStaticPaths` 没返回条目），要立刻查：
 

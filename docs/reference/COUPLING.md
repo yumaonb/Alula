@@ -23,7 +23,7 @@
 | `src/features/posts/lib/category.ts`        | 文章域内由构建侧与浏览器侧共用的纯函数                                       | 塞构建期依赖炸客户端构建；塞浏览器 API 炸 frontmatter；逻辑错切页后才露 |
 | `src/data/site.ts`                          | 前台 7 处 + 后台 3 处共用，站点标题 / OG / RSS / 评论参数 / 后台设置全挂它   | 结构错构建期炸；取值错运行时静默                                        |
 | `src/features/posts/scripts/posts-shell.ts` | 文章区切页编排枢纽，四个子件都挂在它下面                                     | 全部 /posts 页的搜索框 / 左缘条 / 行状态同时错位                        |
-| `src/pages/admin/_admin/AdminLayout.astro`  | 后台自动路由共 5 页，始终经过该布局                                          | 后台 5 页全灭，不外溢前台                                               |
+| `src/pages/admin/_admin/AdminLayout.astro`  | 后台自动路由共 18 页，始终经过该布局                                         | 后台 18 页全灭，不外溢前台                                              |
 
 验证要求见 `AGENTS.md` 第 9、14 节；操作流程见 `docs/rules/70-verify.md` 与 `docs/reference/FEATURES.md`。
 

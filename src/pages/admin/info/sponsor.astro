@@ -1,0 +1,21 @@
+---
+// sponsor.astro — 后台网站信息 · 赞助信息（占位页）
+// 用法：路由 /admin/info/sponsor/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="赞助信息">
+  <div class="admin-page" data-admin-page="info-sponsor" data-admin-title="赞助信息">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">赞助信息</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理赞助页配置（<code>src/data/sponsor.ts</code>
+        ）：赞助平台入口（名称 / 链接 / 描述 / 图标）、赞助名单卡片、支持操作列表（如 Star
+        仓库、分享、收藏）。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

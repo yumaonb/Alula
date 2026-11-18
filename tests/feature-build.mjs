@@ -118,8 +118,21 @@ ${result.stdout?.slice(-5000)}`,
       '404.html',
       'admin/index.html',
       'admin/categories/index.html',
+      'admin/friends/index.html',
+      'admin/info/site/index.html',
+      'admin/info/sponsor/index.html',
+      'admin/info/quotes/index.html',
       'admin/posts/list/index.html',
       'admin/posts/edit/index.html',
+      'admin/profile/base/index.html',
+      'admin/profile/social/index.html',
+      'admin/profile/timeline/index.html',
+      'admin/profile/techstack/index.html',
+      'admin/settings/features/index.html',
+      'admin/settings/nav/index.html',
+      'admin/settings/background/index.html',
+      'admin/settings/integrations/index.html',
+      'admin/tools/index.html',
       'admin/404/index.html',
     ]) {
       assert.equal(existsSync(join(output, path)), true, `固定路由缺失：${path}`);
@@ -153,7 +166,7 @@ ${result.stdout?.slice(-5000)}`,
     }
     assert.match(readFileSync(join(output, 'robots.txt'), 'utf8'), /Disallow: [/]admin[/]/);
     const htmlFiles = outputFiles.filter((file) => file.endsWith('.html'));
-    if (scenario.name === 'minimal-frontend') assert.equal(htmlFiles.length, 7);
+    if (scenario.name === 'minimal-frontend') assert.equal(htmlFiles.length, 20);
     RESULTS.push({
       scenario: scenario.name,
       html: htmlFiles.length,

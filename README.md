@@ -38,7 +38,7 @@
 
 ## 功能配置
 
-前台可选页面、端点与关闭验证统一见 [功能开关说明](docs/reference/FEATURES.md)（`docs/reference/FEATURES.md`）。首页、前台 404 与五个后台页面始终保留，分别由 `src/pages/index.astro`、`src/pages/404.astro` 和 `src/pages/admin/` 自动路由。六个可选页面与两个端点在 `src/data/config.ts` 配置。
+前台可选页面、端点与关闭验证统一见 [功能开关说明](docs/reference/FEATURES.md)（`docs/reference/FEATURES.md`）。首页、前台 404 与十八个后台页面始终保留，分别由 `src/pages/index.astro`、`src/pages/404.astro` 和 `src/pages/admin/` 自动路由。六个可选页面与两个端点在 `src/data/config.ts` 配置。
 
 日常可编辑项集中在 `src/data/`，按内容查找即可：
 

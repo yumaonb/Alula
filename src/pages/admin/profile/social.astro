@@ -1,0 +1,20 @@
+---
+// social.astro — 后台个人信息 · 联系与社交（占位页）
+// 用法：路由 /admin/profile/social/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="联系与社交">
+  <div class="admin-page" data-admin-page="profile-social" data-admin-title="联系与社交">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">联系与社交</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理联系方式列表（<code>src/data/social-links.ts</code>
+        ）：每项的图标、名称、链接。RSS 由文章与订阅开关自动控制，无需手动添加。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

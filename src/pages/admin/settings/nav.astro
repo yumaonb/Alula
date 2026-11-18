@@ -1,0 +1,20 @@
+---
+// nav.astro — 后台系统设置 · 导航设置（占位页）
+// 用法：路由 /admin/settings/nav/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="导航设置">
+  <div class="admin-page" data-admin-page="settings-nav" data-admin-title="导航设置">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">导航设置</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理前台导航的名称、图标与显示顺序（<code>src/data/nav.ts</code>
+        ）。调整条目顺序即可调整导航顺序；导航地址由路由声明派生，不在此配置。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

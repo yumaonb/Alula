@@ -1,0 +1,21 @@
+---
+// integrations.astro — 后台系统设置 · 第三方服务（占位页）
+// 用法：路由 /admin/settings/integrations/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="第三方服务">
+  <div class="admin-page" data-admin-page="settings-integrations" data-admin-title="第三方服务">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">第三方服务</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理 GitHub 相关地址（<code>src/data/github.ts</code>
+        ）：giscus 评论数据仓库（换仓库时仓库名 / repo-id / category-id 三个必须一起换）、
+        项目列表拉取的账号、后台默认连接的仓库。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

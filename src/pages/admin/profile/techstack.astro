@@ -1,0 +1,20 @@
+---
+// techstack.astro — 后台个人信息 · 技术栈（占位页）
+// 用法：路由 /admin/profile/techstack/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="技术栈">
+  <div class="admin-page" data-admin-page="profile-techstack" data-admin-title="技术栈">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">技术栈</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理技术栈数据（<code>src/data/techstack.ts</code>
+        ）：按类别分组，每类含类别名与技术项列表。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

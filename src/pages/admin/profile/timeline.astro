@@ -1,0 +1,20 @@
+---
+// timeline.astro — 后台个人信息 · 经历时间线（占位页）
+// 用法：路由 /admin/profile/timeline/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="经历时间线">
+  <div class="admin-page" data-admin-page="profile-timeline" data-admin-title="经历时间线">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">经历时间线</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理关于页「历程」时间轴（<code>src/data/timeline.ts</code>
+        ）：每条经历的日期（YYYY-MM-DD）、标题、描述。条目顺序随意，页面按日期升序排列。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

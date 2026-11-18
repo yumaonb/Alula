@@ -1,0 +1,22 @@
+---
+// base.astro — 后台个人信息 · 基础信息（占位页）
+// 用法：路由 /admin/profile/base/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="基础信息">
+  <div class="admin-page" data-admin-page="profile-base" data-admin-title="基础信息">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">基础信息</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理个人信息（<code>src/data/profile.ts</code>
+        ）：昵称、座右铭、首页自我介绍（支持 HTML），以及数据统计卡片（
+        <code>src/data/dayscounter.ts</code>
+        ）：标签与起始日期。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

@@ -1,0 +1,20 @@
+---
+// quotes.astro — 后台网站信息 · 随机一言（占位页）
+// 用法：路由 /admin/info/quotes/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="随机一言">
+  <div class="admin-page" data-admin-page="info-quotes" data-admin-title="随机一言">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">随机一言</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理随机一言数据集（<code>src/data/quotes.ts</code>
+        ）：每条一言的内容、出处、作者。首页随机展示其中一条。
+      </p>
+    </section>
+  </div>
+</AdminLayout>

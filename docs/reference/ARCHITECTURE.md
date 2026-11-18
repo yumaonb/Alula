@@ -78,9 +78,22 @@ BlogData { meta, posts, allPosts, chronological, entries, categoryTree, tags, al
 | `/admin/posts/list/`                                     | `src/pages/admin/posts/list.astro`（文章列表）                                           |
 | `/admin/posts/edit/?path=...`                            | `src/pages/admin/posts/edit.astro`（编辑器）                                             |
 | `/admin/categories/`                                     | `src/pages/admin/categories.astro`（分类管理）                                           |
+| `/admin/settings/features/`                              | `src/pages/admin/settings/features.astro`（系统设置 · 功能开关，占位）                   |
+| `/admin/settings/nav/`                                   | `src/pages/admin/settings/nav.astro`（系统设置 · 导航设置，占位）                        |
+| `/admin/settings/background/`                            | `src/pages/admin/settings/background.astro`（系统设置 · 全站背景，占位）                 |
+| `/admin/settings/integrations/`                          | `src/pages/admin/settings/integrations.astro`（系统设置 · 第三方服务，占位）             |
+| `/admin/info/site/`                                      | `src/pages/admin/info/site.astro`（网站信息 · 站点信息，占位）                           |
+| `/admin/info/sponsor/`                                   | `src/pages/admin/info/sponsor.astro`（网站信息 · 赞助信息，占位）                        |
+| `/admin/info/quotes/`                                    | `src/pages/admin/info/quotes.astro`（网站信息 · 随机一言，占位）                         |
+| `/admin/profile/base/`                                   | `src/pages/admin/profile/base.astro`（个人信息 · 基础信息，占位）                        |
+| `/admin/profile/social/`                                 | `src/pages/admin/profile/social.astro`（个人信息 · 联系与社交，占位）                    |
+| `/admin/profile/timeline/`                               | `src/pages/admin/profile/timeline.astro`（个人信息 · 经历时间线，占位）                  |
+| `/admin/profile/techstack/`                              | `src/pages/admin/profile/techstack.astro`（个人信息 · 技术栈，占位）                     |
+| `/admin/friends/`                                        | `src/pages/admin/friends/index.astro`（友情链接，占位）                                  |
+| `/admin/tools/`                                          | `src/pages/admin/tools/index.astro`（工具管理，占位）                                    |
 | `/admin/404/`                                            | `src/pages/admin/404.astro`（后台 404，前台 404 的转发目标）                             |
 
-首页、前台 404 与后台页面由 Astro 自动注册：`src/pages/index.astro` 生成首页，`src/pages/404.astro` 生成前台 404，`src/pages/admin/` 生成全部五个后台页面，始终保留且不参加功能开关或路由注入；其余前台路由由 `src/integrations/feature-routes.ts` 按配置注入。`/admin/` 对应 `src/pages/admin/index.astro`，`/admin/posts/` 仅作前缀。后台本体在 `src/pages/admin/_admin/`，下划线目录不生成路由，其中的布局、组件、样式与脚本保持自包含；依赖边界见 `docs/reference/FEATURES.md`。
+首页、前台 404 与后台页面由 Astro 自动注册：`src/pages/index.astro` 生成首页，`src/pages/404.astro` 生成前台 404，`src/pages/admin/` 生成全部十八个后台页面，始终保留且不参加功能开关或路由注入；其余前台路由由 `src/integrations/feature-routes.ts` 按配置注入。`/admin/` 对应 `src/pages/admin/index.astro`，`/admin/posts/` 仅作前缀。后台本体在 `src/pages/admin/_admin/`，下划线目录不生成路由，其中的布局、组件、样式与脚本保持自包含；依赖边界见 `docs/reference/FEATURES.md`。
 
 `src/features/about/AboutPage.astro` 直接导入 `src/content/about.md` 作为组件渲染，不走文章集合。
 

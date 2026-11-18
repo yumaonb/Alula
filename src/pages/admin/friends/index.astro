@@ -1,0 +1,20 @@
+---
+// index.astro — 后台友情链接（占位页）
+// 用法：路由 /admin/friends/
+import AdminLayout from '../_admin/AdminLayout.astro';
+---
+
+<AdminLayout title="友情链接">
+  <div class="admin-page" data-admin-page="friends" data-admin-title="友情链接">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">友情链接</h2>
+        <span class="card-extra">建设中</span>
+      </div>
+      <p class="hint">
+        这一节将管理友情链接数据（<code>src/data/friends.ts</code>
+        ）：每条友链的名称、头像、描述、链接。
+      </p>
+    </section>
+  </div>
+</AdminLayout>
