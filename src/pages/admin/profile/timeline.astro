@@ -1,20 +1,38 @@
 ---
-// timeline.astro — 后台个人信息 · 经历时间线（占位页）
+// timeline.astro — 后台个人信息 · 经历时间线（结构化表单编辑 src/data/timeline.ts）
 // 用法：路由 /admin/profile/timeline/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="经历时间线">
   <div class="admin-page" data-admin-page="profile-timeline" data-admin-title="经历时间线">
-    <section class="card">
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
+      </p>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <section class="card admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">经历时间线</h2>
-        <span class="card-extra">建设中</span>
+        <span class="badge" id="admin-data-state">
+          未暂存
+        </span>
       </div>
       <p class="hint">
-        这一节将管理关于页「历程」时间轴（<code>src/data/timeline.ts</code>
-        ）：每条经历的日期（YYYY-MM-DD）、标题、描述。条目顺序随意，页面按日期升序排列。
+        关于页历程条目，条目顺序随意，站点按日期升序展示。改动提交并重新构建站点后生效。
       </p>
+      <div id="admin-data-form">
+        <p class="empty">连接 GitHub 后自动加载</p>
+      </div>
     </section>
   </div>
 </AdminLayout>

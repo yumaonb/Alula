@@ -1,20 +1,39 @@
 ---
-// social.astro — 后台个人信息 · 联系与社交（占位页）
+// social.astro — 后台个人信息 · 联系与社交（结构化表单编辑 src/data/social-links.ts）
 // 用法：路由 /admin/profile/social/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="联系与社交">
   <div class="admin-page" data-admin-page="profile-social" data-admin-title="联系与社交">
-    <section class="card">
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
+      </p>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <section class="card admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">联系与社交</h2>
-        <span class="card-extra">建设中</span>
+        <span class="badge" id="admin-data-state">
+          未暂存
+        </span>
       </div>
       <p class="hint">
-        这一节将管理联系方式列表（<code>src/data/social-links.ts</code>
-        ）：每项的图标、名称、链接。RSS 由文章与订阅开关自动控制，无需手动添加。
+        联系方式列表，顺序即显示顺序，可增删。RSS
+        由文章与订阅开关自动控制，不用手动添加。改动提交并重新构建站点后生效。
       </p>
+      <div id="admin-data-form">
+        <p class="empty">连接 GitHub 后自动加载</p>
+      </div>
     </section>
   </div>
 </AdminLayout>

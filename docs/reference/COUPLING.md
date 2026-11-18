@@ -36,4 +36,4 @@
 
 ## 后台 → 全站的唯一跨墙通道
 
-后台文章编辑器在运行时通过 GitHub API 直接改写 `src/content/posts/` 目录下的文章与各分类的 `index.json`（流程见 `docs/reference/ARCHITECTURE.md` 的「后台的数据流」节）。这是后台影响前台的唯一路径，也是唯一绕过本地验证的路径：经它改出的内容，在下次构建前必须过一次 `pnpm build`。
+后台在运行时通过 GitHub API 直接改写仓库文件（流程见 `docs/reference/ARCHITECTURE.md` 的「后台的数据流」节）：文章编辑器改 `src/content/posts/` 下的文章与各分类的 `index.json`，站点数据页以结构化表单改 `src/data/` 下的配置文件。这是后台影响前台的唯一路径，也是唯一绕过本地验证的路径：经它改出的内容，在下次构建前必须过一次 `pnpm build`。

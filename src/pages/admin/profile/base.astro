@@ -1,22 +1,54 @@
 ---
-// base.astro — 后台个人信息 · 基础信息（占位页）
+// base.astro — 后台个人信息 · 基础信息（结构化表单编辑 src/data/profile.ts 与 src/data/dayscounter.ts）
 // 用法：路由 /admin/profile/base/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="基础信息">
   <div class="admin-page" data-admin-page="profile-base" data-admin-title="基础信息">
-    <section class="card">
-      <div class="card-head">
-        <h2 class="card-title">基础信息</h2>
-        <span class="card-extra">建设中</span>
-      </div>
-      <p class="hint">
-        这一节将管理个人信息（<code>src/data/profile.ts</code>
-        ）：昵称、座右铭、首页自我介绍（支持 HTML），以及数据统计卡片（
-        <code>src/data/dayscounter.ts</code>
-        ）：标签与起始日期。
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
       </p>
-    </section>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <div class="admin-editor admin-needs-conn">
+      <div class="admin-editor-files">
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title">文件</h2>
+          </div>
+          <ul class="file-list" id="admin-data-files">
+            <li class="empty">连接后显示文件列表</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="admin-editor-main">
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title">基础信息</h2>
+            <span class="badge" id="admin-data-state">
+              未暂存
+            </span>
+          </div>
+          <p class="hint">
+            <code>profile.ts</code>：昵称、座右铭、首页自我介绍（支持 HTML）；
+            <code>dayscounter.ts</code>：统计卡片标签与起始日期。 改动提交并重新构建站点后生效。
+          </p>
+          <div id="admin-data-form">
+            <p class="empty">连接 GitHub 后自动加载</p>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 </AdminLayout>

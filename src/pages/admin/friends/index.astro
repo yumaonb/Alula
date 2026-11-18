@@ -1,20 +1,36 @@
 ---
-// index.astro — 后台友情链接（占位页）
+// index.astro — 后台友情链接（结构化表单编辑 src/data/friends.ts）
 // 用法：路由 /admin/friends/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="友情链接">
   <div class="admin-page" data-admin-page="friends" data-admin-title="友情链接">
-    <section class="card">
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
+      </p>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <section class="card admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">友情链接</h2>
-        <span class="card-extra">建设中</span>
+        <span class="badge" id="admin-data-state">
+          未暂存
+        </span>
       </div>
-      <p class="hint">
-        这一节将管理友情链接数据（<code>src/data/friends.ts</code>
-        ）：每条友链的名称、头像、描述、链接。
-      </p>
+      <p class="hint">友情链接列表，可增删，头像填完整图片地址。改动提交并重新构建站点后生效。</p>
+      <div id="admin-data-form">
+        <p class="empty">连接 GitHub 后自动加载</p>
+      </div>
     </section>
   </div>
 </AdminLayout>

@@ -1,21 +1,38 @@
 ---
-// sponsor.astro — 后台网站信息 · 赞助信息（占位页）
+// sponsor.astro — 后台网站信息 · 赞助信息（结构化表单编辑 src/data/sponsor.ts）
 // 用法：路由 /admin/info/sponsor/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="赞助信息">
   <div class="admin-page" data-admin-page="info-sponsor" data-admin-title="赞助信息">
-    <section class="card">
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
+      </p>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <section class="card admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">赞助信息</h2>
-        <span class="card-extra">建设中</span>
+        <span class="badge" id="admin-data-state">
+          未暂存
+        </span>
       </div>
       <p class="hint">
-        这一节将管理赞助页配置（<code>src/data/sponsor.ts</code>
-        ）：赞助平台入口（名称 / 链接 / 描述 / 图标）、赞助名单卡片、支持操作列表（如 Star
-        仓库、分享、收藏）。
+        主赞助入口、赞助名单入口与其它支持方式（可增删）。改动提交并重新构建站点后生效。
       </p>
+      <div id="admin-data-form">
+        <p class="empty">连接 GitHub 后自动加载</p>
+      </div>
     </section>
   </div>
 </AdminLayout>

@@ -1,21 +1,39 @@
 ---
-// features.astro — 后台系统设置 · 功能开关（占位页）
+// features.astro — 后台系统设置 · 功能开关（结构化表单编辑 src/data/config.ts）
 // 用法：路由 /admin/settings/features/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="功能开关">
   <div class="admin-page" data-admin-page="settings-features" data-admin-title="功能开关">
-    <section class="card">
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
+      </p>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <section class="card admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">功能开关</h2>
-        <span class="card-extra">建设中</span>
+        <span class="badge" id="admin-data-state">
+          未暂存
+        </span>
       </div>
       <p class="hint">
-        这一节将管理页面与端点的构建开关（<code>src/data/config.ts</code>
-        ）：关于 / 项目 / 文章 / 工具 / 友链 / 赞助六个页面开关，以及 sitemap / 文章 RSS
-        两个端点开关。开关在构建期生效，改动提交并重新构建站点后才会体现。
+        关于 / 项目 / 文章 / 工具 / 友链 / 赞助六个页面开关，sitemap / 文章 RSS 两个端点开关。
+        开关在构建期生效，提交并重新构建站点后才会体现。
       </p>
+      <div id="admin-data-form">
+        <p class="empty">连接 GitHub 后自动加载</p>
+      </div>
     </section>
   </div>
 </AdminLayout>

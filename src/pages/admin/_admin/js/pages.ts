@@ -1,10 +1,12 @@
-// pages.ts — 后台页面控制器（仪表盘 / 文章列表 / 文章编辑 / 分类管理）
+// pages.ts — 后台页面控制器（仪表盘 / 文章列表 / 文章编辑 / 分类管理 / 站点数据页）
 // 用法：由 AdminLayout 引入：import "./js/pages"
 // 模块只在首次加载求值一次；swup 换掉 #swup 里的内容后由 boot() 重新绑定当前页面。
 
+import { initDataForm } from './data-form';
+import { DATA_PAGE_SPECS } from './data-schemas';
 import {
+  formatError,
   getFileTextOrNull,
-  githubErrorMessage,
   listCategoryMeta,
   listPostFiles,
   type TreeEntry,
@@ -15,10 +17,6 @@ import { adminStore } from './store';
 const POSTS_PREFIX = 'src/content/posts/';
 
 type Cleanup = () => void;
-
-function formatError(err: unknown): string {
-  return githubErrorMessage(err) ?? (err instanceof Error ? err.message : '未知错误');
-}
 
 function byId<T extends HTMLElement>(id: string): T | null {
   return document.getElementById(id) as T | null;
@@ -432,6 +430,9 @@ function boot(): void {
   else if (name === 'posts') activeCleanup = initPostsList();
   else if (name === 'categories') activeCleanup = initCategories();
   else if (name === 'editor') activeCleanup = initEditor();
+  // 站点数据页（13 个）共用 data-form.ts 的结构化表单：
+  // 页面名在 data-schemas.ts 的 DATA_PAGE_SPECS 里有一条就按表单页分发
+  else if (name in DATA_PAGE_SPECS) activeCleanup = initDataForm(whenConnected);
 }
 
 document.addEventListener('astro:after-swap', boot);

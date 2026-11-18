@@ -1,20 +1,39 @@
 ---
-// site.astro — 后台网站信息 · 站点信息（占位页）
+// site.astro — 后台网站信息 · 站点信息（结构化表单编辑 src/data/site.ts）
 // 用法：路由 /admin/info/site/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="站点信息">
   <div class="admin-page" data-admin-page="info-site" data-admin-title="站点信息">
-    <section class="card">
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
+      </p>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <section class="card admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">站点信息</h2>
-        <span class="card-extra">建设中</span>
+        <span class="badge" id="admin-data-state">
+          未暂存
+        </span>
       </div>
       <p class="hint">
-        这一节将管理站点级设置（<code>src/data/site.ts</code>
-        ）：站点名称、域名与绝对地址、站点描述、页脚版权行、内容许可、页脚说明、语言。实现后，改动先进右下角待提交队列，提交并重新构建站点后生效。
+        站点名称、域名、描述、版权、内容许可与页脚。页脚版权与 RSS 版权必须同一句。
+        改动提交并重新构建站点后生效。
       </p>
+      <div id="admin-data-form">
+        <p class="empty">连接 GitHub 后自动加载</p>
+      </div>
     </section>
   </div>
 </AdminLayout>

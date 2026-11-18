@@ -39,6 +39,11 @@ export function githubErrorMessage(
   return err.message;
 }
 
+/** 通用错误文案：GitHubError 走状态码表，其余取 Error.message，最后兜底 */
+export function formatError(err: unknown): string {
+  return githubErrorMessage(err) ?? (err instanceof Error ? err.message : '未知错误');
+}
+
 interface RequestOptions {
   method?: string;
   body?: unknown;

@@ -63,35 +63,35 @@ BlogData { meta, posts, allPosts, chronological, entries, categoryTree, tags, al
 
 功能开关、关闭验证与共享依赖边界见 `docs/reference/FEATURES.md`。
 
-| URL                                                      | 文件                                                                                     |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `/`                                                      | `pages/index.astro`                                                                      |
-| `/about/` `/friends/` `/projects/` `/sponsor/` `/tools/` | 各功能页面入口见 `docs/reference/FEATURES.md`                                            |
-| `/posts/`                                                | `features/posts/pages/index.astro`                                                       |
-| `/posts/<分类路径>/`                                     | `features/posts/pages/[...slug].astro`（`type: 'category'`）                             |
-| `/posts/<分类路径>/<文件名>/`                            | `features/posts/pages/[...slug].astro`（`type: 'post'`）                                 |
-| `/posts/tag/<标签>/`                                     | `features/posts/pages/tag/[tag].astro`                                                   |
-| `/posts/rss.xml`                                         | `features/posts/endpoints/rss.xml.ts`（RSS 2.0 订阅源，不含隐藏文章）                    |
-| `/sitemap.xml`                                           | `features/sitemap/sitemap.xml.ts`（站点地图：顶层页 / 文章 / 分类 / 标签，不含隐藏文章） |
-| 不存在的路径（404）                                      | `pages/404.astro`（自定义 404 页，noindex；`/admin/` 下的路径整页转发到 `/admin/404/`）  |
-| `/admin/`                                                | `src/pages/admin/index.astro`（后台仪表盘）                                              |
-| `/admin/posts/list/`                                     | `src/pages/admin/posts/list.astro`（文章列表）                                           |
-| `/admin/posts/edit/?path=...`                            | `src/pages/admin/posts/edit.astro`（编辑器）                                             |
-| `/admin/categories/`                                     | `src/pages/admin/categories.astro`（分类管理）                                           |
-| `/admin/settings/features/`                              | `src/pages/admin/settings/features.astro`（系统设置 · 功能开关，占位）                   |
-| `/admin/settings/nav/`                                   | `src/pages/admin/settings/nav.astro`（系统设置 · 导航设置，占位）                        |
-| `/admin/settings/background/`                            | `src/pages/admin/settings/background.astro`（系统设置 · 全站背景，占位）                 |
-| `/admin/settings/integrations/`                          | `src/pages/admin/settings/integrations.astro`（系统设置 · 第三方服务，占位）             |
-| `/admin/info/site/`                                      | `src/pages/admin/info/site.astro`（网站信息 · 站点信息，占位）                           |
-| `/admin/info/sponsor/`                                   | `src/pages/admin/info/sponsor.astro`（网站信息 · 赞助信息，占位）                        |
-| `/admin/info/quotes/`                                    | `src/pages/admin/info/quotes.astro`（网站信息 · 随机一言，占位）                         |
-| `/admin/profile/base/`                                   | `src/pages/admin/profile/base.astro`（个人信息 · 基础信息，占位）                        |
-| `/admin/profile/social/`                                 | `src/pages/admin/profile/social.astro`（个人信息 · 联系与社交，占位）                    |
-| `/admin/profile/timeline/`                               | `src/pages/admin/profile/timeline.astro`（个人信息 · 经历时间线，占位）                  |
-| `/admin/profile/techstack/`                              | `src/pages/admin/profile/techstack.astro`（个人信息 · 技术栈，占位）                     |
-| `/admin/friends/`                                        | `src/pages/admin/friends/index.astro`（友情链接，占位）                                  |
-| `/admin/tools/`                                          | `src/pages/admin/tools/index.astro`（工具管理，占位）                                    |
-| `/admin/404/`                                            | `src/pages/admin/404.astro`（后台 404，前台 404 的转发目标）                             |
+| URL                                                      | 文件                                                                                                              |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `/`                                                      | `pages/index.astro`                                                                                               |
+| `/about/` `/friends/` `/projects/` `/sponsor/` `/tools/` | 各功能页面入口见 `docs/reference/FEATURES.md`                                                                     |
+| `/posts/`                                                | `features/posts/pages/index.astro`                                                                                |
+| `/posts/<分类路径>/`                                     | `features/posts/pages/[...slug].astro`（`type: 'category'`）                                                      |
+| `/posts/<分类路径>/<文件名>/`                            | `features/posts/pages/[...slug].astro`（`type: 'post'`）                                                          |
+| `/posts/tag/<标签>/`                                     | `features/posts/pages/tag/[tag].astro`                                                                            |
+| `/posts/rss.xml`                                         | `features/posts/endpoints/rss.xml.ts`（RSS 2.0 订阅源，不含隐藏文章）                                             |
+| `/sitemap.xml`                                           | `features/sitemap/sitemap.xml.ts`（站点地图：顶层页 / 文章 / 分类 / 标签，不含隐藏文章）                          |
+| 不存在的路径（404）                                      | `pages/404.astro`（自定义 404 页，noindex；`/admin/` 下的路径整页转发到 `/admin/404/`）                           |
+| `/admin/`                                                | `src/pages/admin/index.astro`（后台仪表盘）                                                                       |
+| `/admin/posts/list/`                                     | `src/pages/admin/posts/list.astro`（文章列表）                                                                    |
+| `/admin/posts/edit/?path=...`                            | `src/pages/admin/posts/edit.astro`（编辑器）                                                                      |
+| `/admin/categories/`                                     | `src/pages/admin/categories.astro`（分类管理）                                                                    |
+| `/admin/settings/features/`                              | `src/pages/admin/settings/features.astro`（系统设置 · 功能开关，结构化表单编辑 src/data/config.ts）               |
+| `/admin/settings/nav/`                                   | `src/pages/admin/settings/nav.astro`（系统设置 · 导航设置，结构化表单编辑 src/data/nav.ts）                       |
+| `/admin/settings/background/`                            | `src/pages/admin/settings/background.astro`（系统设置 · 全站背景，结构化表单编辑 src/data/background.ts）         |
+| `/admin/settings/integrations/`                          | `src/pages/admin/settings/integrations.astro`（系统设置 · 第三方服务，结构化表单编辑 src/data/github.ts）         |
+| `/admin/info/site/`                                      | `src/pages/admin/info/site.astro`（网站信息 · 站点信息，结构化表单编辑 src/data/site.ts）                         |
+| `/admin/info/sponsor/`                                   | `src/pages/admin/info/sponsor.astro`（网站信息 · 赞助信息，结构化表单编辑 src/data/sponsor.ts）                   |
+| `/admin/info/quotes/`                                    | `src/pages/admin/info/quotes.astro`（网站信息 · 随机一言，结构化表单编辑 src/data/quotes.ts）                     |
+| `/admin/profile/base/`                                   | `src/pages/admin/profile/base.astro`（个人信息 · 基础信息，结构化表单编辑 src/data/profile.ts 与 dayscounter.ts） |
+| `/admin/profile/social/`                                 | `src/pages/admin/profile/social.astro`（个人信息 · 联系与社交，结构化表单编辑 src/data/social-links.ts）          |
+| `/admin/profile/timeline/`                               | `src/pages/admin/profile/timeline.astro`（个人信息 · 经历时间线，结构化表单编辑 src/data/timeline.ts）            |
+| `/admin/profile/techstack/`                              | `src/pages/admin/profile/techstack.astro`（个人信息 · 技术栈，结构化表单编辑 src/data/techstack.ts）              |
+| `/admin/friends/`                                        | `src/pages/admin/friends/index.astro`（友情链接，结构化表单编辑 src/data/friends.ts）                             |
+| `/admin/tools/`                                          | `src/pages/admin/tools/index.astro`（工具管理，结构化表单编辑 src/data/tools.ts）                                 |
+| `/admin/404/`                                            | `src/pages/admin/404.astro`（后台 404，前台 404 的转发目标）                                                      |
 
 首页、前台 404 与后台页面由 Astro 自动注册：`src/pages/index.astro` 生成首页，`src/pages/404.astro` 生成前台 404，`src/pages/admin/` 生成全部十八个后台页面，始终保留且不参加功能开关或路由注入；其余前台路由由 `src/integrations/feature-routes.ts` 按配置注入。`/admin/` 对应 `src/pages/admin/index.astro`，`/admin/posts/` 仅作前缀。后台本体在 `src/pages/admin/_admin/`，下划线目录不生成路由，其中的布局、组件、样式与脚本保持自包含；依赖边界见 `docs/reference/FEATURES.md`。
 
@@ -198,14 +198,17 @@ motion 用法守两条约定：
 | `data/github.ts`                              | Svelte 组件                                                                                                                     | GitHub API 查询 + localStorage 缓存                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `src/assets/js/nav/shell-guard.ts`            | `BaseLayout` 直接加载                                                                                                           | 前台跨后台外壳时整页加载；后台外壳使用自己的 `src/pages/admin/_admin/js/shell-guard.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
-| `src/pages/admin/_admin/js/store.ts` | `src/pages/admin/_admin/js/shell.ts` · `src/pages/admin/_admin/js/pages.ts` · `AdminChanges` | 后台内存态：连接配置、登录身份、待提交队列、提交中标志；**不写任何浏览器存储** |
-| `src/pages/admin/_admin/js/github.ts` | `src/pages/admin/_admin/js/shell.ts` · `src/pages/admin/_admin/js/pages.ts` · `AdminChanges` | 后台 GitHub 客户端：读仓库/分支/文件，写走 Git Data API 一次性打包提交 |
+| `src/pages/admin/_admin/js/store.ts` | `src/pages/admin/_admin/js/shell.ts` · `src/pages/admin/_admin/js/pages.ts` · `src/pages/admin/_admin/js/data-form.ts` · `AdminChanges` | 后台内存态：连接配置、登录身份、待提交队列、提交中标志；**不写任何浏览器存储** |
+| `src/pages/admin/_admin/js/github.ts` | `src/pages/admin/_admin/js/shell.ts` · `src/pages/admin/_admin/js/pages.ts` · `src/pages/admin/_admin/js/data-form.ts` · `AdminChanges` | 后台 GitHub 客户端：读仓库/分支/文件，写走 Git Data API 一次性打包提交 |
 | `src/pages/admin/_admin/js/shell.ts` | `AdminLayout` | 后台外壳运行时：连接表单校验与提交、顶部提示、离开页拦截、侧栏二级菜单展开/收起（经自己的拷贝 `src/pages/admin/_admin/js/expand-collapse.ts` 编排，首帧后空闲预取 motion） |
-| `src/pages/admin/_admin/js/pages.ts` | `AdminLayout` | 后台页面控制器：按 `data-admin-page` 绑定仪表盘/列表/编辑器，`astro:after-swap` 后重绑 |
+| `src/pages/admin/_admin/js/pages.ts` | `AdminLayout` | 后台页面控制器：按 `data-admin-page` 分发各页（仪表盘 / 列表 / 编辑器 / 数据页），`astro:after-swap` 后重绑 |
+| `src/pages/admin/_admin/js/data-form.ts` | `src/pages/admin/_admin/js/pages.ts` | 站点数据页共用表单控制器：按 `data-schemas.ts` 的字段声明渲染开关 / 输入 / 可增删列表，经 `ts-literal.ts` 解析与写回，文件里未声明的字段原样保留，改动暂存进待提交队列 |
+| `src/pages/admin/_admin/js/data-schemas.ts` | `src/pages/admin/_admin/js/data-form.ts` · `src/pages/admin/_admin/js/pages.ts` | 13 个数据页的表单字段声明（页面 → 文件 → 字段）；页面名是否在其中同时决定 `boot()` 是否按表单页分发 |
+| `src/pages/admin/_admin/js/ts-literal.ts` | `src/pages/admin/_admin/js/data-form.ts` | TS 字面量解析 / 序列化：只认 `export const` 的字面量值，替换也只动那段字面量，表达式导出（如 `cacheTTL = 60 * 60 * 1000`）与文件其余内容不碰 |
 
 > 断点数值不设共享常量模块，直接写在用到的文件里（769 在 `nav/breakpoint.ts` / `src/features/posts/scripts/drawer.ts`，1150 / 768 / 850 在 `src/features/posts/scripts/swup-widgets.ts`），各自的注释标明要同改哪些 CSS 与组件。
 
-> 后台页面控制器新增一页时：在页面根元素上写 `data-admin-page="<名字>"`，再到 `src/pages/admin/_admin/js/pages.ts` 的 `boot()` 里加一个 `init<名字>()` 分支。侧栏高亮与二级菜单展开由 `syncNavActive()` 按 `data-nav-path` 与 `data-nav-accordion` 自动跟上，不需要改侧栏组件。
+> 后台页面控制器新增一页时：在页面根元素上写 `data-admin-page="<名字>"`，再到 `src/pages/admin/_admin/js/pages.ts` 的 `boot()` 里加一个 `init<名字>()` 分支；若是编辑 `src/data/` 下数据文件的页面，不用加分支——在 `src/pages/admin/_admin/js/data-schemas.ts` 的 `DATA_PAGE_SPECS` 里加一条（键 = 页面名，值 = 文件与字段声明），`boot()` 按 `name in DATA_PAGE_SPECS` 自动按表单页分发。侧栏高亮与二级菜单展开由 `syncNavActive()` 按 `data-nav-path` 与 `data-nav-accordion` 自动跟上，不需要改侧栏组件。
 
 > 可编辑设置与展示数据集中在 `src/data/`；内部路由声明位于 `src/lib/feature-definitions.ts`，导航与社交链接派生分别位于 `src/lib/navigation.ts`、`src/lib/social-links.ts`。页面与组件从 `virtual:site-features` 读取有效开关后调用纯函数，配置阶段插件传入 `selectedFeatures`。各文件职责、导航 URL 派生与 RSS 附加条件见 `docs/reference/FEATURES.md`「可编辑数据与派生逻辑」。
 > 个人介绍由 `src/data/profile.ts` 提供，联系方式配置由 `src/data/social-links.ts` 提供；首页与作者卡直接调用 `getSocialLinks(features)` 获取展示链接。
@@ -220,9 +223,9 @@ AdminToken 表单（owner/repo/branch/token）
         │  shell.ts 校验：GET /user + GET /repos/{owner}/{repo}
         ▼
 adminStore（模块级单例，只活在内存里）
-        │  pages.ts 读仓库 → 列出 / 读取 src/content/posts/**/*.md
+        │  pages.ts 读仓库 → 列出 / 读取 src/content/posts/**/*.md 与 src/data/*.ts
         ▼
-编辑器改内容 → adminStore.stage(path, content, original)   暂存队列（可跨页累积）
+编辑器 / 数据页改内容 → adminStore.stage(path, content, original)   暂存队列（可跨页累积）
         │  AdminChanges 面板点「提交」
         ▼
 src/pages/admin/_admin/js/github.ts commitStaged()
@@ -239,6 +242,7 @@ src/pages/admin/_admin/js/github.ts commitStaged()
 - 更新分支引用时 `force: false`：这期间有人推了新提交会返回 409，不会把别人的改动顶掉。
 - 中文内容用 `TextEncoder`/`TextDecoder` 走 base64，避免 `btoa` 的 Latin-1 限制导致乱码。
 - 提交期间 `adminStore.committing` 为真，暂存与撤销被拒绝，避免提交快照与队列不一致。
+- 站点数据页以结构化表单编辑 `src/data/` 配置：字段声明在 `src/pages/admin/_admin/js/data-schemas.ts`，表单控制器 `src/pages/admin/_admin/js/data-form.ts` 经 `src/pages/admin/_admin/js/ts-literal.ts` 解析远端文本、按表单值写回后暂存进同一队列；表单只改声明过的字段值，文件里未声明的内容原样保留，不提供删除文件。
 
 ### `window` 上的共享标记
 

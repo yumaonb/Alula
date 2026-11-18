@@ -1,20 +1,39 @@
 ---
-// quotes.astro — 后台网站信息 · 随机一言（占位页）
+// quotes.astro — 后台网站信息 · 随机一言（结构化表单编辑 src/data/quotes.ts）
 // 用法：路由 /admin/info/quotes/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="随机一言">
   <div class="admin-page" data-admin-page="info-quotes" data-admin-title="随机一言">
-    <section class="card">
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
+      </p>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <section class="card admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">随机一言</h2>
-        <span class="card-extra">建设中</span>
+        <span class="badge" id="admin-data-state">
+          未暂存
+        </span>
       </div>
       <p class="hint">
-        这一节将管理随机一言数据集（<code>src/data/quotes.ts</code>
-        ）：每条一言的内容、出处、作者。首页随机展示其中一条。
+        随机一言数据集，条目可增删；「名称」与「出处」可留空，留空后不显示来源。
+        首页随机展示其中一条，改动提交并重新构建站点后生效。
       </p>
+      <div id="admin-data-form">
+        <p class="empty">连接 GitHub 后自动加载</p>
+      </div>
     </section>
   </div>
 </AdminLayout>

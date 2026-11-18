@@ -283,16 +283,20 @@
 
 /* ---- 工作区 ---- */
 
-/* 桌面端侧栏：外壳的左侧一列，从顶到底顶满、贴死左边缘不留白。
+/* 桌面端侧栏：外壳的左侧一列，视口高、贴顶固定、贴死左边缘不留白。
  * 白底，右侧一条 1px 分隔线（inset -1px 0 0 画在侧栏自己的右内沿），
- * 顶边与顶栏底线对齐。 */
+ * 顶边与顶栏底线对齐。
+ * sticky + 视口高：正文再长，侧栏（含标题格）都不跟随页面滚动，
+ * 放不下的高度只在菜单列表里滚（见 .admin-nav-list），滚轮也只作用于鼠标所在的侧栏。 */
 .admin-nav {
+  position: sticky;
+  top: 0;
   display: flex;
   flex-direction: column;
   gap: 0;
   width: 200px;
   flex-shrink: 0;
-  align-self: stretch;
+  height: 100vh;
   /* 顶部不留内边距：顶部那格要从 0 开始，才能和顶栏同高、底边齐平 */
   padding: 0 0 14px;
   background: var(--surface);
@@ -370,12 +374,31 @@
   display: none;
 }
 
+/* 列表是侧栏内唯一的滚动容器：菜单放不下时只在这里滚，
+ * 标题格与「返回首页」钉在上下两端不动，页面也不被带着滚。 */
 .admin-nav-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   /* 侧栏本体顶部不留白（为了头部与顶栏齐平），间距挪到这里 */
   padding-top: 10px;
+  /* 滚动条隐藏（与 base.css 的 html/body 同款处理），滚动能力保留 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-nav-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* 子项不参与收缩：内容溢出时让列表去滚，
+ * 否则父菜单展开使总高超过窗口的一瞬，一级行会被负空间压扁、高度变小 */
+.admin-nav-list > .admin-nav-link,
+.admin-nav-list > .admin-nav-group {
+  flex-shrink: 0;
 }
 
 /* 导航项：左右顶满侧栏内沿的直角行。
@@ -609,6 +632,7 @@
  * 左内边距取 --nav-pad，和上面各项的文字列对齐；
  * 分隔线通到侧栏两边内沿（导航项已无左右外边距，这里跟着归零）。 */
 .admin-nav-back {
+  flex-shrink: 0;
   margin-top: auto;
   margin-right: 0;
   margin-left: 0;
@@ -927,6 +951,127 @@
   margin-top: 12px;
 }
 
+/* ---- 数据页表单 ----
+ * 数据页不是代码文本框，而是按字段声明渲染出来的表单：
+ * 容器是 #admin-data-form，下面这些类都由 data-form.ts 动态挂进去。 */
+
+.form-group {
+  margin-top: 16px;
+}
+
+.form-group:first-child {
+  margin-top: 0;
+}
+
+.form-group-title {
+  margin-bottom: 4px;
+  padding-left: 8px;
+  border-left: 3px solid var(--blue);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.form-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.form-list .empty {
+  padding: 8px;
+}
+
+.form-item {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg);
+}
+
+.form-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.form-item-title {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.field-toggle .field-label {
+  margin-bottom: 0;
+}
+
+.field-toggle .hint {
+  margin-top: 2px;
+}
+
+/* 开关：胶囊形，选中变蓝；滑块位移时长与悬停时长同令牌 */
+.switch {
+  appearance: none;
+  width: 34px;
+  height: 20px;
+  flex-shrink: 0;
+  margin: 0;
+  position: relative;
+  border-radius: 999px;
+  background: var(--border-strong);
+  cursor: pointer;
+  transition: background var(--t-hover);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
+  transition: transform var(--t-hover);
+}
+
+.switch:checked {
+  background: var(--blue);
+}
+
+.switch:checked::after {
+  transform: translateX(14px);
+}
+
+.switch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-halo);
+}
+
+.form-error {
+  padding: 10px 12px;
+  border: 1px solid var(--red);
+  border-radius: var(--radius-sm);
+  background: var(--red-soft);
+  font-size: 0.8rem;
+  color: var(--red);
+}
+
 /* ---- 顶部提示 ---- */
 
 .admin-toast {
@@ -1014,7 +1159,6 @@
     /* 顶部不留内边距：标题那格要从 y=0 起算，62px 的下边框才和顶栏底线重合 */
     padding: 0 12px 12px;
     flex-direction: column;
-    overflow-y: auto;
     box-shadow:
       var(--admin-shadow-drawer),
       inset -1px 0 0 var(--border);

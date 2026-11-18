@@ -1,20 +1,39 @@
 ---
-// nav.astro — 后台系统设置 · 导航设置（占位页）
+// nav.astro — 后台系统设置 · 导航设置（结构化表单编辑 src/data/nav.ts）
 // 用法：路由 /admin/settings/nav/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="导航设置">
   <div class="admin-page" data-admin-page="settings-nav" data-admin-title="导航设置">
-    <section class="card">
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
+      </p>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <section class="card admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">导航设置</h2>
-        <span class="card-extra">建设中</span>
+        <span class="badge" id="admin-data-state">
+          未暂存
+        </span>
       </div>
       <p class="hint">
-        这一节将管理前台导航的名称、图标与显示顺序（<code>src/data/nav.ts</code>
-        ）。调整条目顺序即可调整导航顺序；导航地址由路由声明派生，不在此配置。
+        只管导航条目的名称、图标与显示顺序：条目顺序即显示顺序，键名必须与功能开关一致。
+        导航地址由路由声明派生，不在此配置。
       </p>
+      <div id="admin-data-form">
+        <p class="empty">连接 GitHub 后自动加载</p>
+      </div>
     </section>
   </div>
 </AdminLayout>

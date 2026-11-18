@@ -1,20 +1,36 @@
 ---
-// techstack.astro — 后台个人信息 · 技术栈（占位页）
+// techstack.astro — 后台个人信息 · 技术栈（结构化表单编辑 src/data/techstack.ts）
 // 用法：路由 /admin/profile/techstack/
+import { Icon } from 'astro-icon/components';
+
 import AdminLayout from '../_admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="技术栈">
   <div class="admin-page" data-admin-page="profile-techstack" data-admin-title="技术栈">
-    <section class="card">
+    <div class="admin-gate">
+      <Icon is:inline name="mdi:lock-outline" class="admin-gate-icon" />
+      <p>
+        还没有连接 GitHub。
+        <br />
+        填好仓库与访问令牌后即可编辑站点数据。
+      </p>
+      <button class="btn btn--primary" data-conn-open type="button">
+        去连接
+      </button>
+    </div>
+
+    <section class="card admin-needs-conn">
       <div class="card-head">
         <h2 class="card-title">技术栈</h2>
-        <span class="card-extra">建设中</span>
+        <span class="badge" id="admin-data-state">
+          未暂存
+        </span>
       </div>
-      <p class="hint">
-        这一节将管理技术栈数据（<code>src/data/techstack.ts</code>
-        ）：按类别分组，每类含类别名与技术项列表。
-      </p>
+      <p class="hint">技术按类别分组，类别内的条目用逗号分隔。改动提交并重新构建站点后生效。</p>
+      <div id="admin-data-form">
+        <p class="empty">连接 GitHub 后自动加载</p>
+      </div>
     </section>
   </div>
 </AdminLayout>
