@@ -138,7 +138,8 @@ import avatarImg from '../../assets/images/avatar.png';
     flex-direction: column;
     min-width: 0;
     padding: 24px 26px;
-    overscroll-behavior: contain;
+    /* 卡片先滚自身，到达边界后继续滚动页面；菜单 / 抽屉的滚动锁仍显式持有 */
+    overscroll-behavior: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--hover-line) transparent;
   }
