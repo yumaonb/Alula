@@ -154,27 +154,6 @@ html.is-rendering
   animation: edge-blur-out var(--t-page-exit) forwards;
 }
 
-/* 正文容器覆盖通用进入动画以保留磨砂，透明度只在正文内部变化；效果统一后可撤掉覆盖。 */
-html.is-rendering #swup:has(.post-content) {
-  animation: page-enter-glass var(--t-page-enter);
-}
-
-html.is-rendering #swup .post-content-inner {
-  animation: page-content-enter var(--t-page-enter);
-}
-
-@keyframes page-content-enter {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes page-enter-glass {
-  from {
-    transform: translateY(var(--page-shift));
-  }
-}
-
 @keyframes edge-blur-out {
   to {
     filter: blur(var(--page-edge-blur));

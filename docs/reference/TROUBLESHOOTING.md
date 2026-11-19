@@ -166,14 +166,14 @@ if (!animatedElements.length) {
 
 ### 20.3 当前切页做法：整块位移 + 玻璃白底过渡 + 顶部进度条
 
-- swup 切页时所有页面的 `#swup` 下移渐隐；普通页面上移渐显，文章详情页进入时只上移、`.post-content-inner` 在玻璃框内渐显，让大框从首帧持续采样背景。
+- swup 切页时所有页面的 `#swup` 下移渐隐；全部前台页面进入时只上移、不做透明度渐显，玻璃与正文从首帧直接显示。文章详情页不再另设进入覆盖。
 - 行级侧栏 / 搜索框 / 左缘常驻盒（`#swup` 外）默认与整块挂同一组 `page-exit` / `page-enter`，规则上的 `:not(.is-transition-still)` 把本次应原地站住的元素摘出；仍标记由 `posts-shell.ts` 在 `swup:visit:start` 标、`visit:end` 摘除（源页按行变体判——变体在 `swup:content:replace` 同帧翻成目标页的——目标页按 URL 判）：区内切换（源页与目标页都在文章区）标侧栏与左缘常驻盒（页头 / 面包屑的显示实例），盒不位移、盒内车道（驱动条深克隆）等新页落地才变：`swup:content:replace` 后给旧车道标 `is-edge-out` 播渐模糊、播完换入新克隆再播去模糊（fetch 等待期旧车道保持可见），侧栏两种变体同位常驻、全程原地（见「切页转场」的 `src/features/posts/styles/shell.css` 块与 37 条）；列表页之间再标搜索框、全程原地不隐不显（只在列表 ↔ 详情之间才隐显）。
 - `#swup` 内 `.glass` 的 `backdrop-filter` 全程保留；玻璃仅渐变 `--page-veil` 白色填底。行级常驻玻璃保持原样。
 - 加载反馈是官方 `@swup/progress-plugin`（`astro.config.ts` 的 `progress: true` 启用）：页面顶部一条细白条，`visit:start` 起 300ms 延迟才出现；访问时长现在含转场动画（swup 等 `.transition-page` 播完才收尾，`page:view` 在其后），缓存快切也要 ≈0.3s，所以进度条几乎每次切页都会出现一瞬（预期）。
 - 进度条的默认样式（3px 黑条）由插件自己注入，高度与颜色在 `global.css` 覆盖（`body .swup-progress-bar`）。
 - 历史前进 / 后退（popstate）仍瞬时替换、无动画（swup 的 `animateHistoryBrowsing` 默认关闭）。
 
-**怎么确认**：`pnpm dev` 后从文章详情页切到列表或普通页：旧内容整块渐隐；进入文章详情页时正文渐显，大玻璃框从首帧起保持模糊。
+**怎么确认**：`pnpm dev` 后从文章详情页切到列表或普通页：旧内容整块渐隐；进入目标页时整块上移，目标页毛玻璃与内容从首帧直接显示。
 **挂 `.glass` 的玻璃（卡片 / 顶栏 / 后台）转场后仍保持模糊**（不会出现「切页那一下变透明、显完才恢复」）。
 
 ### 20.4 不成立的方案（别再犯）
@@ -317,7 +317,7 @@ if (!animatedElements.length) {
 
 ## 37. 切页转场：swup 的 html 类 + #swup 整块 CSS 动画
 
-- **现行口径**：`src/assets/css/global.css` 定义通用退出与进入动画；`src/features/posts/styles/shell.css` 处理文章进入时的正文渐显和玻璃保留。
+- **现行口径**：`src/assets/css/global.css` 定义所有前台界面共用的退出与进入动画；文章详情页不再覆盖进入动画，`src/features/posts/styles/shell.css` 只处理文章常驻件与左缘车道。
 - **为什么是 CSS 动画类**：swup 直接等待 `.transition-page` 的动画时长；页面替换或主线程短暂繁忙时，CSS 转场仍按文档时间线推进。
 - **常驻规则**（动切页路径前逐条过）：
   - 等待目标时长必须是真实值：减动效压到 0.01s 不写 `none` / `0s`（不等则控制台警告 + 转场被跳过，第 20.2 条）；后台无转场，0.01s 占位动画只为消警告（见 `src/pages/admin/_admin/css/base.css`）。

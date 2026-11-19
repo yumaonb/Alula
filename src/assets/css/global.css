@@ -191,7 +191,6 @@ html.is-rendering #swup .glass {
 
 @keyframes page-enter {
   from {
-    opacity: 0;
     transform: translateY(var(--page-shift));
   }
 }

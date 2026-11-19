@@ -78,7 +78,7 @@
   --t-hover: 0.2s ease;
 
   /* ---- 动效：页面转场（swup 切页） ----
-   * #swup 整块的下移（退出）/ 上移（进入），由 global.css 的 .transition-page
+   * #swup 整块的下移渐隐（退出）/ 上移（进入），由 global.css 的 .transition-page
    * 动画执行；行级侧栏 / 搜索框与区内切换的左缘条同曲线参与（见 global.css「切页转场」）。
    * 时长同时是 swup 的「等动画播完」目标（animationClass 机制按
    * animationDuration 计时）。减动效压到 0.01s 但不设 none / 0s：那样 swup 不等且
