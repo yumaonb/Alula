@@ -24,13 +24,12 @@ export const site: SiteConfig = {
   name: '羽毛的小屋',
   domain: 'ym.2v.nz',
   url: 'https://ym.2v.nz',
-  description: '羽毛的小屋',
+  description: '记录学习所见，分享技术笔记与项目经验。',
   footerCopyright: 'Copyright © 2026 羽毛. 内容采用 CC BY-NC-SA 4.0 许可',
   contentLicense: {
     name: 'CC BY-NC-SA 4.0',
     url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
   },
-  footerNote:
-    '由 <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> 和 <a href="https://svelte.dev" target="_blank" rel="noopener noreferrer">Svelte</a> 驱动',
+  footerNote: '由 <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> 和 <a href="https://svelte.dev" target="_blank" rel="noopener noreferrer">Svelte</a> 驱动',
   lang: 'zh-CN',
 };
