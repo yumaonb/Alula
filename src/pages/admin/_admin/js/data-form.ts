@@ -186,11 +186,19 @@ function renderListOrRecord(
   if (field.hint) wrap.appendChild(el('p', 'hint', field.hint));
   const list = el('div', 'form-list');
 
+  // value 是 path 所在位置的对象，字段值只再降一层
+  const fieldValue = getByPath(value, [field.key]);
   const items: Array<{ id: string | number; data: unknown }> =
     field.kind === 'list'
-      ? (Array.isArray(value) ? value : []).map((item, index) => ({ id: index, data: item }))
-      : value !== null && typeof value === 'object'
-        ? Object.entries(value as Record<string, unknown>).map(([k, v]) => ({ id: k, data: v }))
+      ? (Array.isArray(fieldValue) ? fieldValue : []).map((item, index) => ({
+          id: index,
+          data: item,
+        }))
+      : fieldValue !== null && typeof fieldValue === 'object'
+        ? Object.entries(fieldValue as Record<string, unknown>).map(([k, v]) => ({
+            id: k,
+            data: v,
+          }))
         : [];
 
   if (items.length === 0) list.appendChild(el('p', 'empty', '还没有条目'));
@@ -317,7 +325,8 @@ function renderScalar(
   host: RenderHost,
 ): void {
   const valuePath = [...path, field.key];
-  const current = getByPath(value, valuePath);
+  // value 已是 path 所在位置的对象；valuePath 只用于写回 file.working（根）
+  const current = getByPath(value, [field.key]);
 
   if (field.kind === 'toggle') {
     const wrap = el('div', 'field-toggle');
@@ -420,7 +429,8 @@ function renderFields(
     if (field.kind === 'group' || field.kind === 'object') {
       const box = el('div', 'form-group');
       if (field.title) box.appendChild(el('h4', 'form-group-title', field.title));
-      const sub = field.kind === 'object' ? getByPath(value, [...path, field.key]) : value;
+      // value 是 path 所在位置的对象，子对象只再降一层
+      const sub = field.kind === 'object' ? getByPath(value, [field.key]) : value;
       const subPath = field.kind === 'object' ? [...path, field.key] : path;
       renderFields(file, field.fields, sub ?? {}, subPath, box, host);
       container.appendChild(box);
