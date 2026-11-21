@@ -9,30 +9,68 @@ export interface TechCategory {
 export const techStack: TechCategory[] = [
   {
     category: '前端',
-    items: ['HTML', 'CSS', 'JavaScript', 'TypeScript', 'Vite', 'Svelte', 'Astro'],
+    items: [
+      'HTML',
+      'CSS',
+      'JavaScript',
+      'TypeScript',
+      'Vite',
+      'Vue',
+      'React',
+      'Svelte',
+      'Astro'
+    ],
   },
   {
     category: '后端',
-    items: ['Node.js', 'PHP', 'ThinkPHP'],
+    items: [
+      'Node.js',
+      'PHP',
+      'ThinkPHP'
+    ],
   },
   {
     category: '数据库',
-    items: ['MySQL', 'Redis'],
+    items: [
+      'MySQL',
+      'Redis'
+    ],
   },
   {
     category: '运维',
-    items: ['Linux', 'Nginx', '宝塔', '1Panel', 'Docker'],
+    items: [
+      'Linux',
+      'Nginx',
+      '宝塔',
+      '1Panel',
+      'Docker'
+    ],
   },
   {
     category: '脚本',
-    items: ['Shell'],
+    items: [
+      'Shell'
+    ],
   },
   {
     category: '工具',
-    items: ['Git', 'GitHub', 'node:test', 'pnpm', 'npm', 'Markdown'],
+    items: [
+      'Git',
+      'GitHub',
+      'node:test',
+      'pnpm',
+      'npm',
+      'Markdown'
+    ],
   },
   {
     category: 'AI工具',
-    items: ['Chat GPT（Codex）', 'Cursor', 'Claude Code', 'DeepSeek', 'Kimi'],
-  },
+    items: [
+      'Chat GPT（Codex）',
+      'Cursor',
+      'Claude Code',
+      'DeepSeek',
+      'Kimi'
+    ],
+  }
 ];
