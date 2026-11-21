@@ -5,6 +5,7 @@
 
   import { commitStaged } from '../js/github';
   import { adminStore, type StagedChange } from '../js/store';
+  import { toast } from '../js/toast';
 
   let connected = $state(false);
   let changes = $state<StagedChange[]>([]);
@@ -19,6 +20,14 @@
     if (change.original === null) return '新增';
     if (change.content === null) return '删除';
     return '修改';
+  }
+
+  function discardAll(): void {
+    const count = changes.length;
+    adminStore.discardAll();
+    if (count > 0 && adminStore.state.changes.length === 0) {
+      toast(`已丢弃全部 ${count} 个改动`);
+    }
   }
 
   async function submit(): Promise<void> {
@@ -36,6 +45,9 @@
       message = '';
       open = false;
       result = { ok: true, url: info.commitUrl, count: info.count };
+      toast(`已提交 ${info.count} 个文件`, 'ok', {
+        action: { label: '查看提交', href: info.commitUrl },
+      });
     } catch (err) {
       adminStore.setCommitting(false);
       result = { ok: false, text: err instanceof Error ? err.message : '提交失败' };
@@ -89,7 +101,7 @@
             bind:value={message}></textarea>
 
           <div class="admin-dock-actions">
-            <button class="btn" onclick={() => adminStore.discardAll()}>丢弃全部</button>
+            <button class="btn" onclick={() => discardAll()}>丢弃全部</button>
             <button class="btn btn--primary" disabled={busy} onclick={submit}>
               {busy ? '提交中…' : `一次提交 ${changes.length} 个文件`}
             </button>

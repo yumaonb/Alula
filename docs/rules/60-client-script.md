@@ -21,7 +21,7 @@
 
 ## 幂等标记清单
 
-已在用的标记（均已在 `src/env.d.ts` 声明）：`__tocInit`、`__postCatTreeBound`、`__postsShellInit`、`__alulaImageFallbackBound`、`__alulaLightboxBound`、`__alulaShellGuard`、`__adminShellInit`、`__navIndicatorInit`。新增标记要同步补声明。
+已在用的标记（均已在 `src/env.d.ts` 声明）：`__tocInit`、`__postCatTreeBound`、`__postsShellInit`、`__alulaImageFallbackBound`、`__alulaLightboxBound`、`__alulaShellGuard`、`__adminShellInit`、`__adminDirtyGuard`、`__navIndicatorInit`。新增标记要同步补声明。
 
 ## 跨模块共享状态细节
 

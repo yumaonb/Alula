@@ -68,11 +68,12 @@ const { title = '后台' } = Astro.props;
 
     <AdminChanges client:idle />
     <CustomScrollbar />
-    <div class="admin-toast" id="admin-toast" role="status" aria-live="polite"></div>
+    <div class="admin-toast-stack" id="admin-toast-stack" aria-live="polite"></div>
 
     <script>
       import './js/shell-guard';
       import './js/shell';
+      import './js/dirty-guard';
       import './js/pages';
     </script>
   </body>

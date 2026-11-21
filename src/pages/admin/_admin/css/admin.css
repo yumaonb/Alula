@@ -1072,38 +1072,154 @@
   color: var(--red);
 }
 
-/* ---- 顶部提示 ---- */
+/* ---- 顶部提示（堆叠队列：新提示排在下边、最旧的最先消失，悬停/聚焦暂停） ---- */
 
-.admin-toast {
+.admin-toast-stack {
   position: fixed;
   top: 74px;
-  left: 50%;
+  /* 右边距与右下角 dock 的 20px 同值 */
+  right: 20px;
   z-index: 200;
-  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  /* 统一固定宽：所有提示同宽，长短文案不再互相牵动栈宽；窄屏让位给视口 */
+  width: 300px;
+  max-width: calc(100vw - 40px);
+  pointer-events: none;
+}
+
+/* 外层只做 JS 驱动的出入场（高度展开收起、淡出、间距收拢），视觉卡片在 body 上 */
+.admin-toast {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 8px;
+  pointer-events: auto;
+  transition:
+    height var(--t-toast),
+    opacity var(--t-toast),
+    transform var(--t-toast),
+    margin-bottom var(--t-toast);
+  animation: admin-toast-in var(--t-toast) ease;
+}
+
+/* 退场：高度由 JS 钉住后再置 0 走上面的 transition，同时整条滑出到右侧屏外 */
+.admin-toast.is-leaving {
+  opacity: 0;
+  /* 100% 是本条宽度（= 栈的固定宽），加 24px 保证完全出屏 */
+  transform: translateX(calc(100% + 24px));
+  margin-bottom: 0;
+}
+
+.admin-toast-body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
   box-shadow: var(--admin-shadow);
   font-size: 0.8rem;
   color: var(--ink);
-  opacity: 0;
-  transform: translate(-50%, -8px);
-  pointer-events: none;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
 }
 
-.admin-toast.is-visible {
-  opacity: 1;
-  transform: translate(-50%, 0);
+/* 入场：整条从右侧屏外滑进；transform 移动的是整个外框，自身 overflow 裁剪不受影响 */
+@keyframes admin-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(100% + 24px));
+  }
 }
 
-/* 错误提示：红字 + 红描边 + 加粗，和正常提示区分 */
-.admin-toast.is-error {
+.admin-toast-ico {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--blue);
+}
+
+.admin-toast-ico svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.admin-toast-text {
+  min-width: 0;
+  line-height: 1.5;
+}
+
+/* 尾部操作（如「查看提交」）：钉在右侧，新标签打开（target 由 JS 写） */
+.admin-toast-action {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.admin-toast-action:hover,
+.admin-toast-action:focus-visible {
+  color: var(--blue-strong);
+  text-decoration: underline;
+}
+
+/* 进度条按停留时长走到头（时长由 JS 写内联），贴着卡片底边、随圆角裁切 */
+.admin-toast-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--blue);
+  transform-origin: left center;
+  animation: admin-toast-progress linear forwards;
+}
+
+@keyframes admin-toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* 悬停/聚焦暂停：JS 挂类，进度条原地冻住 */
+.admin-toast.is-paused .admin-toast-bar {
+  animation-play-state: paused;
+}
+
+/* 错误提示：红描边 + 红图标 + 红字加粗 + 红进度条，和正常提示区分 */
+.admin-toast.is-error .admin-toast-body {
   border-color: var(--red);
+}
+
+.admin-toast.is-error .admin-toast-ico {
+  color: var(--red);
+}
+
+.admin-toast.is-error .admin-toast-text {
   color: var(--red);
   font-weight: 600;
+}
+
+.admin-toast.is-error .admin-toast-bar {
+  background: var(--red);
+}
+
+/* 减少动态偏好：出入场与位移直接落位，进度条保留（它是剩余时间的功能信息） */
+@media (prefers-reduced-motion: reduce) {
+  .admin-toast,
+  .admin-toast-body {
+    transition: none;
+    animation: none;
+  }
 }
 
 /* ---- 手机端 ----

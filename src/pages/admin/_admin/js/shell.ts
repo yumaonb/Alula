@@ -1,4 +1,4 @@
-// shell.ts — 后台外壳运行时（连接弹窗 / 仓库状态 / 顶部提示）
+// shell.ts — 后台外壳运行时（连接弹窗 / 仓库状态）
 // 用法：由 AdminLayout 引入：import "./js/shell"
 //
 // 外壳在 #swup 容器之外，swup 切页不会碰它，所以连接状态与表单里填到一半的密钥
@@ -16,21 +16,9 @@ import {
 import { adminStore } from './store';
 import { toggleGroup } from './expand-collapse';
 import { preloadMotion } from './motion';
+import { toast } from './toast';
 
 const shell = document.getElementById('admin-shell');
-
-/** 顶部提示：3 秒后自动淡出，新的提示会顶掉旧的 */
-export function toast(text: string, kind: 'ok' | 'error' = 'ok'): void {
-  const el = document.getElementById('admin-toast');
-  if (!el) return;
-  el.textContent = text;
-  el.className = `admin-toast is-visible is-${kind}`;
-  window.clearTimeout(Number(el.dataset.timer || 0));
-  const timer = window.setTimeout(() => {
-    el.className = 'admin-toast';
-  }, 3000);
-  el.dataset.timer = String(timer);
-}
 
 export function setText(id: string, text: string): void {
   const el = document.getElementById(id);
@@ -402,12 +390,6 @@ export function initShell(): void {
     if (e.key !== 'Escape') return;
     if (isPanelOpen()) setPanel(false);
     else if (isDrawerOpen()) setDrawer(false);
-  });
-
-  // 有未提交的改动时拦一下刷新/关页（现代浏览器只认 preventDefault）
-  window.addEventListener('beforeunload', (e) => {
-    if (adminStore.state.changes.length === 0) return;
-    e.preventDefault();
   });
 }
 

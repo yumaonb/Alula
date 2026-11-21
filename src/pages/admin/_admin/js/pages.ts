@@ -3,6 +3,7 @@
 // 模块只在首次加载求值一次；swup 换掉 #swup 里的内容后由 boot() 重新绑定当前页面。
 
 import { initDataForm } from './data-form';
+import { retakeBaseline } from './dirty-guard';
 import { DATA_PAGE_SPECS } from './data-schemas';
 import {
   formatError,
@@ -11,8 +12,9 @@ import {
   listPostFiles,
   type TreeEntry,
 } from './github';
-import { renderHead, renderRateLimit, setAccordion, setNavActive, setText, toast } from './shell';
+import { renderHead, renderRateLimit, setAccordion, setNavActive, setText } from './shell';
 import { adminStore } from './store';
+import { toast } from './toast';
 
 const POSTS_PREFIX = 'src/content/posts/';
 
@@ -291,8 +293,11 @@ function initEditor(): Cleanup {
 
   async function openFile(path: string): Promise<void> {
     if (!textarea) return;
-    if (isCurrentDirty() && !window.confirm('当前文件有未暂存的修改，继续会丢弃它们，确定？')) {
-      return;
+    if (isCurrentDirty()) {
+      if (!window.confirm('当前文件有未暂存的修改，继续会丢弃它们，确定？')) {
+        return;
+      }
+      toast('已丢弃未暂存的修改');
     }
     currentPath = path;
 
@@ -307,6 +312,8 @@ function initEditor(): Cleanup {
       textarea.value = remote?.text ?? '';
     }
 
+    // 程序化装文不算用户修改：基线跟着推进，没动笔时离开不拦
+    retakeBaseline();
     setText('admin-editor-path', path);
     refreshChip();
     refreshLines();
@@ -319,8 +326,24 @@ function initEditor(): Cleanup {
       toast('先在左侧选一个文件', 'error');
       return;
     }
+    const staged = adminStore.changeOf(currentPath);
+    const baseline = staged ? staged.content : (original ?? '');
+    if (textarea.value === baseline) {
+      toast('没有检测到改动，不用暂存');
+      return;
+    }
+    if (staged && textarea.value === staged.original) {
+      // 改回原文时 stage 会撤销暂存，提示得跟实际结果一致
+      adminStore.stage(currentPath, textarea.value, original);
+      toast('内容已改回原文，暂存已取消');
+      retakeBaseline();
+      refreshChip();
+      renderFiles();
+      return;
+    }
     adminStore.stage(currentPath, textarea.value, original);
     toast('已暂存，记得在右下角一次性提交');
+    retakeBaseline();
     refreshChip();
     renderFiles();
   }
@@ -333,6 +356,7 @@ function initEditor(): Cleanup {
     }
     adminStore.stage(currentPath, null, original);
     toast('已暂存删除');
+    retakeBaseline();
     refreshChip();
     renderFiles();
   }
@@ -361,7 +385,6 @@ function initEditor(): Cleanup {
   });
 
   cleanups.push(adminStore.subscribe(() => refreshChip()));
-
   cleanups.push(
     whenConnected(async () => {
       files = await listPostFiles(adminStore.state.config.branch);

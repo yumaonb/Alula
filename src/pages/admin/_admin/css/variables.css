@@ -54,6 +54,8 @@
   --radius-sm: 6px;
   /* 悬停提亮过渡时长（含缓动） */
   --t-hover: 0.2s ease;
+  /* 提示出入场时长（只放时长，不带缓动：animation 短写已自带 ease，重复缓动会让整条声明失效；与 toast.ts 的 MOTION_MS 两处须同改） */
+  --t-toast: 0.24s;
   /* 桌面端页面左右留白（自定义滚动条的悬停区宽度同值） */
   --page-gutter: 56px;
 

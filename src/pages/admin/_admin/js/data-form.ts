@@ -8,8 +8,9 @@
 import { DATA_PAGE_SPECS, type DataField, type DataFileSpec } from './data-schemas';
 import { deepEqual, extractExport, replaceLiteral } from './ts-literal';
 import { getFileTextOrNull } from './github';
-import { toast } from './shell';
+import { retakeBaseline } from './dirty-guard';
 import { adminStore } from './store';
+import { toast } from './toast';
 
 /** 连接生命周期：连上后跑一次、断开再连会重跑，由 pages.ts 注入共用同一实现 */
 type WhenConnected = (run: () => Promise<void>) => () => void;
@@ -506,12 +507,11 @@ export function initDataForm(whenConnected: WhenConnected): () => void {
       button.className = 'file-link';
       button.textContent = f.spec.title;
       button.addEventListener('click', () => {
-        if (
-          index !== current &&
-          isFileDirty(files[current]) &&
-          !window.confirm('当前文件有未暂存的修改，切换会丢弃它们，确定？')
-        ) {
-          return;
+        if (index !== current && isFileDirty(files[current])) {
+          if (!window.confirm('当前文件有未暂存的修改，切换会丢弃它们，确定？')) {
+            return;
+          }
+          toast('已丢弃未暂存的修改');
         }
         current = index;
         render();
@@ -598,6 +598,10 @@ export function initDataForm(whenConnected: WhenConnected): () => void {
       toast('表单还没加载出来，连接 GitHub 后稍等片刻', 'error');
       return;
     }
+    if (!isFileDirty(f)) {
+      toast('没有检测到改动，不用暂存');
+      return;
+    }
     for (const { name, field } of exportEntries(f.spec.schema)) {
       const value = f.working[name];
       if (field.kind === 'record' && !recordKeysOk(value)) {
@@ -625,6 +629,8 @@ export function initDataForm(whenConnected: WhenConnected): () => void {
     f.original = structuredClone(f.working);
     toast('已暂存，记得在右下角一次性提交');
     render();
+    // 暂存成功后重拍基线，表单立刻回到「未暂存」
+    retakeBaseline();
   }
 
   function onKeydown(e: KeyboardEvent): void {
@@ -637,7 +643,6 @@ export function initDataForm(whenConnected: WhenConnected): () => void {
   document.addEventListener('keydown', onKeydown);
   cleanups.push(() => document.removeEventListener('keydown', onKeydown));
   cleanups.push(adminStore.subscribe(refreshStateUi));
-
   cleanups.push(
     whenConnected(async () => {
       files = await Promise.all(page.files.map(loadFile));

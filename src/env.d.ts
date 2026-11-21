@@ -56,6 +56,8 @@ interface Window {
   __alulaImageFallbackBound?: boolean;
   /** shell.ts 的幂等守卫 */
   __adminShellInit?: boolean;
+  /** dirty-guard.ts 的幂等守卫 */
+  __adminDirtyGuard?: boolean;
   /** shell-guard.ts 的幂等守卫 */
   __alulaShellGuard?: boolean;
   /** nav-indicator.ts 的幂等守卫 */

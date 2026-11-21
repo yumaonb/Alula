@@ -31,6 +31,7 @@ import AdminLayout from '../_admin/AdminLayout.astro';
           type="text"
           placeholder="分类/文件名.md，例如 devnotes/notes/vite.md"
           autocomplete="off"
+          data-no-dirty
         />
         <a class="btn link-plain" id="admin-new-open" href="/admin/posts/edit/">
           打开编辑
@@ -53,6 +54,7 @@ import AdminLayout from '../_admin/AdminLayout.astro';
           type="search"
           placeholder="按路径筛选…"
           autocomplete="off"
+          data-no-dirty
         />
       </div>
       <ul class="file-list" id="admin-posts-list">
